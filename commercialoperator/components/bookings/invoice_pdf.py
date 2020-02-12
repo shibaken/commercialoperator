@@ -20,9 +20,9 @@ from django.conf import settings
 from ledger.checkout.utils import calculate_excl_gst
 from commercialoperator.components.main.utils import to_local_tz
 
-DPAW_HEADER_LOGO = os.path.join(settings.BASE_DIR, 'ledger', 'payments','static', 'payments', 'img','dbca_logo.jpg')
-DPAW_HEADER_LOGO_SM = os.path.join(settings.BASE_DIR, 'ledger', 'payments','static', 'payments', 'img','dbca_logo_small.png')
-BPAY_LOGO = os.path.join(settings.BASE_DIR, 'ledger', 'payments','static', 'payments', 'img', 'BPAY_2012_PORT_BLUE.png')
+DPAW_HEADER_LOGO = os.path.join(settings.PROJECT_DIR, 'payments','static', 'payments', 'img','dbca_logo.jpg')
+DPAW_HEADER_LOGO_SM = os.path.join(settings.PROJECT_DIR, 'payments','static', 'payments', 'img','dbca_logo_small.png')
+BPAY_LOGO = os.path.join(settings.PROJECT_DIR, 'payments','static', 'payments', 'img', 'BPAY_2012_PORT_BLUE.png')
 
 HEADER_MARGIN = 10
 HEADER_SMALL_BUFFER = 3
@@ -260,7 +260,7 @@ def _create_invoice(invoice_buffer, invoice, proposal):
 #        DPAW_HEADER_LOGO = os.path.join(settings.BASE_DIR, 'mooring', 'static', 'mooring', 'img','logo-rottnest-island-sm.png')
 #    else:
 #        DPAW_HEADER_LOGO = os.path.join(settings.BASE_DIR, 'ledger', 'payments','static', 'payments', 'img','dbca_logo.jpg')
-    DPAW_HEADER_LOGO = os.path.join(settings.BASE_DIR, 'ledger', 'payments','static', 'payments', 'img','dbca_logo.jpg')
+    DPAW_HEADER_LOGO = os.path.join(settings.PROJECT_DIR, 'payments','static', 'payments', 'img','dbca_logo.jpg')
 
     every_page_frame = Frame(PAGE_MARGIN, PAGE_MARGIN + 250, PAGE_WIDTH - 2 * PAGE_MARGIN,
                              PAGE_HEIGHT -450 , id='EveryPagesFrame',showBoundary=0)
