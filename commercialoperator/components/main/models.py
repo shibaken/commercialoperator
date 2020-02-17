@@ -240,6 +240,10 @@ class ApplicationType(models.Model):
     for park in Park.objects.all().order_by('id'):
         ParkPrice.objects.create(park=park, adult=10.0, child=7.50, senior=5.00)
     """
+    TCLASS = 'T Class'
+    ECLASS = 'E Class'
+    FILMING = 'Filming'
+    EVENT = 'Event'
     name = models.CharField(max_length=64, unique=True)
     order = models.PositiveSmallIntegerField(default=0)
     visible = models.BooleanField(default=True)

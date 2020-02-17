@@ -487,6 +487,7 @@ class ProposalSubmitViewSet(viewsets.ModelViewSet):
     @renderer_classes((JSONRenderer,))
     def submit(self, request, *args, **kwargs):
         try:
+            import ipdb; ipdb.set_trace()
             instance = self.get_object()
             #instance.submit(request,self)
             #instance.save()
@@ -1589,14 +1590,29 @@ class ProposalViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             #serializer.save()
             instance=serializer.save()
-            #Create ProposalOtherDetails instance for T Class licence
-            if application_name=='T Class':
+            #Create ProposalOtherDetails instance for T Class/Filming/Event licence
+            if application_name==ApplicationType.TCLASS:
                 other_details_data={
-                'proposal': instance.id
+                    'proposal': instance.id
                 }
                 serializer=SaveProposalOtherDetailsSerializer(data=other_details_data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
+            elif application_name==ApplicationType.FILMING:
+                other_details_data={
+                    'proposal': instance.id
+                }
+                serializer=SaveProposalOtherDetailsFilmingSerializer(data=other_details_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+            elif application_name==ApplicationType.EVENT:
+                other_details_data={
+                    'proposal': instance.id
+                }
+                serializer=SaveProposalOtherDetailsEventSerializer(data=other_details_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
             serializer = SaveProposalSerializer(instance)
             return Response(serializer.data)
         except Exception as e:

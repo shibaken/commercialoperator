@@ -1,6 +1,6 @@
 <template lang="html">
     <div>
-        <div class="col-md-3" >
+        <!-- <div class="col-md-3" >
             <div class="panel panel-default fixed">
               <div class="panel-heading">
                 <h5>Sections</h5>
@@ -11,9 +11,9 @@
                   </ul>
               </div>
             </div>
-        </div>
+        </div> -->
 
-        <div class="col-md-9">
+        <div class="col-md-12">
             <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
               <li class="nav-item">
                 <a class="nav-link active" id="pills-applicant-tab" data-toggle="pill" href="#pills-applicant" role="tab" aria-controls="pills-applicant" aria-selected="true">
@@ -40,27 +40,32 @@
                   5. Other Details
                 </a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link" id="pills-online-training-tab" data-toggle="pill" href="#pills-online-training" role="tab" aria-controls="pills-online-training" aria-selected="false">
-                  6. Online Training
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" id="pills-payment-tab" data-toggle="pill" href="#pills-payment" role="tab" aria-controls="pills-payment" aria-selected="false">
-                  7. Payment
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" id="pills-confirm-tab" data-toggle="pill" href="#pills-confirm" role="tab" aria-controls="pills-confirm" aria-selected="false">
-                  8. Confirmation
+              <li v-if="is_external" class="nav-item" id="li-confirm">
+                <a class="nav-link disabled" id="pills-confirm-tab" data-toggle="pill" href="" role="tab" aria-controls="pills-confirm" aria-selected="false">
+                  6. Confirmation
                 </a>
               </li>
 
             </ul>
             <div class="tab-content" id="pills-tabContent">
-              <div class="tab-pane fade show active" id="pills-applicant" role="tabpanel" aria-labelledby="pills-applicant-tab"> 
-                <Applicant :proposal="proposal" id="proposalStartApplicant"></Applicant>
+
+              <div class="tab-pane fade" id="pills-applicant" role="tabpanel" aria-labelledby="pills-applicant-tab">
+                  <div v-if="is_external">
+                    <Profile :isApplication="true" v-if="applicantType == 'SUB'" ref="profile"></Profile>
+              
+                    <Organisation :org_id="proposal.org_applicant" :isApplication="true" v-if="applicantType == 'ORG'" ref="organisation"></Organisation> 
+                  </div>
+                  <div v-else>
+                    <Applicant :proposal="proposal" id="proposalStartApplicant"></Applicant>
+                    <div v-if="is_internal">
+                      <Assessment :proposal="proposal" :assessment="proposal.assessor_assessment" :hasAssessorMode="hasAssessorMode" :is_internal="is_internal" :is_referral="is_referral"></Assessment>
+                      <div v-for="assess in proposal.referral_assessments">
+                        <Assessment :proposal="proposal" :assessment="assess"></Assessment>
+                      </div>
+                    </div>
+                  </div>
               </div>
+
               <div class="tab-pane fade" id="pills-activity" role="tabpanel" aria-labelledby="pills-activity-tab">
                 <Activity :proposal="proposal" id="proposalStartActivity"></Activity>
               </div>
@@ -73,12 +78,6 @@
               <div class="tab-pane fade" id="pills-other-details" role="tabpanel" aria-labelledby="pills-other-details-tab">
                 <OtherDetails :proposal="proposal" id="proposalStartOtherDetails"></OtherDetails>
               </div>
-              <div class="tab-pane fade" id="pills-online-training" role="tabpanel" aria-labelledby="pills-online-training-tab">
-                <OnlineTraining :proposal="proposal" id="proposalStartOnlineTraining"></OnlineTraining>
-              </div>
-              <div class="tab-pane fade" id="pills-payment" role="tabpanel" aria-labelledby="pills-payment-tab">
-                <Payment :proposal="proposal" id="proposalStartPayment"></Payment>
-              </div>
               <div class="tab-pane fade" id="pills-confirm" role="tabpanel" aria-labelledby="pills-confirm-tab">
                 <Confirmation :proposal="proposal" id="proposalStartConfirmation"></Confirmation>
               </div>
@@ -88,7 +87,12 @@
 </template>
 
 <script>
-    import Applicant from '@/components/common/filming/applicant.vue'
+    import Profile from '@/components/user/profile.vue'
+    import Organisation from '@/components/external/organisations/manage.vue'
+    import Applicant from '@/components/common/tclass/applicant.vue'
+    import Assessment from '@/components/common/tclass/assessment.vue'
+
+    //import Applicant from '@/components/common/filming/applicant.vue'
     import Activity from '@/components/common/filming/activity.vue'
     import Access from '@/components/common/filming/access.vue'
     import Equipment from '@/components/common/filming/equipment.vue'
@@ -102,14 +106,38 @@
                 type: Object,
                 required:true
             },
-            withSectionsSelector:{
-                type: Boolean,
-                default: true
+            canEditActivities:{
+              type: Boolean,
+              default: true
             },
-            form_width: {
-                type: String,
-                default: 'col-md-9'
-            }
+            is_external:{
+              type: Boolean,
+              default: false
+            },
+            is_internal:{
+              type: Boolean,
+              default: false
+            },
+            is_referral:{
+              type: Boolean,
+              default: false
+            },
+            hasReferralMode:{
+                type:Boolean,
+                default: false
+            },
+            hasAssessorMode:{
+                type:Boolean,
+                default: false
+            },
+            referral:{
+                type: Object,
+                required:false
+            },
+            proposal_parks:{
+                type:Object,
+                default:null
+            },
         },
         data:function () {
             return{
@@ -122,9 +150,15 @@
             Access,
             Equipment,
             OtherDetails,
-            OnlineTraining,
-            Payment,
-            Confirmation
+            Confirmation,
+            Profile,
+            Organisation,
+            Assessment
+        },
+        computed:{
+          applicantType: function(){
+            return this.proposal.applicant_type;
+          },
         },
         methods:{
         },
@@ -153,6 +187,7 @@
 
     .nav-item {
         background-color: rgb(200,200,200,0.8) !important;
+        margin-bottom: 2px;
     }
 
     .nav-item>li>a {
@@ -166,5 +201,10 @@
       border: 1px solid #888888;
     }
 
+	.admin > div {
+	  display: inline-block;
+	  vertical-align: top;
+	  margin-right: 1em;
+	}
 </style>
 

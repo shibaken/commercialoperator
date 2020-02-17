@@ -10,11 +10,23 @@ from commercialoperator.components.bookings import views as booking_views
 
 from commercialoperator.components.users import api as users_api
 from commercialoperator.components.organisations import api as org_api
+from commercialoperator.components.main import api as main_api
+from commercialoperator.components.bookings import api as booking_api
+
+# T Class
 from commercialoperator.components.proposals import api as proposal_api
 from commercialoperator.components.approvals import api as approval_api
 from commercialoperator.components.compliances import api as compliances_api
-from commercialoperator.components.main import api as main_api
-from commercialoperator.components.bookings import api as booking_api
+
+# Filming
+from commercialoperator.components.proposals import api_filming as proposal_api_filming
+#from commercialoperator.components.approvals import api_filming as approval_api_filming
+#from commercialoperator.components.compliances import api_filming as compliances_api_filming
+
+# Event
+from commercialoperator.components.proposals import api_event as proposal_api_event
+#from commercialoperator.components.approvals import api_event as approval_api_event
+#from commercialoperator.components.compliances import api_event as compliances_api_event
 
 from ledger.urls import urlpatterns as ledger_patterns
 
@@ -64,6 +76,9 @@ router.register(r'marine_activities', main_api.MarineActivitiesViewSet)
 router.register(r'required_documents', main_api.RequiredDocumentViewSet)
 router.register(r'questions', main_api.QuestionViewSet)
 router.register(r'payment', main_api.PaymentViewSet)
+
+# Filming
+#router.register(r'proposal',proposal_api_filming.ProposalViewSet)
 
 api_patterns = [
     url(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),

@@ -37,8 +37,8 @@
             </div>
 
             <ProposalTClass v-if="proposal && proposal_parks && proposal.application_type=='T Class'" :proposal="proposal" id="proposalStart"  :canEditActivities="canEditActivities" :is_external="true" :proposal_parks="proposal_parks" ref="proposal_tclass"></ProposalTClass>
-            <ProposalFilming v-else-if="proposal && proposal.application_type=='Filming'" :proposal="proposal" id="proposalStart"></ProposalFilming>
-            <ProposalEvent v-else-if="proposal && proposal.application_type=='Event'" :proposal="proposal" id="proposalStart"></ProposalEvent>
+            <ProposalFilming v-else-if="proposal && proposal.application_type=='Filming'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :is_external="true" :proposal_parks="proposal_parks" ref="proposal_filming"></ProposalFilming>
+            <ProposalEvent v-else-if="proposal && proposal.application_type=='Event'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :is_external="true" :proposal_parks="proposal_parks" ref="proposal_event"></ProposalEvent>
 
             <div>
                 <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
@@ -58,10 +58,10 @@
                                         <button v-if="savingProposal" type="button" class="btn btn-primary" disabled>Save and Continue&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                         <input v-else type="button" @click.prevent="save" class="btn btn-primary" value="Save and Continue" :disabled="saveExitProposal || paySubmitting"/>
+
                                         <button v-if="paySubmitting" type="button" class="btn btn-primary" disabled>{{ submit_text() }}&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                         <input v-else type="button" @click.prevent="submit" class="btn btn-primary" :value="submit_text()" :disabled="!proposal.training_completed || saveExitProposal || savingProposal"/>
-                                        <!--<input type="button" @click.prevent="submit" class="btn btn-primary" :value="submit_text()" :disabled="!proposal.training_completed"/>-->
                                         <input id="save_and_continue_btn" type="hidden" @click.prevent="save_wo_confirm" class="btn btn-primary" value="Save Without Confirmation"/>
                                       </p>
                                     </div>
@@ -74,11 +74,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- <div v-else class="container">
-                          <p class="pull-right" style="margin-top:5px;">
-                            <router-link class="btn btn-primary" :to="{name: 'external-proposals-dash'}">Back to Dashboard</router-link>
-                          </p>
-                        </div> -->
                 </div>
             </div>
 
@@ -149,6 +144,14 @@ export default {
     submit_text: function() {
       let vm = this;
       return vm.proposal.fee_paid ? 'Resubmit' : 'Pay and Submit';
+      if (vm.proposal.application_type=='Filming') {
+          // Filming has deferred payment once assessor decides whether 'Licence' (has a fee) or 'Lawful Authority' (has no fee) is to be issued
+          return 'Submit';
+      } else if (vm.proposal.fee_paid) {
+          return 'Resubmit';
+      } else {
+          return 'Pay and Submit';
+      }
     },
     save_applicant_data:function(){
       let vm=this;
@@ -177,20 +180,10 @@ export default {
     },
     save: function(e) {
       let vm = this;
-      //vm.form=document.forms.new_proposal;
       vm.savingProposal=true;
       vm.save_applicant_data();
-      //await vm.save_applicant_data();
 
       let formData = vm.set_formData()
-      //vm.save_applicant_data();
-
-//      let formData = new FormData(vm.form);
-      //console.log('land activities', vm.proposal.selected_parks_activities);
-//      formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
-//      formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
-//      formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
-
       vm.$http.post(vm.proposal_form_url,formData).then(res=>{
           swal(
             'Saved',
@@ -218,12 +211,7 @@ export default {
       let vm = this;
       vm.save_applicant_data();
       let formData = vm.set_formData()
-      //vm.save_applicant_data();
 
-//      let formData = new FormData(vm.form);
-//      formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
-//      formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
-//      formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
       vm.$http.post(vm.proposal_form_url,formData);
     },
 
@@ -231,10 +219,6 @@ export default {
       let vm = this;
       let formData = vm.set_formData()
 
-//      let formData = new FormData(vm.form);
-//      formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
-//      formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
-//      formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
       vm.save_applicant_data();
       vm.$http.post(vm.proposal_form_url,formData).then(res=>{
           /* after the above save, redirect to the Django post() method in ApplicationFeeView */
@@ -381,50 +365,56 @@ export default {
     can_submit: function(){
       let vm=this;
       let blank_fields=[]
-      this.proposal.other_details.accreditation_type
 
-      if (vm.$refs.proposal_tclass.$refs.other_details.selected_accreditations.length==0 ){
-        blank_fields.push(' Level of Accreditation is required')
-      }
-      else{
-        for(var i=0; i<vm.proposal.other_details.accreditations.length; i++){
-          if(!vm.proposal.other_details.accreditations[i].is_deleted && vm.proposal.other_details.accreditations[i].accreditation_type!='no'){
-            if(vm.proposal.other_details.accreditations[i].accreditation_expiry==null || vm.proposal.other_details.accreditations[i].accreditation_expiry==''){
-              blank_fields.push('Expiry date for accreditation type '+vm.proposal.other_details.accreditations[i].accreditation_type_value+' is required')
-            }
-            // var acc_doc_ref='accreditation_file'+vm.proposal.other_details.accreditations[i].accreditation_type;
-            var acc_ref= vm.proposal.other_details.accreditations[i].accreditation_type;
-            // console.log(acc_doc_ref, acc_ref);
-            if(vm.$refs.proposal_tclass.$refs.other_details.$refs[acc_ref][0].$refs.accreditation_file.documents.length==0){
-              blank_fields.push('Accreditation Certificate for accreditation type '+vm.proposal.other_details.accreditations[i].accreditation_type_value+' is required')
-            }
-
+      if (vm.proposal.application_type=='T Class') {
+          if (vm.$refs.proposal_tclass.$refs.other_details.selected_accreditations.length==0 ){
+            blank_fields.push(' Level of Accreditation is required')
           }
-        }
-        // for(var j=0; j<vm.$refs.proposal_tclass.$refs.other_details.$refs.accreditation.length; j++){
-        //   if(vm.$refs.proposal_tclass.$refs.other_details.$refs.accreditation[j].$refs.accreditation_file.documents.length==0){
-        //     blank_fields.push('Accreditation Certificate for accreditation type'+vm.$refs.proposal_tclass.$refs.other_details.$refs.accreditation[j].accreditation_type_value+'is required.')
+          else{
+            for(var i=0; i<vm.proposal.other_details.accreditations.length; i++){
+              if(!vm.proposal.other_details.accreditations[i].is_deleted && vm.proposal.other_details.accreditations[i].accreditation_type!='no'){
+                if(vm.proposal.other_details.accreditations[i].accreditation_expiry==null || vm.proposal.other_details.accreditations[i].accreditation_expiry==''){
+                  blank_fields.push('Expiry date for accreditation type '+vm.proposal.other_details.accreditations[i].accreditation_type_value+' is required')
+                }
+                // var acc_doc_ref='accreditation_file'+vm.proposal.other_details.accreditations[i].accreditation_type;
+                var acc_ref= vm.proposal.other_details.accreditations[i].accreditation_type;
+                // console.log(acc_doc_ref, acc_ref);
+                if(vm.$refs.proposal_tclass.$refs.other_details.$refs[acc_ref][0].$refs.accreditation_file.documents.length==0){
+                  blank_fields.push('Accreditation Certificate for accreditation type '+vm.proposal.other_details.accreditations[i].accreditation_type_value+' is required')
+                }
 
-        //   }
-        // }
-      }
+              }
+            }
+          }
 
-      if (vm.proposal.other_details.preferred_licence_period=='' || vm.proposal.other_details.preferred_licence_period==null ){
-        blank_fields.push(' Preferred Licence Period is required')
-      }
-      if (vm.proposal.other_details.nominated_start_date=='' || vm.proposal.other_details.nominated_start_date==null ){
-        blank_fields.push(' Licence Nominated Start Date is required')
-      }
+          if (vm.proposal.other_details.preferred_licence_period=='' || vm.proposal.other_details.preferred_licence_period==null ){
+            blank_fields.push(' Preferred Licence Period is required')
+          }
+          if (vm.proposal.other_details.nominated_start_date=='' || vm.proposal.other_details.nominated_start_date==null ){
+            blank_fields.push(' Licence Nominated Start Date is required')
+          }
 
-      if(vm.$refs.proposal_tclass.$refs.other_details.$refs.deed_poll_doc.documents.length==0){
-        blank_fields.push(' Deed poll document is missing')
-      }
+          if(vm.$refs.proposal_tclass.$refs.other_details.$refs.deed_poll_doc.documents.length==0){
+            blank_fields.push(' Deed poll document is missing')
+          }
 
-      if(vm.$refs.proposal_tclass.$refs.other_details.$refs.currency_doc.documents.length==0){
-        blank_fields.push(' Certificate of currency document is missing')
-      }
-      if(vm.proposal.other_details.insurance_expiry=='' || vm.proposal.other_details.insurance_expiry==null){
-        blank_fields.push(' Certificate of currency expiry date is missing')
+          if(vm.$refs.proposal_tclass.$refs.other_details.$refs.currency_doc.documents.length==0){
+            blank_fields.push(' Certificate of currency document is missing')
+          }
+          if(vm.proposal.other_details.insurance_expiry=='' || vm.proposal.other_details.insurance_expiry==null){
+            blank_fields.push(' Certificate of currency expiry date is missing')
+          }
+
+      } else if (vm.proposal.application_type=='Filming') {
+          if (vm.proposal.other_details.preferred_licence_period=='' || vm.proposal.other_details.preferred_licence_period==null ){
+            blank_fields.push(' Preferred Licence Period is required')
+          }
+
+      } else if (vm.proposal.application_type=='Event') {
+          if (vm.proposal.other_details.preferred_licence_period=='' || vm.proposal.other_details.preferred_licence_period==null ){
+            blank_fields.push(' Preferred Licence Period is required')
+          }
+
       }
 
       if(blank_fields.length==0){
@@ -437,11 +427,8 @@ export default {
     },
     submit: function(){
         let vm = this;
-        
         let formData = vm.set_formData()
 
-/*
-*/
         var missing_data= vm.can_submit();
         if(missing_data!=true){
           swal({
@@ -465,7 +452,8 @@ export default {
             confirmButtonText: vm.submit_text()
         }).then(() => {
           
-            if (!vm.proposal.fee_paid) {
+            // Filming has deferred payment once assessor decides whether 'Licence' (fee) or 'Lawful Authority' (no fee) is to be issued
+            if (!vm.proposal.fee_paid || vm.proposal.application_type!='Filming') {
                 vm.save_and_redirect();
 
             } else {
@@ -489,62 +477,6 @@ export default {
           vm.paySubmitting=false;
         });
         //vm.paySubmitting=false;
-    },
-
-   _submit: function(){
-        let vm = this;
-        let formData = new FormData(vm.form);
-        formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
-        //formData.append('selected_land_access', JSON.stringify(vm.proposal.selected_land_access))
-        //formData.append('selected_land_activities', JSON.stringify(vm.proposal.selected_land_activities))
-        formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
-        formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
-
-              vm.proposal.selected_access=vm.selected_access;
-              vm.proposal.selected_activities=vm.selected_activities;
-
-        var num_missing_fields = vm.validate()
-        if (num_missing_fields > 0) {
-            vm.highlight_missing_fields()
-            var top = ($('#error').offset() || { "top": NaN }).top;
-            $('html, body').animate({
-                scrollTop: top
-            }, 1);
-            return false;
-        }
-
-        // remove the confirm prompt when navigating away from window (on button 'Submit' click)
-        vm.submitting = true;
-
-        swal({
-            title: "Submit Application",
-            text: "Are you sure you want to submit this proposal?",
-            type: "question",
-            showCancelButton: true,
-            confirmButtonText: 'Submit'
-        }).then(() => {
-            //vm.$http.post(vm.application_fee_url, formData)
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'),formData).then(res=>{
-            //vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposal_submit,vm.proposal.id+'/submit'),formData).then(res=>{
-                vm.proposal = res.body;
-                vm.$http.post(vm.application_fee_url, formData)
-                //location.href="/external/"
-                //location.href = vm.application_fee_url;
-                //vm.$router.push({
-                //    name: 'submit_proposal',
-                //    params: { proposal: vm.proposal}
-                //});
-            //}.then(res=>{
-            //    vm.$http.post(vm.application_fee_url, formData)
-            },err=>{
-                swal(
-                    'Submit Error',
-                    helpers.apiVueResourceError(err),
-                    'error'
-                )
-            });
-        },(error) => {
-        });
     },
 
     post_and_redirect: function(url, postData) {

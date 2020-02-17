@@ -2027,21 +2027,6 @@ class ProposalLogEntry(CommunicationsLogEntry):
         super(ProposalLogEntry, self).save(**kwargs)
 
 class ProposalOtherDetails(models.Model):
-    #activities_land = models.CharField(max_length=24, blank=True, default='')
-    # ACCREDITATION_TYPE_CHOICES = (
-    #     ('no', 'No'),
-    #     ('atap', 'ATAP'),
-    #     ('eco_certification', 'Eco Certification'),
-    #     ('narta', 'NARTA'),
-    # )
-    # LICENSE_PERIOD_CHOICES=(
-    #     ('2_months','2 months'),
-    #     ('1_year','1 Year'),
-    #     ('3_year', '3 Years'),
-    #     ('5_year', '5 Years'),
-    #     ('7_year', '7 Years'),
-    #     ('10_year', '10 Years'),
-    # )
     LICENCE_PERIOD_CHOICES=(
         ('2_months','2 months'),
         ('1_year','1 Year'),
@@ -2050,15 +2035,7 @@ class ProposalOtherDetails(models.Model):
         ('7_year', '7 Years'),
         ('10_year', '10 Years'),
     )
-    #accreditation_type = models.CharField('Accreditation', max_length=40, choices=ACCREDITATION_TYPE_CHOICES,
-    #                                   default=ACCREDITATION_TYPE_CHOICES[0][0])
-    #accreditation_expiry= models.DateTimeField(blank=True, null=True)
-    #accreditation_expiry= models.DateField(blank=True, null=True)
-
-    #preferred_license_period=models.CharField('Preferred license period', max_length=40, choices=LICENSE_PERIOD_CHOICES,default=LICENSE_PERIOD_CHOICES[0][0])
     preferred_licence_period=models.CharField('Preferred licence period', max_length=40, choices=LICENCE_PERIOD_CHOICES, null=True, blank=True)
-    #nominated_start_date= models.DateTimeField(blank=True, null=True)
-    #insurance_expiry= models.DateTimeField(blank=True, null=True)
     nominated_start_date= models.DateField(blank=True, null=True)
     insurance_expiry= models.DateField(blank=True, null=True)
     other_comments=models.TextField(blank=True)
@@ -2090,8 +2067,6 @@ class ProposalOtherDetails(models.Model):
             if self.preferred_licence_period=='10_year':
                 end_date=self.nominated_start_date + relativedelta(months=+120)- relativedelta(days=1)
         return end_date
-
-
 
 
 class ProposalAccreditation(models.Model):

@@ -242,6 +242,7 @@ class ProposalOtherDetailsSerializer(serializers.ModelSerializer):
     # def get_accreditation_type(self,obj):
     #     return obj.get_accreditation_type_display()
 
+
 class SaveProposalOtherDetailsSerializer(serializers.ModelSerializer):
     #park=ParkSerializer()
     class Meta:
@@ -258,6 +259,8 @@ class SaveProposalOtherDetailsSerializer(serializers.ModelSerializer):
                 'credit_docket_books',
                 'proposal',
                 )
+
+
 class ChecklistQuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
