@@ -141,6 +141,17 @@ export default {
 
   },
   methods: {
+    proposal_refs:function(){
+      let vm=this;
+      if(vm.proposal.application_type == 'T Class') {
+          return vm.$refs.proposal_tclass;
+      } else if(vm.proposal.application_type == 'Filming') {
+          return vm.$refs.proposal_filming;
+      } else if(vm.proposal.application_type == 'Event') {
+          return vm.$refs.proposal_event;
+      }
+    },
+
     submit_text: function() {
       let vm = this;
       return vm.proposal.fee_paid ? 'Resubmit' : 'Pay and Submit';
@@ -153,8 +164,9 @@ export default {
           return 'Pay and Submit';
       }
     },
-    save_applicant_data:function(){
+    _save_applicant_data:function(){
       let vm=this;
+      let proposal_type = vm.$refs.proposal_tclass
       if(vm.proposal.applicant_type == 'SUB')
       {
         vm.$refs.proposal_tclass.$refs.profile.updatePersonal();
@@ -166,6 +178,21 @@ export default {
         vm.$refs.proposal_tclass.$refs.organisation.updateAddress();
       }
     },
+    save_applicant_data:function(){
+      let vm=this;
+      if(vm.proposal.applicant_type == 'SUB')
+      {
+        vm.proposal_refs().$refs.profile.updatePersonal();
+        vm.proposal_refs().$refs.profile.updateAddress();
+        vm.proposal_refs().$refs.profile.updateContact();
+      }
+      if(vm.proposal.applicant_type == 'ORG'){
+        vm.proposal_refs().$refs.organisation.updateDetails();
+        vm.proposal_refs().$refs.organisation.updateAddress();
+      }
+    },
+
+
     set_formData: function(e) {
       let vm = this;
       //vm.form=document.forms.new_proposal;

@@ -3588,6 +3588,111 @@ class HelpPage(models.Model):
         app_label = 'commercialoperator'
         unique_together = ('application_type', 'help_type', 'version')
 
+# --------------------------------------------------------------------------------------
+# Filming Models Start
+# --------------------------------------------------------------------------------------
+class ProposalFilmingActivity(models.Model):
+    activity_title=models.CharField('Activity title', max_length=100)
+    proposal = models.OneToOneField(Proposal, related_name='filming_activity', null=True)
+
+    def __str__(self):
+        return '{}'.format(self.activity_title)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+
+class ProposalFilmingAccess(models.Model):
+    proposal = models.OneToOneField(Proposal, related_name='filming_access', null=True)
+
+    def __str__(self):
+        return '{}'.format(self.proposal)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+
+class ProposalFilmingEquipment(models.Model):
+    num_cameras=models.TextField('Number and type of cameras to be used', blank=True, null=True)
+    proposal = models.OneToOneField(Proposal, related_name='filming_equipment', null=True)
+
+    def __str__(self):
+        return '{}'.format(self.num_cameras)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+
+class ProposalFilmingOtherDetails(models.Model):
+    safety_details=models.TextField('Steps taken to ensure safety of others', blank=True, null=True)
+    camping_fee_waived = models.BooleanField(default=False)
+    fee_waived_num_people = models.SmallIntegerField('For how many people', blank=True, null=True)
+    insurance_expiry= models.DateField(blank=True, null=True)
+    proposal = models.OneToOneField(Proposal, related_name='filming_other_details', null=True)
+
+    def __str__(self):
+        return '{}'.format(self.safety_details)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+# --------------------------------------------------------------------------------------
+# Filming Models End
+# --------------------------------------------------------------------------------------
+
+
+# --------------------------------------------------------------------------------------
+# Event Models Start
+# --------------------------------------------------------------------------------------
+
+class ProposalEventActivities(models.Model):
+    event_name=models.CharField('Event name', max_length=100)
+    proposal = models.OneToOneField(Proposal, related_name='event_activity', null=True)
+
+    def __str__(self):
+        return '{}'.format(self.event_name)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+
+class ProposalEventManagement(models.Model):
+    num_participants = models.SmallIntegerField('Number of participants expected', blank=True, null=True)
+    proposal = models.OneToOneField(Proposal, related_name='event_management', null=True)
+
+    def __str__(self):
+        return '{}'.format(self.num_participants)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+
+class ProposalEventVehiclesVessels(models.Model):
+    hired_or_owned = models.NullBooleanField(null=True)
+    proposal = models.OneToOneField(Proposal, related_name='event_vehicles_vessels', null=True)
+
+    def __str__(self):
+        return '{}'.format(self.hired_or_owned)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+
+class ProposalEventOtherDetails(models.Model):
+    training_date= models.DateField(blank=True, null=True)
+    insurance_expiry= models.DateField(blank=True, null=True)
+    proposal = models.OneToOneField(Proposal, related_name='event_other_details', null=True)
+
+    def __str__(self):
+        return '{}'.format(self.training_date)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+
+# --------------------------------------------------------------------------------------
+# Event Models End
+# --------------------------------------------------------------------------------------
 
 import reversion
 reversion.register(Referral, follow=['referral_documents', 'assessment'])

@@ -6,7 +6,7 @@ import json
 from six.moves.urllib.parse import urlparse
 from wsgiref.util import FileWrapper
 from django.db.models import Q, Min
-from django.db import transaction
+from django.db import transaction, connection
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
@@ -29,6 +29,7 @@ from datetime import datetime, timedelta, date
 from commercialoperator.components.proposals.utils import save_proponent_data,save_assessor_data, proposal_submit
 from commercialoperator.components.proposals.models import searchKeyWords, search_reference, ProposalUserAction
 from commercialoperator.utils import missing_required_fields
+from commercialoperator.components.main.utils import check_db_connection
 
 from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -87,8 +88,17 @@ from commercialoperator.components.proposals.serializers import (
     ChecklistQuestionSerializer,
     ProposalAssessmentSerializer,
     ProposalAssessmentAnswerSerializer,
-    ParksAndTrailSerializer
+    ParksAndTrailSerializer,
 )
+from commercialoperator.components.proposals.serializers_filming import (
+    ProposalFilmingOtherDetailsSerializer,
+)
+from commercialoperator.components.proposals.serializers_event import (
+    ProposalEventOtherDetailsSerializer,
+)
+
+
+
 from commercialoperator.components.bookings.models import Booking, ParkBooking, BookingInvoice
 from commercialoperator.components.approvals.models import Approval
 from commercialoperator.components.approvals.serializers import ApprovalSerializer
@@ -487,7 +497,6 @@ class ProposalSubmitViewSet(viewsets.ModelViewSet):
     @renderer_classes((JSONRenderer,))
     def submit(self, request, *args, **kwargs):
         try:
-            import ipdb; ipdb.set_trace()
             instance = self.get_object()
             #instance.submit(request,self)
             #instance.save()
@@ -574,12 +583,15 @@ class ProposalViewSet(viewsets.ModelViewSet):
         return Proposal.objects.none()
 
     def get_object(self):
+
+        check_db_connection()
         try:
             obj = super(ProposalViewSet, self).get_object()
         except Exception, e:
             # because current queryset excludes migrated licences
             obj = get_object_or_404(Proposal, id=self.kwargs['id'])
         return obj
+
 
     @list_route(methods=['GET',])
     def filter_list(self, request, *args, **kwargs):
@@ -1602,14 +1614,15 @@ class ProposalViewSet(viewsets.ModelViewSet):
                 other_details_data={
                     'proposal': instance.id
                 }
-                serializer=SaveProposalOtherDetailsFilmingSerializer(data=other_details_data)
+                #serializer=SaveProposalOtherDetailsFilmingSerializer(data=other_details_data)
+                serializer=ProposalFilmingOtherDetailsSerializer(data=other_details_data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
             elif application_name==ApplicationType.EVENT:
                 other_details_data={
                     'proposal': instance.id
                 }
-                serializer=SaveProposalOtherDetailsEventSerializer(data=other_details_data)
+                serializer=ProposalEventOtherDetailsSerializer(data=other_details_data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
@@ -1623,7 +1636,13 @@ class ProposalViewSet(viewsets.ModelViewSet):
         try:
             http_status = status.HTTP_200_OK
             instance = self.get_object()
-            serializer = SaveProposalSerializer(instance,data=request.data)
+            if application_name==ApplicationType.TCLASS:
+                serializer = SaveProposalSerializer(instance,data=request.data)
+            elif application_name==ApplicationType.FILMING:
+                serializer=ProposalFilmingOtherDetailsSerializer(data=other_details_data)
+            elif application_name==ApplicationType.EVENT:
+                serializer=ProposalEventOtherDetailsSerializer(data=other_details_data)
+
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
             return Response(serializer.data)

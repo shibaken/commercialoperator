@@ -165,7 +165,6 @@ class ParkSerializer(serializers.ModelSerializer):
         return obj.district.id
 
     def get_region(self, obj):
-        #import ipdb; ipdb.set_trace()
         return {'name': obj.district.region.name, 'id': obj.district.region_id}
 
 #    def get_max_group_arrival_by_date(self, obj):

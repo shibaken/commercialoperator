@@ -1,10 +1,10 @@
 <template lang="html">
-<div class="row" id="userInfo">
+<div class="row" id="otherInfo">
     <div class="col-sm-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">Licence Term <small></small>
-                <a class="panelClicker" :href="'#'+lBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="lBody">
+                <h3 class="panel-title">Safety<small></small>
+                <a class="panelClicker" :href="'#'+lBody" data-toggle="collapse"  data-parent="#otherInfo" expanded="true" :aria-controls="lBody">
                 <span class="glyphicon glyphicon-chevron-up pull-right "></span>
                 </a>
                 </h3>
@@ -15,32 +15,16 @@
                         
                         <div class="form-group">
                             <div class="row">
-                                <div class="col-sm-3">
-                                    <label class="control-label pull-left"  for="Name">Preferred licence term</label>
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">What steps have been taken to ensure the well being of others in your party</label>
                                 </div>
-                                <div class="col-sm-9" style="margin-bottom: 5px; width:53% !important">
-                                    <select class="form-control" v-model="proposal.other_details.preferred_licence_period" ref="preferred_licence_period" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal ">
-                                        <option v-for="l in licence_period_choices" :value="l.key">{{l.value}}</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-3">
-                                    <label class="control-label pull-left"  for="Name">Nominated start date</label>
-                                </div>
-                                <div class="col-sm-9">
-                                    <div class="input-group date" ref="nominated_start_date" style="width: 70%;">
-                                        <input type="text" class="form-control" v-model="proposal.other_details.nominated_start_date" name="nominated_start_date" placeholder="DD/MM/YYYY" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
-                                        <span class="input-group-addon">
-                                            <span class="glyphicon glyphicon-calendar"></span>
-                                        </span>
+                                <div class="col-sm-6">
+                                    <div class="input-group date" ref="safety_details" style="width: 70%;">
+                                        <input type="text" class="form-control" v-model="proposal.other_details.safety_details" name="safety_details" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                        <!--
+                                        <input type="text" class="form-control" name="safety_details" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                        -->
                                     </div>
-                                </div>
-                            </div>
-                            <div class="row">&nbsp;</div>
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    Application and licence fee information <a href="https://parks.dpaw.wa.gov.au/for-business/training-accreditation-insurance-fees" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a>
                                 </div>
                             </div>
                         </div> 
@@ -49,11 +33,10 @@
             </div>                
         </div>
     </div>
-<!--    
     <div class="col-sm-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">Moorings <small>(marine-based activities)</small>
+                <h3 class="panel-title">Payment of Fees and Charges<small></small>
                 <a class="panelClicker" :href="'#'+mBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="mBody">
                 <span class="glyphicon glyphicon-chevron-up pull-right "></span>
                 </a>
@@ -65,20 +48,7 @@
                         <div class="form-group">
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <label>Provide the mooring number or GPS coordinates for any mooring within a marine reserve your operation will use.</label>
-                                </div>   
-                            </div>
-                            <div class="row" v-for="(m, index) in proposal.other_details.mooring">
-                                <div class="col-sm-3">
-                                    <label class="control-label pull-left"  for="Name">Mooring number or GPS coordinates</label>
-                                </div>
-                                <div class="col-sm-9" style="margin-bottom: 5px">
-                                    <input type="text" class="form-control" name="Mooring number" placeholder="" :disabled="proposal.readonly" v-model="proposal.other_details.mooring[index]">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <span><a @click="addMooring()" target="_blank" class="control-label pull-left" v-if="!proposal.readonly" style="cursor: pointer;">Add another mooring</a></span>
+                                    <label>Depending on the filming operation, fees and charges may apply. Please see ...</label>
                                 </div>   
                             </div>
                         </div>
@@ -130,112 +100,6 @@
                                             </span>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>                
-        </div>
-    </div>
-    <div class="col-sm-12">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">Other <small></small>
-                <a class="panelClicker" :href="'#'+oBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="oBody">
-                <span class="glyphicon glyphicon-chevron-up pull-right "></span>
-                </a>
-                </h3>
-            </div>
-            <div class="panel-body collapse in" :id="oBody">
-                <div class="" >                        
-                    <div class="form-horizontal col-sm-12 borderDecoration">
-                       <div class="form-group">
-                           <div class="row">
-                                <div class="col-sm-12">
-                                    <label>Provide information to support your application. This may include brochures, itineraries or other advertising material.</label>
-                                    <label>If you would like to apply for a park or activity that is not listed in the previous sections, please include details.</label>
-                                </div>   
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <textarea class="form-control" v-model="proposal.other_details.other_comments" :disabled="proposal.readonly"></textarea>
-                                </div>                                
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="other_details" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
-                                </div>                                
-                            </div>
-                       </div> 
-                    </div>
-                </div>
-            </div>                
-        </div>
-    </div>
-    <div class="col-sm-12">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">Park Entry and Camping Fees <small></small>
-                <a class="panelClicker" :href="'#'+cBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="cBody">
-                <span class="glyphicon glyphicon-chevron-up pull-right "></span>
-                </a>
-                </h3>
-            </div>
-            <div class="panel-body collapse in" :id="cBody">
-                <div class="" >                        
-                    <div class="form-horizontal col-sm-12 borderDecoration">
-                        <div class="row">
-                            <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Do you require credit facilities for payment of fees</label>
-                            </div>
-                            <div class="col-sm-3">
-                                <label>
-                                    <input type="radio" value="true" v-model="proposal.other_details.credit_fees" :disabled="proposal.readonly" @change="handleSelectionChange" ref="credit_fees_yes"/>Yes
-                                </label>
-                            </div>
-                            <div class="col-sm-3">
-                                <label>
-                                    <input type="radio" value="false" v-model="proposal.other_details.credit_fees" :disabled="proposal.readonly" @change="handleSelectionChange"/>No
-                                </label>
-                            </div>
-                            <div id="show_credit_link" class="hidden">
-                                <div class="col-sm-6" >
-                                    
-                                </div>
-                                <div class="col-sm-6">
-                                    <label class=""><a :href="credit_facility_link" target="_blank">Link</a></label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Do you require Cash / Credit Payment Docket books?</label>
-                            </div>
-                            <div class="col-sm-3">
-                                <label>
-                                    <input type="radio" v-model="proposal.other_details.credit_docket_books" value="true" @change="handleRadioChange" ref="docket_books_yes" :disabled="proposal.readonly"/>Yes
-                                </label>
-                            </div>
-                            <div class="col-sm-3">
-                                <label>
-                                    <input type="radio" v-model="proposal.other_details.credit_docket_books" value="false" @change="handleRadioChange" :disabled="proposal.readonly"/>No
-                                </label>
-                            </div>
-                        </div>
-                        <div>
-                            <div id="show_docket" class="hidden">
-                            <div class="col-sm-6" >
-                                <label class="control-label pull-left"  for="Name">Number of docket books</label>
-                            </div>
-                            <div class="col-sm-6">
-                                <input type="text" class="form-control" name="docket_books_number" placeholder="" :disabled="proposal.readonly" v-model="proposal.other_details.docket_books_number">
-                            </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-12">
-                                    <label>Did you know you can use this system to pay park entry fees? Click on the Park Entry Fees page above.</label>
                             </div>
                         </div>
                     </div>
@@ -521,28 +385,6 @@ export default {
                 var today= new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
                 /* 
-                $(vm.$refs.accreditation_expiry).datetimepicker(vm.datepickerOptions);
-                $(vm.$refs.accreditation_expiry).on('dp.change', function(e){
-                    if ($(vm.$refs.accreditation_expiry).data('DateTimePicker').date()) {
-                        vm.proposal.other_details.accreditation_expiry =  e.date.format('DD/MM/YYYY');
-                    }
-                    else if ($(vm.$refs.accreditation_expiry).data('date') === "") {
-                        vm.proposal.other_details.accreditation_expiry = "";
-                    }
-                 });
-                //Nominated start date listener
-                $(vm.$refs.nominated_start_date).datetimepicker(vm.datepickerOptions);
-                //Set minimum date on datetimepicker so that nominated
-                //start date cannot be selected prior to today
-                $(vm.$refs.nominated_start_date).data("DateTimePicker").minDate(today);
-                $(vm.$refs.nominated_start_date).on('dp.change', function(e){
-                    if ($(vm.$refs.nominated_start_date).data('DateTimePicker').date()) {
-                        vm.proposal.other_details.nominated_start_date =  e.date.format('DD/MM/YYYY');
-                    }
-                    else if ($(vm.$refs.nominated_start_date).data('date') === "") {
-                        vm.proposal.other_details.nominated_start_date = "";
-                    }
-                 });
                 //Insurance expiry date listener
                 $(vm.$refs.insurance_expiry).datetimepicker(vm.datepickerOptions);
                 //Set minimum date on datetimepicker so that
@@ -579,7 +421,7 @@ export default {
         mounted: function(){
             let vm = this;
             //vm.fetchAccreditationChoices();
-            vm.fetchLicencePeriodChoices();
+            //vm.fetchLicencePeriodChoices();
             vm.fetchGlobalSettings();
             //vm.checkProposalAccreditation();
             //vm.showDockteNumber();

@@ -46,22 +46,45 @@
                   6. Online Training
                 </a>
               </li>
-              <li class="nav-item">
+              <li v-if="is_external" class="nav-item" id="li-payment">
                 <a class="nav-link" id="pills-payment-tab" data-toggle="pill" href="#pills-payment" role="tab" aria-controls="pills-payment" aria-selected="false">
                   7. Payment
                 </a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link" id="pills-confirm-tab" data-toggle="pill" href="#pills-confirm" role="tab" aria-controls="pills-confirm" aria-selected="false">
+              <li v-if="is_external" class="nav-item" id="li-confirm">
+                <a class="nav-link" id="pills-confirm-tab" data-toggle="pill" href="" role="tab" aria-controls="pills-confirm" aria-selected="false">
                   8. Confirmation
                 </a>
               </li>
 
             </ul>
             <div class="tab-content" id="pills-tabContent">
+
+              <!--
               <div class="tab-pane fade show active" id="pills-applicant" role="tabpanel" aria-labelledby="pills-applicant-tab"> 
                 <Applicant :proposal="proposal" id="proposalStartApplicant"></Applicant>
               </div>
+              -->
+
+              <div class="tab-pane fade" id="pills-applicant" role="tabpanel" aria-labelledby="pills-applicant-tab">
+                  <div v-if="is_external">
+                    <Profile :isApplication="true" v-if="applicantType == 'SUB'" ref="profile"></Profile>
+              
+                    <Organisation :org_id="proposal.org_applicant" :isApplication="true" v-if="applicantType == 'ORG'" ref="organisation"></Organisation> 
+                  </div>
+                  <div v-else>
+                    <Applicant :proposal="proposal" id="proposalStartApplicant"></Applicant>
+                    <div v-if="is_internal">
+                      <Assessment :proposal="proposal" :assessment="proposal.assessor_assessment" :hasAssessorMode="hasAssessorMode" :is_internal="is_internal" :is_referral="is_referral"></Assessment>
+                      <div v-for="assess in proposal.referral_assessments">
+                        <Assessment :proposal="proposal" :assessment="assess"></Assessment>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+
+
+
               <div class="tab-pane fade" id="pills-activities" role="tabpanel" aria-labelledby="pills-activities-tab">
                 <Activities :proposal="proposal" id="proposalStartActivities"></Activities>
               </div>
@@ -89,7 +112,12 @@
 </template>
 
 <script>
-    import Applicant from '@/components/common/event/applicant.vue'
+    import Profile from '@/components/user/profile.vue'
+    import Organisation from '@/components/external/organisations/manage.vue'
+    import Applicant from '@/components/common/tclass/applicant.vue'
+    import Assessment from '@/components/common/tclass/assessment.vue'
+
+    //import Applicant from '@/components/common/event/applicant.vue'
     import Activities from '@/components/common/event/activities.vue'
     import EventManagement from '@/components/common/event/event_management.vue'
     import VehiclesVessels from '@/components/common/event/vehicles_vessels.vue'
@@ -103,14 +131,38 @@
                 type: Object,
                 required:true
             },
-            withSectionsSelector:{
-                type: Boolean,
-                default: true
+            canEditActivities:{
+              type: Boolean,
+              default: true
             },
-            form_width: {
-                type: String,
-                default: 'col-md-9'
-            }
+            is_external:{
+              type: Boolean,
+              default: false
+            },
+            is_internal:{
+              type: Boolean,
+              default: false
+            },
+            is_referral:{
+              type: Boolean,
+              default: false
+            },
+            hasReferralMode:{
+                type:Boolean,
+                default: false
+            },
+            hasAssessorMode:{
+                type:Boolean,
+                default: false
+            },
+            referral:{
+                type: Object,
+                required:false
+            },
+            proposal_parks:{
+                type:Object,
+                default:null
+            },
         },
         data:function () {
             return{
@@ -125,7 +177,15 @@
             OtherDetails,
             OnlineTraining,
             Payment,
-            Confirmation
+            Confirmation,
+            Profile,
+            Organisation,
+            Assessment
+        },
+        computed:{
+          applicantType: function(){
+            return this.proposal.applicant_type;
+          },
         },
         methods:{
         },

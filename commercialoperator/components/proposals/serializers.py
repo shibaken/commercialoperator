@@ -1,5 +1,6 @@
 from django.conf import settings
 from ledger.accounts.models import EmailUser,Address
+from commercialoperator.components.main.models import ApplicationType
 from commercialoperator.components.proposals.models import (
                                     ProposalType,
                                     Proposal,
@@ -36,6 +37,8 @@ from commercialoperator.components.organisations.models import (
                                 Organisation
                             )
 from commercialoperator.components.main.serializers import CommunicationLogEntrySerializer, ParkSerializer, ActivitySerializer, AccessTypeSerializer, TrailSerializer
+from commercialoperator.components.proposals.serializers_filming import ProposalFilmingOtherDetailsSerializer, ProposalFilmingActivitySerializer, ProposalFilmingAccessSerializer, ProposalFilmingEquipmentSerializer
+from commercialoperator.components.proposals.serializers_event import ProposalEventOtherDetailsSerializer
 from commercialoperator.components.organisations.serializers import OrganisationSerializer
 from commercialoperator.components.users.serializers import UserAddressSerializer, DocumentSerializer
 from rest_framework import serializers
@@ -328,7 +331,10 @@ class BaseProposalSerializer(serializers.ModelSerializer):
     #land_parks=ProposalParkSerializer(many=True)
     #marine_parks=ProposalParkSerializer(many=True)
     #trails=ProposalTrailSerializer(many=True)
-    other_details=ProposalOtherDetailsSerializer()
+
+#    other_details=ProposalOtherDetailsSerializer()
+#    filming_other_details=ProposalFilmingOtherDetailsSerializer()
+    other_details = serializers.SerializerMethodField()
 
     get_history = serializers.ReadOnlyField()
     is_qa_officer = serializers.SerializerMethodField()
@@ -393,6 +399,8 @@ class BaseProposalSerializer(serializers.ModelSerializer):
                 # tab field models
                 'applicant_details',
                 'other_details',
+                #'filming_other_details',
+                #'test_details',
                 'activities_land',
                 'activities_marine',
                 'land_access',
@@ -408,6 +416,18 @@ class BaseProposalSerializer(serializers.ModelSerializer):
 
                 )
         read_only_fields=('documents',)
+
+    def get_other_details(self,obj):
+        if obj.application_type.name==ApplicationType.TCLASS:
+            return ProposalOtherDetailsSerializer(obj.other_details).data
+
+        elif obj.application_type.name==ApplicationType.FILMING:
+            return ProposalFilmingOtherDetailsSerializer(obj.filming_other_details).data
+
+        elif obj.application_type.name==ApplicationType.EVENT:
+            return ProposalEventOtherDetailsSerializer(obj.event_other_details).data
+
+        return None
 
     def get_documents_url(self,obj):
         return '/media/{}/proposals/{}/documents/'.format(settings.MEDIA_APP_DIR, obj.id)

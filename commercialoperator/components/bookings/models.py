@@ -18,8 +18,9 @@ class Payment(RevisionedMixin):
 
     send_invoice = models.BooleanField(default=False)
     confirmation_sent = models.BooleanField(default=False)
-    created = models.DateTimeField(default=timezone.now())
-    expiry_time = models.DateTimeField(default=timezone.now() + timedelta(minutes=30), blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    #expiry_time = models.DateTimeField(default=timezone.now() + timedelta(minutes=30), blank=True, null=True)
+    expiry_time = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     class Meta:
         app_label = 'commercialoperator'
@@ -205,7 +206,7 @@ class Booking(Payment):
         return self.park_bookings.last().created.date()
 
 class ParkBooking(RevisionedMixin):
-    created = models.DateTimeField(default=timezone.now())
+    created = models.DateTimeField(auto_now_add=True)
     booking = models.ForeignKey(Booking, on_delete=models.PROTECT, blank=True, null=True, related_name='park_bookings')
     park = models.ForeignKey(Park, related_name='bookings')
     arrival = models.DateField()

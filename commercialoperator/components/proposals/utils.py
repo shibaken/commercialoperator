@@ -640,6 +640,49 @@ def save_park_zone_activity_data(instance,marine_parks_activities, request):
             raise
 
 def save_proponent_data(instance,request,viewset,parks=None,trails=None):
+    if instance.application_type.name==ApplicationType.FILMING:
+        save_proponent_data_filming(instance,request,viewset,parks=None,trails=None)
+    elif instance.application_type.name==ApplicationType.EVENT:
+        save_proponent_data_event(instance,request,viewset,parks=None,trails=None)
+    else:
+        save_proponent_data_tclass(instance,request,viewset,parks=None,trails=None)
+
+
+from commercialoperator.components.main.models import ApplicationType
+from commercialoperator.components.proposals.models import ProposalFilmingOtherDetails
+from commercialoperator.components.proposals.serializers_filming import ProposalFilmingOtherDetailsSerializer
+
+def save_proponent_data_filming(instance,request,viewset,parks=None,trails=None):
+    with transaction.atomic():
+        try:
+            data = {
+            }
+
+            try:
+                schema=request.data.get('schema')
+            except:
+                schema=request.POST.get('schema')
+            import json
+            sc=json.loads(schema)
+            other_details_data=sc['filming_other_details']
+            serializer = ProposalFilmingOtherDetailsSerializer(instance.filming_other_details, data=other_details_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            filming_other_details=ProposalFilmingOtherDetails.objects.update_or_create(proposal=instance)
+            # instance.save()
+            serializer = SaveProposalSerializer(instance, data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            viewset.perform_update(serializer)
+
+        except:
+            raise
+
+
+def save_proponent_data_event(instance,request,viewset,parks=None,trails=None):
+    pass
+
+def save_proponent_data_tclass(instance,request,viewset,parks=None,trails=None):
     with transaction.atomic():
         try:
 #            lookable_fields = ['isTitleColumnForDashboard','isActivityColumnForDashboard','isRegionColumnForDashboard']
