@@ -13,7 +13,7 @@
 	
 		You will receive a notification email if there is any incomplete information or documents missing from the application.
 	
-	If you would like to amend the application noew please contact a licensing office on {{settings.DEP_PHONE}} or email {{settings.SUPPORT_EMAIL}}
+	If you would like to amend the application now please contact a licensing office on {{settings.DEP_PHONE}} or email {{settings.SUPPORT_EMAIL}}
 
 
 {%  endblock %}
