@@ -85,11 +85,11 @@ class DelegateSerializer(serializers.ModelSerializer):
             'email',
         )
 
-
 class OrganisationSerializer(serializers.ModelSerializer):
     address = OrganisationAddressSerializer(read_only=True)
     pins = serializers.SerializerMethodField(read_only=True)
-    delegates = DelegateSerializer(many=True, read_only=True)
+    #delegates = DelegateSerializer(many=True, read_only=True)
+    delegates = serializers.SerializerMethodField(read_only=True)
     organisation = LedgerOrganisationSerializer()
     trading_name = serializers.SerializerMethodField(read_only=True)
 
@@ -105,8 +105,22 @@ class OrganisationSerializer(serializers.ModelSerializer):
             'organisation',
             'phone_number',
             'pins',
-            'delegates'
+            'delegates',
         )
+
+    def get_delegates(self, obj):
+        """
+        Default DelegateSerializer does not include whether the user is an organisation admin, so adding it here
+        """
+        delegates = []
+        for user in obj.delegates.all():
+            admin_qs = obj.contacts.filter(organisation__organisation_id=obj.organisation_id, email=user.email, is_admin=True) #.values_list('is_admin',flat=True)
+            if admin_qs.count() > 0:
+                delegates.append(dict(id=user.id, name=user.get_full_name(), email=user.email, is_admin=True))
+            else:
+                delegates.append(dict(id=user.id, name=user.get_full_name(), email=user.email, is_admin=False))
+
+        return delegates
 
     def get_trading_name(self, obj):
         return obj.organisation.trading_name

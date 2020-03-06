@@ -513,6 +513,9 @@ class UserDelegation(models.Model):
         unique_together = (('organisation','user'),)
         app_label = 'commercialoperator'
 
+    def __str__(self):
+        return 'Org: {}, User: {}'.format(self.organisation,self.user)
+
 
 class OrganisationAction(UserAction):
     ACTION_REQUEST_APPROVED = "Organisation Request {} Approved"

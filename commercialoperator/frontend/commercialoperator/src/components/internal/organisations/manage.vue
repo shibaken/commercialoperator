@@ -156,7 +156,7 @@
                                                     <h4>Persons linked to this organisation:</h4>
                                                 </div>
                                                 <div v-for="d in org.delegates">
-                                                    <div class="col-sm-6">
+                                                    <div v-if="d.is_admin" class="col-sm-6">
                                                         <h4>{{d.name }} ({{d.email}})</h4>
                                                     </div>
                                                 </div>
