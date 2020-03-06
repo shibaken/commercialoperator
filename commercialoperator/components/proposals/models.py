@@ -3592,7 +3592,54 @@ class HelpPage(models.Model):
 # Filming Models Start
 # --------------------------------------------------------------------------------------
 class ProposalFilmingActivity(models.Model):
+    MOTION_FILM='motion_film'
+    PHOTOGRAPHY='photography'
+    EDUCATION='education'
+    ADVERTISING='advertising'
+    FEATURE_FILM='feature_film'
+    TOURISM='tourism'
+    DOCUMENTARY='documentary'
+    RECREATION='recreation'
+    OTHER='other'
+    YES='yes'
+    NO='no'
+    SELL='sell'
+    EDITORIAL='editorial'
+    FILM_TYPE_CHOICES=(
+        (MOTION_FILM,'Motion film'),
+        (PHOTOGRAPHY, 'Photography'),
+    )
+    PURPOSE_CHOICES=(
+        (EDUCATION, 'Eductaion'),
+        (ADVERTISING, 'Advertising'),
+        (FEATURE_FILM, 'Feature film'),
+        (RECREATION, 'Recreation'),
+        (OTHER, 'other'),
+    )
+    SPONSORSHIP_CHOICES=(
+        (YES, 'Yes'),
+        (NO, 'No'),
+        (OTHER, 'other')
+    )
+    FILM_USE_CHOICES=(
+        (SELL, 'Sell on to a third pary, e.g. image library, publisher'),
+        (EDITORIAL, 'Editorial'),
+        (ADVERTISING, 'Advertising'),
+        (OTHER, 'Other')
+    )
+
+    commencement_date=models.DateField('Commencement Date',blank=True, null=True)
+    completion_date=models.DateField('Completion Date',blank=True, null=True)
+    previous_contact_person=models.CharField('Previous Contact person', max_length=100, null=True)
+    film_type=models.CharField('Type of Film', max_length=40, choices=FILM_TYPE_CHOICES, null=True, blank=True)
+    film_purpose=models.CharField('Purpose of Film', max_length=40, choices=PURPOSE_CHOICES, null=True, blank=True)
+    film_purpose_details=models.TextField(blank=True)
+    sponsorship=models.CharField('Sponsorship Type', max_length=40, choices=SPONSORSHIP_CHOICES, null=True, blank=True)
+    sponsorship_details=models.TextField(blank=True)
+    film_usage=models.CharField('Film be used', max_length=40, choices=FILM_USE_CHOICES, null=True, blank=True)
+    film_usage_details=models.TextField(blank=True)
     activity_title=models.CharField('Activity title', max_length=100)
+    production_description=models.TextField(blank=True, null=True,)
     proposal = models.OneToOneField(Proposal, related_name='filming_activity', null=True)
 
     def __str__(self):
