@@ -35,6 +35,7 @@ from commercialoperator.components.proposals.models import (
                                     ProposalFilmingAccess,
                                     ProposalFilmingEquipment,
                                     ProposalFilmingOtherDetails,
+                                    ProposalFilmingParks,
                                 )
 
 #from commercialoperator.components.organisations.models import (
@@ -97,4 +98,10 @@ class ProposalFilmingOtherDetailsSerializer(serializers.ModelSerializer):
 #                'proposal',
 #                )
 
+class ProposalFilmingParksSerializer(serializers.ModelSerializer):
+    from_date=serializers.DateField(format="%d/%m/%Y")
+    to_date=serializers.DateField(format="%d/%m/%Y")
+    class Meta:
+        model = ProposalFilmingParks
+        fields = ('id', 'park', 'feature_of_interest', 'from_date', 'to_date', 'proposal')
 

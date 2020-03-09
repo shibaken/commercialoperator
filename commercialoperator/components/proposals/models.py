@@ -3651,6 +3651,21 @@ class ProposalFilmingActivity(models.Model):
 
 class ProposalFilmingAccess(models.Model):
     proposal = models.OneToOneField(Proposal, related_name='filming_access', null=True)
+    track_use=models.BooleanField('Use of Tracks or trails',default=False)
+    off_road=models.BooleanField('Conduct any off-road activity',default=False)
+    off_road_details=models.TextField(blank=True)
+    road_closure=models.BooleanField('roads to be closed during filming',default=False)
+    road_closure_details=models.TextField(blank=True)
+    no_of_people=models.CharField('Activity title', max_length=100, blank=True, null=True)
+    camp_on_land=models.BooleanField('Camp on CALM land',default=False)
+    camp_location=models.TextField('Where',blank=True)
+    staff_assistance=models.BooleanField('Need assistance from Department staff',default=False)
+    assistance_staff_capacity=models.TextField('Capacity of staff for assistance',blank=True)
+    staff_to_film=models.BooleanField('Need Department staff to film',default=False)
+    film_staff_capacity=models.TextField('Capacity of staff for filming',blank=True)
+    cultural_significance=models.BooleanField('Areas of cultural significance',default=False)
+    cultural_significance_details=models.TextField('Cultural significance details',blank=True)
+
 
     def __str__(self):
         return '{}'.format(self.proposal)
@@ -3679,6 +3694,19 @@ class ProposalFilmingOtherDetails(models.Model):
 
     def __str__(self):
         return '{}'.format(self.safety_details)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+class ProposalFilmingParks(models.Model):
+    proposal = models.OneToOneField(Proposal, related_name='filming_parks', null=True)
+    park= models.ForeignKey(Park, related_name='filming_proposal')
+    feature_of_interest=models.CharField('Feture of interest', max_length=100, blank=True, null=True)
+    from_date=models.DateField(blank=True, null=True)
+    to_date=models.DateField(blank=True, null=True)
+
+    def __str__(self):
+        return '{}'.format(self.proposal)
 
     class Meta:
         app_label = 'commercialoperator'

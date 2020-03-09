@@ -79,6 +79,7 @@ router.register(r'payment', main_api.PaymentViewSet)
 
 # Filming
 #router.register(r'proposal',proposal_api_filming.ProposalViewSet)
+router.register(r'proposal_filming_parks', proposal_api_filming.ProposalFilmingParksViewSet)
 
 api_patterns = [
     url(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
@@ -102,6 +103,8 @@ api_patterns = [
 
 
     url(r'^api/reports/booking_settlements$', main_api.BookingSettlementReportView.as_view(),name='booking-settlements-report'),
+    #Filming
+
 ]
 
 # URL Patterns
