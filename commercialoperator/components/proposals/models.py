@@ -3699,7 +3699,8 @@ class ProposalFilmingOtherDetails(models.Model):
         app_label = 'commercialoperator'
 
 class ProposalFilmingParks(models.Model):
-    proposal = models.OneToOneField(Proposal, related_name='filming_parks', null=True)
+    #proposal = models.OneToOneField(Proposal, related_name='filming_parks', null=True)
+    proposal = models.ForeignKey(Proposal, related_name='filming_parks', null=True)
     park= models.ForeignKey(Park, related_name='filming_proposal')
     feature_of_interest=models.CharField('Feture of interest', max_length=100, blank=True, null=True)
     from_date=models.DateField(blank=True, null=True)

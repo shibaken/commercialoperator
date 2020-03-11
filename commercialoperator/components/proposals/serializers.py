@@ -1123,6 +1123,12 @@ class SaveVehicleSerializer(serializers.ModelSerializer):
 
 class ProposalFilmingSerializer(BaseProposalSerializer):
     assessor_data = serializers.JSONField(required=False)
+    application_type = serializers.CharField(source='application_type.name', read_only=True)
+    submitter = serializers.CharField(source='submitter.get_full_name')
+    processing_status = serializers.SerializerMethodField(read_only=True)
+    #review_status = serializers.SerializerMethodField(read_only=True)
+    customer_status = serializers.SerializerMethodField(read_only=True)
+
 
     class Meta:
         model = Proposal

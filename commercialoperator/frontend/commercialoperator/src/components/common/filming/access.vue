@@ -34,6 +34,11 @@
 
 <script>
 import ParkTable from './parks_table.vue'
+import {
+  api_endpoints,
+  helpers
+}
+from '@/utils/hooks'
     export default {
         props:{
             proposal:{
@@ -46,7 +51,7 @@ import ParkTable from './parks_table.vue'
             return{
                 lBody: 'lBody'+vm._uid,
                 values:null,
-                parks_url: '/api/proposal_filming_parks.json'
+                parks_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/filming_parks'),
             }
         },
         components:{
