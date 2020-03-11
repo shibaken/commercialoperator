@@ -15,6 +15,7 @@
                         
                         <div class="form-group">
                             <div class="row">
+                                <ParkTable :url="parks_url" :proposal="proposal"  ref="parks_table"></ParkTable>
                                 <div class="col-sm-12">
                                     <label class="control-label pull-left"  for="Name">List all parks, terrestrial and/or marine ...</label>
                                 </div>
@@ -32,6 +33,7 @@
 </template>
 
 <script>
+import ParkTable from './parks_table.vue'
     export default {
         props:{
             proposal:{
@@ -43,8 +45,12 @@
             let vm = this;
             return{
                 lBody: 'lBody'+vm._uid,
-                values:null
+                values:null,
+                parks_url: '/api/proposal_filming_parks.json'
             }
+        },
+        components:{
+            ParkTable
         },
         methods:{
         }

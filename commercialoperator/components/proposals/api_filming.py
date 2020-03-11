@@ -59,6 +59,7 @@ from reversion.models import Version
 import logging
 logger = logging.getLogger(__name__)
 
+
 class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
     queryset = ProposalFilmingParks.objects.all().order_by('id')
     serializer_class = ProposalFilmingParksSerializer

@@ -41,7 +41,7 @@ from commercialoperator.components.proposals.models import (
 #from commercialoperator.components.organisations.models import (
 #                                Organisation
 #                            )
-#from commercialoperator.components.main.serializers import CommunicationLogEntrySerializer, ParkSerializer, ActivitySerializer, AccessTypeSerializer, TrailSerializer
+from commercialoperator.components.main.serializers import CommunicationLogEntrySerializer, ParkFilterSerializer
 #from commercialoperator.components.organisations.serializers import OrganisationSerializer
 #from commercialoperator.components.users.serializers import UserAddressSerializer, DocumentSerializer
 from rest_framework import serializers
@@ -99,6 +99,7 @@ class ProposalFilmingOtherDetailsSerializer(serializers.ModelSerializer):
 #                )
 
 class ProposalFilmingParksSerializer(serializers.ModelSerializer):
+    park=ParkFilterSerializer()
     from_date=serializers.DateField(format="%d/%m/%Y")
     to_date=serializers.DateField(format="%d/%m/%Y")
     class Meta:
