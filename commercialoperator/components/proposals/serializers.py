@@ -1120,3 +1120,46 @@ class SaveVehicleSerializer(serializers.ModelSerializer):
         model = Vehicle
         fields = ('id', 'capacity', 'rego', 'license', 'access_type', 'rego_expiry', 'proposal')
 
+
+class ProposalFilmingSerializer(BaseProposalSerializer):
+    assessor_data = serializers.JSONField(required=False)
+
+    class Meta:
+        model = Proposal
+        fields = (
+                'id',
+                'application_type',
+                'activity',
+                'approval_level',
+                'title',
+                'region',
+                'district',
+                # 'tenure',
+                'data',
+                'assessor_data',
+                'comment_data',
+                'schema',
+                'customer_status',
+                'processing_status',
+                # 'review_status',
+                #'hard_copy',
+                'applicant_type',
+                'applicant',
+                'org_applicant',
+                'proxy_applicant',
+                'submitter',
+                'assigned_officer',
+                'previous_application',
+                'lodgement_date',
+                'documents',
+                'requirements',
+                'readonly',
+                'can_user_edit',
+                'can_user_view',
+                'reference',
+                'lodgement_number',
+                'lodgement_sequence',
+                'can_officer_process',
+                'applicant_details',
+                )
+        read_only_fields=('documents','requirements',)

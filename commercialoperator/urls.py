@@ -79,6 +79,7 @@ router.register(r'payment', main_api.PaymentViewSet)
 
 # Filming
 #router.register(r'proposal',proposal_api_filming.ProposalViewSet)
+#router.register(r'proposal_filming', proposal_api_filming.ProposalFilmingViewSet)
 router.register(r'proposal_filming_parks', proposal_api_filming.ProposalFilmingParksViewSet)
 
 api_patterns = [

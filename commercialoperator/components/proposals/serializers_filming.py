@@ -36,6 +36,7 @@ from commercialoperator.components.proposals.models import (
                                     ProposalFilmingEquipment,
                                     ProposalFilmingOtherDetails,
                                     ProposalFilmingParks,
+                                    Proposal,
                                 )
 
 #from commercialoperator.components.organisations.models import (
@@ -106,3 +107,107 @@ class ProposalFilmingParksSerializer(serializers.ModelSerializer):
         model = ProposalFilmingParks
         fields = ('id', 'park', 'feature_of_interest', 'from_date', 'to_date', 'proposal')
 
+class SaveProposalFilmingParksSerializer(serializers.ModelSerializer):
+    #park=ParkFilterSerializer()
+    from_date=serializers.DateField(format="%d/%m/%Y")
+    to_date=serializers.DateField(format="%d/%m/%Y")
+    class Meta:
+        model = ProposalFilmingParks
+        fields = ('id', 'park', 'feature_of_interest', 'from_date', 'to_date', 'proposal')
+
+
+class ProposalFilmingSerializer(serializers.ModelSerializer):
+    readonly = serializers.SerializerMethodField(read_only=True)
+    documents_url = serializers.SerializerMethodField()
+    proposal_type = serializers.SerializerMethodField()
+    get_history = serializers.ReadOnlyField()
+    is_qa_officer = serializers.SerializerMethodField()
+    fee_invoice_url = serializers.SerializerMethodField()
+    
+    submitter = serializers.CharField(source='submitter.get_full_name')
+    processing_status = serializers.SerializerMethodField(read_only=True)
+    review_status = serializers.SerializerMethodField(read_only=True)
+    customer_status = serializers.SerializerMethodField(read_only=True)
+
+    application_type = serializers.CharField(source='application_type.name', read_only=True)
+    region = serializers.CharField(source='region.name', read_only=True)
+    district = serializers.CharField(source='district.name', read_only=True)
+
+    class Meta:
+        model = Proposal
+        fields = (
+                'id',
+                'application_type',
+                'proposal_type',
+                'activity',
+                'approval_level',
+                'title',
+                'region',
+                'district',
+                'tenure',
+                'customer_status',
+                'processing_status',
+                'review_status',
+                #'hard_copy',
+                'applicant_type',
+                'applicant',
+                'org_applicant',
+                'proxy_applicant',
+                'submitter',
+                'assigned_officer',
+                'previous_application',
+                'get_history',
+                'lodgement_date',
+                'modified_date',
+                'documents',
+                'requirements',
+                'readonly',
+                'can_user_edit',
+                'can_user_view',
+                'documents_url',
+                'reference',
+                'lodgement_number',
+                'lodgement_sequence',
+                'can_officer_process',
+                'proposal_type',
+                'is_qa_officer',
+                'pending_amendment_request',
+                'is_amendment_proposal',
+
+                # tab field models
+                'applicant_details',
+                'training_completed',
+                'fee_invoice_url',
+                'fee_paid',
+
+                )
+        read_only_fields=('documents',)
+
+   
+
+    def get_documents_url(self,obj):
+        return '/media/{}/proposals/{}/documents/'.format(settings.MEDIA_APP_DIR, obj.id)
+
+    def get_readonly(self,obj):
+        return False
+
+    def get_processing_status(self,obj):
+        return obj.get_processing_status_display()
+
+    def get_review_status(self,obj):
+        return obj.get_review_status_display()
+
+    def get_customer_status(self,obj):
+        return obj.get_customer_status_display()
+
+    def get_proposal_type(self,obj):
+        return obj.get_proposal_type_display()
+
+    def get_is_qa_officer(self,obj):
+        request = self.context['request']
+        return request.user.email in obj.qa_officers()
+
+    def get_fee_invoice_url(self,obj):
+        return '/cols/payments/invoice-pdf/{}'.format(obj.fee_invoice_reference) if obj.fee_paid else None
+
+    

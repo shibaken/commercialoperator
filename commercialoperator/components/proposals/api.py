@@ -89,6 +89,7 @@ from commercialoperator.components.proposals.serializers import (
     ProposalAssessmentSerializer,
     ProposalAssessmentAnswerSerializer,
     ParksAndTrailSerializer,
+    ProposalFilmingSerializer,
 )
 from commercialoperator.components.proposals.serializers_filming import (
     ProposalFilmingOtherDetailsSerializer,
@@ -592,6 +593,26 @@ class ProposalViewSet(viewsets.ModelViewSet):
             obj = get_object_or_404(Proposal, id=self.kwargs['id'])
         return obj
 
+    def get_serializer_class(self):
+        try:
+            application_type = Proposal.objects.get(id=self.kwargs.get('id')).application_type.name
+            if application_type == ApplicationType.TCLASS:
+                return ProposalSerializer
+            elif application_type == ApplicationType.FILMING:
+                return ProposalFilmingSerializer
+            elif application_type == ApplicationType.EVENT:
+                return ProposalSerializer
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
 
     @list_route(methods=['GET',])
     def filter_list(self, request, *args, **kwargs):

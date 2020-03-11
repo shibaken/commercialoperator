@@ -38,11 +38,13 @@ from commercialoperator.components.proposals.models import (
 	ProposalFilmingActivity,
 	ProposalFilmingAccess,
 	ProposalFilmingParks,
+    Proposal,
 )
 from commercialoperator.components.proposals.serializers_filming import (
     ProposalFilmingActivitySerializer,
     ProposalFilmingAccessSerializer,
     ProposalFilmingParksSerializer,
+    ProposalFilmingSerializer,
 )
 
 from commercialoperator.helpers import is_customer, is_internal
@@ -58,6 +60,47 @@ from reversion.models import Version
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+class ProposalFilmingViewSet(viewsets.ModelViewSet):
+    """
+    Similar to ProposalViewSet, except get_queryset include migrated_licences
+    """
+    queryset = Proposal.objects.none()
+    serializer_class = ProposalFilmingSerializer
+    lookup_field = 'id'
+
+    @property
+    def excluded_type(self):
+        try:
+            return ApplicationType.objects.get(name='E Class')
+        except:
+            return ApplicationType.objects.none()
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            qs= Proposal.objects.all().exclude(application_type=self.excluded_type)
+            return qs.exclude(migrated=True)
+            #return Proposal.objects.filter(region__isnull=False)
+        elif is_customer(self.request):
+            user_orgs = [org.id for org in user.commercialoperator_organisations.all()]
+            queryset =  Proposal.objects.filter( Q(org_applicant_id__in = user_orgs) | Q(submitter = user) ).exclude(migrated=True)
+            #queryset =  Proposal.objects.filter(region__isnull=False).filter( Q(applicant_id__in = user_orgs) | Q(submitter = user) )
+            return queryset.exclude(application_type=self.excluded_type)
+        logger.warn("User is neither customer nor internal user: {} <{}>".format(user.get_full_name(), user.email))
+        return Proposal.objects.none()
+
+    def get_object(self):
+
+        check_db_connection()
+        try:
+            obj = super(ProposalViewSet, self).get_object()
+        except Exception, e:
+            # because current queryset excludes migrated licences
+            obj = get_object_or_404(Proposal, id=self.kwargs['id'])
+        return obj
+
 
 
 class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
