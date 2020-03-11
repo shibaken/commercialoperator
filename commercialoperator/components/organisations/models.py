@@ -10,7 +10,7 @@ from django.contrib.postgres.fields.jsonb import JSONField
 from ledger.accounts.models import Organisation as ledger_organisation
 from ledger.accounts.models import EmailUser,RevisionedMixin #,Document
 from commercialoperator.components.main.models import UserAction,CommunicationsLogEntry, Document
-from commercialoperator.components.organisations.utils import random_generator
+from commercialoperator.components.organisations.utils import random_generator, can_admin_org
 from commercialoperator.components.organisations.emails import (
                         send_organisation_request_accept_email_notification,
                         send_organisation_request_decline_email_notification,
@@ -456,7 +456,7 @@ class Organisation(models.Model):
 
     @property
     def first_five(self):
-        return ','.join([user.get_full_name() for user in self.delegates.all()[:5]])
+        return ','.join([user.get_full_name() for user in self.delegates.all()[:5] if can_admin_org(self, user)])
 
 @python_2_unicode_compatible
 class OrganisationContact(models.Model):
