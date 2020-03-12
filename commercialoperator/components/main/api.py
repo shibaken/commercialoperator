@@ -130,6 +130,12 @@ class ParkViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = ParkSerializer(qs,context={'request':request}, many=True)
         return Response(serializer.data)
 
+    @list_route(methods=['GET',])
+    def land_parks(self, request, *args, **kwargs):
+        qs = self.get_queryset().filter(park_type='land')
+        serializer = ParkSerializer(qs,context={'request':request}, many=True)
+        return Response(serializer.data)
+
     @detail_route(methods=['GET',])
     def allowed_activities(self, request, *args, **kwargs):
         instance = self.get_object()

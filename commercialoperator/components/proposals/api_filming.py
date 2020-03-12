@@ -45,6 +45,7 @@ from commercialoperator.components.proposals.serializers_filming import (
     ProposalFilmingAccessSerializer,
     ProposalFilmingParksSerializer,
     ProposalFilmingSerializer,
+    SaveProposalFilmingParksSerializer
 )
 
 from commercialoperator.helpers import is_customer, is_internal
@@ -111,7 +112,7 @@ class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
     def edit_park(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            serializer = ProposalFilmingParksSerializer(instance, data=request.data)
+            serializer = SaveProposalFilmingParksSerializer(instance, data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             instance.proposal.log_user_action(ProposalUserAction.ACTION_EDIT_VEHICLE.format(instance.id),request)
@@ -131,7 +132,7 @@ class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         try:
             #instance = self.get_object()
-            serializer = ProposalFilmingParksSerializer(data=request.data)
+            serializer = SaveProposalFilmingParksSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             instance=serializer.save()
             instance.proposal.log_user_action(ProposalUserAction.ACTION_CREATE_VEHICLE.format(instance.id),request)

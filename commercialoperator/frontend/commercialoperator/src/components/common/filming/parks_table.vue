@@ -14,12 +14,12 @@
                 </div>
             </div>
         </div>
-        <editPark ref="edit_park" :park_id="park_id" :access_types="access_types" @refreshFromResponse="refreshFromResponse"></editPark>
+        <editPark ref="edit_park" :park_id="park_id" @refreshFromResponse="refreshFromResponse"></editPark>
     </div>
 </template> 
 <script>
 import datatable from '@/utils/vue/datatable.vue'
-//import editPark from './edit_park.vue'
+import editPark from './edit_park.vue'
 import {
     api_endpoints,
     helpers
@@ -202,7 +202,7 @@ export default {
     },
     components:{
         datatable,
-        //editPark
+        editPark
     },
     watch:{
     },
@@ -233,11 +233,10 @@ export default {
             this.$refs.edit_park.park_id = null;
             //this.$refs.edit_park.fetchPark(id);
             var new_park_another={
-                access_type: null,
-                capacity:'',
-                rego:'',
-                rego_expiry:null,
-                license:'',
+                park: null,
+                feature_of_interest:'',
+                from_date:null,
+                to_date:null,
                 proposal: vm.proposal.id
             }
             //this.$refs.edit_park.park=this.new_park;

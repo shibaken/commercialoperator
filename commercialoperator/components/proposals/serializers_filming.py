@@ -109,8 +109,8 @@ class ProposalFilmingParksSerializer(serializers.ModelSerializer):
 
 class SaveProposalFilmingParksSerializer(serializers.ModelSerializer):
     #park=ParkFilterSerializer()
-    from_date=serializers.DateField(format="%d/%m/%Y")
-    to_date=serializers.DateField(format="%d/%m/%Y")
+    from_date=serializers.DateField(input_formats=['%d/%m/%Y'], allow_null=True)
+    to_date=serializers.DateField(input_formats=['%d/%m/%Y'], allow_null=True)
     class Meta:
         model = ProposalFilmingParks
         fields = ('id', 'park', 'feature_of_interest', 'from_date', 'to_date', 'proposal')
