@@ -64,6 +64,21 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-3">
+                                        
+                                        <label class="control-label pull-left"  for="Name">Maps/ Documnets</label>
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <div class="input-group date" ref="add_attachments" style="width: 70%;">
+                                            <FileField2 ref="filefield" :uploaded_documents="park.filming_park_documents" :delete_url="delete_url" :proposal_id="park_id" isRepeatable="true" name="filming_park_file" @refreshFromResponse="refreshFromResponse"/>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
                                                      
                         </div>
                     </form>
@@ -84,11 +99,13 @@ import Vue from 'vue'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import {helpers,api_endpoints} from "@/utils/hooks.js"
+import FileField2 from '@/components/forms/filefield2.vue'
 export default {
     name:'Edit-Park',
     components:{
         modal,
-        alert
+        alert,
+        FileField2
     },
     props:{
         park_id: {
@@ -133,6 +150,9 @@ export default {
         },
         title: function(){
             return this.park_action == 'add' ? 'Add a new Park or Reserve' : 'Edit a Park or Reserve';
+        },
+        delete_url: function() {
+            return (this.park_id) ? '/api/proposal_filming_parks/'+this.park_id+'/delete_document/' : '';
         }
     },
     methods:{
@@ -201,10 +221,24 @@ export default {
             //     vm.park.from_date=vm.park.from_date.format('YYYY-MM-DD')
             // }
             let park = JSON.parse(JSON.stringify(vm.park));
+            let formData = new FormData()
+            var files = vm.$refs.filefield.files;
+            $.each(files, function (idx, v) {
+                var file = v['file'];
+                var filename = v['name'];
+                var name = 'file-' + idx;
+                formData.append(name, file, filename);
+            });
+            park.num_files = files.length;
+            park.input_name = 'filming_park_doc';
+            //park.proposal = vm.proposal_id;
+
+            formData.append('data', JSON.stringify(park));
+            //let park = JSON.parse(JSON.stringify(vm.park));
             vm.issuingPark = true;
             if(vm.park_action=="add" && vm.park_id==null)
             {
-                vm.$http.post(api_endpoints.proposal_filming_parks,JSON.stringify(park),{
+                vm.$http.post(api_endpoints.proposal_filming_parks,formData,{
                         emulateJSON:true,
                     }).then((response)=>{
                         vm.issuingPark = false;
@@ -223,7 +257,7 @@ export default {
                     });
             }
             else{
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposal_filming_parks,vm.park_id+'/edit_park'),JSON.stringify(park),{
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposal_filming_parks,vm.park_id+'/edit_park'),formData,{
                         emulateJSON:true,
                     }).then((response)=>{
                         vm.issuingPark = false;

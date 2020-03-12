@@ -64,6 +64,10 @@ def update_requirement_doc_filename(instance, filename):
 def update_proposal_comms_log_filename(instance, filename):
     return '{}/proposals/{}/communications/{}'.format(settings.MEDIA_APP_DIR, instance.log_entry.proposal.id,filename)
 
+def update_filming_park_doc_filename(instance, filename):
+    return '{}/proposals/{}/filming_park_documents/{}'.format(settings.MEDIA_APP_DIR, instance.filming_park.proposal.id,filename)
+
+
 def application_type_choicelist():
     try:
         return [( (choice.name), (choice.name) ) for choice in ApplicationType.objects.filter(visible=True)]
@@ -3711,6 +3715,41 @@ class ProposalFilmingParks(models.Model):
 
     class Meta:
         app_label = 'commercialoperator'
+
+    def add_documents(self, request):
+        with transaction.atomic():
+            try:
+                # save the files
+                data = json.loads(request.data.get('data'))
+                if not data.get('update'):
+                    documents_qs = self.filming_park_documents.filter(input_name='filming_park_doc', visible=True)
+                    documents_qs.delete()
+                for idx in range(data['num_files']):
+                    _file = request.data.get('file-'+str(idx))
+                    document = self.filming_park_documents.create(_file=_file, name=_file.name)
+                    document.input_name = data['input_name']
+                    document.can_delete = True
+                    document.save()
+                # end save documents
+                self.save()
+            except:
+                raise
+        return
+
+
+class FilmingParkDocument(Document):
+    filming_park = models.ForeignKey('ProposalFilmingParks',related_name='filming_park_documents')
+    _file = models.FileField(upload_to=update_filming_park_doc_filename, max_length=512)
+    input_name = models.CharField(max_length=255,null=True,blank=True)
+    can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
+    visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+    def delete(self):
+        if self.can_delete:
+            return super(FilmingParkDocument, self).delete()
 
 # --------------------------------------------------------------------------------------
 # Filming Models End

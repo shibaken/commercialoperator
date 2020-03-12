@@ -37,6 +37,7 @@ from commercialoperator.components.proposals.models import (
                                     ProposalFilmingOtherDetails,
                                     ProposalFilmingParks,
                                     Proposal,
+                                    FilmingParkDocument
                                 )
 
 #from commercialoperator.components.organisations.models import (
@@ -98,14 +99,19 @@ class ProposalFilmingOtherDetailsSerializer(serializers.ModelSerializer):
 #                'credit_docket_books',
 #                'proposal',
 #                )
+class FilmingParkDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FilmingParkDocument
+        fields = ('id', 'name', '_file')
 
 class ProposalFilmingParksSerializer(serializers.ModelSerializer):
     park=ParkFilterSerializer()
     from_date=serializers.DateField(format="%d/%m/%Y")
     to_date=serializers.DateField(format="%d/%m/%Y")
+    filming_park_documents = FilmingParkDocumentSerializer(many=True, read_only=True)
     class Meta:
         model = ProposalFilmingParks
-        fields = ('id', 'park', 'feature_of_interest', 'from_date', 'to_date', 'proposal')
+        fields = ('id', 'park', 'feature_of_interest', 'from_date', 'to_date', 'proposal', 'filming_park_documents')
 
 class SaveProposalFilmingParksSerializer(serializers.ModelSerializer):
     #park=ParkFilterSerializer()
