@@ -58,6 +58,7 @@ from rest_framework_datatables.renderers import DatatablesRenderer
 from rest_framework.filters import BaseFilterBackend
 import reversion
 from reversion.models import Version
+from collections import namedtuple
 
 import logging
 logger = logging.getLogger(__name__)
@@ -167,3 +168,53 @@ class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+class FilmingActivityTabView(views.APIView):
+
+    # renderer_classes = [JSONRenderer,]
+    # def get(self,request, format=None):
+    #     Container= namedtuple('ActivityTab',('film_type_choices', 'purpose_choices', 'sponsorship_choices', 'film_usage_choices'))
+    #     container = Container(
+    #         film_type_choices=ProposalFilmingActivity.FILM_TYPE_CHOICES,
+    #         purpose_choices=ProposalFilmingActivity.PURPOSE_CHOICES,
+    #         sponsorship_choices=ProposalFilmingActivity.SPONSORSHIP_CHOICES,
+    #         film_usage_choices=ProposalFilmingActivity.FILM_USE_CHOICES
+    #     )
+    #     print container
+        
+    #     return Response(container)
+
+    renderer_classes = [JSONRenderer,]
+    def get(self,request, format=None):
+        container={}
+        film_type_choices=[]
+        purpose_choices=[]
+        sponsorship_choices=[]
+        film_usage_choices=[]
+
+        film_types=ProposalFilmingActivity.FILM_TYPE_CHOICES
+        purpose=ProposalFilmingActivity.PURPOSE_CHOICES
+        sponsorships=ProposalFilmingActivity.SPONSORSHIP_CHOICES
+        film_usage=ProposalFilmingActivity.FILM_USE_CHOICES
+
+        if film_types:
+            for c in film_types:
+                film_type_choices.append({'key': c[0],'value': c[1]})
+        if purpose:
+            for p in purpose:
+                purpose_choices.append({'key': p[0],'value': p[1]})
+
+        if sponsorships:
+            for s in sponsorships:
+                sponsorship_choices.append({'key': s[0],'value': s[1]})
+
+        if film_usage:
+            for f in film_usage:
+                film_usage_choices.append({'key': f[0],'value': f[1]})
+
+        container.update({'film_usage_choices':film_usage_choices})
+        container.update({'purpose_choices': purpose_choices})
+        container.update({'sponsorship_choices': sponsorship_choices})
+        container.update({'film_usage_choices': film_usage_choices})
+        
+        return Response(container)

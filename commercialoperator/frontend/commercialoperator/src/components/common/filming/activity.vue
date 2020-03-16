@@ -16,15 +16,28 @@
                         <div class="form-group">
                             <div class="row">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-left"  for="Name">Name of film/program/product</label>
+                                    <label class="control-label pull-left"  for="Name">Period of proposed filming/ photography</label>
                                 </div>
-                                <div class="col-sm-9">
-                                    <!-- <input type="text" class="form-control" v-model="proposal.activity_filming.title" name="activity_title" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal"> -->
-                                    <input type="text" class="form-control" name="activity_title" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                <div class="col-sm-4">
+                                    <div class="input-group date" ref="commencement_date" style="width: 70%;">
+                                        <input type="text" class="form-control" v-model="proposal.filming_activity.commencement_date" name="commencement_date" placeholder="Commencement date" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                        <span class="input-group-addon">
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="input-group date" ref="nominated_start_date" style="width: 70%;">
+                                        <input type="text" class="form-control" v-model="proposal.filming_activity.commencement_date" name="commencement_date" placeholder="Commencement date" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                        <span class="input-group-addon">
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
                         </div> 
+
                     </div>
                 </div>
             </div>                
@@ -51,6 +64,17 @@
             }
         },
         methods:{
+            fetchData: function(){
+            let vm = this;
+            vm.$http.get('/api/filming_activity_tab').then((response) => {
+                console.log(response.body);
+            },(error) => {
+                console.log(error);
+            } );
+        },
+        },
+        mounted: function(){
+            this.fetchData()
         }
     }
 </script>
