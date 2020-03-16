@@ -114,14 +114,13 @@ export default {
                         // name: "approval__lodgement_number"
                     },
                     {
-                        data: '',
+                        data: 'filming_park_documents',
                         mRender:function (data,type,full) {
                             let links = '';
-                            if(!vm.proposal.readonly){
-                            links +=  `<a href='#${full.id}' data-edit-park='${full.id}'>Edit Park</a><br/>`;
-                            links +=  `<a href='#${full.id}' data-discard-park='${full.id}'>Discard</a><br/>`;
-                        }
-                        return links;
+                            _.forEach(data, function (item) {
+                                links += `<a href='${item._file}' target='_blank' style='padding-left: 52px;'>${item.name}</a><br/>`;
+                            });
+                            return links;
                         },
                     },
                     {

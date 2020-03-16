@@ -156,19 +156,24 @@ export default {
         }
     },
     methods:{
+        refreshFromResponse: function(updated_docs){
+            this.park.filming_park_documents = updated_docs;
+        },
         ok:function () {
             let vm =this;
             if($(vm.form).valid()){
                 vm.sendData();
-               
+               vm.$refs.filefield.reset_files();
             }
         },
         cancel:function () {
             this.close()
+            this.$refs.filefield.reset_files();
         },
         close:function () {
             this.isModalOpen = false;
             this.park = {};
+            this.$refs.filefield.reset_files();
             this.errors = false;
             $('.has-error').removeClass('has-error');
             $(this.$refs.from_date).data('DateTimePicker').clear();
@@ -367,6 +372,7 @@ export default {
         this.$nextTick(()=>{
             vm.eventListeners();
         });
+        vm.park.filming_park_documents = vm.$refs.filefield.uploaded_documents;
    }
 }
 </script>
