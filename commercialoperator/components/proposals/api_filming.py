@@ -212,7 +212,7 @@ class FilmingActivityTabView(views.APIView):
             for f in film_usage:
                 film_usage_choices.append({'key': f[0],'value': f[1]})
 
-        container.update({'film_usage_choices':film_usage_choices})
+        container.update({'film_type_choices':film_type_choices})
         container.update({'purpose_choices': purpose_choices})
         container.update({'sponsorship_choices': sponsorship_choices})
         container.update({'film_usage_choices': film_usage_choices})
