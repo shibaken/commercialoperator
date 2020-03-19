@@ -14,15 +14,31 @@
                     <div class="form-horizontal col-sm-12 borderDecoration">
                         
                         <div class="form-group">
-                            <div class="row">
-                                <ParkTable :url="parks_url" :proposal="proposal"  ref="parks_table"></ParkTable>
+                            <div class="">
+                                
                                 <div class="col-sm-12">
                                     <label class="control-label pull-left"  for="Name">List all parks, terrestrial and/or marine ...</label>
+                                    <ParkTable :url="parks_url" :proposal="proposal"  ref="parks_table"></ParkTable>
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
                         </div> 
                     </div>
+
+                    <div class="form-horizontal col-sm-12 borderDecoration">
+                        
+                        <div class="form-group">
+                            <div class="">
+                                
+                                <div class="col-sm-12">
+                                    <label class="control-label pull-left"  for="Name">List all parks, terrestrial and/or marine ...</label>
+                                    <ParkTable :url="parks_url" :proposal="proposal"  ref="parks_table"></ParkTable>
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                        </div> 
+                    </div>
+
                 </div>
             </div>                
 
@@ -63,5 +79,11 @@ from '@/utils/hooks'
 </script>
 
 <style lang="css" scoped>
+.borderDecoration {
+    border: 1px solid;
+    border-radius: 5px;
+    padding: 5px;
+    margin-top: 5px;
+}
 </style>
 

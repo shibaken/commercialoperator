@@ -61,7 +61,7 @@
                                 <div class="col-sm-9" style="margin-bottom: 5px">
                                     <ul class="list-inline"  >
                                         <li v-for="f in film_type_choices" class="form-check list-inline-item">
-                                            <input  class="form-check-input" ref="Checkbox" type="checkbox" @click="selectFilmType($event, f)" v-model="film_type" :value="f.key" data-parsley-required :disabled="proposal.readonly" />
+                                            <input  class="form-check-input" ref="Checkbox" type="checkbox" @click="selectFilmType($event, f)" v-model="proposal.filming_activity.film_type" :value="f.key" data-parsley-required :disabled="proposal.readonly" />
                                             {{ f.value }}
                                         </li>
                                     </ul>
@@ -75,7 +75,7 @@
                                 <div class="col-sm-9" style="margin-bottom: 5px">
                                     <ul class="list-inline"  >
                                         <li v-for="p in purpose_choices" class="form-check list-inline-item">
-                                            <input  class="form-check-input" ref="Checkbox" type="checkbox" @click="selectFilmType($event, p)" v-model="proposal.filming_activity.film_purpose" :value="p.key" data-parsley-required :disabled="proposal.readonly"/>
+                                            <input  class="form-check-input" ref="Checkbox_purpose" type="checkbox" @click="selectFilmType($event, p)" v-model="proposal.filming_activity.film_purpose" :value="p.key" data-parsley-required :disabled="proposal.readonly"/>
                                             {{ p.value }}
                                         </li>
                                     </ul>
