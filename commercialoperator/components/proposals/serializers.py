@@ -1130,6 +1130,7 @@ class ProposalFilmingSerializer(BaseProposalSerializer):
     customer_status = serializers.SerializerMethodField(read_only=True)
     filming_activity= ProposalFilmingActivitySerializer()
     filming_access=ProposalFilmingAccessSerializer()
+    filming_equipment=ProposalFilmingEquipmentSerializer()
 
     class Meta:
         model = Proposal
@@ -1170,5 +1171,6 @@ class ProposalFilmingSerializer(BaseProposalSerializer):
                 'applicant_details',
                 'filming_activity',
                 'filming_access',
+                'filming_equipment',
                 )
         read_only_fields=('documents','requirements',)
