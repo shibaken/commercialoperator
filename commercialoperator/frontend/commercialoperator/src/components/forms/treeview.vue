@@ -25,7 +25,7 @@
                         <a class="col-sm-4 control-label pull-right" @click.stop="edit_activities(node)">{{ edit_display_text(node) }}  <i class="fa fa-edit"></i></a>
                     </span>
                     <span v-else>
-                        <p class="col-sm-4 control-label pull-right" style="color: grey;">{{ edit_display_text(node) }}  <i class="fa fa-edit"></p>
+                        <p class="col-sm-4 control-label pull-right" style="color: grey;">{{ edit_display_text(node) }}  <i class="fa fa-edit"></i></p>
                     </span>
                 </div>
             </template>

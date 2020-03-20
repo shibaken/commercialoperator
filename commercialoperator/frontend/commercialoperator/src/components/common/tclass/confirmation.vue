@@ -10,7 +10,8 @@
             </div>
             <div v-else class="row">
                 <div class="col-sm-12">
-                <h2>Application Fee: Unpaid</h2>
+                    <h2>Application Fee: Unpaid</h2>
+                </div>
             </div>
         </div>
         <div v-if="proposal.fee_paid" class="row">

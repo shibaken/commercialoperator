@@ -1,7 +1,6 @@
 <template lang="html">
     <div class="container">
         <div class="col-sm-12"><div class="row">
-
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">Park Entry Fees
@@ -50,7 +49,7 @@
                     </form>
                 </div>
             </div>
-        </div>
+        </div></div>
     </div>
 </template>
 
