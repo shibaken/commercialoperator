@@ -2,14 +2,12 @@
 <div class="container" id="externalCompliance">
     <div v-if="isDiscarded" class="row" style="color:red;">
         <h3>You cannot access this Compliance with requirements as this has been discarded.</h3>
-        
     </div>
     <div v-else class="row">
         <div v-if="!isFinalised">
             <div v-if="hasAmendmentRequest" class="row" style="color:red;">
                 <div class="col-lg-12 pull-right">
-                  <div class="panel panel-default">
-                    <div class="panel-heading">
+                    <div class="panel panel-default"><div class="panel-heading">
 
                         <h3 class="panel-title" style="color:red;">An amendment has been requested for this Compliance with Requirements
                           <a class="panelClicker" :href="'#'+oBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="oBody">
@@ -22,16 +20,13 @@
                           <p>Reason: {{a.reason}}</p>
                           <p>Details: {{a.text}}</p>                        
                       </div>
-                    </div>
-                  </div>
+                    </div></div>
                 </div>
-              </div>
-           </div>
+            </div>
+        </div>
 
         <h3><strong>Compliance with Requirements: {{ compliance.reference }}</strong></h3>
 
-      
-        
         <div class="col-md-12">
             <div class="row">
                 <div class="panel panel-default">

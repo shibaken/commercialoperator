@@ -31,7 +31,8 @@
                                 <div class="form-horizontal col-sm-9">
                                   <div v-for="a in trail.allowed_activities" >
                                     <div class="form-check">
-                                      <input :disabled="!s.checked" :onclick="isClickable" class="form-check-input" ref="Checkbox" type="checkbox" :id="'section'+s.id+'activity'+a.id" v-model="s.new_activities" :value="a.id" data-parsley-required :disabled="!canEditActivities" />
+                                      <!-- input :disabled="!s.checked" :onclick="isClickable" class="form-check-input" ref="Checkbox" type="checkbox" :id="'section'+s.id+'activity'+a.id" v-model="s.new_activities" :value="a.id" data-parsley-required :disabled="!canEditActivities" / -->
+                                      <input :onclick="isClickable" class="form-check-input" ref="Checkbox" type="checkbox" :id="'section'+s.id+'activity'+a.id" v-model="s.new_activities" :value="a.id" data-parsley-required :disabled="!canEditActivities" />
                                       {{ a.name }}
                                     </div>
                                   </div>
