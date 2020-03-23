@@ -3642,7 +3642,7 @@ class ProposalFilmingActivity(models.Model):
     sponsorship_details=models.TextField(blank=True)
     film_usage=models.CharField('Film be used', max_length=40, choices=FILM_USE_CHOICES, null=True, blank=True)
     film_usage_details=models.TextField(blank=True)
-    activity_title=models.CharField('Activity title', max_length=100)
+    activity_title=models.CharField('Activity title', max_length=100, null=True, blank=True)
     production_description=models.TextField(blank=True, null=True,)
     proposal = models.OneToOneField(Proposal, related_name='filming_activity', null=True)
 

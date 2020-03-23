@@ -1131,6 +1131,7 @@ class ProposalFilmingSerializer(BaseProposalSerializer):
     filming_activity= ProposalFilmingActivitySerializer()
     filming_access=ProposalFilmingAccessSerializer()
     filming_equipment=ProposalFilmingEquipmentSerializer()
+    filming_other_details=ProposalFilmingOtherDetailsSerializer()
 
     class Meta:
         model = Proposal
@@ -1172,5 +1173,6 @@ class ProposalFilmingSerializer(BaseProposalSerializer):
                 'filming_activity',
                 'filming_access',
                 'filming_equipment',
+                'filming_other_details',
                 )
         read_only_fields=('documents','requirements',)

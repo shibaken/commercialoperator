@@ -16,14 +16,11 @@
                         <div class="form-group">
                             <div class="row">
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">What steps have been taken to ensure the well being of others in your party</label>
+                                    <label class="control-label pull-left"  for="Name">What steps have been taken to ensure the well being of others in your party <small> (List, for example, aid kit, fire extinguisher, lif jackets, HF radio, etc)</small> </label>
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="input-group date" ref="safety_details" style="width: 70%;">
-                                        <input type="text" class="form-control" v-model="proposal.other_details.safety_details" name="safety_details" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
-                                        <!--
-                                        <input type="text" class="form-control" name="safety_details" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
-                                        -->
+                                        <textarea type="text" class="form-control" v-model="proposal.filming_other_details.safety_details" name="safety_details" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -48,8 +45,41 @@
                         <div class="form-group">
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <label>Depending on the filming operation, fees and charges may apply. Please see ...</label>
+                                    <label>Depending on the filming operation, fees and charges may apply. Please see commercial filming website for informaation on fees and charges.</label>
                                 </div>   
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Do you request that camping fees be waived?</label>
+                                </div>
+                                <div class="col-sm-6" style="margin-bottom: 5px">
+                                    <ul class="list-inline"  >
+                                        <li class="form-check list-inline-item">
+                                                <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.filming_other_details.camping_fee_waived" :value="true" data-parsley-required :disabled="proposal.readonly" name="camping_fee_waived"/>
+                                                Yes
+                                        </li>
+                                        <li class="form-check list-inline-item">
+                                                <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.filming_other_details.camping_fee_waived" :value="false" data-parsley-required :disabled="proposal.readonly" name="camping_fee_waived"/>
+                                                No
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="row" v-if="proposal.filming_other_details.camping_fee_waived">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">For how many people </label>
+                                </div>
+                                <div class="col-sm-6" style="margin-bottom: 5px">
+                                    <div class="col-sm-6" style="margin-bottom: 5px">
+                                        <input type="text" class="form-control" name="num_cameras" placeholder="" :disabled="proposal.readonly" v-model="proposal.filming_other_details.fee_waived_num_people">   
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" v-if="proposal.filming_other_details.camping_fee_waived">
+                                <div class="col-sm-12">
+                                    <label class="control-label pull-left"  for="Name">Make sure that you have a copy of the licence or lawful authority if issued. Camping gess  may still apply.</label>
+                                </div>
                             </div>
                         </div>
                    </div>
@@ -74,8 +104,9 @@
                                 <div class="col-sm-12">
                                     <label>
                                     <ol type="a">
-                                        <li>Attach your policy for public liability insurance that covers the areas and operations allowed under the licence, and in the name of the applicant to the extent of its rights and interests, for a sum of not less than AU$10 million per event.</li>
-                                        <li>It is a requirement of all licenced operators to maintain appropriate public liability insurance.</li>
+                                        <li>The operator shall at all times during the period of the Licence maintain a policy of public liability insurance, that covers the areas and operataions allowed under the Licence, in the name of the Operator to the extent of its rights and interests for a sum of not less than $10 million per event.</li>
+                                        <li>The operator shall provide the Dirctor General proof of the existence and currency of such insurance policy whenver requested by the Director General during the term of the Licence.</li>
+                                        <li>The Operator shall pay all premiums of the public liability insurance policy when they are due, coply with all the terms of that insurance policy and shall  make the insurer aware of the Licence, these Conditions and the indemnity given to the Director General.</li>
                                     </ol></label>
                                 </div>
                             </div>
@@ -94,7 +125,7 @@
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="input-group date" ref="insurance_expiry" style="width: 70%;">
-                                        <input type="text" class="form-control" name="insurance_expiry" placeholder="DD/MM/YYYY" v-model="proposal.other_details.insurance_expiry" :disabled="proposal.readonly">
+                                        <input type="text" class="form-control" name="insurance_expiry" placeholder="DD/MM/YYYY" v-model="proposal.filming_other_details.insurance_expiry" :disabled="proposal.readonly">
                                             <span class="input-group-addon">
                                                 <span class="glyphicon glyphicon-calendar"></span>
                                             </span>
@@ -138,7 +169,7 @@
             </div>                
         </div>
     </div>
--->
+
 
 </div>
 </template>
@@ -170,20 +201,15 @@ export default {
                 cBody: 'cBody'+vm._uid,
                 dBody: 'dBody'+vm._uid,
                 values:null,
-                accreditation_choices:[],
-                accreditation_type:[],
-                selected_accreditations:[],
-                licence_period_choices:[],
-                mooring: [''],
                 global_settings:[],
                 //mooring:[{'value':''}],
                 datepickerOptions:{
-                format: 'DD/MM/YYYY',
-                showClear:true,
-                useCurrent:false,
-                keepInvalid:true,
-                allowInputToggle:true,
-            },
+                    format: 'DD/MM/YYYY',
+                    showClear:true,
+                    useCurrent:false,
+                    keepInvalid:true,
+                    allowInputToggle:true,
+                },
             }
         },
         components: {
@@ -216,105 +242,10 @@ export default {
         },
         watch:{
             
-            accreditation_type: function(){
-                this.proposal.other_details.accreditation_type=this.accreditation_type.key;
-            },
+            
         },
         methods:{
-            handleRadioChange: function(e){
-                    if(e.target.value=="true"){
-                        console.log(e.target.value);
-                        $('#show_docket').removeClass('hidden')
-                    }
-                    else{
-                        $('#show_docket').addClass('hidden')
-                    }
-                
-            },
-            handleSelectionChange: function(e){
-                    if(e.target.value=="true"){
-                        console.log(e.target.value);
-                        $('#show_credit_link').removeClass('hidden')
-                    }
-                    else{
-                        $('#show_credit_link').addClass('hidden')
-                    }
-                
-            },
-            showDockteNumber: function(){
-                let vm=this;
-                if(vm.proposal && vm.proposal.other_details.credit_docket_books){
-                    var input = this.$refs.docket_books_yes;
-                    var e = document.createEvent('HTMLEvents');
-                    e.initEvent('change', true, true);
-                    var disabledStatus = input.disabled;
-                    try {
-                        /* Firefox will not fire events for disabled widgets, so (temporarily) enabling them */
-                        if(disabledStatus) {
-                            input.disabled = false;
-                        }
-                        input.dispatchEvent(e);
-                    } finally {
-                        if(disabledStatus) {
-                            input.disabled = true;
-                        }
-                    }
-                }
-            },
-            showCreditFacilityLink: function(){
-                let vm=this;
-                if(vm.proposal && vm.proposal.other_details.credit_fees){
-                    var input = this.$refs.credit_fees_yes;
-                    var e = document.createEvent('HTMLEvents');
-                    e.initEvent('change', true, true);
-                    var disabledStatus = input.disabled;
-                    try {
-                        /* Firefox will not fire events for disabled widgets, so (temporarily) enabling them */
-                        if(disabledStatus) {
-                            input.disabled = false;
-                        }
-                        input.dispatchEvent(e);
-                    } finally {
-                        if(disabledStatus) {
-                            input.disabled = true;
-                        }
-                    }
-                }
-            },
-            addMooring: function(){
-                let vm=this;
-                //var new_mooring= helpers.copyObject(vm.mooring)
-                var new_mooring= helpers.copyObject(vm.proposal.other_details.mooring)
-                new_mooring.push('');
-                vm.proposal.other_details.mooring=new_mooring;
-                console.log(vm.proposal.other_details.mooring);
-            },
-            fetchAccreditationChoices: function(){
-                let vm = this;
-                vm.$http.get('/api/accreditation_choices.json').then((response) => {
-                    vm.accreditation_choices = response.body;
-                    if(vm.proposal.other_details.accreditation_type
-                        ){
-                        for(var i=0; i<vm.accreditation_choices.length; i++){
-                            if(vm.accreditation_choices[i].key==vm.proposal.other_details.accreditation_type){
-                                vm.accreditation_type=vm.accreditation_choices[i]
-                            }
-                        }
-                    }
-                    
-                },(error) => {
-                    console.log(error);
-                } );
-            },
-            fetchLicencePeriodChoices: function(){
-                let vm = this;
-                vm.$http.get('/api/licence_period_choices.json').then((response) => {
-                    vm.licence_period_choices = response.body;
-                    
-                },(error) => {
-                    console.log(error);
-                } );
-            },
+            
             fetchGlobalSettings: function(){
                 let vm = this;
                 vm.$http.get('/api/global_settings.json').then((response) => {
@@ -324,67 +255,14 @@ export default {
                     console.log(error);
                 } );
             },
-            checkProposalAccreditation: function(){
-                let vm= this;
-                if(vm.proposal && vm.proposal.other_details){
-                    for(var i=0; i<vm.proposal.other_details.accreditations.length; i++){
-                        vm.proposal.other_details.accreditations[i].is_deleted=false;
-                        vm.selected_accreditations.push(vm.proposal.other_details.accreditations[i].accreditation_type);
-                    }
-                }
-            },
-            selectAccreditation: function(e, accreditation_type){
-                let vm=this;
-                if(e.target.checked){
-                    var found=false;
-                    for(var i=0;i<vm.proposal.other_details.accreditations.length; i++){
-                        if(vm.proposal.other_details.accreditations[i].accreditation_type==accreditation_type.key){
-                            found=true;
-                            vm.proposal.other_details.accreditations[i].is_deleted=false;
-                        }
-                    }
-                    if(found==false){
-                    var data={
-                        'accreditation_type': accreditation_type.key,
-                        'accreditation_expiry':null,
-                        'comments':'',
-                        'proposal_other_details': vm.proposal.other_details.id,
-                        'is_deleted': false,
-                        'accreditation_type_value': accreditation_type.value
-                    }
-                    var acc=helpers.copyObject(vm.proposal.other_details.accreditations);
-                    acc.push(data);
-                    vm.proposal.other_details.accreditations=acc;
-                    }
-                }
-                else{
-                    for(var i=0;i<vm.proposal.other_details.accreditations.length; i++)
-                    {
-
-                        if(vm.proposal.other_details.accreditations[i].accreditation_type==accreditation_type.key)
-                        {
-                            if(vm.proposal.other_details.accreditations[i].id){
-                                //console.log('yes')
-                                var acc=helpers.copyObject(vm.proposal.other_details.accreditations);
-                                acc[i].is_deleted=true;
-                                vm.proposal.other_details.accreditations=acc;
-                            }
-                            else{
-                                var acc=helpers.copyObject(vm.proposal.other_details.accreditations);
-                                acc.splice(i,1);
-                                vm.proposal.other_details.accreditations=acc;
-                            }
-                        }
-                    }
-                }
-            },
+            
             eventListeners:function (){
                 let vm=this;
 
                 var date= new Date()
                 var today= new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-                /* 
+                 
                 //Insurance expiry date listener
                 $(vm.$refs.insurance_expiry).datetimepicker(vm.datepickerOptions);
                 //Set minimum date on datetimepicker so that
@@ -392,40 +270,20 @@ export default {
                 $(vm.$refs.insurance_expiry).data("DateTimePicker").minDate(today);
                 $(vm.$refs.insurance_expiry).on('dp.change', function(e){
                     if ($(vm.$refs.insurance_expiry).data('DateTimePicker').date()) {                       
-                        vm.proposal.other_details.insurance_expiry =  e.date.format('DD/MM/YYYY');
+                        vm.proposal.filming_other_details.insurance_expiry =  e.date.format('DD/MM/YYYY');
                     }
                     else if ($(vm.$refs.insurance_expiry).data('date') === "") {
-                        vm.proposal.other_details.insurance_expiry = "";
+                        vm.proposal.filming_other_details.insurance_expiry = "";
                     }
                  });
-                */
+                
 
-                // Intialise select2
-                $(vm.$refs.preferred_licence_period).select2({
-                    "theme": "bootstrap",
-                    allowClear: true,
-                    placeholder:"Select preferred licence term"
-                }).
-                on("select2:select",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.proposal.other_details.preferred_licence_period = selected.val();
-                    vm.proposal.other_details.preferred_licence_period_id = selected.val();
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.proposal.other_details.preferred_licence_period = selected.val();
-                    vm.proposal.other_details.preferred_licence_period_id = selected.val();
-                });
+                
             },
         },
         mounted: function(){
             let vm = this;
-            //vm.fetchAccreditationChoices();
-            //vm.fetchLicencePeriodChoices();
             vm.fetchGlobalSettings();
-            //vm.checkProposalAccreditation();
-            //vm.showDockteNumber();
-            //vm.showCreditFacilityLink();
             this.$nextTick(()=>{
                 vm.eventListeners();
             });
