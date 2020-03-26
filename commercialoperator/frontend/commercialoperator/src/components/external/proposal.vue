@@ -433,9 +433,9 @@ export default {
           }
 
       } else if (vm.proposal.application_type=='Filming') {
-          if (vm.proposal.other_details.preferred_licence_period=='' || vm.proposal.other_details.preferred_licence_period==null ){
-            blank_fields.push(' Preferred Licence Period is required')
-          }
+          // if (vm.proposal.other_details.preferred_licence_period=='' || vm.proposal.other_details.preferred_licence_period==null ){
+          //   blank_fields.push(' Preferred Licence Period is required')
+          // }
 
       } else if (vm.proposal.application_type=='Event') {
           if (vm.proposal.other_details.preferred_licence_period=='' || vm.proposal.other_details.preferred_licence_period==null ){
@@ -480,7 +480,8 @@ export default {
         }).then(() => {
           
             // Filming has deferred payment once assessor decides whether 'Licence' (fee) or 'Lawful Authority' (no fee) is to be issued
-            if (!vm.proposal.fee_paid || vm.proposal.application_type!='Filming') {
+            // if (!vm.proposal.fee_paid || vm.proposal.application_type!='Filming') {
+            if (!vm.proposal.fee_paid && vm.proposal.application_type!='Filming') {
                 vm.save_and_redirect();
 
             } else {

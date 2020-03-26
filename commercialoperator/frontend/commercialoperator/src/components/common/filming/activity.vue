@@ -61,7 +61,7 @@
                                 <div class="col-sm-9" style="margin-bottom: 5px">
                                     <ul class="list-inline"  >
                                         <li v-for="f in film_type_choices" class="form-check list-inline-item">
-                                            <input  class="form-check-input" ref="Checkbox" type="checkbox" @click="selectFilmType($event, f)" v-model="proposal.filming_activity.film_type" :value="f.key" data-parsley-required :disabled="proposal.readonly" />
+                                            <input  class="form-check-input" ref="Checkbox" type="checkbox" @click="selectFilmType($event, f)" v-model="selected_film_type" :value="f.key" data-parsley-required :disabled="proposal.readonly" />
                                             {{ f.value }}
                                         </li>
                                     </ul>
@@ -75,7 +75,7 @@
                                 <div class="col-sm-9" style="margin-bottom: 5px">
                                     <ul class="list-inline"  >
                                         <li v-for="p in purpose_choices" class="form-check list-inline-item">
-                                            <input  class="form-check-input" ref="Checkbox_purpose" type="checkbox" @click="selectFilmType($event, p)" v-model="proposal.filming_activity.film_purpose" :value="p.key" data-parsley-required :disabled="proposal.readonly"/>
+                                            <input  class="form-check-input" ref="Checkbox_purpose" type="checkbox" @click="selectFilmType($event, p)" v-model="selected_film_purpose" :value="p.key" data-parsley-required :disabled="proposal.readonly"/>
                                             {{ p.value }}
                                         </li>
                                     </ul>
@@ -111,7 +111,7 @@
                                 <div class="col-sm-9" style="margin-bottom: 5px">
                                     <ul class="list-inline"  >
                                         <li v-for="u in film_usage_choices" class="form-check list-inline-item border-0">
-                                            <input  class="form-check-input" ref="Checkbox" type="checkbox" @click="selectFilmType($event, u)" v-model="proposal.filming_activity.film_usage" :value="u.key" data-parsley-required :disabled="proposal.readonly" />
+                                            <input  class="form-check-input" ref="Checkbox" type="checkbox" @click="selectFilmType($event, u)" v-model="selected_film_usage" :value="u.key" data-parsley-required :disabled="proposal.readonly" />
                                             {{ u.value }}
                                         </li>
                                     </ul>
@@ -158,6 +158,9 @@
                 sponsorship_choices:[],
                 film_usage_choices:[],
                 purpose_choices:[],
+                selected_film_type:[],
+                selected_film_purpose:[],
+                selected_film_usage:[],
                 datepickerOptions:{
                     format: 'DD/MM/YYYY',
                     showClear:true,
@@ -171,7 +174,6 @@
             fetchActivityTabData: function(){
                 let vm = this;
                 vm.$http.get('/api/filming_activity_tab').then((response) => {
-                    console.log(response.body);
                     vm.film_type_choices=response.body.film_type_choices;
                     vm.sponsorship_choices= response.body.sponsorship_choices;
                     vm.film_usage_choices=response.body.film_usage_choices;

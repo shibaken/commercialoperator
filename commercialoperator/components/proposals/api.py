@@ -90,6 +90,7 @@ from commercialoperator.components.proposals.serializers import (
     ProposalAssessmentAnswerSerializer,
     ParksAndTrailSerializer,
     ProposalFilmingSerializer,
+    InternalFilmingProposalSerializer,
 )
 from commercialoperator.components.proposals.serializers_filming import (
     ProposalFilmingOtherDetailsSerializer,
@@ -495,26 +496,26 @@ class ProposalSubmitViewSet(viewsets.ModelViewSet):
 #        serializer.partial = True
 #        serializer.save(created_by=self.request.user)
 
-    @detail_route(methods=['post'])
-    @renderer_classes((JSONRenderer,))
-    def submit(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            #instance.submit(request,self)
-            #instance.save()
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            if hasattr(e,'error_dict'):
-                raise serializers.ValidationError(repr(e.error_dict))
-            else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
+    # @detail_route(methods=['post'])
+    # @renderer_classes((JSONRenderer,))
+    # def submit(self, request, *args, **kwargs):
+    #     try:
+    #         instance = self.get_object()
+    #         #instance.submit(request,self)
+    #         #instance.save()
+    #         serializer = self.get_serializer(instance)
+    #         return Response(serializer.data)
+    #     except serializers.ValidationError:
+    #         print(traceback.print_exc())
+    #         raise
+    #     except ValidationError as e:
+    #         if hasattr(e,'error_dict'):
+    #             raise serializers.ValidationError(repr(e.error_dict))
+    #         else:
+    #             raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+    #     except Exception as e:
+    #         print(traceback.print_exc())
+    #         raise serializers.ValidationError(str(e))
 
 class ProposalParkViewSet(viewsets.ModelViewSet):
     """
@@ -1094,6 +1095,12 @@ class ProposalViewSet(viewsets.ModelViewSet):
     def internal_proposal(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = InternalProposalSerializer(instance,context={'request':request})
+        if instance.application_type.name==ApplicationType.TCLASS:
+            serializer = InternalProposalSerializer(instance,context={'request':request})
+        elif instance.application_type.name==ApplicationType.FILMING:
+            serializer = InternalFilmingProposalSerializer(instance,context={'request':request})
+        elif instance.application_type.name==ApplicationType.EVENT:
+            serializer = InternalProposalSerializer(instance,context={'request':request})
         return Response(serializer.data)
 
 #    @detail_route(methods=['GET',])

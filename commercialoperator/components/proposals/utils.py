@@ -884,6 +884,7 @@ def save_assessor_data(instance,request,viewset):
 
 def proposal_submit(proposal,request):
         with transaction.atomic():
+            print('here')
             if proposal.can_user_edit:
                 proposal.submitter = request.user
                 #proposal.lodgement_date = datetime.datetime.strptime(timezone.now().strftime('%Y-%m-%d'),'%Y-%m-%d').date()
@@ -945,6 +946,28 @@ def is_payment_officer(user):
             return True
     return False
 
+def save_assessor_data_filming(instance,request,viewset):
+    with transaction.atomic():
+        try:
+            data={}
+            serializer = SaveProposalSerializer(instance, data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            viewset.perform_update(serializer)
+            
+            for f in request.FILES:
+                try:
+                    #document = instance.documents.get(name=str(request.FILES[f]))
+                    document = instance.documents.get(input_name=f)
+                except ProposalDocument.DoesNotExist:
+                    document = instance.documents.get_or_create(input_name=f)[0]
+                document.name = str(request.FILES[f])
+                if document._file and os.path.isfile(document._file.path):
+                    os.remove(document._file.path)
+                document._file = request.FILES[f]
+                document.save()
+            # End Save Documents
+        except:
+            raise
 
 from commercialoperator.components.proposals.models import Proposal, Referral, AmendmentRequest, ProposalDeclinedDetails
 from commercialoperator.components.approvals.models import Approval
