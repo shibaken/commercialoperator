@@ -176,7 +176,7 @@ import FileField from '@/components/forms/filefield.vue'
             let vm = this;
             vm.$http.get(api_endpoints.access_types).then((response) => {
                 vm.access_types = response.body;
-                console.log(vm.access_types);
+                //console.log(vm.access_types);
             },(error) => {
                 console.log(error);
             } );

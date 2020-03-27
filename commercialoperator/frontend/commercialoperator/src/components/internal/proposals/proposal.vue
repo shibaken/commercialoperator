@@ -539,7 +539,6 @@ export default {
     methods: {
         initialiseOrgContactTable: function(){
             let vm = this;
-            console.log("i am here original")
             if (vm.proposal && !vm.contacts_table_initialised){
                 vm.contacts_options.ajax.url = helpers.add_endpoint_json(api_endpoints.organisations,vm.proposal.org_applicant.id+'/contacts');
                 vm.contacts_table = $('#'+vm.contacts_table_id).DataTable(vm.contacts_options);
@@ -841,7 +840,7 @@ export default {
           let vm=this;
           vm.$http.get(helpers.add_endpoint_json(api_endpoints.proposals,proposal_id+'/parks_and_trails')).then(response => {
                     vm.proposal_parks = helpers.copyObject(response.body);
-                    console.log(vm.proposal_parks)
+                    //console.log(vm.proposal_parks)
                 },
                   error => {
                 });

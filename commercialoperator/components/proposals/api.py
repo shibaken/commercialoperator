@@ -599,11 +599,11 @@ class ProposalViewSet(viewsets.ModelViewSet):
         try:
             application_type = Proposal.objects.get(id=self.kwargs.get('id')).application_type.name
             if application_type == ApplicationType.TCLASS:
-                return ProposalSerializer
+                return InternalProposalSerializer
             elif application_type == ApplicationType.FILMING:
                 return ProposalFilmingSerializer
             elif application_type == ApplicationType.EVENT:
-                return ProposalSerializer
+                return InternalProposalSerializer
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -615,6 +615,28 @@ class ProposalViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+    def internal_serializer_class(self):
+        try:
+            application_type = Proposal.objects.get(id=self.kwargs.get('id')).application_type.name
+            if application_type == ApplicationType.TCLASS:
+                return InternalProposalSerializer
+            elif application_type == ApplicationType.FILMING:
+                return InternalFilmingProposalSerializer
+            elif application_type == ApplicationType.EVENT:
+                return InternalProposalSerializer
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
 
     @list_route(methods=['GET',])
     def filter_list(self, request, *args, **kwargs):
@@ -1256,7 +1278,15 @@ class ProposalViewSet(viewsets.ModelViewSet):
                 if not status in ['with_assessor','with_assessor_requirements','with_approver']:
                     raise serializers.ValidationError('The status provided is not allowed')
             instance.move_to_status(request,status, approver_comment)
-            serializer = InternalProposalSerializer(instance,context={'request':request})
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
+            # if instance.application_type.name==ApplicationType.TCLASS:
+            #     serializer = InternalProposalSerializer(instance,context={'request':request})
+            # elif instance.application_type.name==ApplicationType.FILMING:
+            #     serializer = InternalFilmingProposalSerializer(instance,context={'request':request})
+            # elif instance.application_type.name==ApplicationType.EVENT:
+            #     serializer = InternalProposalSerializer(instance,context={'request':request})
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
