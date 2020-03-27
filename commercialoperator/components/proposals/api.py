@@ -1212,7 +1212,9 @@ class ProposalViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.assign_officer(request,request.user)
-            serializer = InternalProposalSerializer(instance,context={'request':request})
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1237,7 +1239,9 @@ class ProposalViewSet(viewsets.ModelViewSet):
             except EmailUser.DoesNotExist:
                 raise serializers.ValidationError('A user with the id passed in does not exist')
             instance.assign_officer(request,user)
-            serializer = InternalProposalSerializer(instance,context={'request':request})
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1254,7 +1258,9 @@ class ProposalViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             instance.unassign(request)
-            serializer = InternalProposalSerializer(instance,context={'request':request})
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1355,7 +1361,9 @@ class ProposalViewSet(viewsets.ModelViewSet):
             serializer = ProposedApprovalSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             instance.proposed_approval(request,serializer.validated_data)
-            serializer = InternalProposalSerializer(instance,context={'request':request})
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1395,7 +1403,9 @@ class ProposalViewSet(viewsets.ModelViewSet):
             serializer = ProposedApprovalSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             instance.final_approval(request,serializer.validated_data)
-            serializer = InternalProposalSerializer(instance,context={'request':request})
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1416,7 +1426,9 @@ class ProposalViewSet(viewsets.ModelViewSet):
             serializer = PropedDeclineSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             instance.proposed_decline(request,serializer.validated_data)
-            serializer = InternalProposalSerializer(instance,context={'request':request})
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1437,7 +1449,9 @@ class ProposalViewSet(viewsets.ModelViewSet):
             serializer = PropedDeclineSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             instance.final_decline(request,serializer.validated_data)
-            serializer = InternalProposalSerializer(instance,context={'request':request})
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())

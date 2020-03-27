@@ -154,7 +154,7 @@ export default {
 
     submit_text: function() {
       let vm = this;
-      return vm.proposal.fee_paid ? 'Resubmit' : 'Pay and Submit';
+      //return vm.proposal.fee_paid ? 'Resubmit' : 'Pay and Submit';
       if (vm.proposal.application_type=='Filming') {
           // Filming has deferred payment once assessor decides whether 'Licence' (has a fee) or 'Lawful Authority' (has no fee) is to be issued
           return 'Submit';
