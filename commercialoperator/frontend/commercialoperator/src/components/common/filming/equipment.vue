@@ -32,7 +32,7 @@
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div class="">
+                            <div class="" v-if="proposal.filming_equipment.vehicle_owned">
                                 <!-- <label class="control-label">Provide details of every vehicle you plan to use when accessing the parks</label> -->
                                 <VehicleTable :url="vehicles_url" :proposal="proposal" :access_types="access_types" ref="vehicles_table"></VehicleTable>
                             </div>
