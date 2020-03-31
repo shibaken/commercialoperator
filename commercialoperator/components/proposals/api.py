@@ -95,6 +95,9 @@ from commercialoperator.components.proposals.serializers import (
 from commercialoperator.components.proposals.serializers_filming import (
     ProposalFilmingOtherDetailsSerializer,
     ProposalFilmingParksSerializer,
+    ProposalFilmingActivitySerializer, 
+    ProposalFilmingAccessSerializer, 
+    ProposalFilmingEquipmentSerializer,
 )
 from commercialoperator.components.proposals.serializers_event import (
     ProposalEventOtherDetailsSerializer,
@@ -1705,6 +1708,15 @@ class ProposalViewSet(viewsets.ModelViewSet):
                     'proposal': instance.id
                 }
                 #serializer=SaveProposalOtherDetailsFilmingSerializer(data=other_details_data)
+                serializer=ProposalFilmingActivitySerializer(data=other_details_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                serializer=ProposalFilmingAccessSerializer(data=other_details_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                serializer=ProposalFilmingEquipmentSerializer(data=other_details_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
                 serializer=ProposalFilmingOtherDetailsSerializer(data=other_details_data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
