@@ -38,6 +38,9 @@ from dirtyfields import DirtyFieldsMixin
 from decimal import Decimal as D
 import csv
 import time
+from multiselectfield import MultiSelectField
+
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -3635,7 +3638,8 @@ class ProposalFilmingActivity(models.Model):
     commencement_date=models.DateField('Commencement Date',blank=True, null=True)
     completion_date=models.DateField('Completion Date',blank=True, null=True)
     previous_contact_person=models.CharField('Previous Contact person', max_length=100, null=True)
-    film_type=models.CharField('Type of Film', max_length=40, choices=FILM_TYPE_CHOICES, null=True, blank=True)
+    #film_type=models.CharField('Type of Film', max_length=40, choices=FILM_TYPE_CHOICES, null=True, blank=True)
+    film_type=MultiSelectField('Type of Film', max_choices=2, max_length=40, choices=FILM_TYPE_CHOICES, null=True, blank=True)
     film_purpose=models.CharField('Purpose of Film', max_length=40, choices=PURPOSE_CHOICES, null=True, blank=True)
     film_purpose_details=models.TextField(blank=True)
     sponsorship=models.CharField('Sponsorship Type', max_length=40, choices=SPONSORSHIP_CHOICES, null=True, blank=True)

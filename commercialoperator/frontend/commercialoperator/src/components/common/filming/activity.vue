@@ -59,12 +59,15 @@
                                     <label class="control-label pull-left"  for="Name">Type of film to be undertaken</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
+                                    <select style="width:100%" class="form-control input-sm" multiple ref="film_type_select" v-model="proposal.filming_activity.film_type">
+                                        <option v-for="f in film_type_choices" :value="f.key">{{f.value}}</option>
+                                    <!-- </select>
                                     <ul class="list-inline"  >
                                         <li v-for="f in film_type_choices" class="form-check list-inline-item">
-                                            <input  class="form-check-input" ref="Checkbox" type="checkbox" @click="selectFilmType($event, f)" v-model="selected_film_type" :value="f.key" data-parsley-required :disabled="proposal.readonly" />
+                                            <input  class="form-check-input" ref="Checkbox" type="checkbox" @click="selectFilmType($event, f)" v-model="proposal.filming_activity.film_type" :value="f.key" data-parsley-required :disabled="proposal.readonly" />
                                             {{ f.value }}
                                         </li>
-                                    </ul>
+                                    </ul> -->
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -142,6 +145,8 @@
 </template>
 
 <script>
+require("select2/dist/css/select2.min.css");
+require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
     export default {
         props:{
             proposal:{
@@ -186,7 +191,23 @@
 
             },
             eventListeners:function (){
+
                 let vm=this;
+
+                // Initialise select2 for region
+                $(vm.$refs.film_type_select).select2({
+                    "theme": "bootstrap",
+                    allowClear: true,
+                    placeholder:"Select Film Type"
+                }).
+                on("select2:select",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.proposal.filming_activity.film_type = selected.val();
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.proposal.filming_activity.film_type = selected.val();
+                });
 
                 var date= new Date()
                 var today= new Date(date.getFullYear(), date.getMonth(), date.getDate());

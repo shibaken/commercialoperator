@@ -52,7 +52,7 @@ from reversion.models import Version
 
 
 class ProposalFilmingActivitySerializer(serializers.ModelSerializer):
-
+    film_type=serializers.MultipleChoiceField(choices=ProposalFilmingActivity.FILM_TYPE_CHOICES, allow_blank=True, allow_null=True, required=False)
     class Meta:
         model = ProposalFilmingActivity
         fields = '__all__'
