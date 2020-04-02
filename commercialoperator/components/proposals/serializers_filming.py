@@ -54,7 +54,7 @@ from reversion.models import Version
 class ProposalFilmingActivitySerializer(serializers.ModelSerializer):
     film_type=serializers.MultipleChoiceField(choices=ProposalFilmingActivity.FILM_TYPE_CHOICES, allow_blank=True, allow_null=True, required=False)
     film_purpose=serializers.MultipleChoiceField(choices=ProposalFilmingActivity.PURPOSE_CHOICES, allow_blank=True, allow_null=True, required=False)
-    sponsorship=serializers.MultipleChoiceField(choices=ProposalFilmingActivity.SPONSORSHIP_CHOICES, allow_blank=True, allow_null=True, required=False)
+    #sponsorship=serializers.MultipleChoiceField(choices=ProposalFilmingActivity.SPONSORSHIP_CHOICES, allow_blank=True, allow_null=True, required=False)
     film_usage=serializers.MultipleChoiceField(choices=ProposalFilmingActivity.FILM_USE_CHOICES, allow_blank=True, allow_null=True, required=False)
 
     class Meta:

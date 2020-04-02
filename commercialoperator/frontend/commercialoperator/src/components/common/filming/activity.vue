@@ -102,15 +102,15 @@
                                     <label class="control-label pull-left"  for="Name">Does the film have Tourism WA sponsorship</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
-                                    <select style="width:100%" class="form-control input-sm" multiple ref="filmSponsorshipSelect" v-model="proposal.filming_activity.sponsorship">
+                                    <!-- <select style="width:100%" class="form-control input-sm" multiple ref="filmSponsorshipSelect" v-model="proposal.filming_activity.sponsorship">
                                         <option v-for="s in sponsorship_choices" :value="s.key">{{s.value}}</option>
-                                    </select>
-                                    <!-- <ul class="list-inline"  >
+                                    </select> -->
+                                    <ul class="list-inline"  >
                                         <li v-for="s in sponsorship_choices" class="form-check list-inline-item">
                                             <input  class="form-check-input" ref="Radio" type="radio" @click="selectFilmType($event, s)" v-model="proposal.filming_activity.sponsorship" :value="s.key" data-parsley-required :disabled="proposal.readonly" name="sponsorship"/>
                                             {{ s.value }}
                                         </li>
-                                    </ul> -->
+                                    </ul>
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -233,19 +233,19 @@ require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
                     vm.proposal.filming_activity.film_purpose = selected.val();
                 });
                 // Initialise select2 for Film Sponsorship
-                $(vm.$refs.filmSponsorshipSelect).select2({
-                    "theme": "bootstrap",
-                    allowClear: true,
-                    placeholder:"Select Film Sponsorship"
-                }).
-                on("select2:select",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.proposal.filming_activity.sponsorship = selected.val();
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.proposal.filming_activity.sponsorship = selected.val();
-                });
+                // $(vm.$refs.filmSponsorshipSelect).select2({
+                //     "theme": "bootstrap",
+                //     allowClear: true,
+                //     placeholder:"Select Film Sponsorship"
+                // }).
+                // on("select2:select",function (e) {
+                //     var selected = $(e.currentTarget);
+                //     vm.proposal.filming_activity.sponsorship = selected.val();
+                // }).
+                // on("select2:unselect",function (e) {
+                //     var selected = $(e.currentTarget);
+                //     vm.proposal.filming_activity.sponsorship = selected.val();
+                // });
                 // Initialise select2 for Film Usage
                 $(vm.$refs.filmUsageSelect).select2({
                     "theme": "bootstrap",
