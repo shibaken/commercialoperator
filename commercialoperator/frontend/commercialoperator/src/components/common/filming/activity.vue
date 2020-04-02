@@ -61,7 +61,8 @@
                                 <div class="col-sm-9" style="margin-bottom: 5px">
                                     <select style="width:100%" class="form-control input-sm" multiple ref="film_type_select" v-model="proposal.filming_activity.film_type">
                                         <option v-for="f in film_type_choices" :value="f.key">{{f.value}}</option>
-                                    <!-- </select>
+                                    </select>
+                                    <!--
                                     <ul class="list-inline"  >
                                         <li v-for="f in film_type_choices" class="form-check list-inline-item">
                                             <input  class="form-check-input" ref="Checkbox" type="checkbox" @click="selectFilmType($event, f)" v-model="proposal.filming_activity.film_type" :value="f.key" data-parsley-required :disabled="proposal.readonly" />
@@ -76,12 +77,15 @@
                                     <label class="control-label pull-left"  for="Name">Purpose of still or motion film</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
-                                    <ul class="list-inline"  >
+                                    <select style="width:100%" class="form-control input-sm" multiple ref="filmPurposeSelect" v-model="proposal.filming_activity.film_purpose">
+                                        <option v-for="p in purpose_choices" :value="p.key">{{p.value}}</option>
+                                    </select>
+                                    <!-- <ul class="list-inline"  >
                                         <li v-for="p in purpose_choices" class="form-check list-inline-item">
                                             <input  class="form-check-input" ref="Checkbox_purpose" type="checkbox" @click="selectFilmType($event, p)" v-model="selected_film_purpose" :value="p.key" data-parsley-required :disabled="proposal.readonly"/>
                                             {{ p.value }}
                                         </li>
-                                    </ul>
+                                    </ul> -->
                                 </div>
                             </div>
                             <div class="row" v-if="proposal.filming_activity.film_purpose=='other'">
@@ -98,12 +102,15 @@
                                     <label class="control-label pull-left"  for="Name">Does the film have Tourism WA sponsorship</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
-                                    <ul class="list-inline"  >
+                                    <select style="width:100%" class="form-control input-sm" multiple ref="filmSponsorshipSelect" v-model="proposal.filming_activity.sponsorship">
+                                        <option v-for="s in sponsorship_choices" :value="s.key">{{s.value}}</option>
+                                    </select>
+                                    <!-- <ul class="list-inline"  >
                                         <li v-for="s in sponsorship_choices" class="form-check list-inline-item">
                                             <input  class="form-check-input" ref="Radio" type="radio" @click="selectFilmType($event, s)" v-model="proposal.filming_activity.sponsorship" :value="s.key" data-parsley-required :disabled="proposal.readonly" name="sponsorship"/>
                                             {{ s.value }}
                                         </li>
-                                    </ul>
+                                    </ul> -->
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -112,12 +119,15 @@
                                     <label class="control-label pull-left"  for="Name">How will the still or motion film be used or shown</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
-                                    <ul class="list-inline"  >
+                                    <select style="width:100%" class="form-control input-sm" multiple ref="filmUsageSelect" v-model="proposal.filming_activity.film_usage">
+                                        <option v-for="u in film_usage_choices" :value="u.key">{{u.value}}</option>
+                                    </select>
+                                    <!-- <ul class="list-inline"  >
                                         <li v-for="u in film_usage_choices" class="form-check list-inline-item border-0">
                                             <input  class="form-check-input" ref="Checkbox" type="checkbox" @click="selectFilmType($event, u)" v-model="selected_film_usage" :value="u.key" data-parsley-required :disabled="proposal.readonly" />
                                             {{ u.value }}
                                         </li>
-                                    </ul>
+                                    </ul> -->
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -194,7 +204,7 @@ require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
 
                 let vm=this;
 
-                // Initialise select2 for region
+                // Initialise select2 for Film Type
                 $(vm.$refs.film_type_select).select2({
                     "theme": "bootstrap",
                     allowClear: true,
@@ -207,6 +217,48 @@ require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
                     vm.proposal.filming_activity.film_type = selected.val();
+                });
+                // Initialise select2 for Film Purpose
+                $(vm.$refs.filmPurposeSelect).select2({
+                    "theme": "bootstrap",
+                    allowClear: true,
+                    placeholder:"Select Film Purpose"
+                }).
+                on("select2:select",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.proposal.filming_activity.film_purpose = selected.val();
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.proposal.filming_activity.film_purpose = selected.val();
+                });
+                // Initialise select2 for Film Sponsorship
+                $(vm.$refs.filmSponsorshipSelect).select2({
+                    "theme": "bootstrap",
+                    allowClear: true,
+                    placeholder:"Select Film Sponsorship"
+                }).
+                on("select2:select",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.proposal.filming_activity.sponsorship = selected.val();
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.proposal.filming_activity.sponsorship = selected.val();
+                });
+                // Initialise select2 for Film Usage
+                $(vm.$refs.filmUsageSelect).select2({
+                    "theme": "bootstrap",
+                    allowClear: true,
+                    placeholder:"Select Film Usage"
+                }).
+                on("select2:select",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.proposal.filming_activity.film_usage = selected.val();
+                }).
+                on("select2:unselect",function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.proposal.filming_activity.film_usage = selected.val();
                 });
 
                 var date= new Date()
