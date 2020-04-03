@@ -3763,6 +3763,118 @@ class FilmingParkDocument(Document):
         if self.can_delete:
             return super(FilmingParkDocument, self).delete()
 
+#Internal Workflow models - Filming
+class DistrictProposalAssessorGroup(models.Model):
+    name = models.CharField(max_length=255)
+    members = models.ManyToManyField(EmailUser)
+    district = models.ForeignKey(District, null=True, blank=True)
+    default = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = 'commercialoperator'
+        verbose_name = "District Assessor Group"
+        verbose_name_plural = "District Assessor Group"
+
+    def __str__(self):
+        return self.name
+
+    def clean(self): 
+        try:
+            default = DistrictProposalAssessorGroup.objects.get(default=True)
+        except DistrictProposalAssessorGroup.DoesNotExist:
+            default = None
+
+        if self.pk:
+            if not self.default and not self.district:
+                raise ValidationError('Only default can have no district set for District assessor group. Please specifiy region')
+#            
+        else:
+            if default and self.default:
+                raise ValidationError('There can only be one default District assessor group')
+
+
+    @property
+    def members_email(self):
+        return [i.email for i in self.members.all()]
+
+class DistrictProposalApproverGroup(models.Model):
+    name = models.CharField(max_length=255)
+    members = models.ManyToManyField(EmailUser)
+    district = models.ForeignKey(District, null=True, blank=True)
+    default = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = 'commercialoperator'
+        verbose_name = "District Approver Group"
+        verbose_name_plural = "District Approver Group"
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        try:
+            default = DistrictProposalApproverGroup.objects.get(default=True)
+        except DistrictProposalApproverGroup.DoesNotExist:
+            default = None
+
+        if self.pk:
+            if not self.default and not self.region:
+                raise ValidationError('Only default can have no district set for District assessor group. Please specifiy region')
+        else:
+            if default and self.default:
+                raise ValidationError('There can only be one default district approver group')
+
+    @property
+    def members_email(self):
+        return [i.email for i in self.members.all()]
+
+
+class DistrictProposal(models.Model):
+    PROCESSING_STATUS_WITH_ASSESSOR = 'with_assessor'
+    PROCESSING_STATUS_WITH_REFERRAL = 'with_referral'
+    PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS = 'with_assessor_requirements'
+    PROCESSING_STATUS_WITH_APPROVER = 'with_approver'
+    PROCESSING_STATUS_APPROVED = 'approved'
+    PROCESSING_STATUS_DECLINED = 'declined'
+    PROCESSING_STATUS_DISCARDED = 'discarded'
+    PROCESSING_STATUS_CHOICES=(
+                                (PROCESSING_STATUS_WITH_ASSESSOR, 'With Assessor'),
+                                (PROCESSING_STATUS_WITH_REFERRAL, 'With Referral'),
+                                (PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS, 'With Assessor (Requirements)'),
+                                (PROCESSING_STATUS_WITH_APPROVER, 'With Approver'),
+                                (PROCESSING_STATUS_DECLINED, 'Declined'),
+                                (PROCESSING_STATUS_APPROVED, 'Approved'),
+                                (PROCESSING_STATUS_DISCARDED, 'Discarded'),
+
+                                )
+    proposal = models.ForeignKey(Proposal, related_name='district_proposals')
+    district = models.ForeignKey(District, related_name='proposals')
+    proposal_park=models.ManyToManyField(ProposalFilmingParks, null=True)
+    #district_approval=models.ForeignKey(DistrictApproval, null=True)
+    processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
+                                         default=PROCESSING_STATUS_CHOICES[0][0])
+    assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='commercialoperator_district_proposals_assigned', on_delete=models.SET_NULL)
+    assigned_approver = models.ForeignKey(EmailUser, blank=True, null=True, related_name='commercialoperator__district_proposals_approvals', on_delete=models.SET_NULL)
+    proposed_issuance_approval = JSONField(blank=True, null=True)
+    proposed_decline_status = models.BooleanField(default=False)
+
+    def __str__(self):
+        return '{}'.format(self.proposal)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+class DistrictProposalDeclinedDetails(models.Model):
+    #proposal = models.OneToOneField(Proposal, related_name='declined_details')
+    district_proposal = models.OneToOneField(DistrictProposal)
+    officer = models.ForeignKey(EmailUser, null=False)
+    reason = models.TextField(blank=True)
+    cc_email = models.TextField(null=True)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+
 # --------------------------------------------------------------------------------------
 # Filming Models End
 # --------------------------------------------------------------------------------------
