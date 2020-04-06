@@ -2011,6 +2011,28 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 #proposal.save()
             return proposal
 
+    #Filming application method
+    #This is to show basic logic behind creating district Proposal for each district related to parks listed with Filming Application.
+    def send_to_districts(self):
+        try:
+            #Get the list all the Districts of the Parks linked to the Proposal
+            districts_list=self.filming_parks.all().values_list('park__district', flat=True)
+            if districts_list:
+                for district in districts_list:
+                    district_instance=District.objects.get(id=district)
+                    #Get the list of all the Filming Parks in each district
+                    parks_list=list(ProposalFilmingParks.objects.filter(park__district=district, proposal=self).values_list('id',flat=True))
+                    #create a District proposal for each district
+                    district_proposal, created=DistrictProposal.objects.update_or_create(district=district_instance,proposal= self)
+                    district_proposal.proposal_park= parks_list
+                    district_proposal.save()
+                    #TODO Logging
+                    #TODO Change the status for the proposal
+            return self
+
+        except:
+            raise
+
 class ProposalLogDocument(Document):
     log_entry = models.ForeignKey('ProposalLogEntry',related_name='documents')
     _file = models.FileField(upload_to=update_proposal_comms_log_filename, max_length=512)
