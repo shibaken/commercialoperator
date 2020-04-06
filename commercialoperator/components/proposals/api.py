@@ -602,11 +602,11 @@ class ProposalViewSet(viewsets.ModelViewSet):
         try:
             application_type = Proposal.objects.get(id=self.kwargs.get('id')).application_type.name
             if application_type == ApplicationType.TCLASS:
-                return InternalProposalSerializer
+                return ProposalSerializer
             elif application_type == ApplicationType.FILMING:
                 return ProposalFilmingSerializer
             elif application_type == ApplicationType.EVENT:
-                return InternalProposalSerializer
+                return ProposalSerializer
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
