@@ -38,6 +38,9 @@ from dirtyfields import DirtyFieldsMixin
 from decimal import Decimal as D
 import csv
 import time
+from multiselectfield import MultiSelectField
+
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -63,6 +66,10 @@ def update_requirement_doc_filename(instance, filename):
 
 def update_proposal_comms_log_filename(instance, filename):
     return '{}/proposals/{}/communications/{}'.format(settings.MEDIA_APP_DIR, instance.log_entry.proposal.id,filename)
+
+def update_filming_park_doc_filename(instance, filename):
+    return '{}/proposals/{}/filming_park_documents/{}'.format(settings.MEDIA_APP_DIR, instance.filming_park.proposal.id,filename)
+
 
 def application_type_choicelist():
     try:
@@ -2004,6 +2011,28 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 #proposal.save()
             return proposal
 
+    #Filming application method
+    #This is to show basic logic behind creating district Proposal for each district related to parks listed with Filming Application.
+    def send_to_districts(self):
+        try:
+            #Get the list all the Districts of the Parks linked to the Proposal
+            districts_list=self.filming_parks.all().values_list('park__district', flat=True)
+            if districts_list:
+                for district in districts_list:
+                    district_instance=District.objects.get(id=district)
+                    #Get the list of all the Filming Parks in each district
+                    parks_list=list(ProposalFilmingParks.objects.filter(park__district=district, proposal=self).values_list('id',flat=True))
+                    #create a District proposal for each district
+                    district_proposal, created=DistrictProposal.objects.update_or_create(district=district_instance,proposal= self)
+                    district_proposal.proposal_park= parks_list
+                    district_proposal.save()
+                    #TODO Logging
+                    #TODO Change the status for the proposal
+            return self
+
+        except:
+            raise
+
 class ProposalLogDocument(Document):
     log_entry = models.ForeignKey('ProposalLogEntry',related_name='documents')
     _file = models.FileField(upload_to=update_proposal_comms_log_filename, max_length=512)
@@ -3592,7 +3621,58 @@ class HelpPage(models.Model):
 # Filming Models Start
 # --------------------------------------------------------------------------------------
 class ProposalFilmingActivity(models.Model):
-    activity_title=models.CharField('Activity title', max_length=100)
+    MOTION_FILM='motion_film'
+    PHOTOGRAPHY='photography'
+    EDUCATION='education'
+    ADVERTISING='advertising'
+    FEATURE_FILM='feature_film'
+    TOURISM='tourism'
+    DOCUMENTARY='documentary'
+    RECREATION='recreation'
+    OTHER='other'
+    YES='yes'
+    NO='no'
+    SELL='sell'
+    EDITORIAL='editorial'
+    FILM_TYPE_CHOICES=(
+        (MOTION_FILM,'Motion film'),
+        (PHOTOGRAPHY, 'Photography'),
+    )
+    PURPOSE_CHOICES=(
+        (EDUCATION, 'Eductaion'),
+        (ADVERTISING, 'Advertising'),
+        (FEATURE_FILM, 'Feature film'),
+        (RECREATION, 'Recreation'),
+        (OTHER, 'other'),
+    )
+    SPONSORSHIP_CHOICES=(
+        (YES, 'Yes'),
+        (NO, 'No'),
+        (OTHER, 'other')
+    )
+    FILM_USE_CHOICES=(
+        (SELL, 'Sell on to a third pary, e.g. image library, publisher'),
+        (EDITORIAL, 'Editorial'),
+        (ADVERTISING, 'Advertising'),
+        (OTHER, 'Other')
+    )
+
+    commencement_date=models.DateField('Commencement Date',blank=True, null=True)
+    completion_date=models.DateField('Completion Date',blank=True, null=True)
+    previous_contact_person=models.CharField('Previous Contact person', max_length=100, null=True)
+    #film_type=models.CharField('Type of Film', max_length=40, choices=FILM_TYPE_CHOICES, null=True, blank=True)
+    film_type=MultiSelectField('Type of Film', max_choices=2, max_length=40, choices=FILM_TYPE_CHOICES, null=True, blank=True)
+    #film_purpose=models.CharField('Purpose of Film', max_length=40, choices=PURPOSE_CHOICES, null=True, blank=True)
+    film_purpose=MultiSelectField('Purpose of Film', max_choices=5, max_length=200, choices=PURPOSE_CHOICES, null=True, blank=True)
+    film_purpose_details=models.TextField(blank=True)
+    sponsorship=models.CharField('Sponsorship Type', max_length=40, choices=SPONSORSHIP_CHOICES, null=True, blank=True)
+    #sponsorship=MultiSelectField('Sponsorship Type', max_choices=3, max_length=120, choices=SPONSORSHIP_CHOICES, null=True, blank=True)
+    sponsorship_details=models.TextField(blank=True)
+    #film_usage=models.CharField('Film be used', max_length=40, choices=FILM_USE_CHOICES, null=True, blank=True)
+    film_usage=MultiSelectField('Film be used',max_choices=4, max_length=160, choices=FILM_USE_CHOICES, null=True, blank=True)
+    film_usage_details=models.TextField(blank=True)
+    activity_title=models.CharField('Activity title', max_length=100, null=True, blank=True)
+    production_description=models.TextField(blank=True, null=True,)
     proposal = models.OneToOneField(Proposal, related_name='filming_activity', null=True)
 
     def __str__(self):
@@ -3604,6 +3684,21 @@ class ProposalFilmingActivity(models.Model):
 
 class ProposalFilmingAccess(models.Model):
     proposal = models.OneToOneField(Proposal, related_name='filming_access', null=True)
+    track_use=models.BooleanField('Use of Tracks or trails',default=False)
+    off_road=models.BooleanField('Conduct any off-road activity',default=False)
+    off_road_details=models.TextField(blank=True)
+    road_closure=models.BooleanField('roads to be closed during filming',default=False)
+    road_closure_details=models.TextField(blank=True)
+    no_of_people=models.CharField('Activity title', max_length=100, blank=True, null=True)
+    camp_on_land=models.BooleanField('Camp on CALM land',default=False)
+    camp_location=models.TextField('Where',blank=True)
+    staff_assistance=models.BooleanField('Need assistance from Department staff',default=False)
+    assistance_staff_capacity=models.TextField('Capacity of staff for assistance',blank=True)
+    staff_to_film=models.BooleanField('Need Department staff to film',default=False)
+    film_staff_capacity=models.TextField('Capacity of staff for filming',blank=True)
+    cultural_significance=models.BooleanField('Areas of cultural significance',default=False)
+    cultural_significance_details=models.TextField('Cultural significance details',blank=True)
+
 
     def __str__(self):
         return '{}'.format(self.proposal)
@@ -3613,7 +3708,12 @@ class ProposalFilmingAccess(models.Model):
 
 
 class ProposalFilmingEquipment(models.Model):
+    vehicle_owned=models.BooleanField('Vehicle Hired on owned',default=False)
+    rps_used=models.BooleanField('Use of RPS for filming',default=False)
+    rps_overweight=models.BooleanField('Weight of RPS over two kg',default=False)
     num_cameras=models.TextField('Number and type of cameras to be used', blank=True, null=True)
+    alteration_required=models.BooleanField('Any alteration required to the area',default=False)
+    other_equipments=models.TextField('Number and type of cameras to be used', blank=True, null=True)
     proposal = models.OneToOneField(Proposal, related_name='filming_equipment', null=True)
 
     def __str__(self):
@@ -3635,6 +3735,167 @@ class ProposalFilmingOtherDetails(models.Model):
 
     class Meta:
         app_label = 'commercialoperator'
+
+class ProposalFilmingParks(models.Model):
+    #proposal = models.OneToOneField(Proposal, related_name='filming_parks', null=True)
+    proposal = models.ForeignKey(Proposal, related_name='filming_parks', null=True)
+    park= models.ForeignKey(Park, related_name='filming_proposal')
+    feature_of_interest=models.CharField('Feture of interest', max_length=100, blank=True, null=True)
+    from_date=models.DateField(blank=True, null=True)
+    to_date=models.DateField(blank=True, null=True)
+
+    def __str__(self):
+        return '{}'.format(self.proposal)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+    def add_documents(self, request):
+        with transaction.atomic():
+            try:
+                # save the files
+                data = json.loads(request.data.get('data'))
+                if not data.get('update'):
+                    documents_qs = self.filming_park_documents.filter(input_name='filming_park_doc', visible=True)
+                    documents_qs.delete()
+                for idx in range(data['num_files']):
+                    _file = request.data.get('file-'+str(idx))
+                    document = self.filming_park_documents.create(_file=_file, name=_file.name)
+                    document.input_name = data['input_name']
+                    document.can_delete = True
+                    document.save()
+                # end save documents
+                self.save()
+            except:
+                raise
+        return
+
+
+class FilmingParkDocument(Document):
+    filming_park = models.ForeignKey('ProposalFilmingParks',related_name='filming_park_documents')
+    _file = models.FileField(upload_to=update_filming_park_doc_filename, max_length=512)
+    input_name = models.CharField(max_length=255,null=True,blank=True)
+    can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
+    visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+    def delete(self):
+        if self.can_delete:
+            return super(FilmingParkDocument, self).delete()
+
+#Internal Workflow models - Filming
+class DistrictProposalAssessorGroup(models.Model):
+    name = models.CharField(max_length=255)
+    members = models.ManyToManyField(EmailUser)
+    district = models.ForeignKey(District, null=True, blank=True)
+    default = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = 'commercialoperator'
+        verbose_name = "District Assessor Group"
+        verbose_name_plural = "District Assessor Group"
+
+    def __str__(self):
+        return self.name
+
+    def clean(self): 
+        try:
+            default = DistrictProposalAssessorGroup.objects.get(default=True)
+        except DistrictProposalAssessorGroup.DoesNotExist:
+            default = None
+
+        if self.pk:
+            if not self.default and not self.district:
+                raise ValidationError('Only default can have no district set for District assessor group. Please specifiy region')
+#            
+        else:
+            if default and self.default:
+                raise ValidationError('There can only be one default District assessor group')
+
+
+    @property
+    def members_email(self):
+        return [i.email for i in self.members.all()]
+
+class DistrictProposalApproverGroup(models.Model):
+    name = models.CharField(max_length=255)
+    members = models.ManyToManyField(EmailUser)
+    district = models.ForeignKey(District, null=True, blank=True)
+    default = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = 'commercialoperator'
+        verbose_name = "District Approver Group"
+        verbose_name_plural = "District Approver Group"
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        try:
+            default = DistrictProposalApproverGroup.objects.get(default=True)
+        except DistrictProposalApproverGroup.DoesNotExist:
+            default = None
+
+        if self.pk:
+            if not self.default and not self.region:
+                raise ValidationError('Only default can have no district set for District assessor group. Please specifiy region')
+        else:
+            if default and self.default:
+                raise ValidationError('There can only be one default district approver group')
+
+    @property
+    def members_email(self):
+        return [i.email for i in self.members.all()]
+
+
+class DistrictProposal(models.Model):
+    PROCESSING_STATUS_WITH_ASSESSOR = 'with_assessor'
+    PROCESSING_STATUS_WITH_REFERRAL = 'with_referral'
+    PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS = 'with_assessor_requirements'
+    PROCESSING_STATUS_WITH_APPROVER = 'with_approver'
+    PROCESSING_STATUS_APPROVED = 'approved'
+    PROCESSING_STATUS_DECLINED = 'declined'
+    PROCESSING_STATUS_DISCARDED = 'discarded'
+    PROCESSING_STATUS_CHOICES=(
+                                (PROCESSING_STATUS_WITH_ASSESSOR, 'With Assessor'),
+                                (PROCESSING_STATUS_WITH_REFERRAL, 'With Referral'),
+                                (PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS, 'With Assessor (Requirements)'),
+                                (PROCESSING_STATUS_WITH_APPROVER, 'With Approver'),
+                                (PROCESSING_STATUS_DECLINED, 'Declined'),
+                                (PROCESSING_STATUS_APPROVED, 'Approved'),
+                                (PROCESSING_STATUS_DISCARDED, 'Discarded'),
+
+                                )
+    proposal = models.ForeignKey(Proposal, related_name='district_proposals')
+    district = models.ForeignKey(District, related_name='proposals')
+    proposal_park=models.ManyToManyField(ProposalFilmingParks, null=True)
+    #district_approval=models.ForeignKey(DistrictApproval, null=True)
+    processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
+                                         default=PROCESSING_STATUS_CHOICES[0][0])
+    assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='commercialoperator_district_proposals_assigned', on_delete=models.SET_NULL)
+    assigned_approver = models.ForeignKey(EmailUser, blank=True, null=True, related_name='commercialoperator__district_proposals_approvals', on_delete=models.SET_NULL)
+    proposed_issuance_approval = JSONField(blank=True, null=True)
+    proposed_decline_status = models.BooleanField(default=False)
+
+    def __str__(self):
+        return '{}'.format(self.proposal)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+class DistrictProposalDeclinedDetails(models.Model):
+    #proposal = models.OneToOneField(Proposal, related_name='declined_details')
+    district_proposal = models.OneToOneField(DistrictProposal)
+    officer = models.ForeignKey(EmailUser, null=False)
+    reason = models.TextField(blank=True)
+    cc_email = models.TextField(null=True)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
 
 # --------------------------------------------------------------------------------------
 # Filming Models End

@@ -650,7 +650,7 @@ def save_proponent_data(instance,request,viewset,parks=None,trails=None):
 
 from commercialoperator.components.main.models import ApplicationType
 from commercialoperator.components.proposals.models import ProposalFilmingOtherDetails
-from commercialoperator.components.proposals.serializers_filming import ProposalFilmingOtherDetailsSerializer
+from commercialoperator.components.proposals.serializers_filming import ProposalFilmingOtherDetailsSerializer, ProposalFilmingActivitySerializer, ProposalFilmingAccessSerializer, ProposalFilmingEquipmentSerializer
 
 def save_proponent_data_filming(instance,request,viewset,parks=None,trails=None):
     with transaction.atomic():
@@ -664,8 +664,28 @@ def save_proponent_data_filming(instance,request,viewset,parks=None,trails=None)
                 schema=request.POST.get('schema')
             import json
             sc=json.loads(schema)
-            other_details_data=sc['filming_other_details']
-            serializer = ProposalFilmingOtherDetailsSerializer(instance.filming_other_details, data=other_details_data)
+            filming_activity_data=sc['filming_activity']
+            filming_access_data=sc['filming_access']
+            filming_equipment_data=sc['filming_equipment']
+            filming_other_details_data=sc['filming_other_details']
+
+            #save Filming activity data
+            serializer = ProposalFilmingActivitySerializer(instance.filming_activity, data=filming_activity_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            #save Filming access data
+            serializer = ProposalFilmingAccessSerializer(instance.filming_access, data=filming_access_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            #save Filming equipment data
+            serializer = ProposalFilmingEquipmentSerializer(instance.filming_equipment, data=filming_equipment_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            #save Filming other details data
+            serializer = ProposalFilmingOtherDetailsSerializer(instance.filming_other_details, data=filming_other_details_data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
@@ -864,6 +884,7 @@ def save_assessor_data(instance,request,viewset):
 
 def proposal_submit(proposal,request):
         with transaction.atomic():
+            print('here')
             if proposal.can_user_edit:
                 proposal.submitter = request.user
                 #proposal.lodgement_date = datetime.datetime.strptime(timezone.now().strftime('%Y-%m-%d'),'%Y-%m-%d').date()
@@ -925,6 +946,28 @@ def is_payment_officer(user):
             return True
     return False
 
+def save_assessor_data_filming(instance,request,viewset):
+    with transaction.atomic():
+        try:
+            data={}
+            serializer = SaveProposalSerializer(instance, data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            viewset.perform_update(serializer)
+            
+            for f in request.FILES:
+                try:
+                    #document = instance.documents.get(name=str(request.FILES[f]))
+                    document = instance.documents.get(input_name=f)
+                except ProposalDocument.DoesNotExist:
+                    document = instance.documents.get_or_create(input_name=f)[0]
+                document.name = str(request.FILES[f])
+                if document._file and os.path.isfile(document._file.path):
+                    os.remove(document._file.path)
+                document._file = request.FILES[f]
+                document.save()
+            # End Save Documents
+        except:
+            raise
 
 from commercialoperator.components.proposals.models import Proposal, Referral, AmendmentRequest, ProposalDeclinedDetails
 from commercialoperator.components.approvals.models import Approval

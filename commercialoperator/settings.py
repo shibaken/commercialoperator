@@ -32,6 +32,7 @@ INSTALLED_APPS += [
     'rest_framework_gis',
     'reset_migrations',
     'ckeditor',
+    'multiselectfield',
 ]
 
 ADD_REVERSION_ADMIN=True
