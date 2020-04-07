@@ -3785,7 +3785,7 @@ class FilmingParkDocument(Document):
         if self.can_delete:
             return super(FilmingParkDocument, self).delete()
 
-#Internal Workflow models - Filming
+#Internal Workflow models - Filming application
 class DistrictProposalAssessorGroup(models.Model):
     name = models.CharField(max_length=255)
     members = models.ManyToManyField(EmailUser)
