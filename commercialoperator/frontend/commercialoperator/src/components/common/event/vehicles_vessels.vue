@@ -13,19 +13,37 @@
                 <div class="" >                        
                     <div class="form-horizontal col-sm-12 borderDecoration">
                         
-                        <div class="form-group">
+                        <div class="">
                             <div class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">Hired or owned</label>
                                 </div>
                                 <div class="col-sm-6">
-                                    <!-- <input type="radio" class="form-control" v-model="proposal.event_management.hired_or_owned" name="hired_or_owned" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal"> -->
-                                    <input type="text" class="form-control" name="hired_or_owned" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                    <ul class="list-inline"  >
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  :value="true" data-parsley-required :disabled="proposal.readonly" name="vehicle_owned"/>
+                                            Owned
+                                        </li>
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  :value="false" data-parsley-required :disabled="proposal.readonly" name="vehicle_owned"/>
+                                            Hired
+                                        </li>
+                                    </ul>
                                 </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="" v-if="">
+                                <!-- <label class="control-label">Provide details of every vehicle you plan to use when accessing the parks</label> -->
+                                <VehicleTable :url="vehicles_url" :proposal="proposal" :access_types="access_types" ref="vehicles_table"></VehicleTable>
                             </div>
                             <div class="row">&nbsp;</div>
                         </div> 
                     </div>
+
+                    <div class="form-horizontal col-sm-12 borderDecoration">
+                        <VesselTable :url="vessels_url" :proposal="proposal" ref="vessel_table"></VesselTable>
+                    </div>
+
                 </div>
             </div>                
 
@@ -36,6 +54,9 @@
 </template>
 
 <script>
+import {helpers,api_endpoints} from "@/utils/hooks.js"
+import VehicleTable from '@/components/common/vehicle_table.vue'
+import VesselTable from '@/components/common/vessel_table.vue'
     export default {
         props:{
             proposal:{
@@ -47,14 +68,41 @@
             let vm = this;
             return{
                 lBody: 'lBody'+vm._uid,
-                values:null
+                values:null,
+                access_types:[],
+                vehicles_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/vehicles'),
+                vessels_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/vessels'),
             }
         },
+        components:{
+            VehicleTable,
+            VesselTable,
+            //FileField,
+        },
         methods:{
+            fetchAccessTypes: function(){
+                let vm = this;
+                vm.$http.get(api_endpoints.access_types).then((response) => {
+                    vm.access_types = response.body;
+                    //console.log(vm.access_types);
+                },(error) => {
+                    console.log(error);
+                } );
+            },
+        },
+        mounted: function(){
+            let vm=this;
+            vm.fetchAccessTypes();
         }
     }
 </script>
 
 <style lang="css" scoped>
+.borderDecoration {
+    border: 1px solid;
+    border-radius: 5px;
+    padding: 5px;
+    margin-top: 5px;
+}
 </style>
 
