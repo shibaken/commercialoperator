@@ -101,6 +101,7 @@ from commercialoperator.components.proposals.serializers_filming import (
 )
 from commercialoperator.components.proposals.serializers_event import (
     ProposalEventOtherDetailsSerializer,
+    ProposalEventsParksSerializer,
 )
 
 
@@ -1000,6 +1001,24 @@ class ProposalViewSet(viewsets.ModelViewSet):
             qs = instance.filming_parks
             #qs = qs.filter(status = 'requested')
             serializer = ProposalFilmingParksSerializer(qs,many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',])
+    def events_parks(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.events_parks
+            #qs = qs.filter(status = 'requested')
+            serializer = ProposalEventsParksSerializer(qs,many=True)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())

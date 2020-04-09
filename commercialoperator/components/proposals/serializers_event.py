@@ -35,9 +35,11 @@ from commercialoperator.components.proposals.models import (
                                     ProposalEventManagement,
                                     ProposalEventVehiclesVessels,
                                     ProposalEventOtherDetails,
+                                    ProposalEventsParks,
+                                    EventsParkDocument,
                                     #ProposalEventOnlineTraining,
                                 )
-
+from commercialoperator.components.main.serializers import CommunicationLogEntrySerializer, ParkFilterSerializer
 from rest_framework import serializers
 from django.db.models import Q
 from reversion.models import Version
@@ -75,6 +77,25 @@ class ProposalEventOtherDetailsSerializer(serializers.ModelSerializer):
                 'insurance_expiry',
                 'proposal',
                 )
+
+class EventsParkDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventsParkDocument
+        fields = ('id', 'name', '_file')
+
+class ProposalEventsParksSerializer(serializers.ModelSerializer):
+    park=ParkFilterSerializer()
+    #activities=serializers.CharField(source='activities.name', many=True)
+    events_park_documents = EventsParkDocumentSerializer(many=True, read_only=True)
+    class Meta:
+        model = ProposalEventsParks
+        fields = ('id', 'park', 'activities', 'proposal', 'events_park_documents')
+
+class SaveProposalEventsParksSerializer(serializers.ModelSerializer):
+    #park=ParkFilterSerializer()
+    class Meta:
+        model = ProposalEventsParks
+        fields = ('id', 'park','proposal',)
 
 
 

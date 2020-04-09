@@ -83,6 +83,9 @@ router.register(r'payment', main_api.PaymentViewSet)
 router.register(r'proposal_filming_parks', proposal_api_filming.ProposalFilmingParksViewSet)
 #router.register(r'filming_activity_tab', proposal_api_filming.FilmingActivityTabView, base_name='filming_activity_tab')
 
+#Events
+router.register(r'proposal_events_parks', proposal_api_event.ProposalEventsParksViewSet)
+
 
 api_patterns = [
     url(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),

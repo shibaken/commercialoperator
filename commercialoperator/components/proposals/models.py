@@ -70,6 +70,9 @@ def update_proposal_comms_log_filename(instance, filename):
 def update_filming_park_doc_filename(instance, filename):
     return '{}/proposals/{}/filming_park_documents/{}'.format(settings.MEDIA_APP_DIR, instance.filming_park.proposal.id,filename)
 
+def update_events_park_doc_filename(instance, filename):
+    return '{}/proposals/{}/events_park_documents/{}'.format(settings.MEDIA_APP_DIR, instance.events_park.proposal.id,filename)
+
 
 def application_type_choicelist():
     try:
@@ -3871,7 +3874,7 @@ class DistrictProposal(models.Model):
                                 )
     proposal = models.ForeignKey(Proposal, related_name='district_proposals')
     district = models.ForeignKey(District, related_name='proposals')
-    proposal_park=models.ManyToManyField(ProposalFilmingParks, null=True)
+    proposal_park=models.ManyToManyField(ProposalFilmingParks)
     #district_approval=models.ForeignKey(DistrictApproval, null=True)
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
                                          default=PROCESSING_STATUS_CHOICES[0][0])
@@ -3950,6 +3953,51 @@ class ProposalEventOtherDetails(models.Model):
     class Meta:
         app_label = 'commercialoperator'
 
+class ProposalEventsParks(models.Model):
+    #proposal = models.OneToOneField(Proposal, related_name='filming_parks', null=True)
+    proposal = models.ForeignKey(Proposal, related_name='events_parks', null=True)
+    park= models.ForeignKey(Park, related_name='events_proposal')
+    activities=models.ManyToManyField(Activity)
+
+    def __str__(self):
+        return '{}'.format(self.park)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+    def add_documents(self, request):
+        with transaction.atomic():
+            try:
+                # save the files
+                data = json.loads(request.data.get('data'))
+                if not data.get('update'):
+                    documents_qs = self.filming_park_documents.filter(input_name='filming_park_doc', visible=True)
+                    documents_qs.delete()
+                for idx in range(data['num_files']):
+                    _file = request.data.get('file-'+str(idx))
+                    document = self.filming_park_documents.create(_file=_file, name=_file.name)
+                    document.input_name = data['input_name']
+                    document.can_delete = True
+                    document.save()
+                # end save documents
+                self.save()
+            except:
+                raise
+        return
+
+class EventsParkDocument(Document):
+    events_park = models.ForeignKey('ProposalEventsParks',related_name='events_park_documents')
+    _file = models.FileField(upload_to=update_events_park_doc_filename, max_length=512)
+    input_name = models.CharField(max_length=255,null=True,blank=True)
+    can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
+    visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+    def delete(self):
+        if self.can_delete:
+            return super(EventsParkDocument, self).delete()
 
 # --------------------------------------------------------------------------------------
 # Event Models End
