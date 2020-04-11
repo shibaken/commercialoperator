@@ -3965,6 +3965,10 @@ class ProposalEventsParks(models.Model):
     class Meta:
         app_label = 'commercialoperator'
 
+    @property
+    def activities_names(self):
+        return [a.name for a in self.activities.all()]
+
     def add_documents(self, request):
         with transaction.atomic():
             try:

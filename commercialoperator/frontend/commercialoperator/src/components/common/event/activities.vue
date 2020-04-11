@@ -12,7 +12,7 @@
             <div class="panel-body collapse in" :id="lBody">
                 <div class="" >                        
                     <div class="form-horizontal col-sm-12 borderDecoration">                        
-                        <div class="form-group">
+                        <div class="">
                             <div class="row">
                                 <div class="col-sm-3">
                                     <label class="control-label pull-left"  for="Name">Event name</label>
@@ -27,7 +27,7 @@
                     </div>
 
                     <div class="form-horizontal col-sm-12 borderDecoration">                        
-                        <div class="form-group">
+                        <div class="">
                             <div class="row">
                                 <ParksActivityTable :url="parks_url" :proposal="proposal"  ref="parks_table"></ParksActivityTable>
                             </div>

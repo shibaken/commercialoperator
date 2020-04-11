@@ -89,7 +89,7 @@ class ProposalEventsParksSerializer(serializers.ModelSerializer):
     events_park_documents = EventsParkDocumentSerializer(many=True, read_only=True)
     class Meta:
         model = ProposalEventsParks
-        fields = ('id', 'park', 'activities', 'proposal', 'events_park_documents')
+        fields = ('id', 'park', 'activities','activities_names', 'proposal', 'events_park_documents')
 
 class SaveProposalEventsParksSerializer(serializers.ModelSerializer):
     #park=ParkFilterSerializer()

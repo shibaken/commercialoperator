@@ -1,5 +1,5 @@
 <template id="event_parks_activity_table">
-    <div class="row">
+    <div class="">
         <div class="col-sm-12"> 
             <div class="row" >
                 <div class="col-md-3" v-if="!proposal.readonly">
@@ -80,7 +80,7 @@ export default {
                         
                     },
                     {
-                        data: "activities",
+                        data: "activities_names",
 
                         //name: "park__activity",
                     },
