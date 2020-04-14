@@ -186,6 +186,7 @@ class Zone(models.Model):
         return [i.id for i in self.allowed_activities.all()]
 
 
+
 @python_2_unicode_compatible
 class Trail(models.Model):
     name = models.CharField(max_length=200, unique=True)

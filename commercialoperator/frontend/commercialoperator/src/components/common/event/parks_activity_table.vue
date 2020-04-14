@@ -19,7 +19,7 @@
 </template> 
 <script>
 import datatable from '@/utils/vue/datatable.vue'
-//import editPark from './edit_park.vue'
+import editPark from './edit_park_activity.vue'
 import {
     api_endpoints,
     helpers
@@ -113,7 +113,7 @@ export default {
     },
     components:{
         datatable,
-        //editPark
+        editPark
     },
     watch:{
     },
@@ -132,9 +132,7 @@ export default {
             //this.$refs.edit_park.fetchPark(id);
             var new_park_another={
                 park: null,
-                feature_of_interest:'',
-                from_date:null,
-                to_date:null,
+                activities:[],
                 proposal: vm.proposal.id
             }
             //this.$refs.edit_park.park=this.new_park;
