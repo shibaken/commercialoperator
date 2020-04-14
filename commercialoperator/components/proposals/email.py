@@ -354,7 +354,7 @@ def send_proposal_approval_email_notification(proposal,request):
         attachments.append(attachment)
 
         # add requirement documents
-        for requirement in proposal.requirements.all():
+        for requirement in proposal.requirements.exclude(is_deleted=True):
             for doc in requirement.requirement_documents.all():
                 file_name = doc._file.name
                 #attachment = (file_name, doc._file.file.read(), 'image/*')
