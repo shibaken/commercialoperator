@@ -95,7 +95,7 @@ class SaveProposalEventsParksSerializer(serializers.ModelSerializer):
     #park=ParkFilterSerializer()
     class Meta:
         model = ProposalEventsParks
-        fields = ('id', 'park','proposal',)
+        fields = ('id', 'park','proposal', 'activities')
 
 
 

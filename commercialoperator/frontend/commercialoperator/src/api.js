@@ -40,6 +40,9 @@ module.exports = {
     //filming
     proposal_filming_parks:"/api/proposal_filming_parks.json",
 
+    //filming
+    proposal_events_parks:"/api/proposal_events_parks.json",
+
     // used in internal and external dashboards
     proposals_paginated_external:   "/api/proposal_paginated/proposals_external/?format=datatables",
     approvals_paginated_external:   "/api/approval_paginated/approvals_external/?format=datatables",

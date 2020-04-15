@@ -13,7 +13,7 @@
                                         <label class="control-label pull-left"  for="Name">Park or Reserver</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <select class="form-control" name="park" ref="access_type" @change="fetchAllowedActivities" v-model="events_park_id">
+                                        <select class="form-control" name="park" ref="events_park" @change="fetchAllowedActivities" v-model="events_park_id">
                                             <option v-for="p in parks_list" :value="p.id">{{p.name}}</option>
                                         </select>
                                     </div>
@@ -150,8 +150,11 @@ export default {
             this.$refs.filefield.reset_files();
             this.errors = false;
             $('.has-error').removeClass('has-error');
-            this.$refs.selected_activities=[];
-            this.$refs.park='';
+            //this.$refs.activities_select=[];
+            $(this.$refs.activities_select).val(null).trigger('change');
+            this.selected_activities=[];
+            this.events_park_id=null;
+            this.$refs.events_park='';
             this.validation_form.resetForm();
         },
         fetchContact: function(id){
@@ -212,6 +215,7 @@ export default {
             if(vm.events_park_id!=null){
                 vm.park.park=vm.events_park_id
             }
+            vm.park.activities = vm.selected_activities;
             // if(vm.park.from_date){
             //     vm.park.from_date=vm.park.from_date.format('YYYY-MM-DD')
             // }
@@ -275,7 +279,7 @@ export default {
             let vm = this;
             vm.validation_form = $(vm.form).validate({
                 rules: {
-                    access_type:"required",                    
+                    //access_type:"required",                    
                 },
                 messages: {
                 },
