@@ -3989,6 +3989,17 @@ class ProposalEventsParks(models.Model):
                 raise
         return
 
+class AbseilingClimbingActivity(models.Model):
+    proposal = models.ForeignKey(Proposal, related_name='event_abseiling_climbing_activity', null=True)
+    event_activities = models.ForeignKey('ProposalEventActivities',related_name='abseiling_climbing_activity_data')
+    leader = models.CharField(max_length=255,null=True,blank=True)
+    rego_number = models.CharField(max_length=255,null=True,blank=True)
+    expiry_date= models.DateField(blank=True, null=True)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+
 class EventsParkDocument(Document):
     events_park = models.ForeignKey('ProposalEventsParks',related_name='events_park_documents')
     _file = models.FileField(upload_to=update_events_park_doc_filename, max_length=512)

@@ -37,6 +37,7 @@ from commercialoperator.components.proposals.models import (
                                     ProposalEventOtherDetails,
                                     ProposalEventsParks,
                                     EventsParkDocument,
+                                    AbseilingClimbingActivity,
                                     #ProposalEventOnlineTraining,
                                 )
 from commercialoperator.components.main.serializers import CommunicationLogEntrySerializer, ParkFilterSerializer
@@ -96,6 +97,13 @@ class SaveProposalEventsParksSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProposalEventsParks
         fields = ('id', 'park','proposal', 'activities')
+
+class AbseilingClimbingActivitySerializer(serializers.ModelSerializer):
+    expiry_date = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
+    class Meta:
+        model = AbseilingClimbingActivity
+        fields = '__all__'
+
 
 
 

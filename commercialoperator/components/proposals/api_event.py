@@ -37,10 +37,12 @@ from commercialoperator.components.main.models import Document, Region, District
 from commercialoperator.components.proposals.models import (
 	ProposalEventsParks,
     Proposal,
+    AbseilingClimbingActivity,
 )
 from commercialoperator.components.proposals.serializers_event import (
     ProposalEventsParksSerializer,
-    SaveProposalEventsParksSerializer
+    SaveProposalEventsParksSerializer,
+    AbseilingClimbingActivitySerializer,
 )
 
 from commercialoperator.helpers import is_customer, is_internal
@@ -125,3 +127,6 @@ class ProposalEventsParksViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+class AbseilingClimbingActivityViewSet(viewsets.ModelViewSet):
+    queryset = AbseilingClimbingActivity.objects.all().order_by('id')
+    serializer_class = AbseilingClimbingActivitySerializer
