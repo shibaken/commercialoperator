@@ -35,6 +35,15 @@
                         </div> 
                     </div>
 
+                    <div class="form-horizontal col-sm-12 borderDecoration">                        
+                        <div class="">
+                            <div class="">
+                                <AbseilingClimbingTable :url="abseiling_climbing_url" :proposal="proposal"  ref="abseiling_climbing_table"></AbseilingClimbingTable>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                        </div> 
+                    </div>
+
                 </div>
             </div>                
 
@@ -46,6 +55,7 @@
 
 <script>
 import ParksActivityTable from './parks_activity_table.vue'
+import AbseilingClimbingTable from './abseiling_climbing_table.vue'
 import {
   api_endpoints,
   helpers
@@ -63,10 +73,12 @@ import {
                 lBody: 'lBody'+vm._uid,
                 values:null,
                 parks_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/events_parks'),
+                abseiling_climbing_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/abseiling_climbing_activities'),
             }
         },
         components:{
             ParksActivityTable,
+            AbseilingClimbingTable,
         },
         methods:{
         }

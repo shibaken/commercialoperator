@@ -130,3 +130,24 @@ class ProposalEventsParksViewSet(viewsets.ModelViewSet):
 class AbseilingClimbingActivityViewSet(viewsets.ModelViewSet):
     queryset = AbseilingClimbingActivity.objects.all().order_by('id')
     serializer_class = AbseilingClimbingActivitySerializer
+
+    @detail_route(methods=['post'])
+    def edit_abseiling_climbing(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = AbseilingClimbingActivitySerializer(instance, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            #instance.proposal.log_user_action(ProposalUserAction.ACTION_EDIT_VEHICLE.format(instance.id),request)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))

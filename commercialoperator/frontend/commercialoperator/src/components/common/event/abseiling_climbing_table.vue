@@ -4,7 +4,7 @@
             <div class="row" >
                 <div class="col-md-3" v-if="!proposal.readonly">
                             <!-- <button style="margin-top:25px;" class="btn btn-primary pull-right">New Application</button> -->
-                            <input type="button" style="margin-top:25px;" @click.prevent="newVehicle" class="btn btn-primary" value="Add new abseiling_climbing" />
+                            <input type="button" style="margin-top:25px;" @click.prevent="newRecord" class="btn btn-primary" value="Add" />
                 </div>
             </div>
 
@@ -14,12 +14,12 @@
                 </div>
             </div>
         </div>
-        <!-- <editActivity ref="edit_abseiling_climbing" :abseiling_climbing_id="abseiling_climbing_id"  @refreshFromResponse="refreshFromResponse"></editActivity> -->
+        <editRecord ref="edit_abseiling_climbing" :abseiling_climbing_id="abseiling_climbing_id"  @refreshFromResponse="refreshFromResponse"></editRecord>
     </div>
 </template>
 <script>
 import datatable from '@/utils/vue/datatable.vue'
-//import editVehicle from './edit_abseiling_climbing.vue'
+import editRecord from './edit_abseiling_climbing.vue'
 import {
     api_endpoints,
     helpers
@@ -115,80 +115,24 @@ export default {
                         mRender:function (data,type,full) {
                             let links = '';
                             if(!vm.proposal.readonly){
-                            links +=  `<a href='#${full.id}' data-edit-abseiling_climbing='${full.id}'>Edit Vehicle</a><br/>`;
+                            links +=  `<a href='#${full.id}' data-edit-abseiling_climbing='${full.id}'>Edit</a><br/>`;
                             links +=  `<a href='#${full.id}' data-discard-abseiling_climbing='${full.id}'>Discard</a><br/>`;
                         }
-                        //     if (!vm.is_external){
-                        //         if (full.can_user_view) {
-                        //             links +=  `<a href='/internal/compliance/${full.id}'>Process</a><br/>`;
-                                    
-                        //         }
-                        //         else {
-                        //             links +=  `<a href='/internal/compliance/${full.id}'>View</a><br/>`;
-                        //         }
-                        //     }
-                        //     else{
-                        //         if (full.can_user_view) {
-                        //             links +=  `<a href='/external/compliance/${full.id}'>View</a><br/>`;
-                                    
-                        //         }
-                        //         else {
-                        //             links +=  `<a href='/external/compliance/${full.id}'>Submit</a><br/>`;
-                        //         }
-                        //     }
                             return links;
                         },
-                        // name: ''  
+                         
                     },
-                    // {data: "reference", visible: false},
-                    // {data: "customer_status", visible: false},
-                    // {data: "can_user_view", visible: false},
+                    
 
                 ],
                 processing: true,
-                /*
-                initComplete: function () {
-                    // Grab Regions from the data in the table
-                    var regionColumn = vm.$refs.abseiling_climbing_datatable.vmDataTable.columns(1);
-                    regionColumn.data().unique().sort().each( function ( d, j ) {
-                        let regionTitles = [];
-                        $.each(d,(index,a) => {
-                            // Split region string to array
-                            if (a != null){
-                                $.each(a.split(','),(i,r) => {
-                                    r != null && regionTitles.indexOf(r) < 0 ? regionTitles.push(r): '';
-                                });
-                            }
-                        })
-                        vm.abseiling_climbing_regions = regionTitles;
-                    });
-                    // Grab Activity from the data in the table
-                    var titleColumn = vm.$refs.abseiling_climbing_datatable.vmDataTable.columns(2);
-                    titleColumn.data().unique().sort().each( function ( d, j ) {
-                        let activityTitles = [];
-                        $.each(d,(index,a) => {
-                            a != null && activityTitles.indexOf(a) < 0 ? activityTitles.push(a): '';
-                        })
-                        vm.abseiling_climbing_activityTitles = activityTitles;
-                    });
-
-                    // Grab Status from the data in the table
-                    var statusColumn = vm.$refs.abseiling_climbing_datatable.vmDataTable.columns(6);
-                    statusColumn.data().unique().sort().each( function ( d, j ) {
-                        let statusTitles = [];
-                        $.each(d,(index,a) => {
-                            a != null && statusTitles.indexOf(a) < 0 ? statusTitles.push(a): '';
-                        })
-                        vm.status = statusTitles;
-                    });
-                }
-                */
+                
             }
         }
     },
     components:{
         datatable,
-        //editVehicle
+        editRecord
     },
     watch:{
     },
@@ -205,52 +149,44 @@ export default {
         fetchFilterLists: function(){
             let vm = this;
 
-            // vm.$http.get(api_endpoints.filter_list_compliances).then((response) => {
-            //     vm.abseiling_climbing_regions = response.body.regions;
-            //     vm.abseiling_climbing_activityTitles = response.body.activities;
-            //     vm.status = vm.level == 'external' ? vm.external_status: vm.internal_status;
-            // },(error) => {
-            //     console.log(error);
-            // })
-            //console.log(vm.regions);
+            
         },
-        newVehicle: function(){
+        newRecord: function(){
             let vm=this;
             this.$refs.edit_abseiling_climbing.abseiling_climbing_id = null;
             //this.$refs.edit_abseiling_climbing.fetchVehicle(id);
             var new_abseiling_climbing_another={
-                access_type: null,
-                capacity:'',
-                rego:'',
-                rego_expiry:null,
-                license:'',
-                proposal: vm.proposal.id
+                leader:'',
+                expiry_date:null,
+                rego_number:'',
+                proposal: vm.proposal.id,
+                event_activities: 1,
             }
             //this.$refs.edit_abseiling_climbing.abseiling_climbing=this.new_abseiling_climbing;
             this.$refs.edit_abseiling_climbing.abseiling_climbing=new_abseiling_climbing_another;
             this.$refs.edit_abseiling_climbing.abseiling_climbing_action='add'
             this.$refs.edit_abseiling_climbing.isModalOpen = true;
         },
-        editVehicle: function(id){
+        editRecord: function(id){
             this.$refs.edit_abseiling_climbing.abseiling_climbing_id = id;
-            this.$refs.edit_abseiling_climbing.fetchVehicle(id);
+            this.$refs.edit_abseiling_climbing.fetchRecord(id);
             this.$refs.edit_abseiling_climbing.isModalOpen = true;
         },
-        discardVehicle:function (abseiling_climbing_id) {
+        discardRecord:function (abseiling_climbing_id) {
             let vm = this;
             swal({
-                title: "Discard Vehicle",
-                text: "Are you sure you want to discard this abseiling_climbing?",
+                title: "Discard Record",
+                text: "Are you sure you want to discard this record?",
                 type: "warning",
                 showCancelButton: true,
-                confirmButtonText: 'Discard Vehicle',
+                confirmButtonText: 'Discard',
                 confirmButtonColor:'#d9534f'
             }).then(() => {
                 vm.$http.delete(api_endpoints.discard_abseiling_climbing(abseiling_climbing_id))
                 .then((response) => {
                     swal(
                         'Discarded',
-                        'Your abseiling_climbing has been discarded',
+                        'Record has been discarded',
                         'success'
                     )
                     vm.$refs.abseiling_climbing_datatable.vmDataTable.ajax.reload();
@@ -266,13 +202,13 @@ export default {
             vm.$refs.abseiling_climbing_datatable.vmDataTable.on('click', 'a[data-edit-abseiling_climbing]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-edit-abseiling_climbing');
-                vm.editVehicle(id);
+                vm.editRecord(id);
             });
             // External Discard listener
             vm.$refs.abseiling_climbing_datatable.vmDataTable.on('click', 'a[data-discard-abseiling_climbing]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-abseiling_climbing');
-                vm.discardVehicle(id);
+                vm.discardRecord(id);
             });
         },
         refreshFromResponse: function(){
