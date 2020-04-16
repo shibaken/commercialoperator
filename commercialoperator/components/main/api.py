@@ -204,6 +204,19 @@ class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
 
+    
+    @list_route(methods=['GET',])
+    def tclass_questions_list(self, request, *args, **kwargs):
+        qs=Question.objects.filter(application_type__name=ApplicationType.TCLASS)
+        serializer = QuestionSerializer(qs,context={'request':request}, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=['GET',])
+    def events_questions_list(self, request, *args, **kwargs):
+        qs=Question.objects.filter(application_type__name=ApplicationType.EVENT)
+        serializer = QuestionSerializer(qs,context={'request':request}, many=True)
+        return Response(serializer.data)
+
 
 class PaymentViewSet(viewsets.ModelViewSet):
     #queryset = Proposal.objects.all()
