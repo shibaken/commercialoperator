@@ -1325,7 +1325,7 @@ class InternalFilmingProposalSerializer(BaseProposalSerializer):
         return '/cols/payments/invoice-pdf/{}'.format(obj.fee_invoice_reference) if obj.fee_paid else None
 
 #Event serializer
-class ProposalFilmingSerializer(BaseProposalSerializer):
+class ProposalEventSerializer(BaseProposalSerializer):
     assessor_data = serializers.JSONField(required=False)
     application_type = serializers.CharField(source='application_type.name', read_only=True)
     submitter = serializers.CharField(source='submitter.get_full_name')
@@ -1382,9 +1382,8 @@ class ProposalFilmingSerializer(BaseProposalSerializer):
                 )
         read_only_fields=('documents','requirements',)
 
-    def get_training_completed (self,obj):
-        #return obj.get_reason_display()
-        return True
+    
 
     def get_readonly(self,obj):
         return obj.can_user_view
+

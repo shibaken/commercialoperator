@@ -91,6 +91,7 @@ from commercialoperator.components.proposals.serializers import (
     ParksAndTrailSerializer,
     ProposalFilmingSerializer,
     InternalFilmingProposalSerializer,
+    ProposalEventSerializer,
 )
 from commercialoperator.components.proposals.serializers_filming import (
     ProposalFilmingOtherDetailsSerializer,
@@ -608,7 +609,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             elif application_type == ApplicationType.FILMING:
                 return ProposalFilmingSerializer
             elif application_type == ApplicationType.EVENT:
-                return ProposalSerializer
+                return ProposalEventSerializer
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise

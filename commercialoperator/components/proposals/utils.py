@@ -736,7 +736,7 @@ def save_proponent_data_event(instance,request,viewset,parks=None,trails=None):
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
-            filming_other_details=ProposalFilmingOtherDetails.objects.update_or_create(proposal=instance)
+            #filming_other_details=ProposalFilmingOtherDetails.objects.update_or_create(proposal=instance)
             # instance.save()
             serializer = SaveProposalSerializer(instance, data, partial=True)
             serializer.is_valid(raise_exception=True)

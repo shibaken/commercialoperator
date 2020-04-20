@@ -20,7 +20,7 @@
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="input-group date" ref="safety_details" style="width: 70%;">
-                                        <input type="text" class="form-control" v-model="proposal.other_details.safety_details" name="safety_details" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                        <input type="text" class="form-control" v-model="proposal.event_other_details.participants_number" name="safety_details" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
                                         <!--
                                         <input type="text" class="form-control" name="safety_details" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
                                         -->
