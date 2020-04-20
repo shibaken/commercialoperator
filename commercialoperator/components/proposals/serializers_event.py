@@ -76,6 +76,10 @@ class ProposalEventOtherDetailsSerializer(serializers.ModelSerializer):
         fields=(
                 'id',
                 'insurance_expiry',
+                'training_date',
+                'participants_number',
+                'officials_number',
+                'support_vehicle_number',
                 'proposal',
                 )
 

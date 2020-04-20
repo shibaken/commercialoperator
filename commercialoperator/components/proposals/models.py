@@ -3946,11 +3946,14 @@ class ProposalEventOtherDetails(models.Model):
     training_date= models.DateField(blank=True, null=True)
     insurance_expiry= models.DateField(blank=True, null=True)
     proposal = models.OneToOneField(Proposal, related_name='event_other_details', null=True)
+    participants_number = models.CharField(max_length=24,null=True,blank=True)
+    officials_number = models.CharField(max_length=24,null=True,blank=True)
+    support_vehicle_number = models.CharField(max_length=24,null=True,blank=True)
 
     def __str__(self):
         return '{}'.format(self.training_date)
 
-    class Meta:
+    class Meta: 
         app_label = 'commercialoperator'
 
 class ProposalEventsParks(models.Model):

@@ -1324,4 +1324,67 @@ class InternalFilmingProposalSerializer(BaseProposalSerializer):
     def get_fee_invoice_url(self,obj):
         return '/cols/payments/invoice-pdf/{}'.format(obj.fee_invoice_reference) if obj.fee_paid else None
 
-   
+#Event serializer
+class ProposalFilmingSerializer(BaseProposalSerializer):
+    assessor_data = serializers.JSONField(required=False)
+    application_type = serializers.CharField(source='application_type.name', read_only=True)
+    submitter = serializers.CharField(source='submitter.get_full_name')
+    processing_status = serializers.SerializerMethodField(read_only=True)
+    #review_status = serializers.SerializerMethodField(read_only=True)
+    customer_status = serializers.SerializerMethodField(read_only=True)
+    #filming_activity= ProposalFilmingActivitySerializer()
+    #filming_access=ProposalFilmingAccessSerializer()
+    #filming_equipment=ProposalFilmingEquipmentSerializer()
+    event_other_details=ProposalEventOtherDetailsSerializer()
+    #training_completed=serializers.SerializerMethodField()
+
+    class Meta:
+        model = Proposal
+        fields = (
+                'id',
+                'application_type',
+                'activity',
+                'approval_level',
+                'title',
+                'region',
+                'district',
+                # 'tenure',
+                'data',
+                'assessor_data',
+                'comment_data',
+                'schema',
+                'customer_status',
+                'processing_status',
+                'fee_paid',
+                'training_completed',
+                'applicant_type',
+                'applicant',
+                'org_applicant',
+                'proxy_applicant',
+                'submitter',
+                'assigned_officer',
+                'previous_application',
+                'lodgement_date',
+                'documents',
+                'requirements',
+                'readonly',
+                'can_user_edit',
+                'can_user_view',
+                'reference',
+                'lodgement_number',
+                'lodgement_sequence',
+                'can_officer_process',
+                'applicant_details',
+                # 'filming_activity',
+                # 'filming_access',
+                # 'filming_equipment',
+                'event_other_details',
+                )
+        read_only_fields=('documents','requirements',)
+
+    def get_training_completed (self,obj):
+        #return obj.get_reason_display()
+        return True
+
+    def get_readonly(self,obj):
+        return obj.can_user_view

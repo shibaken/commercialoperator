@@ -698,9 +698,53 @@ def save_proponent_data_filming(instance,request,viewset,parks=None,trails=None)
         except:
             raise
 
-
+from commercialoperator.components.proposals.serializers_event import ProposalEventOtherDetailsSerializer
 def save_proponent_data_event(instance,request,viewset,parks=None,trails=None):
-    pass
+    with transaction.atomic():
+        try:
+            data = {
+            }
+
+            try:
+                schema=request.data.get('schema')
+            except:
+                schema=request.POST.get('schema')
+            import json
+            sc=json.loads(schema)
+            # filming_activity_data=sc['filming_activity']
+            # filming_access_data=sc['filming_access']
+            # filming_equipment_data=sc['filming_equipment']
+            events_other_details_data=sc['events_other_details']
+
+            #save Filming activity data
+            # serializer = ProposalEventsActivitySerializer(instance.filming_activity, data=filming_activity_data)
+            # serializer.is_valid(raise_exception=True)
+            # serializer.save()
+
+            #save Filming access data
+            # serializer = ProposalFilmingAccessSerializer(instance.filming_access, data=filming_access_data)
+            # serializer.is_valid(raise_exception=True)
+            # serializer.save()
+
+            #save Filming equipment data
+            # serializer = ProposalFilmingEquipmentSerializer(instance.filming_equipment, data=filming_equipment_data)
+            # serializer.is_valid(raise_exception=True)
+            # serializer.save()
+
+            #save Filming other details data
+            serializer = ProposalEventsOtherDetailsSerializer(instance.event_other_details, data=events_other_details_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            filming_other_details=ProposalFilmingOtherDetails.objects.update_or_create(proposal=instance)
+            # instance.save()
+            serializer = SaveProposalSerializer(instance, data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            viewset.perform_update(serializer)
+
+        except:
+            raise
+
 
 def save_proponent_data_tclass(instance,request,viewset,parks=None,trails=None):
     with transaction.atomic():
@@ -726,7 +770,7 @@ def save_proponent_data_tclass(instance,request,viewset,parks=None,trails=None):
                 schema=request.POST.get('schema')
             import json
             sc=json.loads(schema)
-            other_details_data=sc['other_details']
+            other_details_data=sc['event_other_details']
             #print other_details_data
             if instance.is_amendment_proposal or instance.pending_amendment_request:
                 other_details_data['preferred_licence_period']=instance.other_details.preferred_licence_period
