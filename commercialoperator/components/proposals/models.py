@@ -73,6 +73,9 @@ def update_filming_park_doc_filename(instance, filename):
 def update_events_park_doc_filename(instance, filename):
     return '{}/proposals/{}/events_park_documents/{}'.format(settings.MEDIA_APP_DIR, instance.events_park.proposal.id,filename)
 
+def update_pre_event_park_doc_filename(instance, filename):
+    return '{}/proposals/{}/pre_event_park_documents/{}'.format(settings.MEDIA_APP_DIR, instance.pre_event_park.proposal.id,filename)
+
 
 def application_type_choicelist():
     try:
@@ -4017,6 +4020,54 @@ class EventsParkDocument(Document):
         if self.can_delete:
             return super(EventsParkDocument, self).delete()
 
+class ProposalPreEventsParks(models.Model):
+    #proposal = models.OneToOneField(Proposal, related_name='filming_parks', null=True)
+    proposal = models.ForeignKey(Proposal, related_name='pre_event_parks', null=True)
+    park= models.ForeignKey(Park, related_name='pre_event_proposal')
+    activities=models.CharField(max_length=255,null=True,blank=True)
+
+    def __str__(self):
+        return '{}'.format(self.park)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+    # @property
+    # def activities_names(self):
+    #     return [a.name for a in self.activities.all()]
+
+    def add_documents(self, request):
+        with transaction.atomic():
+            try:
+                # save the files
+                data = json.loads(request.data.get('data'))
+                if not data.get('update'):
+                    documents_qs = self.events_park_documents.filter(input_name='events_park_doc', visible=True)
+                    documents_qs.delete()
+                for idx in range(data['num_files']):
+                    _file = request.data.get('file-'+str(idx))
+                    document = self.events_park_documents.create(_file=_file, name=_file.name)
+                    document.input_name = data['input_name']
+                    document.can_delete = True
+                    document.save()
+                # end save documents
+                self.save()
+            except:
+                raise
+        return
+class PreEventsParkDocument(Document):
+    pre_event_park = models.ForeignKey('ProposalPreEventsParks',related_name='pre_event_park_documents')
+    _file = models.FileField(upload_to=update_pre_event_park_doc_filename, max_length=512)
+    input_name = models.CharField(max_length=255,null=True,blank=True)
+    can_delete = models.BooleanField(default=True) # after initial submit prevent document from being deleted
+    visible = models.BooleanField(default=True) # to prevent deletion on file system, hidden and still be available in history
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+    def delete(self):
+        if self.can_delete:
+            return super(PreEventsParkDocument, self).delete()
 # --------------------------------------------------------------------------------------
 # Event Models End
 # --------------------------------------------------------------------------------------
