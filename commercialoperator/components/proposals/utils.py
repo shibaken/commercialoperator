@@ -714,7 +714,7 @@ def save_proponent_data_event(instance,request,viewset,parks=None,trails=None):
             # filming_activity_data=sc['filming_activity']
             # filming_access_data=sc['filming_access']
             # filming_equipment_data=sc['filming_equipment']
-            events_other_details_data=sc['events_other_details']
+            events_other_details_data=sc['event_other_details']
 
             #save Filming activity data
             # serializer = ProposalEventsActivitySerializer(instance.filming_activity, data=filming_activity_data)
@@ -732,7 +732,7 @@ def save_proponent_data_event(instance,request,viewset,parks=None,trails=None):
             # serializer.save()
 
             #save Filming other details data
-            serializer = ProposalEventsOtherDetailsSerializer(instance.event_other_details, data=events_other_details_data)
+            serializer = ProposalEventOtherDetailsSerializer(instance.event_other_details, data=events_other_details_data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
 

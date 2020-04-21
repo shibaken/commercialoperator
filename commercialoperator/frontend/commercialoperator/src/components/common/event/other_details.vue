@@ -94,7 +94,7 @@
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="input-group date" ref="insurance_expiry" style="width: 70%;">
-                                        <input type="text" class="form-control" name="insurance_expiry" placeholder="DD/MM/YYYY" v-model="proposal.other_details.insurance_expiry" :disabled="proposal.readonly">
+                                        <input type="text" class="form-control" name="insurance_expiry" placeholder="DD/MM/YYYY" v-model="proposal.event_other_details.insurance_expiry" :disabled="proposal.readonly">
                                             <span class="input-group-addon">
                                                 <span class="glyphicon glyphicon-calendar"></span>
                                             </span>
@@ -217,7 +217,7 @@ export default {
         watch:{
             
             accreditation_type: function(){
-                this.proposal.other_details.accreditation_type=this.accreditation_type.key;
+                this.proposal.event_other_details.accreditation_type=this.accreditation_type.key;
             },
         },
         methods:{
@@ -243,7 +243,7 @@ export default {
             },
             showDockteNumber: function(){
                 let vm=this;
-                if(vm.proposal && vm.proposal.other_details.credit_docket_books){
+                if(vm.proposal && vm.proposal.event_other_details.credit_docket_books){
                     var input = this.$refs.docket_books_yes;
                     var e = document.createEvent('HTMLEvents');
                     e.initEvent('change', true, true);
@@ -263,7 +263,7 @@ export default {
             },
             showCreditFacilityLink: function(){
                 let vm=this;
-                if(vm.proposal && vm.proposal.other_details.credit_fees){
+                if(vm.proposal && vm.proposal.event_other_details.credit_fees){
                     var input = this.$refs.credit_fees_yes;
                     var e = document.createEvent('HTMLEvents');
                     e.initEvent('change', true, true);
@@ -284,19 +284,19 @@ export default {
             addMooring: function(){
                 let vm=this;
                 //var new_mooring= helpers.copyObject(vm.mooring)
-                var new_mooring= helpers.copyObject(vm.proposal.other_details.mooring)
+                var new_mooring= helpers.copyObject(vm.proposal.event_other_details.mooring)
                 new_mooring.push('');
-                vm.proposal.other_details.mooring=new_mooring;
-                console.log(vm.proposal.other_details.mooring);
+                vm.proposal.event_other_details.mooring=new_mooring;
+                console.log(vm.proposal.event_other_details.mooring);
             },
             fetchAccreditationChoices: function(){
                 let vm = this;
                 vm.$http.get('/api/accreditation_choices.json').then((response) => {
                     vm.accreditation_choices = response.body;
-                    if(vm.proposal.other_details.accreditation_type
+                    if(vm.proposal.event_other_details.accreditation_type
                         ){
                         for(var i=0; i<vm.accreditation_choices.length; i++){
-                            if(vm.accreditation_choices[i].key==vm.proposal.other_details.accreditation_type){
+                            if(vm.accreditation_choices[i].key==vm.proposal.event_other_details.accreditation_type){
                                 vm.accreditation_type=vm.accreditation_choices[i]
                             }
                         }
@@ -326,10 +326,10 @@ export default {
             },
             checkProposalAccreditation: function(){
                 let vm= this;
-                if(vm.proposal && vm.proposal.other_details){
-                    for(var i=0; i<vm.proposal.other_details.accreditations.length; i++){
-                        vm.proposal.other_details.accreditations[i].is_deleted=false;
-                        vm.selected_accreditations.push(vm.proposal.other_details.accreditations[i].accreditation_type);
+                if(vm.proposal && vm.proposal.event_other_details){
+                    for(var i=0; i<vm.proposal.event_other_details.accreditations.length; i++){
+                        vm.proposal.event_other_details.accreditations[i].is_deleted=false;
+                        vm.selected_accreditations.push(vm.proposal.event_other_details.accreditations[i].accreditation_type);
                     }
                 }
             },
@@ -337,10 +337,10 @@ export default {
                 let vm=this;
                 if(e.target.checked){
                     var found=false;
-                    for(var i=0;i<vm.proposal.other_details.accreditations.length; i++){
-                        if(vm.proposal.other_details.accreditations[i].accreditation_type==accreditation_type.key){
+                    for(var i=0;i<vm.proposal.event_other_details.accreditations.length; i++){
+                        if(vm.proposal.event_other_details.accreditations[i].accreditation_type==accreditation_type.key){
                             found=true;
-                            vm.proposal.other_details.accreditations[i].is_deleted=false;
+                            vm.proposal.event_other_details.accreditations[i].is_deleted=false;
                         }
                     }
                     if(found==false){
@@ -348,31 +348,31 @@ export default {
                         'accreditation_type': accreditation_type.key,
                         'accreditation_expiry':null,
                         'comments':'',
-                        'proposal_other_details': vm.proposal.other_details.id,
+                        'proposal_other_details': vm.proposal.event_other_details.id,
                         'is_deleted': false,
                         'accreditation_type_value': accreditation_type.value
                     }
-                    var acc=helpers.copyObject(vm.proposal.other_details.accreditations);
+                    var acc=helpers.copyObject(vm.proposal.event_other_details.accreditations);
                     acc.push(data);
-                    vm.proposal.other_details.accreditations=acc;
+                    vm.proposal.event_other_details.accreditations=acc;
                     }
                 }
                 else{
-                    for(var i=0;i<vm.proposal.other_details.accreditations.length; i++)
+                    for(var i=0;i<vm.proposal.event_other_details.accreditations.length; i++)
                     {
 
-                        if(vm.proposal.other_details.accreditations[i].accreditation_type==accreditation_type.key)
+                        if(vm.proposal.event_other_details.accreditations[i].accreditation_type==accreditation_type.key)
                         {
-                            if(vm.proposal.other_details.accreditations[i].id){
+                            if(vm.proposal.event_other_details.accreditations[i].id){
                                 //console.log('yes')
-                                var acc=helpers.copyObject(vm.proposal.other_details.accreditations);
+                                var acc=helpers.copyObject(vm.proposal.event_other_details.accreditations);
                                 acc[i].is_deleted=true;
-                                vm.proposal.other_details.accreditations=acc;
+                                vm.proposal.event_other_details.accreditations=acc;
                             }
                             else{
-                                var acc=helpers.copyObject(vm.proposal.other_details.accreditations);
+                                var acc=helpers.copyObject(vm.proposal.event_other_details.accreditations);
                                 acc.splice(i,1);
-                                vm.proposal.other_details.accreditations=acc;
+                                vm.proposal.event_other_details.accreditations=acc;
                             }
                         }
                     }
@@ -392,10 +392,10 @@ export default {
                 $(vm.$refs.insurance_expiry).data("DateTimePicker").minDate(today);
                 $(vm.$refs.insurance_expiry).on('dp.change', function(e){
                     if ($(vm.$refs.insurance_expiry).data('DateTimePicker').date()) {                       
-                        vm.proposal.other_details.insurance_expiry =  e.date.format('DD/MM/YYYY');
+                        vm.proposal.event_other_details.insurance_expiry =  e.date.format('DD/MM/YYYY');
                     }
                     else if ($(vm.$refs.insurance_expiry).data('date') === "") {
-                        vm.proposal.other_details.insurance_expiry = "";
+                        vm.proposal.event_other_details.insurance_expiry = "";
                     }
                  });
                 */
@@ -408,13 +408,13 @@ export default {
                 }).
                 on("select2:select",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.proposal.other_details.preferred_licence_period = selected.val();
-                    vm.proposal.other_details.preferred_licence_period_id = selected.val();
+                    vm.proposal.event_other_details.preferred_licence_period = selected.val();
+                    vm.proposal.event_other_details.preferred_licence_period_id = selected.val();
                 }).
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.proposal.other_details.preferred_licence_period = selected.val();
-                    vm.proposal.other_details.preferred_licence_period_id = selected.val();
+                    vm.proposal.event_other_details.preferred_licence_period = selected.val();
+                    vm.proposal.event_other_details.preferred_licence_period_id = selected.val();
                 });
             },
         },
