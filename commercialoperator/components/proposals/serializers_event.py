@@ -69,6 +69,7 @@ class ProposalEventVehiclesVesselsSerializer(serializers.ModelSerializer):
 
 class ProposalEventOtherDetailsSerializer(serializers.ModelSerializer):
     insurance_expiry = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
+    training_date = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
 
     class Meta:
         model = ProposalEventOtherDetails

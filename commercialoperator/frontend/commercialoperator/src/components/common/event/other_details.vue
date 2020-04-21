@@ -3,60 +3,76 @@
     <div class="col-sm-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">Safety<small></small>
+                <h3 class="panel-title">Pre-Event Training<small></small>
                 <a class="panelClicker" :href="'#'+lBody" data-toggle="collapse"  data-parent="#otherInfo" expanded="true" :aria-controls="lBody">
                 <span class="glyphicon glyphicon-chevron-up pull-right "></span>
                 </a>
                 </h3>
             </div>
             <div class="panel-body collapse in" :id="lBody">
-                <div class="" >                        
+                <div class="" >
                     <div class="form-horizontal col-sm-12 borderDecoration">
-                        
-                        <div class="form-group">
+                        <div class="">
                             <div class="row">
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">What steps have been taken to ensure the well being of others in your party</label>
+                                    <label class="control-label pull-left"  for="Name">Date of Pre-event training
+                                    </label>
                                 </div>
                                 <div class="col-sm-6">
-                                    <div class="input-group date" ref="safety_details" style="width: 70%;">
-                                        <input type="text" class="form-control" v-model="proposal.event_other_details.participants_number" name="safety_details" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
-                                        <!--
-                                        <input type="text" class="form-control" name="safety_details" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
-                                        -->
+                                    <div class="input-group date" ref="training_date" style="width: 70%;">
+                                        <input type="text" class="form-control" name="training_date" placeholder="DD/MM/YYYY" v-model="proposal.event_other_details.training_date" :disabled="proposal.readonly">
+                                            <span class="input-group-addon">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>                        
+                    <div class="form-horizontal col-sm-12 borderDecoration">
+                        
+                        <div class="">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Number of Participants expected</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="input-group date" ref="participants_number" style="width: 70%;">
+                                        <input type="text" class="form-control" v-model="proposal.event_other_details.participants_number" name="participants_number" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Number of officials</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="input-group date" ref="officials_number" style="width: 70%;">
+                                        <input type="text" class="form-control" v-model="proposal.event_other_details.officials_number" name="officials_number" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Number of officials</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="input-group date" ref="support_vehicle_number" style="width: 70%;">
+                                        <input type="text" class="form-control" v-model="proposal.event_other_details.support_vehicle_number" name="support_vehicle_number" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+
                         </div> 
                     </div>
                 </div>
             </div>                
         </div>
     </div>
-    <div class="col-sm-12">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">Payment of Fees and Charges<small></small>
-                <a class="panelClicker" :href="'#'+mBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="mBody">
-                <span class="glyphicon glyphicon-chevron-up pull-right "></span>
-                </a>
-                </h3>
-            </div>
-            <div class="panel-body collapse in" :id="mBody">
-                <div class="" >                        
-                    <div class="form-horizontal col-sm-12 borderDecoration">
-                        <div class="form-group">
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <label>Depending on the filming operation, fees and charges may apply. Please see ...</label>
-                                </div>   
-                            </div>
-                        </div>
-                   </div>
-                </div>
-            </div>                
-        </div>
-    </div>
+    
     <div class="col-sm-12">
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -68,7 +84,7 @@
             </div>
             <div class="panel-body collapse in" :id="iBody">
                 <div class="" >                        
-                    <div class="form-horizontal col-sm-12 borderDecoration">
+                    <div class="form-horizontal col-sm-12">
                         <div class="form-group">
                             <div class="row">
                                 <div class="col-sm-12">
@@ -118,7 +134,7 @@
             </div>
             <div class="panel-body collapse in" :id="dBody">
                 <div class="" >                        
-                    <div class="form-horizontal col-sm-12 borderDecoration">
+                    <div class="form-horizontal col-sm-12 ">
                         <div class="form-group">
                            <div class="row">
                                 <div class="col-sm-12">
@@ -138,7 +154,7 @@
             </div>                
         </div>
     </div>
--->
+
 
 </div>
 </template>
@@ -384,7 +400,7 @@ export default {
                 var date= new Date()
                 var today= new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-                /* 
+                 
                 //Insurance expiry date listener
                 $(vm.$refs.insurance_expiry).datetimepicker(vm.datepickerOptions);
                 //Set minimum date on datetimepicker so that
@@ -398,24 +414,21 @@ export default {
                         vm.proposal.event_other_details.insurance_expiry = "";
                     }
                  });
-                */
 
-                // Intialise select2
-                $(vm.$refs.preferred_licence_period).select2({
-                    "theme": "bootstrap",
-                    allowClear: true,
-                    placeholder:"Select preferred licence term"
-                }).
-                on("select2:select",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.proposal.event_other_details.preferred_licence_period = selected.val();
-                    vm.proposal.event_other_details.preferred_licence_period_id = selected.val();
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.proposal.event_other_details.preferred_licence_period = selected.val();
-                    vm.proposal.event_other_details.preferred_licence_period_id = selected.val();
-                });
+                //Training date listener
+                $(vm.$refs.training_date).datetimepicker(vm.datepickerOptions);
+                //Set minimum date on datetimepicker so that
+                //Training date cannot be selected prior to today
+                $(vm.$refs.training_date).data("DateTimePicker").minDate(today);
+                $(vm.$refs.training_date).on('dp.change', function(e){
+                    if ($(vm.$refs.training_date).data('DateTimePicker').date()) {                       
+                        vm.proposal.event_other_details.training_date =  e.date.format('DD/MM/YYYY');
+                    }
+                    else if ($(vm.$refs.training_date).data('date') === "") {
+                        vm.proposal.event_other_details.training_date = "";
+                    }
+                 });
+                
             },
         },
         mounted: function(){
@@ -438,6 +451,12 @@ export default {
         zoom:1;
         display: inline;
     }*/
+    .borderDecoration {
+    border: 1px solid;
+    border-radius: 5px;
+    padding: 5px;
+    margin-top: 5px;
+    }
     fieldset.scheduler-border {
     border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;
