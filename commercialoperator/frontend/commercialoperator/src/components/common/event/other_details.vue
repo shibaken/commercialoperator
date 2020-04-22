@@ -28,7 +28,17 @@
                                 </div>
                             </div>
                         </div>
-                    </div>                        
+                    </div>
+
+                    <div class="form-horizontal col-sm-12 borderDecoration">                        
+                        <div class="">
+                            <div class="row">
+                                <PreEventParksTable :url="pre_event_parks_url" :proposal="proposal"  ref="pre_event_parks_table"></PreEventParksTable>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                        </div> 
+                    </div>
+
                     <div class="form-horizontal col-sm-12 borderDecoration">
                         
                         <div class="">
@@ -162,6 +172,7 @@
 <script>
 import Vue from 'vue' 
 //import Accreditation from './accreditation_type.vue'
+import PreEventParksTable from './pre_event_parks_table.vue'
 import FileField from '@/components/forms/filefield.vue'
 import {
   api_endpoints,
@@ -194,16 +205,18 @@ export default {
                 global_settings:[],
                 //mooring:[{'value':''}],
                 datepickerOptions:{
-                format: 'DD/MM/YYYY',
-                showClear:true,
-                useCurrent:false,
-                keepInvalid:true,
-                allowInputToggle:true,
-            },
+                    format: 'DD/MM/YYYY',
+                    showClear:true,
+                    useCurrent:false,
+                    keepInvalid:true,
+                    allowInputToggle:true,
+                },
+                pre_event_parks_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/pre_event_parks'),
             }
         },
         components: {
           FileField,
+          PreEventParksTable,
           //Accreditation
         },
         computed: {
