@@ -86,6 +86,7 @@ router.register(r'proposal_filming_parks', proposal_api_filming.ProposalFilmingP
 #Events
 router.register(r'proposal_events_parks', proposal_api_event.ProposalEventsParksViewSet)
 router.register(r'abseiling_climbing_activities', proposal_api_event.AbseilingClimbingActivityViewSet)
+router.register(r'proposal_pre_event_parks', proposal_api_event.ProposalPreEventsParksViewSet)
 
 
 api_patterns = [

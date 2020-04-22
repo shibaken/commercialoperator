@@ -38,6 +38,8 @@ from commercialoperator.components.proposals.models import (
                                     ProposalEventsParks,
                                     EventsParkDocument,
                                     AbseilingClimbingActivity,
+                                    PreEventsParkDocument,
+                                    ProposalPreEventsParks
                                     #ProposalEventOnlineTraining,
                                 )
 from commercialoperator.components.main.serializers import CommunicationLogEntrySerializer, ParkFilterSerializer
@@ -110,13 +112,21 @@ class AbseilingClimbingActivitySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class PreEventsParkDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PreEventsParkDocument
+        fields = ('id', 'name', '_file')
 
+class ProposalPreEventsParksSerializer(serializers.ModelSerializer):
+    park=ParkFilterSerializer()
+    #activities=serializers.CharField(source='activities.name', many=True)
+    pre_event_park_documents = PreEventsParkDocumentSerializer(many=True, read_only=True)
+    class Meta:
+        model = ProposalPreEventsParks
+        fields = ('id', 'park', 'activities', 'pre_event_park_documents', 'proposal')
 
-#class ProposalEventOnlineTrainingSerializer(serializers.ModelSerializer):
-#    insurance_expiry = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
-#
-#    class Meta:
-#        model = ProposalEventOnlineTraining
-#        fields = '__all__'
-
-
+class SaveProposalPreEventsParksSerializer(serializers.ModelSerializer):
+    #park=ParkFilterSerializer()
+    class Meta:
+        model = ProposalPreEventsParks
+        fields = ('id', 'park','proposal', 'activities')

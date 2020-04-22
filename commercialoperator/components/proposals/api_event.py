@@ -38,11 +38,16 @@ from commercialoperator.components.proposals.models import (
 	ProposalEventsParks,
     Proposal,
     AbseilingClimbingActivity,
+    PreEventsParkDocument,
+    ProposalPreEventsParks
 )
 from commercialoperator.components.proposals.serializers_event import (
     ProposalEventsParksSerializer,
     SaveProposalEventsParksSerializer,
     AbseilingClimbingActivitySerializer,
+    ProposalPreEventsParksSerializer,
+    SaveProposalPreEventsParksSerializer,
+    
 )
 
 from commercialoperator.helpers import is_customer, is_internal
@@ -115,7 +120,7 @@ class ProposalEventsParksViewSet(viewsets.ModelViewSet):
     def delete_document(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            FilmingParkDocument.objects.get(id=request.data.get('id')).delete()
+            EventsParkDocument.objects.get(id=request.data.get('id')).delete()
             return Response([dict(id=i.id, name=i.name,_file=i._file.url) for i in instance.filming_park_documents.all()])
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -148,6 +153,70 @@ class AbseilingClimbingActivityViewSet(viewsets.ModelViewSet):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
                 raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+class ProposalPreEventsParksViewSet(viewsets.ModelViewSet):
+    queryset = ProposalPreEventsParks.objects.all().order_by('id')
+    serializer_class = ProposalPreEventsParksSerializer
+
+    @detail_route(methods=['post'])
+    def edit_park(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = SaveProposalPreEventsParksSerializer(instance, data=json.loads(request.data.get('data')))
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            instance.add_documents(request)
+            instance.proposal.log_user_action(ProposalUserAction.ACTION_EDIT_VEHICLE.format(instance.id),request)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    def create(self, request, *args, **kwargs):
+        try:
+            #instance = self.get_object()
+            serializer = SaveProposalPreEventsParksSerializer(data=json.loads(request.data.get('data')))
+            serializer.is_valid(raise_exception=True)
+            instance=serializer.save()
+            instance.add_documents(request)
+            instance.proposal.log_user_action(ProposalUserAction.ACTION_CREATE_VEHICLE.format(instance.id),request)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['POST',])
+    @renderer_classes((JSONRenderer,))
+    def delete_document(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            PreEventParkDocument.objects.get(id=request.data.get('id')).delete()
+            return Response([dict(id=i.id, name=i.name,_file=i._file.url) for i in instance.filming_park_documents.all()])
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

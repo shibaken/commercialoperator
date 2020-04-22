@@ -4042,11 +4042,11 @@ class ProposalPreEventsParks(models.Model):
                 # save the files
                 data = json.loads(request.data.get('data'))
                 if not data.get('update'):
-                    documents_qs = self.events_park_documents.filter(input_name='events_park_doc', visible=True)
+                    documents_qs = self.pre_event_park_documents.filter(input_name='pre_event_park_doc', visible=True)
                     documents_qs.delete()
                 for idx in range(data['num_files']):
                     _file = request.data.get('file-'+str(idx))
-                    document = self.events_park_documents.create(_file=_file, name=_file.name)
+                    document = self.pre_event_park_documents.create(_file=_file, name=_file.name)
                     document.input_name = data['input_name']
                     document.can_delete = True
                     document.save()
