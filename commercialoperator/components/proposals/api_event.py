@@ -209,8 +209,8 @@ class ProposalPreEventsParksViewSet(viewsets.ModelViewSet):
     def delete_document(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            PreEventParkDocument.objects.get(id=request.data.get('id')).delete()
-            return Response([dict(id=i.id, name=i.name,_file=i._file.url) for i in instance.filming_park_documents.all()])
+            PreEventsParkDocument.objects.get(id=request.data.get('id')).delete()
+            return Response([dict(id=i.id, name=i.name,_file=i._file.url) for i in instance.pre_event_park_documents.all()])
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise

@@ -43,6 +43,7 @@ module.exports = {
     //Events
     proposal_events_parks:"/api/proposal_events_parks.json",
     abseiling_climbing_activities:"/api/abseiling_climbing_activities.json",
+    proposal_pre_event_parks:"/api/proposal_pre_event_parks.json",
 
     // used in internal and external dashboards
     proposals_paginated_external:   "/api/proposal_paginated/proposals_external/?format=datatables",
@@ -76,6 +77,9 @@ module.exports = {
     },
     discard_abseiling_climbing:function (id) {
       return `/api/abseiling_climbing_activities/${id}.json`;
+    },
+    discard_pre_event_park:function (id) {
+      return `/api/proposal_pre_event_parks/${id}.json`;
     },
     site_url: site_url,
     //dep_name: 'Department of Biodiversity, Conservation and Attractions',

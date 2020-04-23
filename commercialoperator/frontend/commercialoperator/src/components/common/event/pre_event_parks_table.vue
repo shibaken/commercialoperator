@@ -14,12 +14,12 @@
                 </div>
             </div>
         </div>
-        <!-- <editPark ref="edit_park" :park_id="park_id" @refreshFromResponse="refreshFromResponse"></editPark> -->
+        <editPark ref="edit_park" :park_id="park_id" @refreshFromResponse="refreshFromResponse"></editPark>
     </div>
 </template> 
 <script>
 import datatable from '@/utils/vue/datatable.vue'
-//import editPark from './edit_park_activity.vue'
+import editPark from './edit_pre_event_park.vue'
 import {
     api_endpoints,
     helpers
@@ -113,7 +113,7 @@ export default {
     },
     components:{
         datatable,
-        //editPark
+        editPark
     },
     watch:{
     },
@@ -155,7 +155,7 @@ export default {
                 confirmButtonText: 'Discard Park',
                 confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.delete(api_endpoints.discard_park(park_id))
+                vm.$http.delete(api_endpoints.discard_pre_event_park(park_id))
                 .then((response) => {
                     swal(
                         'Discarded',
