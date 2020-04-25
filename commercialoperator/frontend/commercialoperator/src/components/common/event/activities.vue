@@ -46,8 +46,50 @@
 
                 </div>
             </div>                
-
         </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Activities and Location <small> (Trails)</small>
+            <a class="panelClicker" :href="'#'+tBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="tBody">
+              <span class="glyphicon glyphicon-chevron-up pull-right "></span>
+            </a>
+          </h3>
+        </div>
+
+        <div class="panel-body collapse in" :id="tBody">
+          <div>
+
+            <div class="borderDecoration col-sm-12">
+                <form>
+                    <div class="col-sm-12" >
+                        <div>
+                            <label class="control-label">Select the required activities for trails</label>
+                            <TreeSelect :proposal="proposal" :value.sync="trail_activities" :options="trail_activity_options" :default_expand_level="1" :disabled="!canEditActivities"></TreeSelect>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="borderDecoration col-sm-12">
+                <form>
+                    <div class="col-sm-12" >
+                        <div>
+                            <!--<pre>{{ selected_trail_ids }}</pre>-->
+                            <label class="control-label">Select the long distance trails</label>
+                            <TreeSelect :proposal="proposal" :value.sync="selected_trail_ids" :options="trail_options" :default_expand_level="1" open_direction="top" allow_edit="true" :disabled="!canEditActivities"></TreeSelect>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div>Trail_actvities: {{trail_activities}}</div><br>
+            <div>Selected_Trail: {{selected_trail_ids}}</div><br>
+            <div>Selected_Trailss_Activities: {{selected_trails_activities}}</div>
+            
+          </div>
+        </div>
+    </div>
+
     </div>
 
 </div>
@@ -56,6 +98,7 @@
 <script>
 import ParksActivityTable from './parks_activity_table.vue'
 import AbseilingClimbingTable from './abseiling_climbing_table.vue'
+import TreeSelect from '@/components/forms/treeview.vue'
 import {
   api_endpoints,
   helpers
@@ -65,22 +108,239 @@ import {
             proposal:{
                 type: Object,
                 required:true
-            }
+            },
+            canEditActivities:{
+              type: Boolean,
+              default: true
+            },
         },
         data:function () {
             let vm = this;
             return{
                 lBody: 'lBody'+vm._uid,
+                tBody: 'tBody'+vm._uid,
                 values:null,
                 parks_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/events_parks'),
                 abseiling_climbing_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/abseiling_climbing_activities'),
+                trail_options: [],
+                trail_activity_options: [],
+                trails:null,
+                land_activity_options: [],
+                selected_trail_ids:[],
+                trail_activities:[],
+                selected_trails_activities:[],
             }
         },
         components:{
             ParksActivityTable,
             AbseilingClimbingTable,
+            TreeSelect,
+        },
+        watch:{
+            selected_trail_ids: function(){
+            let vm=this;
+            //if (vm.proposal){
+            //  vm.proposal.trails=vm.selected_trails;
+            //}
+
+            vm.selected_trails = []
+            for (var i = 0; i < vm.selected_trail_ids.length; i++) {
+                var data = vm.get_selected_trail_data(vm.selected_trail_ids[i] )
+                if (data !== null) {
+                    vm.selected_trails.push( data )
+                }
+            }
+
+            try {
+                var removed_trail_id=$(vm.selected_trail_ids_before).not(vm.selected_trail_ids).get();
+            } catch (error) {
+                console.log('removed_trail: ' + error)
+            }
+
+            try {
+                var added_trail_id=$(vm.selected_trail_ids).not(vm.selected_trail_ids_before).get();
+            } catch (error) {
+                console.log('added_trail: ' + error)
+            }
+            vm.selected_trail_ids_before=vm.selected_trail_ids;
+
+            var current_activities=vm.trail_activities
+
+            if(vm.selected_trails_activities.length==0){
+              for (var i = 0; i < vm.selected_trails.length; i++) {
+                 var data=null;
+                 var section_activities=[];
+
+                 for (var j=0; j<vm.selected_trails[i].sections.length; j++){
+                  var section_data={
+                    'section': vm.selected_trails[i].sections[j],
+                    'activities': current_activities
+                  }
+                  section_activities.push(section_data)
+                 }
+                 data={
+                  'trail': vm.selected_trails[i].trail,
+                  'activities': section_activities 
+                 }
+                 vm.selected_trails_activities.push(data);
+              }
+            }
+            else{
+              if(added_trail_id.length!=0){
+                for(var i=0; i<added_trail_id.length; i++) {
+                  var found=false
+                  for (var j=0; j<vm.selected_trails_activities.length; j++){
+                        //console.log(added_trail[i])
+                        if(vm.selected_trails_activities[j].trail==added_trail_id[i]){
+                          found = true;
+                        }
+                  }
+                  if(found==false) {
+                    //original data object
+                    var section_activities=[];
+                    var trail_data = vm.get_selected_trail_data(added_trail_id[i] )
+                    if (trail_data !== null) {
+                        for(var k=0; k<trail_data.sections.length; k++){
+                          var section_data={
+                          'section': trail_data.sections[k],
+                          'activities': current_activities
+                          }
+                          section_activities.push(section_data)
+                        }
+                        data={
+                          'trail': added_trail_id[i],
+                          'activities': section_activities
+                        }
+                    }
+                    vm.selected_trails_activities.push(data);
+                  }
+                }
+              }
+              if(removed_trail_id.length!=0){
+                for(var i=0; i<removed_trail_id.length; i++)
+                { 
+                  for (var j=0; j<vm.selected_trails_activities.length; j++){
+                    if(vm.selected_trails_activities[j].trail==removed_trail_id[i]){
+                      vm.selected_trails_activities.splice(j,1)}
+                  }
+                }
+              }
+            }
+            if (vm.proposal){
+              vm.proposal.trails=vm.selected_trails;
+              vm.proposal.selected_trails_activities=vm.selected_trails_activities;
+            }
+          },
+          selected_trails_activities: function(){
+            let vm=this;
+
+            if (vm.proposal){
+              vm.proposal.selected_trails_activities=vm.selected_trails_activities;
+            }
+            },
+          trail_activities: function(){
+          let vm=this;
+          var removed=$(vm.trail_activities_before).not(vm.trail_activities).get();
+          var added=$(vm.trail_activities).not(vm.trail_activities_before).get();
+          vm.trail_activities_before=vm.trail_activities;
+          if(vm.selected_trails_activities.length==0){
+            for (var i = 0; i < vm.selected_trail_ids.length; i++) {
+                 var data=null;
+                 data={
+                  'trail': vm.selected_trail_ids[i],
+                  'activities': vm.trail_activities
+                 }
+                 vm.selected_trails_activities.push(data);
+               }
+          }
+          else{
+            for (var i=0; i<vm.selected_trails_activities.length; i++)
+            {
+              if(added.length!=0){
+                for(var j=0; j<added.length; j++)
+                {
+                  // if(vm.selected_trails_activities[i].activities.indexOf(added[j])<0){
+                  //   vm.selected_trails_activities[i].activities.push(added[j]);
+                  // }
+                  for(var k=0; k<vm.selected_trails_activities[i].activities.length; k++){
+                    if(vm.selected_trails_activities[i].activities[k].activities.indexOf(added[j])<0){
+                    vm.selected_trails_activities[i].activities[k].activities.push(added[j]);
+                    }
+                  }
+                }
+              }
+              if(removed.length!=0){
+                for(var j=0; j<removed.length; j++)
+                {
+                  for(var k=0; k<vm.selected_trails_activities[i].activities.length; k++){
+                    var index=vm.selected_trails_activities[i].activities[k].activities.indexOf(removed[j]);
+                    if(index!=-1){
+                      vm.selected_trails_activities[i].activities[k].activities.splice(index,1)
+                    }
+                  }
+
+                }
+              }
+            }
+          }
+        },  
         },
         methods:{
+            get_selected_trail_data:function(trail_id){
+            let vm = this;
+            for (var i=0; i<vm.trails.length; i++) {
+              if (vm.trails[i].id == trail_id) {
+                //console.log(vm.trails[i].section_ids)
+                return {'trail': trail_id, 'sections': vm.trails[i].section_ids}
+              }
+            }
+            return null;
+          },
+          get_selected_trail_ids:function(node){
+            let vm = this;
+
+            var ids = []
+            for (var i=0; i<vm.selected_trails.length; i++) {
+                ids.push( vm.selected_trails[i].trail )
+            }
+            return ids.filter(function(item, pos) { return ids.indexOf(item) == pos;  }) // returns unique array ids
+          },
+            fetchParkTreeview: function(){
+            let vm = this;
+
+            //console.log('treeview_url: ' + api_endpoints.tclass_container_land)
+            vm.$http.get(api_endpoints.tclass_container_land)
+            .then((response) => {
+                
+
+                vm.land_activity_options = [
+                    {
+                        'id': 'All',
+                        'name':'Select all',
+                        'children': response.body['land_activity_types']
+                    }
+                ]
+                vm.trail_activity_options = vm.land_activity_options
+                vm.activities = response.body['land_activity_types'] // needed to pass to Vehicle component
+
+                vm.trail_options = [
+                    {
+                        'id': 'All',
+                        'name':'Select all',
+                        'children': response.body['trails']
+                    }
+                ]
+                vm.trails = response.body['trails']
+
+            },(error) => {
+                console.log(error);
+            })
+          },
+        },
+        mounted: function(){
+            let vm=this;
+            vm.fetchParkTreeview();
+            vm.proposal.selected_trails_activities=[];
         }
     }
 </script>

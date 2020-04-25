@@ -770,7 +770,7 @@ def save_proponent_data_tclass(instance,request,viewset,parks=None,trails=None):
                 schema=request.POST.get('schema')
             import json
             sc=json.loads(schema)
-            other_details_data=sc['event_other_details']
+            other_details_data=sc['other_details']
             #print other_details_data
             if instance.is_amendment_proposal or instance.pending_amendment_request:
                 other_details_data['preferred_licence_period']=instance.other_details.preferred_licence_period
