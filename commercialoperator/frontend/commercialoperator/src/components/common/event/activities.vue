@@ -305,7 +305,69 @@ import {
             }
             return ids.filter(function(item, pos) { return ids.indexOf(item) == pos;  }) // returns unique array ids
           },
-            fetchParkTreeview: function(){
+          refreshTrailFromResponse: function(trail_id, new_activities){
+              let vm=this;
+              for (var j=0; j<vm.selected_trails_activities.length; j++){
+              if(vm.selected_trails_activities[j].trail==trail_id){ 
+                vm.selected_trails_activities[j].activities= new_activities;
+              }
+            }
+          },
+          find_repeated: function(array){
+            var common=new Map();
+            array.forEach(function(obj){
+             var values=Object.values(obj)[0];
+             values.forEach(function(val){
+                 common.set(val,(common.get(val)||0)+1);
+             });
+            });
+            var result=[];
+            common.forEach(function(appearance,el){
+               result.push(el);
+            });
+            return result;
+          },
+
+          store_trails: function(trails){
+            let vm=this;
+            var all_activities=[] //to store all activities for all sections so can find recurring ones to display selected_activities
+            var trail_list=[]
+            for (var i = 0; i < trails.length; i++) {
+                var current_trail=trails[i].trail.id
+                var current_activities=[]
+                var current_sections=[]
+
+                for (var j = 0; j < trails[i].sections.length; j++) {
+                  var trail_activities=[];
+                  for (var k = 0; k < trails[i].sections[j].trail_activities.length; k++) {
+                    trail_activities.push(trails[i].sections[j].trail_activities[k].activity);
+                  }
+                  var data_section={
+                    'section': trails[i].sections[j].section,
+                    'activities': trail_activities
+                  }
+                  current_activities.push(data_section)
+                  all_activities.push({'key': trail_activities})
+                  //current_sections.push(trails[i].sections[j].section)
+                }
+
+                 var data={
+                  'trail': current_trail,
+                  'activities': current_activities 
+                 }
+                 vm.selected_trails_activities.push(data)
+              }
+
+            for (var i=0; i<trails.length; i++)
+              {
+                trail_list.push({'trail':trails[i].trail.id, 'sections':trails[i].trail.section_ids})
+              }
+            vm.selected_trails=trail_list
+            //console.log(trail_list)
+            //vm.trail_activities = vm.find_recurring(all_activities)
+            vm.trail_activities = vm.find_repeated(all_activities)
+          },
+          fetchParkTreeview: function(){
             let vm = this;
 
             //console.log('treeview_url: ' + api_endpoints.tclass_container_land)
@@ -341,6 +403,10 @@ import {
             let vm=this;
             vm.fetchParkTreeview();
             vm.proposal.selected_trails_activities=[];
+            vm.store_trails(vm.proposal.trails);
+            vm.selected_trail_ids = vm.get_selected_trail_ids()
+            vm.selected_trail_ids_before = vm.selected_trail_ids
+
         }
     }
 </script>

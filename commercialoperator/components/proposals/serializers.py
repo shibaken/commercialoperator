@@ -1330,13 +1330,12 @@ class ProposalEventSerializer(BaseProposalSerializer):
     application_type = serializers.CharField(source='application_type.name', read_only=True)
     submitter = serializers.CharField(source='submitter.get_full_name')
     processing_status = serializers.SerializerMethodField(read_only=True)
-    #review_status = serializers.SerializerMethodField(read_only=True)
     customer_status = serializers.SerializerMethodField(read_only=True)
     #filming_activity= ProposalFilmingActivitySerializer()
     #filming_access=ProposalFilmingAccessSerializer()
     #filming_equipment=ProposalFilmingEquipmentSerializer()
     event_other_details=ProposalEventOtherDetailsSerializer()
-    #training_completed=serializers.SerializerMethodField()
+    trails=ProposalTrailSerializer(many=True)    
 
     class Meta:
         model = Proposal
@@ -1379,6 +1378,7 @@ class ProposalEventSerializer(BaseProposalSerializer):
                 # 'filming_access',
                 # 'filming_equipment',
                 'event_other_details',
+                'trails',
                 )
         read_only_fields=('documents','requirements',)
 
