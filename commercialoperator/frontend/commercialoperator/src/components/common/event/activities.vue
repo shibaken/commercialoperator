@@ -309,7 +309,7 @@ import {
             let vm = this;
 
             //console.log('treeview_url: ' + api_endpoints.tclass_container_land)
-            vm.$http.get(api_endpoints.tclass_container_land)
+            vm.$http.get(api_endpoints.event_trail_container)
             .then((response) => {
                 
 

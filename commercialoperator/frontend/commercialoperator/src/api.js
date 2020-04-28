@@ -36,7 +36,8 @@ module.exports = {
     vehicles:"/api/vehicles.json",
     vessels:"/api/vessels.json",
     assessments:"/api/assessments.json",
-
+    event_trail_container:"/api/event_trail_container",
+    
     //filming
     proposal_filming_parks:"/api/proposal_filming_parks.json",
 

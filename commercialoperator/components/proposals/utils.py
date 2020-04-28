@@ -715,29 +715,25 @@ def save_proponent_data_event(instance,request,viewset,parks=None,trails=None):
             # filming_access_data=sc['filming_access']
             # filming_equipment_data=sc['filming_equipment']
             events_other_details_data=sc['event_other_details']
+            try:
+                select_trails_activities=json.loads(request.data.get('selected_trails_activities'))
+            except:
+                select_trails_activities=json.loads(request.POST.get('selected_trails_activities', None))
 
-            #save Filming activity data
-            # serializer = ProposalEventsActivitySerializer(instance.filming_activity, data=filming_activity_data)
-            # serializer.is_valid(raise_exception=True)
-            # serializer.save()
-
-            #save Filming access data
-            # serializer = ProposalFilmingAccessSerializer(instance.filming_access, data=filming_access_data)
-            # serializer.is_valid(raise_exception=True)
-            # serializer.save()
-
-            #save Filming equipment data
-            # serializer = ProposalFilmingEquipmentSerializer(instance.filming_equipment, data=filming_equipment_data)
-            # serializer.is_valid(raise_exception=True)
-            # serializer.save()
-
+            print select_trails_activities
             #save Filming other details data
             serializer = ProposalEventOtherDetailsSerializer(instance.event_other_details, data=events_other_details_data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
-            #filming_other_details=ProposalFilmingOtherDetails.objects.update_or_create(proposal=instance)
-            # instance.save()
+            if select_trails_activities or len(select_trails_activities)==0:
+                try:
+
+                    save_trail_section_activity_data(instance, select_trails_activities, request)
+
+                except:
+                    raise
+
             serializer = SaveProposalSerializer(instance, data, partial=True)
             serializer.is_valid(raise_exception=True)
             viewset.perform_update(serializer)
