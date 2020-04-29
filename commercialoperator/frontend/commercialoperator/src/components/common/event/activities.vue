@@ -89,7 +89,9 @@
           </div>
         </div>
     </div>
-
+      <div>
+              <editTrailActivities ref="edit_sections" :proposal="proposal" :canEditActivities="canEditActivities" @refreshTrailFromResponse="refreshTrailFromResponse"></editTrailActivities>
+      </div>
     </div>
 
 </div>
@@ -98,6 +100,7 @@
 <script>
 import ParksActivityTable from './parks_activity_table.vue'
 import AbseilingClimbingTable from './abseiling_climbing_table.vue'
+import editTrailActivities from '@/components/common/tclass/edit_trail_activities.vue'
 import TreeSelect from '@/components/forms/treeview.vue'
 import {
   api_endpoints,
@@ -135,6 +138,7 @@ import {
             ParksActivityTable,
             AbseilingClimbingTable,
             TreeSelect,
+            editTrailActivities,
         },
         watch:{
             selected_trail_ids: function(){
@@ -304,6 +308,35 @@ import {
                 ids.push( vm.selected_trails[i].trail )
             }
             return ids.filter(function(item, pos) { return ids.indexOf(item) == pos;  }) // returns unique array ids
+          },
+          edit_sections: function(node){
+            let vm=this;
+            var trail = node.raw;
+            //trail['id']=node.id
+
+            console.log('Trail 0: ' + JSON.stringify(trail))
+            //inserting a temporary variables checked and new_activities to store and display selected activities for each section.
+            for(var l=0; l<trail.sections.length; l++){
+              trail.sections[l].checked=false;
+              trail.sections[l].activities=[];
+              trail.sections[l].new_activities=[];
+            }
+
+            for (var i=0; i<vm.selected_trails_activities.length; i++){
+              if(vm.selected_trails_activities[i].trail==trail.id){
+                for(var j=0; j<vm.selected_trails_activities[i].activities.length; j++){
+                  for(var k=0; k<trail.sections.length; k++){
+                    if (trail.sections[k].id==vm.selected_trails_activities[i].activities[j].section){
+                      trail.sections[k].checked=true;
+                      trail.sections[k].new_activities=vm.selected_trails_activities[i].activities[j].activities
+                    }
+                  }
+                } 
+              }
+            }
+            console.log('Trail: ' + JSON.stringify(trail))
+            this.$refs.edit_sections.trail=trail;
+            this. $refs.edit_sections.isModalOpen = true;
           },
           refreshTrailFromResponse: function(trail_id, new_activities){
               let vm=this;

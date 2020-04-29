@@ -720,7 +720,7 @@ def save_proponent_data_event(instance,request,viewset,parks=None,trails=None):
             except:
                 select_trails_activities=json.loads(request.POST.get('selected_trails_activities', None))
 
-            print select_trails_activities
+            #print select_trails_activities
             #save Filming other details data
             serializer = ProposalEventOtherDetailsSerializer(instance.event_other_details, data=events_other_details_data)
             serializer.is_valid(raise_exception=True)
