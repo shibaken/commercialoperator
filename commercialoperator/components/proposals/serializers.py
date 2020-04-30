@@ -38,7 +38,7 @@ from commercialoperator.components.organisations.models import (
                             )
 from commercialoperator.components.main.serializers import CommunicationLogEntrySerializer, ParkSerializer, ActivitySerializer, AccessTypeSerializer, TrailSerializer
 from commercialoperator.components.proposals.serializers_filming import ProposalFilmingOtherDetailsSerializer, ProposalFilmingActivitySerializer, ProposalFilmingAccessSerializer, ProposalFilmingEquipmentSerializer
-from commercialoperator.components.proposals.serializers_event import ProposalEventOtherDetailsSerializer
+from commercialoperator.components.proposals.serializers_event import ProposalEventOtherDetailsSerializer, ProposalEventManagementSerializer
 from commercialoperator.components.organisations.serializers import OrganisationSerializer
 from commercialoperator.components.users.serializers import UserAddressSerializer, DocumentSerializer
 from rest_framework import serializers
@@ -1335,6 +1335,7 @@ class ProposalEventSerializer(BaseProposalSerializer):
     #filming_access=ProposalFilmingAccessSerializer()
     #filming_equipment=ProposalFilmingEquipmentSerializer()
     event_other_details=ProposalEventOtherDetailsSerializer()
+    event_management=ProposalEventManagementSerializer()
     trails=ProposalTrailSerializer(many=True)    
 
     class Meta:
@@ -1377,6 +1378,7 @@ class ProposalEventSerializer(BaseProposalSerializer):
                 # 'filming_activity',
                 # 'filming_access',
                 # 'filming_equipment',
+                'event_management',
                 'event_other_details',
                 'trails',
                 )
