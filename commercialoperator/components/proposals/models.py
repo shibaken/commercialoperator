@@ -3926,6 +3926,28 @@ class ProposalEventActivities(models.Model):
 class ProposalEventManagement(models.Model):
     num_participants = models.SmallIntegerField('Number of participants expected', blank=True, null=True)
     proposal = models.OneToOneField(Proposal, related_name='event_management', null=True)
+    num_spectators = models.SmallIntegerField('Number of spectators expected', blank=True, null=True)
+    num_officials = models.SmallIntegerField('Number of officials expected', blank=True, null=True)
+    num_vehicles = models.SmallIntegerField('Number of vehicles expected', blank=True, null=True)
+    media_involved = models.BooleanField(default=False)
+    media_details=models.TextField(blank=True)
+    structure_change = models.BooleanField(default=False)
+    structure_change_details=models.TextField(blank=True)
+    vendor_hired = models.BooleanField(default=False)
+    vendor_hired_details=models.TextField(blank=True)
+    equipment_details= models.TextField(blank=True)
+    toilets_provided = models.BooleanField(default=False)
+    toilets_provided_details=models.TextField(blank=True)
+    rubbish_removal = models.BooleanField(default=False)
+    rubbish_removal_details=models.TextField(blank=True)
+    approvals_gained = models.BooleanField(default=False)
+    approvals_gained_details=models.TextField(blank=True)
+    emergency_plan = models.BooleanField(default=False)
+    event_management_plan = models.BooleanField(default=False)
+    risk_managment_plan = models.BooleanField(default=False)
+    traffic_management_plan = models.BooleanField(default=False)
+    other_info= models.TextField(blank=True)
+
 
     def __str__(self):
         return '{}'.format(self.num_participants)
