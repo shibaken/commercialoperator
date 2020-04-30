@@ -11,7 +11,7 @@
             </div>
             <div class="panel-body collapse in" :id="lBody">
                 <div class="" >                        
-                    <div class="form-horizontal col-sm-12 borderDecoration">
+                    <div class="col-sm-12 borderDecoration">
                         
                         <div class="form-group">
                             <div class="row">
@@ -19,8 +19,277 @@
                                     <label class="control-label pull-left"  for="Name">Number of participants expected</label>
                                 </div>
                                 <div class="col-sm-6">
-                                    <!-- <input type="text" class="form-control" v-model="proposal.event_management.num_participants" name="num_participants" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal"> -->
-                                    <input type="text" class="form-control" name="num_participants" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                    <input type="text" class="form-control" name="num_participants" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal" v-model="proposal.event_management.num_participants">
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Number of spectators expected</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <input type="text" class="form-control" name="num_spectators" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal" v-model="proposal.event_management.num_spectators">
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Number of officials</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <input type="text" class="form-control" name="num_officials" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal" v-model="proposal.event_management.num_officials">
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Number of vehicles/ vessels</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <input type="text" class="form-control" name="num_vehicles" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal" v-model="proposal.event_management.num_vehicles">
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">    
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Will the media be involved?</label>                                   
+                                </div>
+                                <div class="col-sm-6">
+                                    <ul class="list-inline"  >
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.media_involved" :value="true" data-parsley-required :disabled="proposal.readonly" name="media_involved"/>
+                                            Yes
+                                        </li>
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.media_involved" :value="false" data-parsley-required :disabled="proposal.readonly" name="media_involved"/>
+                                            No
+                                        </li>
+                                    </ul>      
+                                </div>
+                            </div>
+                            <div v-if="proposal.event_management.media_involved" class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Provide details</label>
+                                    
+                                </div>
+                                <div class="col-sm-6">
+                                      <textarea :disabled="readonly" class="form-control" name="off_road_details" placeholder="" v-model="proposal.event_management.media_details"></textarea>    
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">    
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Will any structures, facilities, signs or markders be erected on CALM land or water for the purpose of the event?</label>                                   
+                                </div>
+                                <div class="col-sm-6">
+                                    <ul class="list-inline"  >
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.structure_change" :value="true" data-parsley-required :disabled="proposal.readonly" name="structure_change"/>
+                                            Yes
+                                        </li>
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.structure_change" :value="false" data-parsley-required :disabled="proposal.readonly" name="structure_change"/>
+                                            No
+                                        </li>
+                                    </ul>      
+                                </div>
+                            </div>
+                            <div v-if="proposal.event_management.structure_change" class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Provide details</label>
+                                    
+                                </div>
+                                <div class="col-sm-6">
+                                      <textarea :disabled="readonly" class="form-control" name="structure_change_details" placeholder="" v-model="proposal.event_management.structure_change_details"></textarea>    
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">    
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Will food or other supply vendors be hired or contracted to operator on CALM land during the event?</label>                                   
+                                </div>
+                                <div class="col-sm-6">
+                                    <ul class="list-inline"  >
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.vendor_hired" :value="true" data-parsley-required :disabled="proposal.readonly" name="vendor_hired"/>
+                                            Yes
+                                        </li>
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.vendor_hired" :value="false" data-parsley-required :disabled="proposal.readonly" name="vendor_hired"/>
+                                            No
+                                        </li>
+                                    </ul>      
+                                </div>
+                            </div>
+                            <div v-if="proposal.event_management.vendor_hired" class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Provide details</label>
+                                    
+                                </div>
+                                <div class="col-sm-6">
+                                      <textarea :disabled="readonly" class="form-control" name="vendor_hired_details" placeholder="" v-model="proposal.event_management.vendor_hired_details"></textarea>    
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">List any special equipment, facilities or materials required to conduct the proposed activity or event</label>
+                                </div>
+                                <div class="col-sm-6">
+                                      <textarea :disabled="readonly" class="form-control" name="equipment_details" placeholder="" v-model="proposal.event_management.equipment_details"></textarea>    
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">    
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Will porable toilets and/ or showers be provided?</label>                                   
+                                </div>
+                                <div class="col-sm-6">
+                                    <ul class="list-inline"  >
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.toilets_provided" :value="true" data-parsley-required :disabled="proposal.readonly" name="toilets_provided"/>
+                                            Yes
+                                        </li>
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.toilets_provided" :value="false" data-parsley-required :disabled="proposal.readonly" name="toilets_provided"/>
+                                            No
+                                        </li>
+                                    </ul>      
+                                </div>
+                            </div>
+                            <div v-if="proposal.event_management.toilets_provided" class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Provide details</label>
+                                    
+                                </div>
+                                <div class="col-sm-6">
+                                      <textarea :disabled="readonly" class="form-control" name="toilets_provided_details" placeholder="" v-model="proposal.event_management.toilets_provided_details"></textarea>    
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">    
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Provide the proposed strategy for rubish removal</label>                                   
+                                </div>
+                                <div class="col-sm-6">
+                                    <ul class="list-inline"  >
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.rubbish_removal" :value="true" data-parsley-required :disabled="proposal.readonly" name="rubbish_removal"/>
+                                            Yes
+                                        </li>
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.rubbish_removal" :value="false" data-parsley-required :disabled="proposal.readonly" name="rubbish_removal"/>
+                                            No
+                                        </li>
+                                    </ul>      
+                                </div>
+                            </div>
+                            <div v-if="proposal.event_management.rubbish_removal" class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Provide details</label>
+                                    
+                                </div>
+                                <div class="col-sm-6">
+                                      <textarea :disabled="readonly" class="form-control" name="rubbish_removal_details" placeholder="" v-model="proposal.event_management.rubbish_removal_details"></textarea>    
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">    
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Have any other agencies, local government representatives, community groups or local committes been consulted and all necessary approvals gained regarding this event?</label>                                   
+                                </div>
+                                <div class="col-sm-6">
+                                    <ul class="list-inline"  >
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.approvals_gained" :value="true" data-parsley-required :disabled="proposal.readonly" name="approvals_gained"/>
+                                            Yes
+                                        </li>
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.approvals_gained" :value="false" data-parsley-required :disabled="proposal.readonly" name="approvals_gained"/>
+                                            No
+                                        </li>
+                                    </ul>      
+                                </div>
+                            </div>
+                            <div v-if="proposal.event_management.approvals_gained" class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Provide details</label>
+                                    
+                                </div>
+                                <div class="col-sm-6">
+                                      <textarea :disabled="readonly" class="form-control" name="approvals_gained_details" placeholder="" v-model="proposal.event_management.approvals_gained_details"></textarea>    
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">    
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Have you developed emergency response plans and notified the Local Emergency Management Committee(LEMC)? </label>                                   
+                                </div>
+                                <div class="col-sm-6">
+                                    <ul class="list-inline"  >
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.emergency_plan" :value="true" data-parsley-required :disabled="proposal.readonly" name="emergency_plan"/>
+                                            Yes
+                                        </li>
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.emergency_plan" :value="false" data-parsley-required :disabled="proposal.readonly" name="emergency_plan"/>
+                                            No
+                                        </li>
+                                    </ul>      
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">    
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Have you developed a Event Management Plan? </label>                               
+                                </div>
+                                <div class="col-sm-6">
+                                    <ul class="list-inline"  >
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.event_management_plan" :value="true" data-parsley-required :disabled="proposal.readonly" name="event_management_plan"/>
+                                            Yes
+                                        </li>
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.event_management_plan" :value="false" data-parsley-required :disabled="proposal.readonly" name="event_management_plan"/>
+                                            No
+                                        </li>
+                                    </ul>      
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">    
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Have you developed a Risk Management Plan? </label>                                   
+                                </div>
+                                <div class="col-sm-6">
+                                    <ul class="list-inline"  >
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.risk_managment_plan" :value="true" data-parsley-required :disabled="proposal.readonly" name="risk_managment_plan"/>
+                                            Yes
+                                        </li>
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.risk_managment_plan" :value="false" data-parsley-required :disabled="proposal.readonly" name="risk_managment_plan"/>
+                                            No
+                                        </li>
+                                    </ul>      
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">    
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Have you developed a Traffic Management Plan? </label>                                   
+                                </div>
+                                <div class="col-sm-6">
+                                    <ul class="list-inline"  >
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.traffic_management_plan" :value="true" data-parsley-required :disabled="proposal.readonly" name="traffic_management_plan"/>
+                                            Yes
+                                        </li>
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.traffic_management_plan" :value="false" data-parsley-required :disabled="proposal.readonly" name="traffic_management_plan"/>
+                                            No
+                                        </li>
+                                    </ul>      
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
