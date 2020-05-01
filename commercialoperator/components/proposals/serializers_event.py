@@ -49,6 +49,8 @@ from reversion.models import Version
 
 
 class ProposalEventActivitiesSerializer(serializers.ModelSerializer):
+    commencement_date = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
+    completion_date = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
 
     class Meta:
         model = ProposalEventActivities

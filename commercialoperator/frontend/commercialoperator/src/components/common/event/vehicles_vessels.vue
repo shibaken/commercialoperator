@@ -21,18 +21,18 @@
                                 <div class="col-sm-6">
                                     <ul class="list-inline"  >
                                         <li class="form-check list-inline-item">
-                                            <input  class="form-check-input" ref="Radio" type="radio"  :value="true" data-parsley-required :disabled="proposal.readonly" name="vehicle_owned"/>
+                                            <input  class="form-check-input" ref="Radio" type="radio"  :value="true" data-parsley-required :disabled="proposal.readonly" name="vehicle_owned" v-model="proposal.event_vehicles_vessels.hired_or_owned"/>
                                             Owned
                                         </li>
                                         <li class="form-check list-inline-item">
-                                            <input  class="form-check-input" ref="Radio" type="radio"  :value="false" data-parsley-required :disabled="proposal.readonly" name="vehicle_owned"/>
+                                            <input  class="form-check-input" ref="Radio" type="radio"  :value="false" data-parsley-required :disabled="proposal.readonly" name="vehicle_owned" v-model="proposal.event_vehicles_vessels.hired_or_owned"/>
                                             Hired
                                         </li>
                                     </ul>
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div class="" v-if="">
+                            <div class="" v-if="proposal.event_vehicles_vessels.hired_or_owned">
                                 <!-- <label class="control-label">Provide details of every vehicle you plan to use when accessing the parks</label> -->
                                 <VehicleTable :url="vehicles_url" :proposal="proposal" :access_types="access_types" ref="vehicles_table"></VehicleTable>
                             </div>

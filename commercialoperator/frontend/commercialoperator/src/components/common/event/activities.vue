@@ -19,7 +19,30 @@
                                 </div>
                                 <div class="col-sm-9">
                                     <!-- <input type="text" class="form-control" v-model="proposal.activities_event.event_name" name="event_name" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal"> -->
-                                    <input type="text" class="form-control" name="event_name" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                    <input type="text" class="form-control" name="event_name" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal" v-model="proposal.event_activity.event_name">
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <label class="control-label pull-left"  for="Name">Period of proposed event</label>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="input-group date" ref="event_activity_commencement_date" style="width: 70%;">
+                                        <input type="text" class="form-control" v-model="proposal.event_activity.commencement_date" name="event_activity_commencement_date" placeholder="Commencement date" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                        <span class="input-group-addon">
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="input-group date" ref="event_activity_completion_date" style="width: 70%;">
+                                        <input type="text" class="form-control" v-model="proposal.event_activity.completion_date" name="event_activity_completion_date" placeholder="Completion date" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                        <span class="input-group-addon">
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -132,6 +155,13 @@ import {
                 selected_trail_ids:[],
                 trail_activities:[],
                 selected_trails_activities:[],
+                datepickerOptions:{
+                    format: 'DD/MM/YYYY',
+                    showClear:true,
+                    useCurrent:false,
+                    keepInvalid:true,
+                    allowInputToggle:true,
+                },
             }
         },
         components:{
@@ -360,6 +390,42 @@ import {
             });
             return result;
           },
+          eventListeners:function (){
+
+                let vm=this;
+                var date= new Date()
+                var today= new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+                $(vm.$refs.event_activity_commencement_date).datetimepicker(vm.datepickerOptions);
+                //Set minimum date on datetimepicker so that nominated
+                //start date cannot be selected prior to today
+                $(vm.$refs.event_activity_commencement_date).data("DateTimePicker").minDate(today);
+                $(vm.$refs.event_activity_commencement_date).on('dp.change', function(e){
+                    if ($(vm.$refs.event_activity_commencement_date).data('DateTimePicker').date()) {
+                        
+
+                        vm.proposal.event_activity.commencement_date =  e.date.format('DD/MM/YYYY');
+                    }
+                    else if ($(vm.$refs.event_activity_commencement_date).data('date') === "") {
+                        vm.proposal.event_activity.commencement_date = "";
+                    }
+                 });
+
+                $(vm.$refs.event_activity_completion_date).datetimepicker(vm.datepickerOptions);
+                //Set minimum date on datetimepicker so that nominated
+                //start date cannot be selected prior to today
+                $(vm.$refs.event_activity_completion_date).data("DateTimePicker").minDate(today);
+                $(vm.$refs.event_activity_completion_date).on('dp.change', function(e){
+                    if ($(vm.$refs.event_activity_completion_date).data('DateTimePicker').date()) {
+                        
+
+                        vm.proposal.event_activity.completion_date =  e.date.format('DD/MM/YYYY');
+                    }
+                    else if ($(vm.$refs.event_activity_completion_date).data('date') === "") {
+                        vm.proposal.event_activity.completion_date = "";
+                    }
+                 });
+          },
 
           store_trails: function(trails){
             let vm=this;
@@ -435,6 +501,9 @@ import {
         mounted: function(){
             let vm=this;
             vm.fetchParkTreeview();
+            this.$nextTick(()=>{
+                vm.eventListeners();
+            });
             vm.proposal.selected_trails_activities=[];
             vm.store_trails(vm.proposal.trails);
             vm.selected_trail_ids = vm.get_selected_trail_ids()

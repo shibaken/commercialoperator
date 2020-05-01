@@ -698,7 +698,7 @@ def save_proponent_data_filming(instance,request,viewset,parks=None,trails=None)
         except:
             raise
 
-from commercialoperator.components.proposals.serializers_event import ProposalEventOtherDetailsSerializer, ProposalEventManagementSerializer
+from commercialoperator.components.proposals.serializers_event import ProposalEventOtherDetailsSerializer, ProposalEventManagementSerializer, ProposalEventActivitiesSerializer, ProposalEventVehiclesVesselsSerializer
 def save_proponent_data_event(instance,request,viewset,parks=None,trails=None):
     with transaction.atomic():
         try:
@@ -711,7 +711,8 @@ def save_proponent_data_event(instance,request,viewset,parks=None,trails=None):
                 schema=request.POST.get('schema')
             import json
             sc=json.loads(schema)
-            # filming_activity_data=sc['filming_activity']
+            event_activity_data=sc['event_activity']
+            event_vehicles_vessels_data=sc['event_vehicles_vessels']
             # filming_access_data=sc['filming_access']
             event_management_data=sc['event_management']
             events_other_details_data=sc['event_other_details']
@@ -721,6 +722,14 @@ def save_proponent_data_event(instance,request,viewset,parks=None,trails=None):
                 select_trails_activities=json.loads(request.POST.get('selected_trails_activities', None))
 
             #print select_trails_activities
+            #save Event Activity tab data
+            serializer = ProposalEventActivitiesSerializer(instance.event_activity, data=event_activity_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            #save Event Vehicle Vessels data
+            serializer = ProposalEventVehiclesVesselsSerializer(instance.event_vehicles_vessels, data=event_vehicles_vessels_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
             #save Event Management data
             serializer = ProposalEventManagementSerializer(instance.event_management, data=event_management_data)
             serializer.is_valid(raise_exception=True)
