@@ -698,7 +698,7 @@ def save_proponent_data_filming(instance,request,viewset,parks=None,trails=None)
         except:
             raise
 
-from commercialoperator.components.proposals.serializers_event import ProposalEventOtherDetailsSerializer
+from commercialoperator.components.proposals.serializers_event import ProposalEventOtherDetailsSerializer, ProposalEventManagementSerializer
 def save_proponent_data_event(instance,request,viewset,parks=None,trails=None):
     with transaction.atomic():
         try:
@@ -713,7 +713,7 @@ def save_proponent_data_event(instance,request,viewset,parks=None,trails=None):
             sc=json.loads(schema)
             # filming_activity_data=sc['filming_activity']
             # filming_access_data=sc['filming_access']
-            # filming_equipment_data=sc['filming_equipment']
+            event_management_data=sc['event_management']
             events_other_details_data=sc['event_other_details']
             try:
                 select_trails_activities=json.loads(request.data.get('selected_trails_activities'))
@@ -721,7 +721,11 @@ def save_proponent_data_event(instance,request,viewset,parks=None,trails=None):
                 select_trails_activities=json.loads(request.POST.get('selected_trails_activities', None))
 
             #print select_trails_activities
-            #save Filming other details data
+            #save Event Management data
+            serializer = ProposalEventManagementSerializer(instance.event_management, data=event_management_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            #save Event other details data
             serializer = ProposalEventOtherDetailsSerializer(instance.event_other_details, data=events_other_details_data)
             serializer.is_valid(raise_exception=True)
             serializer.save()

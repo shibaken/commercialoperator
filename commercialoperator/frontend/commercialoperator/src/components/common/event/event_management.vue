@@ -238,6 +238,11 @@
                                     </ul>      
                                 </div>
                             </div>
+                            <div class="row" v-if="proposal.event_management.emergency_plan">
+                                <div class="col-sm-12">
+                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_management_emergency_plan" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                </div>                                
+                            </div>
                             <div class="row">&nbsp;</div>
                             <div class="row">    
                                 <div class="col-sm-6">
@@ -256,6 +261,11 @@
                                     </ul>      
                                 </div>
                             </div>
+                            <div class="row" v-if="proposal.event_management.event_management_plan">
+                                <div class="col-sm-12">
+                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_management_event_management_plan" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                </div>                                
+                            </div>
                             <div class="row">&nbsp;</div>
                             <div class="row">    
                                 <div class="col-sm-6">
@@ -264,15 +274,20 @@
                                 <div class="col-sm-6">
                                     <ul class="list-inline"  >
                                         <li class="form-check list-inline-item">
-                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.risk_managment_plan" :value="true" data-parsley-required :disabled="proposal.readonly" name="risk_managment_plan"/>
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.risk_management_plan" :value="true" data-parsley-required :disabled="proposal.readonly" name="risk_management_plan"/>
                                             Yes
                                         </li>
                                         <li class="form-check list-inline-item">
-                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.risk_managment_plan" :value="false" data-parsley-required :disabled="proposal.readonly" name="risk_managment_plan"/>
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.risk_management_plan" :value="false" data-parsley-required :disabled="proposal.readonly" name="risk_management_plan"/>
                                             No
                                         </li>
                                     </ul>      
                                 </div>
+                            </div>
+                            <div class="row" v-if="proposal.event_management.risk_management_plan">
+                                <div class="col-sm-12">
+                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_management_risk_management_plan" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                </div>                                
                             </div>
                             <div class="row">&nbsp;</div>
                             <div class="row">    
@@ -292,6 +307,20 @@
                                     </ul>      
                                 </div>
                             </div>
+                            <div class="row" v-if="proposal.event_management.traffic_management_plan">
+                                <div class="col-sm-12">
+                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_management_traffic_management_plan" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                </div>                                
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Provide any other information that will be relavant to your application.</label>
+                                </div>
+                                <div class="col-sm-6">
+                                      <textarea :disabled="readonly" class="form-control" name="other_info" placeholder="" v-model="proposal.event_management.other_info"></textarea>    
+                                </div>
+                            </div>
                             <div class="row">&nbsp;</div>
                         </div> 
                     </div>
@@ -305,6 +334,7 @@
 </template>
 
 <script>
+import FileField from '@/components/forms/filefield.vue'
     export default {
         props:{
             proposal:{
@@ -319,6 +349,9 @@
                 values:null
             }
         },
+        components:{
+            FileField,
+        }, 
         methods:{
         }
     }
