@@ -92,6 +92,7 @@ from commercialoperator.components.proposals.serializers import (
     ProposalFilmingSerializer,
     InternalFilmingProposalSerializer,
     ProposalEventSerializer,
+    InternalEventProposalSerializer,
 )
 from commercialoperator.components.proposals.serializers_filming import (
     ProposalFilmingOtherDetailsSerializer,
@@ -104,7 +105,10 @@ from commercialoperator.components.proposals.serializers_event import (
     ProposalEventOtherDetailsSerializer,
     ProposalEventsParksSerializer,
     AbseilingClimbingActivitySerializer,
-    ProposalPreEventsParksSerializer
+    ProposalPreEventsParksSerializer,
+    ProposalEventManagementSerializer, 
+    ProposalEventActivitiesSerializer, 
+    ProposalEventVehiclesVesselsSerializer,
 )
 
 
@@ -631,7 +635,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             elif application_type == ApplicationType.FILMING:
                 return InternalFilmingProposalSerializer
             elif application_type == ApplicationType.EVENT:
-                return InternalProposalSerializer
+                return InternalEventProposalSerializer
         except serializers.ValidationError:
             print(traceback.print_exc())
             raise
@@ -1785,6 +1789,19 @@ class ProposalViewSet(viewsets.ModelViewSet):
                 serializer=ProposalEventOtherDetailsSerializer(data=other_details_data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
+
+                serializer=ProposalEventActivitiesSerializer(data=other_details_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+                serializer=ProposalEventVehiclesVesselsSerializer(data=other_details_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+                serializer=ProposalEventManagementSerializer(data=other_details_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
 
             serializer = SaveProposalSerializer(instance)
             return Response(serializer.data)

@@ -3913,7 +3913,7 @@ class DistrictProposalDeclinedDetails(models.Model):
 # --------------------------------------------------------------------------------------
 
 class ProposalEventActivities(models.Model):
-    event_name=models.CharField('Event name', max_length=100)
+    event_name=models.CharField('Event name', max_length=100, blank=True, null=True)
     proposal = models.OneToOneField(Proposal, related_name='event_activity', null=True)
     commencement_date=models.DateField(blank=True, null=True)
     completion_date=models.DateField(blank=True, null=True)
