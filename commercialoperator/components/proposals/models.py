@@ -608,11 +608,14 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
     @property
     def licence_fee_amount(self):
-        period = self.other_details.preferred_licence_period
-        if period.split('_')[1].endswith('months'):
-            return self.application_type.licence_fee_2mth
-        else:
-            return int(period.split('_')[0]) * self.application_type.licence_fee_1yr
+        if self.application_type.name==ApplicationType.TCLASS:
+            period = self.other_details.preferred_licence_period
+            if period.split('_')[1].endswith('months'):
+                return self.application_type.licence_fee_2mth
+            else:
+                return int(period.split('_')[0]) * self.application_type.licence_fee_1yr
+        if self.application_type.name==ApplicationType.EVENT:
+            return self.application_type.licence_fee_1yr
 
     @property
     def reference(self):
