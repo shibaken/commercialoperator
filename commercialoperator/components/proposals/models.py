@@ -2420,6 +2420,10 @@ class ProposalStandardRequirement(RevisionedMixin):
     text = models.TextField()
     code = models.CharField(max_length=10, unique=True)
     obsolete = models.BooleanField(default=False)
+    application_type = models.ForeignKey(ApplicationType, null=True, blank=True)
+    participant_number_required=models.BooleanField(default=False)
+    default=models.BooleanField(default=False)
+
 
     def __str__(self):
         return self.code
@@ -2428,6 +2432,18 @@ class ProposalStandardRequirement(RevisionedMixin):
         app_label = 'commercialoperator'
         verbose_name = "Application Standard Requirement"
         verbose_name_plural = "Application Standard Requirements"
+
+    # def clean(self):
+    #     if self.application_type: 
+    #         try:
+    #             default = ProposalStandardRequirement.objects.get(default=True, application_type=self.application_type)
+    #         except ProposalStandardRequirement.DoesNotExist:
+    #             default = None
+
+    #     if not self.pk:
+    #         if default and self.default:
+    #             raise ValidationError('There can only be one default Standard requirement per Application type')
+
 
 
 class ProposalUserAction(UserAction):
@@ -2910,6 +2926,9 @@ class ProposalRequirement(OrderedModel):
     #Null if added by an assessor
     referral_group = models.ForeignKey(ReferralRecipientGroup,null=True,blank=True,related_name='requirement_referral_groups')
     #order = models.IntegerField(default=1)
+    #application_type = models.ForeignKey(ApplicationType, null=True, blank=True)
+    fee_invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
+
 
     class Meta:
         app_label = 'commercialoperator'
