@@ -99,7 +99,7 @@ class ProposalApproverGroupAdmin(admin.ModelAdmin):
 
 @admin.register(models.ProposalStandardRequirement)
 class ProposalStandardRequirementAdmin(admin.ModelAdmin):
-    list_display = ['code','text','obsolete', 'application_type', 'participant_number_required']
+    list_display = ['code','text','obsolete', 'application_type', 'participant_number_required', 'default']
 
 #@admin.register(models.HelpPage)
 class HelpPageAdmin(admin.ModelAdmin):
