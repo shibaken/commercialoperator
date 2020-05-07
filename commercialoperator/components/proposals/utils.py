@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from preserialize.serialize import serialize
 from ledger.accounts.models import EmailUser #, Document
-from commercialoperator.components.proposals.models import ProposalDocument, ProposalPark, ProposalParkActivity, ProposalParkAccess, ProposalTrail, ProposalTrailSectionActivity, ProposalTrailSection, ProposalParkZone, ProposalParkZoneActivity, ProposalOtherDetails, ProposalAccreditation, ProposalUserAction, ProposalAssessment, ProposalAssessmentAnswer, ChecklistQuestion
+from commercialoperator.components.proposals.models import ProposalDocument, ProposalPark, ProposalParkActivity, ProposalParkAccess, ProposalTrail, ProposalTrailSectionActivity, ProposalTrailSection, ProposalParkZone, ProposalParkZoneActivity, ProposalOtherDetails, ProposalAccreditation, ProposalUserAction, ProposalAssessment, ProposalAssessmentAnswer, ChecklistQuestion,ProposalStandardRequirement
 from commercialoperator.components.approvals.models import Approval
 from commercialoperator.components.proposals.email import send_submit_email_notification, send_external_submit_email_notification
 from commercialoperator.components.proposals.serializers import SaveProposalSerializer, SaveProposalParkSerializer, SaveProposalTrailSerializer, ProposalAccreditationSerializer, ProposalOtherDetailsSerializer
@@ -957,6 +957,14 @@ def proposal_submit(proposal,request):
                 applicant_field=getattr(proposal, proposal.applicant_field)
                 applicant_field.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id),request)
 
+                print('requirement block')
+                default_requirements=ProposalStandardRequirement.objects.filter(application_type=proposal.application_type, default=True, obsolete=False)
+                print('default', default_requirements)
+                if default_requirements:
+                    for req in default_requirements:
+                        print ('req',req)
+                        r, created=ProposalRequirement.objects.get_or_create(proposal=proposal, standard_requirement=req)
+        
                 ret1 = send_submit_email_notification(request, proposal)
                 ret2 = send_external_submit_email_notification(request, proposal)
 

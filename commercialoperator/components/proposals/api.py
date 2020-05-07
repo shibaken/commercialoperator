@@ -1187,7 +1187,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
         elif instance.application_type.name==ApplicationType.FILMING:
             serializer = InternalFilmingProposalSerializer(instance,context={'request':request})
         elif instance.application_type.name==ApplicationType.EVENT:
-            serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer = InternalEventProposalSerializer(instance,context={'request':request})
         return Response(serializer.data)
 
 #    @detail_route(methods=['GET',])
