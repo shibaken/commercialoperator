@@ -1400,6 +1400,13 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             except:
                 raise
 
+    def add_default_requirements(self):
+        #Add default standard requirements to Proposal
+        default_requirements=ProposalStandardRequirement.objects.filter(application_type=self.application_type, default=True, obsolete=False)
+        if default_requirements:
+            for req in default_requirements:
+                r, created=ProposalRequirement.objects.get_or_create(proposal=self, standard_requirement=req)
+
     def move_to_status(self,request,status, approver_comment):
         if not self.can_assess(request.user):
             raise exceptions.ProposalNotAuthorized()
@@ -1414,6 +1421,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         send_proposal_approver_sendback_email_notification(request, self)
                 self.processing_status = status
                 self.save()
+                if status=='with_assessor_requirements':
+                    self.add_default_requirements()
 
                 # Create a log entry for the proposal
                 if self.processing_status == self.PROCESSING_STATUS_WITH_ASSESSOR:
