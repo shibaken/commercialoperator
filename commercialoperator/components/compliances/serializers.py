@@ -54,7 +54,9 @@ class ComplianceSerializer(serializers.ModelSerializer):
             'submitter',
             'allowed_assessors',
             'lodgement_date',
-            'approval_lodgement_number'
+            'approval_lodgement_number',
+            'participant_number_required',
+            'fee_paid',
 
         )
 
@@ -117,7 +119,9 @@ class InternalComplianceSerializer(serializers.ModelSerializer):
             'submitter',
             'allowed_assessors',
             'lodgement_date',
-            'approval_lodgement_number'
+            'approval_lodgement_number',
+            'participant_number_required',
+            'fee_paid',
 
         )
 

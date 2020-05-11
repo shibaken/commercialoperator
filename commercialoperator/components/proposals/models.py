@@ -2943,7 +2943,7 @@ class ProposalRequirement(OrderedModel):
     referral_group = models.ForeignKey(ReferralRecipientGroup,null=True,blank=True,related_name='requirement_referral_groups')
     #order = models.IntegerField(default=1)
     #application_type = models.ForeignKey(ApplicationType, null=True, blank=True)
-    fee_invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
+    #fee_invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
 
 
     class Meta:
