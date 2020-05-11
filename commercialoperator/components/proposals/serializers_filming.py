@@ -56,7 +56,10 @@ class ProposalFilmingActivitySerializer(serializers.ModelSerializer):
     film_purpose=serializers.MultipleChoiceField(choices=ProposalFilmingActivity.PURPOSE_CHOICES, allow_blank=True, allow_null=True, required=False)
     #sponsorship=serializers.MultipleChoiceField(choices=ProposalFilmingActivity.SPONSORSHIP_CHOICES, allow_blank=True, allow_null=True, required=False)
     film_usage=serializers.MultipleChoiceField(choices=ProposalFilmingActivity.FILM_USE_CHOICES, allow_blank=True, allow_null=True, required=False)
+    commencement_date = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
+    completion_date = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
 
+    
     class Meta:
         model = ProposalFilmingActivity
         fields = '__all__'

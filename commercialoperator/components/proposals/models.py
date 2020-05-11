@@ -1402,10 +1402,17 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
     def add_default_requirements(self):
         #Add default standard requirements to Proposal
+        due_date=None
+        if self.application_type.name==ApplicationType.TCLASS:
+            due_date=self.other_details.nominated_start_date
+        if self.application_type.name==ApplicationType.FILMING:
+            due_date=self.filming_activity.commencement_date
+        if self.application_type.name==ApplicationType.EVENT:
+            due_date=self.event_activity.commencement_date
         default_requirements=ProposalStandardRequirement.objects.filter(application_type=self.application_type, default=True, obsolete=False)
         if default_requirements:
             for req in default_requirements:
-                r, created=ProposalRequirement.objects.get_or_create(proposal=self, standard_requirement=req)
+                r, created=ProposalRequirement.objects.get_or_create(proposal=self, standard_requirement=req, due_date= due_date)
 
     def move_to_status(self,request,status, approver_comment):
         if not self.can_assess(request.user):
