@@ -2539,6 +2539,19 @@ class ProposalUserAction(UserAction):
     ACTION_WITH_QA_OFFICER = "Send Application QA Officer {}"
     ACTION_QA_OFFICER_COMPLETED = "QA Officer Assessment Completed {}"
 
+    #Filming
+    ACTION_CREATE_FILMING_PARK = "Create Filming Park {}"
+    ACTION_EDIT_FILMING_PARK = "Edit Filming Park {}"
+
+    #Event
+    ACTION_CREATE_EVENT_PARK= "Create Event Park {}"
+    ACTION_EDIT_EVENT_PARK = "Edit Event Park {}"
+    ACTION_CREATE_PRE_EVENT_PARK= "Create Pre Event Park {}"
+    ACTION_EDIT_PRE_EVENT_PARK = "Edit Pre Event Park {}"
+    ACTION_CREATE_ABSEILING_CLIMBING_ACTIVITY= "Create Abseiling Climbing Activity {}"
+    ACTION_EDIT_ABSEILING_CLIMBING_ACTIVITY= "Edit Abseiling Climbing Activity {}"
+
+
     # monthly invoicing by cron
     ACTION_SEND_BPAY_INVOICE = "Send BPAY invoice {} for application {} to {}"
     ACTION_SEND_MONTHLY_INVOICE = "Send monthly invoice {} for application {} to {}"

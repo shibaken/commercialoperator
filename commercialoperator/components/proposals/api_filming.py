@@ -117,7 +117,7 @@ class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             instance.add_documents(request)
-            instance.proposal.log_user_action(ProposalUserAction.ACTION_EDIT_VEHICLE.format(instance.id),request)
+            instance.proposal.log_user_action(ProposalUserAction.ACTION_EDIT_FILMING_PARK.format(instance.id),request)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -138,7 +138,7 @@ class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             instance=serializer.save()
             instance.add_documents(request)
-            instance.proposal.log_user_action(ProposalUserAction.ACTION_CREATE_VEHICLE.format(instance.id),request)
+            instance.proposal.log_user_action(ProposalUserAction.ACTION_CREATE_FILMING_PARK.format(instance.id),request)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
