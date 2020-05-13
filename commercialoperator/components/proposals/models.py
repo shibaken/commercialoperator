@@ -393,6 +393,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     APPLICANT_TYPE_PROXY = 'PRX'
     APPLICANT_TYPE_SUBMITTER = 'SUB'
 
+    #Filming approval type choices
+    LAWFUL_AUTHORITY='lawful_autority'
+    LICENCE='licence'
+
     CUSTOMER_STATUS_TEMP = 'temp'
     CUSTOMER_STATUS_WITH_ASSESSOR = 'with_assessor'
     CUSTOMER_STATUS_AMENDMENT_REQUIRED = 'amendment_required'
@@ -484,6 +488,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         ('external', 'External'),
     )
 
+    FILMING_APPROVAL_TYPE_CHOICES = ((LAWFUL_AUTHORITY, 'Lawful Authority'),
+                               (LICENCE, 'Licence'),
+                               )
+
     proposal_type = models.CharField('Application Status Type', max_length=40, choices=APPLICATION_TYPE_CHOICES,
                                         default=APPLICATION_TYPE_CHOICES[0][0])
     #proposal_state = models.PositiveSmallIntegerField('Proposal state', choices=PROPOSAL_STATE_CHOICES, default=1)
@@ -563,19 +571,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     #online_training = models.OneToOneField(ProposalOnlineTraining, blank=True, null=True)
 
     # Filming
-    #activity = models.OneToOneField(ProposalActivity, blank=True, null=True)
-    #access = models.OneToOneField(ProposalAccess, blank=True, null=True)
-    #equipment = models.OneToOneField(ProposalEquipment, blank=True, null=True)
-    #other_details = models.OneToOneField(ProposalOtherDetails, blank=True, null=True)
-    #online_training = models.OneToOneField(ProposalOnlineTraining, blank=True, null=True)
-
+    #Following field is only used to approval type for Filming application otherwise ignore
+    filming_approval_type = models.CharField('Filming Approval Type', max_length=30, choices=FILMING_APPROVAL_TYPE_CHOICES,
+                                     default=FILMING_APPROVAL_TYPE_CHOICES[0][1])
+    
     # Event
-    #activities = models.OneToOneField(ProposalActivities, blank=True, null=True)
-    #event_management = models.OneToOneField(ProposalEventManagement, blank=True, null=True)
-    #vehicles_vessels = models.OneToOneField(ProposalVehiclesVessels, blank=True, null=True)
-    #other_details = models.OneToOneField(ProposalOtherDetails, blank=True, null=True)
-    #online_training = models.OneToOneField(ProposalOnlineTraining, blank=True, null=True)
-
+    
     fee_invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
 
     class Meta:
@@ -2042,13 +2043,16 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         try:
             #Get the list all the Districts of the Parks linked to the Proposal
             districts_list=self.filming_parks.all().values_list('park__district', flat=True)
+            print('district',districts_list)
             if districts_list:
                 for district in districts_list:
                     district_instance=District.objects.get(id=district)
                     #Get the list of all the Filming Parks in each district
                     parks_list=list(ProposalFilmingParks.objects.filter(park__district=district, proposal=self).values_list('id',flat=True))
+                    print('parks',parks_list)
                     #create a District proposal for each district
                     district_proposal, created=DistrictProposal.objects.update_or_create(district=district_instance,proposal= self)
+                    print('district proposal',district_proposal, created)
                     district_proposal.proposal_park= parks_list
                     district_proposal.save()
                     #TODO Logging
