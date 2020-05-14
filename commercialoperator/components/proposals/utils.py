@@ -8,7 +8,7 @@ from ledger.accounts.models import EmailUser #, Document
 from commercialoperator.components.proposals.models import ProposalDocument, ProposalPark, ProposalParkActivity, ProposalParkAccess, ProposalTrail, ProposalTrailSectionActivity, ProposalTrailSection, ProposalParkZone, ProposalParkZoneActivity, ProposalOtherDetails, ProposalAccreditation, ProposalUserAction, ProposalAssessment, ProposalAssessmentAnswer, ChecklistQuestion,ProposalStandardRequirement
 from commercialoperator.components.approvals.models import Approval
 from commercialoperator.components.proposals.email import send_submit_email_notification, send_external_submit_email_notification
-from commercialoperator.components.proposals.serializers import SaveProposalSerializer, SaveProposalParkSerializer, SaveProposalTrailSerializer, ProposalAccreditationSerializer, ProposalOtherDetailsSerializer
+from commercialoperator.components.proposals.serializers import SaveProposalSerializer, SaveProposalParkSerializer, SaveProposalTrailSerializer, ProposalAccreditationSerializer, ProposalOtherDetailsSerializer, SaveInternalFilmingProposalSerializer
 from commercialoperator.components.main.models import Activity, Park, AccessType, Trail, Section, Zone
 import traceback
 import os
@@ -876,68 +876,17 @@ def save_assessor_data(instance,request,viewset):
             #     'assessor_data': assessor_data,
             #     'comment_data': comment_data,
             # }
-            data={}
-            serializer = SaveProposalSerializer(instance, data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            viewset.perform_update(serializer)
-            #Save activities
-            try:
-                schema=request.data.get('schema')
-            except:
-                schema=request.POST.get('schema')
-            import json
-            sc=json.loads(schema)
-            #select_parks_activities=sc['selected_parks_activities']
-            #select_trails_activities=sc['selected_trails_activities']
-            try:
-                select_parks_activities=json.loads(request.data.get('selected_parks_activities'))
-                select_trails_activities=json.loads(request.data.get('selected_trails_activities'))
-                marine_parks_activities=json.loads(request.data.get('marine_parks_activities'))
-            except:
-                select_parks_activities=request.POST.get('selected_parks_activities', None)
-                if select_parks_activities:
-                    select_parks_activities=json.loads(select_parks_activities)
-                select_trails_activities=request.POST.get('selected_trails_activities', None)
-                if select_trails_activities:
-                    select_trails_activities=json.loads(select_trails_activities)
-                marine_parks_activities=request.POST.get('marine_parks_activities', None)
-                if marine_parks_activities:
-                    marine_parks_activities=json.loads(marine_parks_activities)
-            #print select_parks_activities, selected_trails_activities
-            if select_parks_activities or len(select_parks_activities)==0:
-                try:
-                    save_park_activity_data(instance, select_parks_activities, request)
-                except:
-                    raise
-            if select_trails_activities or len(select_trails_activities)==0:
-                try:
-                    save_trail_section_activity_data(instance, select_trails_activities, request)
-                except:
-                    raise
-            if marine_parks_activities or len(marine_parks_activities)==0:
-                try:
-                    save_park_zone_activity_data(instance, marine_parks_activities, request)
-                except:
-                    raise
-            # Save Documents
-            for f in request.FILES:
-                try:
-                    #document = instance.documents.get(name=str(request.FILES[f]))
-                    document = instance.documents.get(input_name=f)
-                except ProposalDocument.DoesNotExist:
-                    document = instance.documents.get_or_create(input_name=f)[0]
-                document.name = str(request.FILES[f])
-                if document._file and os.path.isfile(document._file.path):
-                    os.remove(document._file.path)
-                document._file = request.FILES[f]
-                document.save()
-            # End Save Documents
+            if instance.application_type.name==ApplicationType.FILMING:
+                save_assessor_data_filming(instance,request,viewset)
+            if instance.application_type.name==ApplicationType.TCLASS:
+                save_assessor_data_tclass(instance,request,viewset)
+            if instance.application_type.name==ApplicationType.EVENT:
+                save_assessor_data_filming(instance,request,viewset)            
         except:
             raise
 
 def proposal_submit(proposal,request):
         with transaction.atomic():
-            print('here')
             if proposal.can_user_edit:
                 proposal.submitter = request.user
                 #proposal.lodgement_date = datetime.datetime.strptime(timezone.now().strftime('%Y-%m-%d'),'%Y-%m-%d').date()
@@ -1014,8 +963,15 @@ def is_payment_officer(user):
 def save_assessor_data_filming(instance,request,viewset):
     with transaction.atomic():
         try:
-            data={}
-            serializer = SaveProposalSerializer(instance, data, partial=True)
+            #data={}
+            try:
+                schema=request.data.get('schema')
+            except:
+                schema=request.POST.get('schema')
+            import json
+            sc=json.loads(schema)
+
+            serializer = SaveInternalFilmingProposalSerializer(instance, sc, partial=True)
             serializer.is_valid(raise_exception=True)
             viewset.perform_update(serializer)
             
@@ -1031,6 +987,68 @@ def save_assessor_data_filming(instance,request,viewset):
                 document._file = request.FILES[f]
                 document.save()
             # End Save Documents
+        except:
+            raise
+
+def save_assessor_data_tclass(insatance, request, viewset):
+    with transaction.atomic():
+        try:   
+            data={}
+            serializer = SaveProposalSerializer(instance, data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            viewset.perform_update(serializer)
+            #Save activities
+            try:
+                schema=request.data.get('schema')
+            except:
+                schema=request.POST.get('schema')
+            import json
+            sc=json.loads(schema)
+            #select_parks_activities=sc['selected_parks_activities']
+            #select_trails_activities=sc['selected_trails_activities']
+            try:
+                select_parks_activities=json.loads(request.data.get('selected_parks_activities'))
+                select_trails_activities=json.loads(request.data.get('selected_trails_activities'))
+                marine_parks_activities=json.loads(request.data.get('marine_parks_activities'))
+            except:
+                select_parks_activities=request.POST.get('selected_parks_activities', None)
+                if select_parks_activities:
+                    select_parks_activities=json.loads(select_parks_activities)
+                select_trails_activities=request.POST.get('selected_trails_activities', None)
+                if select_trails_activities:
+                    select_trails_activities=json.loads(select_trails_activities)
+                marine_parks_activities=request.POST.get('marine_parks_activities', None)
+                if marine_parks_activities:
+                    marine_parks_activities=json.loads(marine_parks_activities)
+            #print select_parks_activities, selected_trails_activities
+            if select_parks_activities or len(select_parks_activities)==0:
+                try:
+                    save_park_activity_data(instance, select_parks_activities, request)
+                except:
+                    raise
+            if select_trails_activities or len(select_trails_activities)==0:
+                try:
+                    save_trail_section_activity_data(instance, select_trails_activities, request)
+                except:
+                    raise
+            if marine_parks_activities or len(marine_parks_activities)==0:
+                try:
+                    save_park_zone_activity_data(instance, marine_parks_activities, request)
+                except:
+                    raise
+            # Save Documents
+            for f in request.FILES:
+                try:
+                    #document = instance.documents.get(name=str(request.FILES[f]))
+                    document = instance.documents.get(input_name=f)
+                except ProposalDocument.DoesNotExist:
+                    document = instance.documents.get_or_create(input_name=f)[0]
+                document.name = str(request.FILES[f])
+                if document._file and os.path.isfile(document._file.path):
+                    os.remove(document._file.path)
+                document._file = request.FILES[f]
+                document.save()
+            # End Save Documents    
         except:
             raise
 

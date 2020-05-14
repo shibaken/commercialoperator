@@ -394,7 +394,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     APPLICANT_TYPE_SUBMITTER = 'SUB'
 
     #Filming approval type choices
-    LAWFUL_AUTHORITY='lawful_autority'
+    LAWFUL_AUTHORITY='lawful_authority'
     LICENCE='licence'
 
     CUSTOMER_STATUS_TEMP = 'temp'
@@ -573,7 +573,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     # Filming
     #Following field is only used to approval type for Filming application otherwise ignore
     filming_approval_type = models.CharField('Filming Approval Type', max_length=30, choices=FILMING_APPROVAL_TYPE_CHOICES,
-                                     default=FILMING_APPROVAL_TYPE_CHOICES[0][1])
+                                     default=FILMING_APPROVAL_TYPE_CHOICES[1][0])
     
     # Event
     

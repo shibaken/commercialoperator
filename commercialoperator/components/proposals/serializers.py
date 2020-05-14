@@ -668,9 +668,10 @@ class SaveProposalSerializer(BaseProposalSerializer):
                 'lodgement_sequence',
                 'can_officer_process',
                 'applicant_details',
+                'filming_approval_type',
                 #'activities_land',
                 #'activities_marine',
-                #'other_details',
+                #'other_details',                                               
                 )
         read_only_fields=('documents','requirements',)
 
@@ -1175,6 +1176,7 @@ class ProposalFilmingSerializer(BaseProposalSerializer):
                 'filming_access',
                 'filming_equipment',
                 'filming_other_details',
+                'filming_approval_type'
                 )
         read_only_fields=('documents','requirements',)
 
@@ -1279,6 +1281,7 @@ class InternalFilmingProposalSerializer(BaseProposalSerializer):
                 'filming_access',
                 'filming_equipment',
                 'filming_other_details',
+                'filming_approval_type',
                 )
         read_only_fields=('documents','requirements')
 
@@ -1532,3 +1535,52 @@ class InternalEventProposalSerializer(BaseProposalSerializer):
 
     def get_fee_invoice_url(self,obj):
         return '/cols/payments/invoice-pdf/{}'.format(obj.fee_invoice_reference) if obj.fee_paid else None
+
+class SaveInternalFilmingProposalSerializer(BaseProposalSerializer):
+    #assessor_data = serializers.JSONField(required=False)
+    #applicant_details = ProposalApplicantDetailsSerializer(required=False)
+    #other_details= SaveProposalOtherDetailsSerializer()
+
+    class Meta:
+        model = Proposal
+        fields = (
+                'id',
+                #'application_type',
+                'activity',
+                'approval_level',
+                'title',
+                'region',
+                'district',
+                'tenure',
+                'data',
+                #'assessor_data',
+                #'comment_data',
+                #'schema',
+                #'customer_status',
+                #'processing_status',
+                #'review_status',
+                #'hard_copy',
+                'applicant_type',
+                #'applicant',
+                #'org_applicant',
+                #'proxy_applicant',
+                #'submitter',
+                'assigned_officer',
+                'previous_application',
+                'lodgement_date',
+                'documents',
+                'requirements',
+                'readonly',
+                'can_user_edit',
+                'can_user_view',
+                'reference',
+                'lodgement_number',
+                'lodgement_sequence',
+                'can_officer_process',
+                'applicant_details',
+                'filming_approval_type',
+                #'activities_land',
+                #'activities_marine',
+                #'other_details',                                               
+                )
+        read_only_fields=('documents','requirements',)
