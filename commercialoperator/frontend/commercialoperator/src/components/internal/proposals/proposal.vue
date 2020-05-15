@@ -173,9 +173,14 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <button v-if="changingStatus" style="width:80%;" class="btn btn-primary" disabled>Enter Requirements&nbsp;
+                                            <button  v-if="proposal.application_type=='Filming' && proposal.filming_approval_type=='lawful_authority'" style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="sendToDistricts()">Send to Districts</button><br/>
+                                        </div>
+                                    </div>                                    
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button v-if="changingStatus" style="width:80%;" class="btn btn-primary top-buffer-s" disabled>Enter Requirements&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                            <button v-if="!changingStatus" style="width:80%;" class="btn btn-primary" :disabled="proposal.can_user_edit" @click.prevent="switchStatus('with_assessor_requirements')">Enter Requirements</button><br/>
+                                            <button v-if="!changingStatus" style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="switchStatus('with_assessor_requirements')">Enter Requirements</button><br/>
                                         </div>
                                     </div>
                                     <div class="row">
@@ -578,6 +583,9 @@ export default {
         declineProposal:function(){
             this.$refs.proposed_decline.decline = this.proposal.proposaldeclineddetails != null ? helpers.copyObject(this.proposal.proposaldeclineddetails): {};
             this.$refs.proposed_decline.isModalOpen = true;
+        },
+        sendToDistricts: function(){
+            console.log('hello');
         },
         amendmentRequest: function(){
             this.save_wo();
