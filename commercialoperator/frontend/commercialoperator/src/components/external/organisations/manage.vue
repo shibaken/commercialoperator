@@ -14,7 +14,7 @@
                   <div class="panel-body collapse in" :id="pBody">
                       <form class="form-horizontal" name="personal_form" method="post">
                           <div class="form-group">
-                            <label for="" class="col-sm-3 control-label">Name</label>
+                            <label for="" class="col-sm-3 control-label">Organisation Name</label>
                             <div class="col-sm-9">
                                 <input type="text" class="form-control" name="first_name" placeholder="" v-model="org.name">
                             </div>
@@ -37,6 +37,60 @@
                                 <input type="text" class="form-control" name="email" placeholder="" v-model="org.email">
                             </div>
                           </div>
+
+                          <div class="form-group">
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <label class="control-label pull-right"  for="Name">Apply discount for T Class application fee</label>
+                                </div>
+                                <div class="col-sm-1">
+                                    <label>
+                                        <input disabled type="radio" value="true" v-model="org.apply_application_discount" @change="handleSelectionChange" ref="application_discount_yes"/>Yes
+                                    </label>
+                                </div>
+                                <div class="col-sm-1">
+                                    <label>
+                                        <input disabled type="radio" value="false" v-model="org.apply_application_discount" @change="handleSelectionChange"/>No
+                                    </label>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="col-sm-3">
+                                        <label class="control-label pull-left"  for="Name">Discount</label>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <input disabled type="number" class="form-control" min="0" max="100" name="application_discount" placeholder="" v-model="org.application_discount">
+                                    </div>
+                                </div>
+                            </div>
+                          </div>
+
+
+                          <div class="form-group">
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <label class="control-label pull-right"  for="Name">Apply discount for T Class licence fee</label>
+                                </div>
+                                <div class="col-sm-1">
+                                    <label>
+                                        <input disabled type="radio" value="true" v-model="org.apply_licence_discount" @change="handleSelectionChange" ref="licence_discount_yes"/>Yes
+                                    </label>
+                                </div>
+                                <div class="col-sm-1">
+                                    <label>
+                                        <input disabled type="radio" value="false" v-model="org.apply_licence_discount" @change="handleSelectionChange"/>No
+                                    </label>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="col-sm-3">
+                                        <label class="control-label pull-left"  for="Name">Discount</label>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <input disabled type="number" class="form-control" min="0" max="100" name="licence_discount" placeholder="" v-model="org.licence_discount">
+                                    </div>
+                                </div>
+                            </div>
+                          </div>
+
 
                           <div class="form-group">
                             <div class="col-sm-12">
@@ -913,6 +967,13 @@ export default {
             });
 
         },
+        updateDetails_noconfirm: function() {
+            let vm = this;
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.organisations,(vm.org.id+'/update_details')),JSON.stringify(vm.org),{
+                emulateJSON:true
+            })
+        },
+
         updateDetails: function() {
             let vm = this;
             vm.updatingDetails = true;
@@ -930,7 +991,7 @@ export default {
                 )
                 }
             }, (error) => {
-                console.log(error);
+                console.log('EXTERNAL: ' + JSON.stringify(error));
                 var text= helpers.apiVueResourceError(error);
                 if(typeof text == 'object'){
                     if (text.hasOwnProperty('email')){
@@ -939,7 +1000,7 @@ export default {
                 }
                 swal(
                     'Error', 
-                    'Organisation details have cannot be saved because of the following error: '+text,
+                    'Organisation details cannot be saved because of the following error: '+text,
                     'error'
                 )
                 vm.updatingDetails = false;

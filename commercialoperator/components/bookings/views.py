@@ -44,6 +44,7 @@ from commercialoperator.components.bookings.utils import (
     create_bpay_invoice,
     create_other_invoice,
     create_monthly_confirmation,
+    get_basket,
 )
 
 from commercialoperator.components.proposals.serializers import ProposalSerializer
@@ -246,6 +247,65 @@ class MakePaymentView(TemplateView):
             raise
 
 
+class ZeroApplicationFeeView(TemplateView):
+    template_name = 'commercialoperator/booking/success_zero_fee.html'
+
+    def get(self, request, *args, **kwargs):
+        try:
+            context_processor = template_context(request)
+            application_fee = ApplicationFee.objects.get(pk=request.session['cols_app_invoice']) if 'cols_app_invoice' in request.session else None
+            proposal = application_fee.proposal
+
+            try:
+                recipient = proposal.applicant.email
+                submitter = proposal.applicant
+            except:
+                recipient = proposal.submitter.email
+                submitter = proposal.submitter
+
+            if request.user.is_staff or request.user.is_superuser or ApplicationFee.objects.filter(pk=application_fee.id).count() == 1:
+                invoice = None
+                basket = get_basket(request)
+
+                # here we are manually creating an order and invoice from the basket - by-passing credit card payment screen.
+                order_response = place_order_submission(request)
+                order = Order.objects.get(basket=basket, user=submitter)
+                invoice = Invoice.objects.get(order_number=order.number)
+                fee_inv, created = ApplicationFeeInvoice.objects.get_or_create(application_fee=application_fee, invoice_reference=invoice.reference)
+
+                if fee_inv:
+                    application_fee.payment_type = ApplicationFee.PAYMENT_TYPE_ZERO
+                    application_fee.expiry_time = None
+
+                    proposal = proposal_submit(proposal, request)
+                    if proposal and (invoice.payment_status == 'paid' or invoice.payment_status == 'over_paid'):
+                        proposal.fee_invoice_reference = invoice.reference
+                        proposal.save()
+                        proposal.reset_application_discount(request.user)
+                    else:
+                        logger.error('Invoice payment status is {}'.format(invoice.payment_status))
+                        raise
+
+                    application_fee.save()
+                    request.session['cols_last_app_invoice'] = application_fee.id
+                    delete_session_application_invoice(request.session)
+
+                    send_application_fee_invoice_tclass_email_notification(request, proposal, invoice, recipients=[recipient])
+
+                context = {
+                    'proposal': proposal,
+                    'submitter': submitter,
+                    'fee_invoice': fee_invoice
+                }
+
+                return render(request, self.template_name, context)
+            else:
+                return HttpResponseRedirect(reverse('home'))
+
+        except Exception as e:
+                return redirect('home')
+
+
 from commercialoperator.components.proposals.utils import proposal_submit
 class ApplicationFeeSuccessView(TemplateView):
     template_name = 'commercialoperator/booking/success_fee.html'
@@ -305,6 +365,7 @@ class ApplicationFeeSuccessView(TemplateView):
                     if proposal and (invoice.payment_status == 'paid' or invoice.payment_status == 'over_paid'):
                         proposal.fee_invoice_reference = invoice_ref
                         proposal.save()
+                        proposal.reset_application_discount(request.user)
                     else:
                         logger.error('Invoice payment status is {}'.format(invoice.payment_status))
                         raise
@@ -314,12 +375,13 @@ class ApplicationFeeSuccessView(TemplateView):
                     delete_session_application_invoice(request.session)
 
                     send_application_fee_invoice_tclass_email_notification(request, proposal, invoice, recipients=[recipient])
-                    send_application_fee_confirmation_tclass_email_notification(request, application_fee, invoice, recipients=[recipient])
+                    #send_application_fee_confirmation_tclass_email_notification(request, application_fee, invoice, recipients=[recipient])
 
                     context = {
                         'proposal': proposal,
                         'submitter': submitter,
-                        'fee_invoice': invoice
+                        #'fee_invoice': invoice
+                        'fee_invoice': fee_inv
                     }
                     return render(request, self.template_name, context)
 

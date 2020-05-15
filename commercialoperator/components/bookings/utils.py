@@ -17,7 +17,7 @@ from commercialoperator.components.bookings.email import (
     send_confirmation_tclass_email_notification,
     send_monthly_invoice_tclass_email_notification,
 )
-from ledger.checkout.utils import create_basket_session, create_checkout_session, calculate_excl_gst
+from ledger.checkout.utils import create_basket_session, create_checkout_session, calculate_excl_gst, get_cookie_basket
 from ledger.payments.models import Invoice
 from ledger.payments.utils import oracle_parser
 import json
@@ -213,8 +213,8 @@ def create_bpay_invoice(user, booking):
     return failed_bookings
 
 def create_other_invoice(user, booking):
-    """ This method allows internal payments officer to pay via ledger directly i.e. over the phone credit card details or cheque by post or cash etc 
-    
+    """ This method allows internal payments officer to pay via ledger directly i.e. over the phone credit card details or cheque by post or cash etc
+
         Currently not USED in COLS (Only Payments by CC, BPAY and Monthly Invoicing is allowed), but implemented for use possibly in the future
     """
 
@@ -317,6 +317,21 @@ def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
     now = datetime.now().strftime('%Y-%m-%d %H:%M')
     application_price = proposal.application_type.application_fee
     licence_price = proposal.licence_fee_amount
+
+
+    if proposal.application_type.name=='T Class':
+        if proposal.org_applicant.apply_application_discount:
+            application_discount = round(proposal.org_applicant.application_discount/100.0 * float(application_price), 0)
+            #application_price = round(float(application_price) - application_discount, 2)
+            #if application_price < 0:
+            #    application_price = 0.0
+        if proposal.org_applicant.apply_licence_discount:
+            licence_discount = round(proposal.org_applicant.licence_discount/100.0 * float(licence_price), 0)
+            #licence_price = round(float(licence_price) - licence_discount, 2)
+            #if licence_price < 0:
+            #    licence_price = 0.0
+
+
     line_items = [
         {   'ledger_description': 'Application Fee - {} - {}'.format(now, proposal.lodgement_number),
             'oracle_code': proposal.application_type.oracle_code_application,
@@ -331,6 +346,26 @@ def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
             'quantity': 1,
         }
     ]
+    if proposal.application_type.name=='T Class' and proposal.org_applicant:
+        if proposal.org_applicant.application_discount:
+            line_items += [
+                {   'ledger_description': 'Application Discount - {} - {} ({}%)'.format(now, proposal.lodgement_number, proposal.org_applicant.application_discount),
+                    'oracle_code': proposal.application_type.oracle_code_application,
+                    'price_incl_tax':  -application_discount,
+                    'price_excl_tax':  -application_discount,
+                    'quantity': 1,
+                }
+            ]
+        if proposal.org_applicant.licence_discount:
+            line_items += [
+                {   'ledger_description': 'Licence Discount - {} - {} ({}%)'.format(now, proposal.lodgement_number, proposal.org_applicant.licence_discount),
+                    'oracle_code': proposal.application_type.oracle_code_application,
+                    'price_incl_tax':  -licence_discount,
+                    'price_excl_tax':  -licence_discount,
+                    'quantity': 1,
+                }
+            ]
+
     logger.info('{}'.format(line_items))
     return line_items
 
@@ -397,6 +432,9 @@ def create_lines(request, invoice_text=None, vouchers=[], internal=False):
 
     return lines
 
+def get_basket(request):
+    return get_cookie_basket(settings.OSCAR_BASKET_COOKIE_OPEN,request)
+
 def checkout(request, proposal, lines, return_url_ns='public_booking_success', return_preload_url_ns='public_booking_success', invoice_text=None, vouchers=[], proxy=False):
     basket_params = {
         'products': lines,
@@ -449,17 +487,18 @@ def checkout(request, proposal, lines, return_url_ns='public_booking_success', r
 #            secure=settings.OSCAR_BASKET_COOKIE_SECURE, httponly=True
 #        )
 #
-#    # Zero booking costs
-#    if booking.cost_total < 1 and booking.cost_total > -1:
-#        response = HttpResponseRedirect('/no-payment')
-#        response.set_cookie(
-#            settings.OSCAR_BASKET_COOKIE_OPEN, basket_hash,
-#            max_age=settings.OSCAR_BASKET_COOKIE_LIFETIME,
-#            secure=settings.OSCAR_BASKET_COOKIE_SECURE, httponly=True
-#        )
+    # Zero booking costs
+    #if booking.cost_total < 1 and booking.cost_total > -1:
+    if invoice_text == 'Application Fee' and proposal.application_type=='T Class' and proposal.org_applicant and proposal.org_applicant.allow_full_discount:
+        #response = HttpResponseRedirect('/no_application_fee')
+        response = HttpResponseRedirect(reverse('no_application_fee'))
+        response.set_cookie(
+            settings.OSCAR_BASKET_COOKIE_OPEN, basket_hash,
+            max_age=settings.OSCAR_BASKET_COOKIE_LIFETIME,
+            secure=settings.OSCAR_BASKET_COOKIE_SECURE, httponly=True
+        )
 
     return response
-
 
 def oracle_integration(date,override):
     system = '0557'

@@ -42,6 +42,7 @@ from commercialoperator.components.organisations.serializers import (
                                         OrganisationSerializer,
                                         OrganisationAddressSerializer,
                                         DetailsSerializer,
+                                        SaveDiscountSerializer,
                                         OrganisationRequestSerializer,
                                         OrganisationRequestDTSerializer,
                                         OrganisationContactSerializer,
@@ -513,11 +514,18 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             serializer = DetailsSerializer(instance,data=request.data)
             serializer.is_valid(raise_exception=True)
             instance = serializer.save()
+            #serializer = self.get_serializer(org)
+
+            if is_internal(request) and 'apply_application_discount' in request.data:
+                serializer = SaveDiscountSerializer(org,data=request.data)
+                serializer.is_valid(raise_exception=True)
+                instance = serializer.save()
+
             serializer = self.get_serializer(org)
             return Response(serializer.data);
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
+        except serializers.ValidationError as e:
+            print(e.get_full_details())
+            raise serializers.ValidationError(str( e.get_full_details() ))
         except ValidationError as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(repr(e.error_dict))
