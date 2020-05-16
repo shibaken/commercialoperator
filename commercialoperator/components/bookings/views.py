@@ -93,7 +93,10 @@ class ApplicationFeeView(TemplateView):
                     invoice_text='Application Fee'
                 )
 
+#                if proposal.application_type.name=='T Class' and proposal.org_applicant and proposal.org_applicant.allow_full_discount:
+
                 logger.info('{} built payment line item {} for Application Fee and handing over to payment gateway'.format('User {} with id {}'.format(proposal.submitter.get_full_name(),proposal.submitter.id), proposal.id))
+#                import ipdb; ipdb.set_trace()
                 return checkout_response
 
         except Exception, e:
@@ -248,10 +251,15 @@ class MakePaymentView(TemplateView):
 
 
 class ZeroApplicationFeeView(TemplateView):
-    template_name = 'commercialoperator/booking/success_zero_fee.html'
+    #template_name = 'commercialoperator/booking/success_zero_fee.html'
+    #template_name = 'commercialoperator/booking/preview_no_payment.html'
+    #template_name = 'checkout/preview.html'
+    #template_name = 'commercialoperator/booking/preview_zero_fee.html'
+    template_name = 'commercialoperator/booking/preview.html'
 
     def get(self, request, *args, **kwargs):
         try:
+            #import ipdb; ipdb.set_trace()
             context_processor = template_context(request)
             application_fee = ApplicationFee.objects.get(pk=request.session['cols_app_invoice']) if 'cols_app_invoice' in request.session else None
             proposal = application_fee.proposal
@@ -295,7 +303,15 @@ class ZeroApplicationFeeView(TemplateView):
                 context = {
                     'proposal': proposal,
                     'submitter': submitter,
-                    'fee_invoice': fee_invoice
+                    'fee_invoice': fee_inv,
+
+                    #'lines': lines,
+                    'basket': basket,
+                    'lines': request.basket.lines.all(),
+                    'line_details': 'N/A', #request.POST['payment'],
+                    'proposal_id': proposal.id,
+                    #'submitter': submitter,
+                    'payment_method': 'N/A',
                 }
 
                 return render(request, self.template_name, context)
@@ -303,7 +319,7 @@ class ZeroApplicationFeeView(TemplateView):
                 return HttpResponseRedirect(reverse('home'))
 
         except Exception as e:
-                return redirect('home')
+            return redirect('home')
 
 
 from commercialoperator.components.proposals.utils import proposal_submit

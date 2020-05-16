@@ -489,9 +489,10 @@ def checkout(request, proposal, lines, return_url_ns='public_booking_success', r
 #
     # Zero booking costs
     #if booking.cost_total < 1 and booking.cost_total > -1:
-    if invoice_text == 'Application Fee' and proposal.application_type=='T Class' and proposal.org_applicant and proposal.org_applicant.allow_full_discount:
+    #import ipdb; ipdb.set_trace()
+    if invoice_text == 'Application Fee' and proposal.application_type.name=='T Class' and proposal.org_applicant and proposal.org_applicant.allow_full_discount:
         #response = HttpResponseRedirect('/no_application_fee')
-        response = HttpResponseRedirect(reverse('no_application_fee'))
+        response = HttpResponseRedirect(reverse('zero_fee'))
         response.set_cookie(
             settings.OSCAR_BASKET_COOKIE_OPEN, basket_hash,
             max_age=settings.OSCAR_BASKET_COOKIE_LIFETIME,

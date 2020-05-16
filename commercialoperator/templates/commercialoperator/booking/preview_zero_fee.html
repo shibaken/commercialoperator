@@ -5,19 +5,8 @@
 {% load purchase_info_tags %}
 {% load staticfiles %}
 
-<!-- remove shipping content -->
-{% block shipping_address %}
-{% endblock shipping_address %}
-
-<!-- remove nav/breadcrumbs content -->
-{% block checkout_nav %}
-{% endblock %}
-
 {% block order_contents %}
     <div class="sub-header">
-        {% block order_contents_actions %}
-        {% endblock %}
-
         <h2>{% trans "Order contents" %}</h2>
     </div>
     <div class="basket-title">
@@ -27,15 +16,13 @@
             <p class="col-sm-2 h4 align-right">{% trans "Total" %}</p>
         </div>
     </div>
-
-    {% for line in lines %}
+    {% for line in basket.all_lines %}
         <div class="basket-items">
             <div class="row">
                 <div class="col-sm-2">
-                    {{ forloop.counter  }}
                 </div>
                 <div class="col-sm-7">
-                    <h3>{{ line.ledger_description }}</h3>
+                    <h3>{{ line.ledger_description }}</a></h3>
                 </div>
                 <div class="col-sm-1 align-center">
                     {{ line.quantity }}
@@ -58,51 +45,41 @@
         <div class="col-sm-6">
             <div class="sub-header">
                 <h2>{% trans 'Totals' %}</h2>
-
-                <div id="basket_totals">
-                    <table class="table table-condensed">
-                        <tbody>
-                            <tr>
-                                <th class="total">{% trans "Basket total" %}</th>
-                                <th class="total align-right">
-                                    {% if not show_tax_separately and basket.is_tax_known %}
-                                        {{ basket.total_incl_tax|currency:basket.currency }}
-                                    {% else %}
-                                        {{ basket.total_excl_tax|currency:basket.currency }}
-                                    {% endif %}
-                                </th>
-                            </tr>
-                            <tr>
-                                <th>&nbsp;</th>
-                                <td></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
             </div>
+            {% include 'basket/partials/basket_totals.html' %}
         </div>
     </div>
-
 
 {% endblock order_contents %}
 
 {% block payment_method %}
+
 {% endblock %}
 
 {% block place_order %}
-    <form method="post" action="{% url 'deferred_invoicing' proposal_id %}" id="place_order_form">
+    <form method="post" action="{% url 'checkout:preview' %}" id="place_order_form">
         {% csrf_token %}
         <input type="hidden" name="action" value="place_order" />
-        <input type="hidden" name='line_details' value='{{ line_details }}' />
-        <input type="hidden" name='method' value='{{ payment_method }}' />
+
+        {% comment %}
+            When submitting sensitive data on the payment details page (eg a bankcard)
+            we don't want to save the data and so we pass the bound form to the preview
+            template and render it in a hidden div.  Then the payment information will
+            get re-submitted when the user confirms the order.
+        {% endcomment %}
+        <div style="display:none">
+            {% block hiddenforms %}{{ bankcard_form.as_p }}{% endblock %}
+        </div>
 
         <div class="form-group clearfix">
             <div class="row">
                 <div class="col-sm-3 col-sm-offset-9">
-                     <input type="button" class="btn btn-primary btn-lg" value="Cancel" onclick="window.history.back()" />
-                     <button id="place-order" formnovalidate type="submit" class="btn btn-primary btn-lg" data-loading-text="{% trans 'Submitting...' %}">
-                        {% trans "Continue" %}
+                     <button id="place-order" formnovalidate type="submit" class="btn btn-primary btn-lg btn-block" data-loading-text="{% trans 'Submitting...' %}">
+                         {% if payment_method == 'card' %}
+                            {% trans "Pay" %}
+                         {% else %}
+                            {% trans "Continue" %}
+                         {% endif %}
                      </button>
                 </div>
             </div>
