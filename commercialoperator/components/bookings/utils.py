@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.shortcuts import render
 
 from datetime import datetime, timedelta, date
 from django.utils import timezone
@@ -17,7 +18,7 @@ from commercialoperator.components.bookings.email import (
     send_confirmation_tclass_email_notification,
     send_monthly_invoice_tclass_email_notification,
 )
-from ledger.checkout.utils import create_basket_session, create_checkout_session, calculate_excl_gst, get_cookie_basket
+from ledger.checkout.utils import create_basket_session, create_checkout_session, calculate_excl_gst, get_cookie_basket, createCustomBasket
 from ledger.payments.models import Invoice
 from ledger.payments.utils import oracle_parser
 import json
@@ -489,10 +490,9 @@ def checkout(request, proposal, lines, return_url_ns='public_booking_success', r
 #
     # Zero booking costs
     #if booking.cost_total < 1 and booking.cost_total > -1:
-    #import ipdb; ipdb.set_trace()
     if invoice_text == 'Application Fee' and proposal.application_type.name=='T Class' and proposal.org_applicant and proposal.org_applicant.allow_full_discount:
         #response = HttpResponseRedirect('/no_application_fee')
-        response = HttpResponseRedirect(reverse('zero_fee'))
+        response = HttpResponseRedirect(reverse('zero_fee_success'))
         response.set_cookie(
             settings.OSCAR_BASKET_COOKIE_OPEN, basket_hash,
             max_age=settings.OSCAR_BASKET_COOKIE_LIFETIME,
@@ -505,6 +505,28 @@ def oracle_integration(date,override):
     system = '0557'
     oracle_codes = oracle_parser(date, system, 'Commercial Operator Licensing', override=override)
 
+
+def allow_full_discount(proposal):
+    return proposal.application_type.name=='T Class' and proposal.org_applicant and proposal.org_applicant.allow_full_discount
+
+def redirect_to_zero_payment_view(request, proposal, lines):
+    """
+    redirect to Zero Payment preview, instead of Credit Card checkout view
+    """
+    template_name = 'commercialoperator/booking/preview.html'
+
+    if allow_full_discount(proposal):
+        logger.info('{} built payment line item {} for Application Fee and handing over to ZERO Payment preview'.format('User {} with id {}'.format(proposal.submitter.get_full_name(),proposal.submitter.id), proposal.id))
+        basket  = createCustomBasket(lines, request.user, settings.PAYMENT_SYSTEM_ID)
+        context = {
+            'basket': basket,
+            'lines': basket.lines.all(),
+            'line_details': basket.lines.all(), #request.POST['payment'],
+            'proposal_id': proposal.id,
+            'payment_method': 'ZERO',
+            'redirect_url': reverse('zero_fee_success'),
+        }
+        return render(request, template_name, context)
 
 def test_create_invoice(payment_method='bpay'):
     """

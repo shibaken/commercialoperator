@@ -45,12 +45,15 @@ from commercialoperator.components.bookings.utils import (
     create_other_invoice,
     create_monthly_confirmation,
     get_basket,
+    allow_full_discount,
+    redirect_to_zero_payment_view,
 )
 
 from commercialoperator.components.proposals.serializers import ProposalSerializer
 
-from ledger.checkout.utils import create_basket_session, create_checkout_session, place_order_submission, get_cookie_basket
+from ledger.checkout.utils import create_basket_session, create_checkout_session, place_order_submission, get_cookie_basket, createCustomBasket
 from ledger.payments.utils import oracle_parser_on_invoice,update_payments
+from ledger.payments.invoice.utils import CreateInvoiceBasket
 import json
 from decimal import Decimal
 
@@ -67,23 +70,22 @@ logger = logging.getLogger('payment_checkout')
 
 
 class ApplicationFeeView(TemplateView):
-    template_name = 'commercialoperator/booking/success.html'
+    #template_name = 'commercialoperator/booking/preview.html'
+    template_name = '' #'commercialoperator/booking/preview_deferred.html'
 
     def get_object(self):
         return get_object_or_404(Proposal, id=self.kwargs['proposal_pk'])
 
     def post(self, request, *args, **kwargs):
 
-        #proposal_id = int(kwargs['proposal_pk'])
-        #proposal = Proposal.objects.get(id=proposal_id)
-
         proposal = self.get_object()
         application_fee = ApplicationFee.objects.create(proposal=proposal, created_by=request.user, payment_type=ApplicationFee.PAYMENT_TYPE_TEMPORARY)
 
         try:
             with transaction.atomic():
-                set_session_application_invoice(request.session, application_fee)
                 lines = create_fee_lines(proposal)
+
+                set_session_application_invoice(request.session, application_fee)
                 checkout_response = checkout(
                     request,
                     proposal,
@@ -93,10 +95,10 @@ class ApplicationFeeView(TemplateView):
                     invoice_text='Application Fee'
                 )
 
-#                if proposal.application_type.name=='T Class' and proposal.org_applicant and proposal.org_applicant.allow_full_discount:
+                if allow_full_discount(proposal):
+                    return redirect_to_zero_payment_view(request, proposal, lines)
 
                 logger.info('{} built payment line item {} for Application Fee and handing over to payment gateway'.format('User {} with id {}'.format(proposal.submitter.get_full_name(),proposal.submitter.id), proposal.id))
-#                import ipdb; ipdb.set_trace()
                 return checkout_response
 
         except Exception, e:
@@ -107,7 +109,7 @@ class ApplicationFeeView(TemplateView):
 
 
 class DeferredInvoicingPreviewView(TemplateView):
-    template_name = 'commercialoperator/booking/preview.html'
+    template_name = 'commercialoperator/booking/preview_deferred.html'
 
     def post(self, request, *args, **kwargs):
 
@@ -145,9 +147,7 @@ class DeferredInvoicingPreviewView(TemplateView):
 
 
 class DeferredInvoicingView(TemplateView):
-    #template_name = 'mooring/booking/make_booking.html'
     template_name = 'commercialoperator/booking/success.html'
-    #template_name = 'commercialoperator/booking/preview.html'
 
     def post(self, request, *args, **kwargs):
 
@@ -251,15 +251,10 @@ class MakePaymentView(TemplateView):
 
 
 class ZeroApplicationFeeView(TemplateView):
-    #template_name = 'commercialoperator/booking/success_zero_fee.html'
-    #template_name = 'commercialoperator/booking/preview_no_payment.html'
-    #template_name = 'checkout/preview.html'
-    #template_name = 'commercialoperator/booking/preview_zero_fee.html'
-    template_name = 'commercialoperator/booking/preview.html'
+    template_name = 'commercialoperator/booking/success_fee.html'
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         try:
-            #import ipdb; ipdb.set_trace()
             context_processor = template_context(request)
             application_fee = ApplicationFee.objects.get(pk=request.session['cols_app_invoice']) if 'cols_app_invoice' in request.session else None
             proposal = application_fee.proposal
@@ -273,11 +268,15 @@ class ZeroApplicationFeeView(TemplateView):
 
             if request.user.is_staff or request.user.is_superuser or ApplicationFee.objects.filter(pk=application_fee.id).count() == 1:
                 invoice = None
-                basket = get_basket(request)
+                #basket = get_basket(request)
+                basket = request.basket
 
                 # here we are manually creating an order and invoice from the basket - by-passing credit card payment screen.
-                order_response = place_order_submission(request)
-                order = Order.objects.get(basket=basket, user=submitter)
+                ## commenting below lines and using CreateInvoiceBasket because basket created in previous view
+                #order_response = place_order_submission(request)
+                #order = Order.objects.get(basket=basket, user=submitter)
+
+                order = CreateInvoiceBasket(payment_method='other', system=settings.PAYMENT_SYSTEM_PREFIX).create_invoice_and_order(basket, 0, None, None, user=request.user, invoice_text='Application Fee')
                 invoice = Invoice.objects.get(order_number=order.number)
                 fee_inv, created = ApplicationFeeInvoice.objects.get_or_create(application_fee=application_fee, invoice_reference=invoice.reference)
 
@@ -305,12 +304,10 @@ class ZeroApplicationFeeView(TemplateView):
                     'submitter': submitter,
                     'fee_invoice': fee_inv,
 
-                    #'lines': lines,
                     'basket': basket,
                     'lines': request.basket.lines.all(),
                     'line_details': 'N/A', #request.POST['payment'],
                     'proposal_id': proposal.id,
-                    #'submitter': submitter,
                     'payment_method': 'N/A',
                 }
 
