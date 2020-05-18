@@ -517,7 +517,18 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             #serializer = self.get_serializer(org)
 
             if is_internal(request) and 'apply_application_discount' in request.data:
-                serializer = SaveDiscountSerializer(org,data=request.data)
+                data = request.data
+                if not data['apply_application_discount']:
+                    data['application_discount'] = 0
+                if not data['apply_licence_discount']:
+                    data['licence_discount'] = 0
+
+                if data['application_discount'] == 0:
+                    data['apply_application_discount'] = False
+                if data['licence_discount']  == 0:
+                    data['apply_licence_discount'] = False
+
+                serializer = SaveDiscountSerializer(org,data=data)
                 serializer.is_valid(raise_exception=True)
                 instance = serializer.save()
 

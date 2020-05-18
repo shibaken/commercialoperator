@@ -60,12 +60,12 @@
                                                 <div class="col-sm-6">
                                                     <div class="col-sm-1">
                                                         <label>
-                                                            <input type="radio" value="true" v-model="org.apply_application_discount" @change="handleSelectionChange" ref="application_discount_yes"/>Yes
+                                                            <input type="radio" value="true" v-model="org.apply_application_discount" ref="application_discount_yes"/>Yes
                                                         </label>
                                                     </div>
                                                     <div class="col-sm-1">
                                                         <label>
-                                                            <input type="radio" value="false" v-model="org.apply_application_discount" @change="handleSelectionChange"/>No
+                                                            <input type="radio" value="false" v-model="org.apply_application_discount"/>No
                                                         </label>
                                                     </div>
                                                     <div class="col-sm-8">
@@ -88,20 +88,22 @@
                                                 </div>
                                                 <div class="col-sm-1">
                                                     <label>
-                                                        <input type="radio" value="true" v-model="org.apply_application_discount" @change="handleSelectionChange" ref="application_discount_yes"/>Yes
+                                                        <input type="radio" :value="true" v-model="org.apply_application_discount" ref="application_discount_yes"/>Yes
                                                     </label>
                                                 </div>
                                                 <div class="col-sm-1">
                                                     <label>
-                                                        <input type="radio" value="false" v-model="org.apply_application_discount" @change="handleSelectionChange"/>No
+                                                        <input type="radio" :value="false" v-model="org.apply_application_discount"/>No
                                                     </label>
                                                 </div>
                                                 <div class="col-sm-4">
-                                                    <div class="col-sm-3">
-                                                        <label class="control-label pull-left"  for="Name">Discount</label>
-                                                    </div>
-                                                    <div class="col-sm-6">
-                                                        <input type="number" class="form-control" min="0" max="100" name="application_discount" placeholder="" v-model="org.application_discount">
+                                                    <div v-show="org.apply_application_discount">
+                                                        <div class="col-sm-3">
+                                                            <label class="control-label pull-left"  for="Name">Discount</label>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <input type="number" class="form-control" min="0" max="100" name="application_discount" placeholder="" v-model="org.application_discount">
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -115,20 +117,22 @@
                                                 </div>
                                                 <div class="col-sm-1">
                                                     <label>
-                                                        <input type="radio" value="true" v-model="org.apply_licence_discount" @change="handleSelectionChange" ref="licence_discount_yes"/>Yes
+                                                        <input type="radio" :value="true" v-model="org.apply_licence_discount" ref="licence_discount_yes"/>Yes
                                                     </label>
                                                 </div>
                                                 <div class="col-sm-1">
                                                     <label>
-                                                        <input type="radio" value="false" v-model="org.apply_licence_discount" @change="handleSelectionChange"/>No
+                                                        <input type="radio" :value="false" v-model="org.apply_licence_discount"/>No
                                                     </label>
                                                 </div>
                                                 <div class="col-sm-4">
-                                                    <div class="col-sm-3">
-                                                        <label class="control-label pull-left"  for="Name">Discount</label>
-                                                    </div>
-                                                    <div class="col-sm-6">
-                                                        <input type="number" class="form-control" min="0" max="100" name="licence_discount" placeholder="" v-model="org.licence_discount">
+                                                    <div v-show="org.apply_licence_discount">
+                                                        <div class="col-sm-3">
+                                                            <label class="control-label pull-left"  for="Name">Discount</label>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <input type="number" class="form-control" min="0" max="100" name="licence_discount" placeholder="" v-model="org.licence_discount">
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -551,11 +555,12 @@ export default {
                 vm.updatingAddress = false;
             });
         },
-    },
-    mounted: function(){
-        let vm = this;
-        this.personal_form = document.forms.personal_form;
-        this.eventListeners();
+
+        mounted: function(){
+            let vm = this;
+            this.personal_form = document.forms.personal_form;
+            this.eventListeners();
+        },
     },
 }
 </script>
