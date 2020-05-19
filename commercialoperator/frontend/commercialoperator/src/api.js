@@ -40,6 +40,7 @@ module.exports = {
     
     //filming
     proposal_filming_parks:"/api/proposal_filming_parks.json",
+    district_proposals:"/api/district_proposals.json",
 
     //Events
     proposal_events_parks:"/api/proposal_events_parks.json",

@@ -39,13 +39,15 @@ from commercialoperator.components.proposals.models import (
 	ProposalFilmingAccess,
 	ProposalFilmingParks,
     Proposal,
+    DistrictProposal,
 )
 from commercialoperator.components.proposals.serializers_filming import (
     ProposalFilmingActivitySerializer,
     ProposalFilmingAccessSerializer,
     ProposalFilmingParksSerializer,
     ProposalFilmingSerializer,
-    SaveProposalFilmingParksSerializer
+    SaveProposalFilmingParksSerializer,
+    DistrictProposalSerializer,
 )
 
 from commercialoperator.helpers import is_customer, is_internal
@@ -218,3 +220,16 @@ class FilmingActivityTabView(views.APIView):
         container.update({'film_usage_choices': film_usage_choices})
         
         return Response(container)
+
+class DistrictProposalViewSet(viewsets.ModelViewSet):
+    #queryset = Referral.objects.all()
+    queryset = DistrictProposal.objects.none()
+    serializer_class = DistrictProposalSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated() and is_internal(self.request):
+            #queryset =  Referral.objects.filter(referral=user)
+            queryset =  DistrictProposal.objects.all()
+            return queryset
+        return DistrictProposal.objects.none()

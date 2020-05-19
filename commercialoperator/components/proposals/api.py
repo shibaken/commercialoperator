@@ -54,6 +54,7 @@ from commercialoperator.components.proposals.models import (
     ProposalAssessment,
     ProposalAssessmentAnswer,
     RequirementDocument,
+    DistrictProposal,
 )
 from commercialoperator.components.proposals.serializers import (
     SendReferralSerializer,
@@ -93,6 +94,7 @@ from commercialoperator.components.proposals.serializers import (
     InternalFilmingProposalSerializer,
     ProposalEventSerializer,
     InternalEventProposalSerializer,
+    DistrictProposalSerializer
 )
 from commercialoperator.components.proposals.serializers_filming import (
     ProposalFilmingOtherDetailsSerializer,
@@ -2395,3 +2397,16 @@ class ProposalAssessmentViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+class DistrictProposalViewSet(viewsets.ModelViewSet):
+    #queryset = Referral.objects.all()
+    queryset = DistrictProposal.objects.none()
+    serializer_class = DistrictProposalSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated() and is_internal(self.request):
+            #queryset =  Referral.objects.filter(referral=user)
+            queryset =  DistrictProposal.objects.all()
+            return queryset
+        return DistrictProposal.objects.none()

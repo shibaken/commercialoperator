@@ -32,6 +32,7 @@ from commercialoperator.components.proposals.models import (
                                     ProposalAssessmentAnswer,
                                     ProposalAssessment,
                                     RequirementDocument,
+                                    DistrictProposal,
                                 )
 from commercialoperator.components.organisations.models import (
                                 Organisation
@@ -1584,3 +1585,42 @@ class SaveInternalFilmingProposalSerializer(BaseProposalSerializer):
                 #'other_details',                                               
                 )
         read_only_fields=('documents','requirements',)
+
+class FilmingDistrictProposalSerializer(InternalFilmingProposalSerializer):
+    def get_assessor_mode(self,obj):
+        # TODO check if the proposal has been accepted or declined
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        # try:
+        #     referral = DistrictProposal.objects.get(proposal=obj,referral=user)
+        # except:
+        #     referral = None
+        return {
+            'assessor_mode': True,
+            'assessor_can_assess': None,
+            'assessor_level': 'referral',
+            'assessor_box_view': obj.assessor_comments_view(user)
+        }
+
+class DistrictProposalSerializer(serializers.ModelSerializer):
+    processing_status = serializers.CharField(source='get_processing_status_display')
+    #customer_status = serializers.CharField(source='get_customer_status_display')
+    # latest_referrals = ProposalReferralSerializer(many=True)
+    # can_be_completed = serializers.BooleanField()
+    # can_process=serializers.SerializerMethodField()
+    # referral_assessment=ProposalAssessmentSerializer(read_only=True)
+    #proposal=FilmingDistrictProposalSerializer()
+
+
+    class Meta:
+        model = DistrictProposal
+        fields = '__all__'
+
+    def __init__(self,*args,**kwargs):
+        super(DistrictProposalSerializer, self).__init__(*args, **kwargs)
+        self.fields['proposal'] = FilmingDistrictProposalSerializer(context={'request':self.context['request']})
+
+    # def get_can_process(self,obj):
+    #     request = self.context['request']
+    #     user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+    #     return obj.can_process(user)
