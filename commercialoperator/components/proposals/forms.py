@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from ledger.accounts.models import EmailUser
-from commercialoperator.components.proposals.models import ProposalAssessorGroup,ProposalApproverGroup, HelpPage
+from commercialoperator.components.proposals.models import ProposalAssessorGroup,ProposalApproverGroup, HelpPage, DistrictProposalAssessorGroup, DistrictProposalApproverGroup
 from commercialoperator.components.main.models import SystemMaintenance
 from ckeditor.widgets import CKEditorWidget
 from django.conf import settings
@@ -105,3 +105,50 @@ class SystemMaintenanceAdminForm(forms.ModelForm):
         return cleaned_data
 
 
+class DistrictProposalAssessorGroupAdminForm(forms.ModelForm):
+    class Meta:
+        model = DistrictProposalAssessorGroup
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(DistrictProposalAssessorGroupAdminForm, self).__init__(*args, **kwargs)
+        if self.instance:
+            #self.fields['members'].queryset = EmailUser.objects.filter(email__icontains='@dbca.wa.gov.au')
+            self.fields['members'].queryset = EmailUser.objects.filter(is_staff=True)
+
+    def clean(self):
+        super(DistrictProposalAssessorGroupAdminForm, self).clean()
+        if self.instance and DistrictProposalAssessorGroup.objects.all().exists():
+            try:
+                original_members = DistrictProposalAssessorGroup.objects.get(id=self.instance.id).members.all()
+                current_members = self.cleaned_data.get('members')
+                for o in original_members:
+                    if o not in current_members:
+                        if self.instance.member_is_assigned(o):
+                            raise ValidationError('{} is currently assigned to a proposal(s)'.format(o.email))
+            except:
+                pass
+
+class DistrictProposalApproverGroupAdminForm(forms.ModelForm):
+    class Meta:
+        model = DistrictProposalApproverGroup
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(DistrictProposalApproverGroupAdminForm, self).__init__(*args, **kwargs)
+        if self.instance:
+            #self.fields['members'].queryset = EmailUser.objects.filter(email__icontains='@dbca.wa.gov.au')
+            self.fields['members'].queryset = EmailUser.objects.filter(is_staff=True)
+
+    def clean(self):
+        super(DistrictProposalApproverGroupAdminForm, self).clean()
+        if self.instance and DistrictProposalApproverGroup.objects.all().exists():
+            try:
+                original_members = DistrictProposalApproverGroup.objects.get(id=self.instance.id).members.all()
+                current_members = self.cleaned_data.get('members')
+                for o in original_members:
+                    if o not in current_members:
+                        if self.instance.member_is_assigned(o):
+                            raise ValidationError('{} is currently assigned to a proposal(s)'.format(o.email))
+            except:
+                pass
