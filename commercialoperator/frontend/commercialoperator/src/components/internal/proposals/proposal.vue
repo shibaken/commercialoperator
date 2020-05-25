@@ -453,6 +453,7 @@ export default {
             panelClickersInitialised: false,
             sendingReferral: false,
             comparing: false,
+            sendingToDistrict: false,
         }
     },
     components: {
@@ -586,6 +587,38 @@ export default {
         },
         sendToDistricts: function(){
             console.log('hello');
+            let vm = this;
+            //vm.save_wo();
+            let formData = new FormData(vm.form);
+            formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
+            formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
+            formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
+            
+            vm.sendingToDistrict = true;
+            vm.$http.post(vm.proposal_form_url,formData).then(res=>{
+            
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/send_to_districts'))).then((response) => {
+                    vm.sendingToDistrict = false;
+                    vm.original_proposal = helpers.copyObject(response.body);
+                    vm.proposal = response.body;
+                    swal(
+                        'Sent',
+                        'The proposal has been sent to Districts',
+                        'success'
+                    )
+                }, (error) => {
+                    console.log(error);
+                    swal(
+                        'Error',
+                        helpers.apiVueResourceError(error),
+                        'error'
+                    )
+                    vm.sendingToDistrict = false;
+                });
+
+              
+            },err=>{
+            });
         },
         amendmentRequest: function(){
             this.save_wo();

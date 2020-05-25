@@ -1283,6 +1283,7 @@ class InternalFilmingProposalSerializer(BaseProposalSerializer):
                 'filming_equipment',
                 'filming_other_details',
                 'filming_approval_type',
+                'district_proposals'
                 )
         read_only_fields=('documents','requirements')
 

@@ -423,6 +423,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     PROCESSING_STATUS_TEMP = 'temp'
     PROCESSING_STATUS_DRAFT = 'draft'
     PROCESSING_STATUS_WITH_ASSESSOR = 'with_assessor'
+    PROCESSING_STATUS_WITH_DISTRICT_ASSESSOR = 'with_district_assessor'
     PROCESSING_STATUS_ONHOLD = 'on_hold'
     PROCESSING_STATUS_WITH_QA_OFFICER = 'with_qa_officer'
     PROCESSING_STATUS_WITH_REFERRAL = 'with_referral'
@@ -441,6 +442,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     PROCESSING_STATUS_CHOICES = ((PROCESSING_STATUS_TEMP, 'Temporary'),
                                  (PROCESSING_STATUS_DRAFT, 'Draft'),
                                  (PROCESSING_STATUS_WITH_ASSESSOR, 'With Assessor'),
+                                 (PROCESSING_STATUS_WITH_DISTRICT_ASSESSOR, 'With District Assessor'),
                                  (PROCESSING_STATUS_ONHOLD, 'On Hold'),
                                  (PROCESSING_STATUS_WITH_QA_OFFICER, 'With QA Officer'),
                                  (PROCESSING_STATUS_WITH_REFERRAL, 'With Referral'),
@@ -2039,22 +2041,26 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
     #Filming application method
     #This is to show basic logic behind creating district Proposal for each district related to parks listed with Filming Application.
-    def send_to_districts(self):
+    def send_to_districts(self, request):
         try:
+            if self.application_type.name==ApplicationType.FILMING and self.processing_status=='with_assessor':
             #Get the list all the Districts of the Parks linked to the Proposal
-            districts_list=self.filming_parks.all().values_list('park__district', flat=True)
-            print('district',districts_list)
-            if districts_list:
-                for district in districts_list:
-                    district_instance=District.objects.get(id=district)
-                    #Get the list of all the Filming Parks in each district
-                    parks_list=list(ProposalFilmingParks.objects.filter(park__district=district, proposal=self).values_list('id',flat=True))
-                    print('parks',parks_list)
-                    #create a District proposal for each district
-                    district_proposal, created=DistrictProposal.objects.update_or_create(district=district_instance,proposal= self)
-                    print('district proposal',district_proposal, created)
-                    district_proposal.proposal_park= parks_list
-                    district_proposal.save()
+                districts_list=self.filming_parks.all().values_list('park__district', flat=True)
+                print('district',districts_list)
+                if districts_list:
+                    for district in districts_list:
+                        district_instance=District.objects.get(id=district)
+                        #Get the list of all the Filming Parks in each district
+                        parks_list=list(ProposalFilmingParks.objects.filter(park__district=district, proposal=self).values_list('id',flat=True))
+                        print('parks',parks_list)
+                        #create a District proposal for each district
+                        district_proposal, created=DistrictProposal.objects.update_or_create(district=district_instance,proposal= self)
+                        print('district proposal',district_proposal, created)
+                        district_proposal.proposal_park= parks_list
+                        district_proposal.save()
+                    self.processing_status='with_district_assessor'
+                    self.save()
+                    self.log_user_action(ProposalUserAction.SEND_TO_DISTRICTS.format(self.id),request)
                     #TODO Logging
                     #TODO Change the status for the proposal
             return self
@@ -2509,6 +2515,7 @@ class ProposalUserAction(UserAction):
     ACTION_UNLINK_SECTION = "Unlink section {} from trail {}"
     ACTION_LINK_ZONE = "Link zone {} to park {}"
     ACTION_UNLINK_ZONE = "Unlink zone {} from park {}"
+    SEND_TO_DISTRICTS = "Send Proposal {} to district assessors"
     # Assessors
     ACTION_SAVE_ASSESSMENT_ = "Save assessment {}"
     ACTION_CONCLUDE_ASSESSMENT_ = "Conclude assessment {}"

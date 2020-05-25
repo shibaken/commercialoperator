@@ -1693,6 +1693,26 @@ class ProposalViewSet(viewsets.ModelViewSet):
         raise serializers.ValidationError(str(e))
 
     @detail_route(methods=['post'])
+    def send_to_districts(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.send_to_districts(request)
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer_class = self.internal_serializer_class()
+            serializer = serializer_class(instance,context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
+    @detail_route(methods=['post'])
     @renderer_classes((JSONRenderer,))
     def assessor_save(self, request, *args, **kwargs):
         try:
