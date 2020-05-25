@@ -3954,6 +3954,62 @@ class DistrictProposal(models.Model):
     class Meta:
         app_label = 'commercialoperator'
 
+    @property
+    def districts_list(self):
+        #return self.region.split(',') if self.region else []
+        return [self.district.name] if self.district else []
+
+    def __assessor_group(self):
+        # TODO get list of assessor groups based on region and activity
+        if self.district:
+            try:
+                check_group = DistrictProposalAssessorGroup.objects.filter(
+                    #activities__name__in=[self.activity],
+                    district__name__in=self.districts_list
+                ).distinct()
+                if check_group:
+                    return check_group[0]
+            except DistrictProposalAssessorGroup.DoesNotExist:
+                pass
+        default_group = DistrictProposalAssessorGroup.objects.get(default=True)
+
+        return default_group
+
+
+    def __approver_group(self):
+        # TODO get list of approver groups based on region and activity
+        if self.district:
+            try:
+                check_group = DistrictProposalApproverGroup.objects.filter(
+                    #activities__name__in=[self.activity],
+                    district__name__in=self.districts_list
+                ).distinct()
+                if check_group:
+                    return check_group[0]
+            except DistrictProposalApproverGroup.DoesNotExist:
+                pass
+        default_group = DistrictProposalApproverGroup.objects.get(default=True)
+
+        return default_group
+
+    def can_assess(self,user):
+        #if self.processing_status == 'on_hold' or self.processing_status == 'with_assessor' or self.processing_status == 'with_referral' or self.processing_status == 'with_assessor_requirements':
+        if self.processing_status in ['with_assessor', 'with_assessor_requirements']:
+            return self.__assessor_group() in user.districtproposalassessorgroup_set.all()
+        elif self.processing_status == 'with_approver':
+            return self.__approver_group() in user.districtproposalapprovergroup_set.all()
+        else:
+            return False
+
+    @property
+    def allowed_district_assessors(self):
+        if self.processing_status == 'with_approver':
+            group = self.__approver_group()
+        else:
+            group = self.__assessor_group()
+        return group.members.all() if group else []
+
+
 class DistrictProposalDeclinedDetails(models.Model):
     #proposal = models.OneToOneField(Proposal, related_name='declined_details')
     district_proposal = models.OneToOneField(DistrictProposal)
