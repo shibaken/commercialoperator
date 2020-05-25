@@ -1604,6 +1604,7 @@ class DistrictProposalSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source='get_processing_status_display')
     district_assessor_can_assess=serializers.SerializerMethodField()
     allowed_district_assessors = EmailUserSerializer(many=True)
+    current_assessor = serializers.SerializerMethodField()
     #customer_status = serializers.CharField(source='get_customer_status_display')
     # latest_referrals = ProposalReferralSerializer(many=True)
     # can_be_completed = serializers.BooleanField()
@@ -1624,3 +1625,10 @@ class DistrictProposalSerializer(serializers.ModelSerializer):
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         return obj.can_assess(user)
+
+    def get_current_assessor(self,obj):
+        return {
+            'id': self.context['request'].user.id,
+            'name': self.context['request'].user.get_full_name(),
+            'email': self.context['request'].user.email
+        }

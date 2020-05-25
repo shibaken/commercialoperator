@@ -58,6 +58,24 @@
                             <div class="col-sm-12">
                                 <div class="separator"></div>
                             </div>
+
+                            <div v-if="!isFinalised" class="col-sm-12 top-buffer-s">
+                                <strong>Currently assigned to</strong><br/>
+                                <div class="form-group">
+                                    <template v-if="district_proposal.processing_status == 'With Approver'">
+                                        <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="district_proposal.assigned_approver">
+                                            <option v-for="member in district_proposal.allowed_district_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
+                                        </select>
+                                        <a v-if="canAssess && district_proposal.assigned_approver != district_proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
+                                    </template>
+                                    <template v-else>
+                                        <select ref="assigned_officer" :disabled="!canAction" class="form-control" v-model="district_proposal.assigned_officer">
+                                            <option v-for="member in district_proposal.allowed_district_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
+                                        </select>
+                                        <a v-if="canAssess && district_proposal.assigned_officer != district_proposal.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
+                                    </template>
+                                </div>
+                            </div>
                             
                             <div class="col-sm-12 top-buffer-s" v-if="district_proposal.can_process && district_proposal.can_be_completed">
                                 <div class="row">
@@ -241,7 +259,18 @@ export default {
           return (this.proposal) ? `/api/proposal/${this.proposal.id}/assessor_save.json` : '';
         },
         isFinalised: function(){
-            return !(this.district_proposal != null  && this.district_proposal.processing_status == 'Awaiting'); 
+            return this.district_proposal.processing_status == 'Declined' || this.district_proposal.processing_status == 'Approved'; 
+        },
+        canAssess: function(){
+            return this.district_proposal && this.district_proposal.district_assessor_can_assess ? true : false;
+        },
+        canAction: function(){
+            if (this.district_proposal.processing_status == 'With Approver'){
+                return this.district_proposal && (this.district_proposal.processing_status == 'With Approver' || this.district_proposal.processing_status == 'With Assessor' || this.district_proposal.processing_status == 'With Assessor (Requirements)') && !this.isFinalised && !this.proposal.can_user_edit && (this.district_proposal.current_assessor.id == this.district_proposal.assigned_approver || this.district_proposal.assigned_approver == null ) && this.district_proposal.district_assessor_can_assess? true : false;
+            }
+            else{
+                return this.district_proposal && (this.district_proposal.processing_status == 'With Approver' || this.district_proposal.processing_status == 'With Assessor' || this.district_proposal.processing_status == 'With Assessor (Requirements)') && !this.isFinalised && !this.proposal.can_user_edit && (this.district_proposal.current_assessor.id == this.district_proposal.assigned_officer || this.district_proposal.assigned_officer == null ) && this.district_proposal.district_assessor_can_assess? true : false;
+            }
         },
         referral_form_url: function() {
           return (this.district_proposal) ? `/api/referrals/${this.district_proposal.id}/complete_referral.json` : '';
@@ -307,27 +336,110 @@ export default {
           },err=>{
           });
         },
+        // assignTo: function(){
+        //     let vm = this;
+        //     if ( vm.district_proposal.assigned_officer != 'null'){
+        //         let data = {'user_id': vm.district_proposal.assigned_officer};
+        //         vm.$http.post(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.district_proposal.id+'/assign_to')),JSON.stringify(data),{
+        //             emulateJSON:true
+        //         }).then((response) => {
+        //             console.log(response);
+        //             vm.district_proposal = response.body;
+        //         }, (error) => {
+        //             console.log(error);
+        //         });
+        //     }
+        //     else{
+        //         vm.$http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.district_proposal.id+'/unassign')))
+        //         .then((response) => {
+        //             console.log(response);
+        //             vm.district_proposal = response.body;
+        //         }, (error) => {
+        //             console.log(error);
+        //         });
+        //     }
+        // },
         assignTo: function(){
             let vm = this;
-            if ( vm.proposal.assigned_officer != 'null'){
-                let data = {'user_id': vm.proposal.assigned_officer};
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.proposal.id+'/assign_to')),JSON.stringify(data),{
+            let unassign = true;
+            let data = {};
+            if (vm.district_proposal.processing_status == 'With Approver'){
+                unassign = vm.district_proposal.assigned_approver != null && vm.district_proposal.assigned_approver != 'undefined' ? false: true;
+                data = {'assessor_id': vm.district_proposal.assigned_approver};
+            }
+            else{
+                unassign = vm.district_proposal.assigned_officer != null && vm.district_proposal.assigned_officer != 'undefined' ? false: true;
+                data = {'assessor_id': vm.district_proposal.assigned_officer};
+            }
+            if (!unassign){
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.district_proposals,(vm.district_proposal.id+'/assign_to')),JSON.stringify(data),{
                     emulateJSON:true
                 }).then((response) => {
-                    console.log(response);
-                    vm.proposal = response.body;
+                    vm.district_proposal = response.body;
+                    vm.original_district_proposal = helpers.copyObject(response.body);
+                    
+                    // vm.district_proposal.org_applicant.address = vm.district_proposal.org_applicant.address != null ? vm.district_proposal.org_applicant.address : {};
+                    vm.updateAssignedOfficerSelect();
                 }, (error) => {
-                    console.log(error);
+                    vm.district_proposal = helpers.copyObject(vm.original_district_proposal)
+                    
+                    vm.updateAssignedOfficerSelect();
+                    swal(
+                        'Application Error',
+                        helpers.apiVueResourceError(error),
+                        'error'
+                    )
                 });
             }
             else{
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.proposal.id+'/unassign')))
+                vm.$http.get(helpers.add_endpoint_json(api_endpoints.district_proposals,(vm.district_proposal.id+'/unassign')))
                 .then((response) => {
-                    console.log(response);
-                    vm.proposal = response.body;
+                    vm.district_proposal = response.body;
+                    vm.original_district_proposal = helpers.copyObject(response.body);
+                    
+                    // vm.district_proposal.org_applicant.address = vm.district_proposal.org_applicant.address != null ? vm.district_proposal.org_applicant.address : {};
+                    vm.updateAssignedOfficerSelect();
+                    vm.fetchdistrict_proposalParks(vm.district_proposal.id);
                 }, (error) => {
-                    console.log(error);
+                    vm.district_proposal = helpers.copyObject(vm.original_district_proposal)
+                    
+                    vm.updateAssignedOfficerSelect();
+                    swal(
+                        'Application Error',
+                        helpers.apiVueResourceError(error),
+                        'error'
+                    )
                 });
+            }
+        },
+        assignRequestUser: function(){
+            let vm = this;
+
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.district_proposals,(vm.district_proposal.id+'/assign_request_user')))
+            .then((response) => {
+                vm.district_proposal = response.body;
+                vm.original_district_proposal = helpers.copyObject(response.body);
+                vm.updateAssignedOfficerSelect();
+
+            }, (error) => {
+                vm.district_proposal = helpers.copyObject(vm.original_district_proposal)
+                vm.updateAssignedOfficerSelect();
+                swal(
+                    'Application Error',
+                    helpers.apiVueResourceError(error),
+                    'error'
+                )
+            });
+        },
+        updateAssignedOfficerSelect:function(){
+            let vm = this;
+            if (vm.district_proposal.processing_status == 'With Approver'){
+                $(vm.$refs.assigned_officer).val(vm.district_proposal.assigned_approver);
+                $(vm.$refs.assigned_officer).trigger('change');
+            }
+            else{
+                $(vm.$refs.assigned_officer).val(vm.district_proposal.assigned_officer);
+                $(vm.$refs.assigned_officer).trigger('change');
             }
         },
         fetchProposalGroupMembers: function(){
@@ -395,8 +507,45 @@ export default {
                     var selected = $(e.currentTarget);
                     vm.$emit('input',selected[0])
                });
+               vm.initialiseAssignedOfficerSelect();
                 vm.initialisedSelects = true;
             }
+        },
+        initialiseAssignedOfficerSelect:function(reinit=false){
+            let vm = this;
+            if (reinit){
+                $(vm.$refs.assigned_officer).data('select2') ? $(vm.$refs.assigned_officer).select2('destroy'): '';
+            }
+            // Assigned officer select
+            $(vm.$refs.assigned_officer).select2({
+                "theme": "bootstrap",
+                allowClear: true,
+                placeholder:"Select Officer"
+            }).
+            on("select2:select",function (e) {
+                var selected = $(e.currentTarget);
+                if (vm.district_proposal.processing_status == 'With Approver'){
+                    vm.district_proposal.assigned_approver = selected.val();
+                }
+                else{
+                    vm.district_proposal.assigned_officer = selected.val();
+                }
+                vm.assignTo();
+            }).on("select2:unselecting", function(e) {
+                var self = $(this);
+                setTimeout(() => {
+                    self.select2('close');
+                }, 0);
+            }).on("select2:unselect",function (e) {
+                var selected = $(e.currentTarget);
+                if (vm.district_proposal.processing_status == 'With Approver'){
+                    vm.district_proposal.assigned_approver = null;
+                }
+                else{
+                    vm.district_proposal.assigned_officer = null;
+                }
+                vm.assignTo();
+            });
         },
         sendReferral: function(){
             let vm = this;

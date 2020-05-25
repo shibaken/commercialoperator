@@ -2553,6 +2553,11 @@ class ProposalUserAction(UserAction):
     #Filming
     ACTION_CREATE_FILMING_PARK = "Create Filming Park {}"
     ACTION_EDIT_FILMING_PARK = "Edit Filming Park {}"
+    ACTION_ASSIGN_TO_DISTRICT_APPROVER = "Assign District application {} of application {} to {} as the approver"
+    ACTION_ASSIGN_TO_DISTRICT_ASSESSOR = "Assign District application {} of application {} to {} as the assessor"
+    ACTION_UNASSIGN_DISTRICT_ASSESSOR = "Unassign assessor from District applicatio {} of application {}"
+    ACTION_UNASSIGN_DISTRICT_APPROVER = "Unassign approver from District applicatio {} of application {}"
+
 
     #Event
     ACTION_CREATE_EVENT_PARK= "Create Event Park {}"
@@ -4008,6 +4013,60 @@ class DistrictProposal(models.Model):
         else:
             group = self.__assessor_group()
         return group.members.all() if group else []
+
+    def assign_officer(self,request,officer):
+        with transaction.atomic():
+            try:
+                if not self.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if not self.can_assess(officer):
+                    raise ValidationError('The selected person is not authorised to be assigned to this proposal')
+                if self.processing_status == 'with_approver':
+                    if officer != self.assigned_approver:
+                        self.assigned_approver = officer
+                        self.save()
+                        # Create a log entry for the proposal
+                        self.proposal.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_DISTRICT_APPROVER.format(self.id,self.proposal.id, '{}({})'.format(officer.get_full_name(),officer.email)),request)
+                        # Create a log entry for the organisation
+                        #applicant_field=getattr(self, self.applicant_field)
+                        #applicant_field.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_APPROVER.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
+                else:
+                    if officer != self.assigned_officer:
+                        self.assigned_officer = officer
+                        self.save()
+                        # Create a log entry for the proposal
+                        self.proposal.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_DISTRICT_ASSESSOR.format(self.id,self.proposal.id, '{}({})'.format(officer.get_full_name(),officer.email)),request)
+                        # Create a log entry for the organisation
+                        #applicant_field=getattr(self, self.applicant_field)
+                        #applicant_field.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
+            except:
+                raise
+
+    def unassign(self,request):
+        with transaction.atomic():
+            try:
+                if not self.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if self.processing_status == 'with_approver':
+                    if self.assigned_approver:
+                        self.assigned_approver = None
+                        self.save()
+                        # Create a log entry for the proposal
+                        self.proposal.log_user_action(ProposalUserAction.ACTION_UNASSIGN_DISTRICT_APPROVER.format(self.id),request)
+                        # Create a log entry for the organisation
+                        applicant_field=getattr(self.proposal, self.proposal.applicant_field)
+                        applicant_field.log_user_action(ProposalUserAction.ACTION_UNASSIGN_DISTRICT_APPROVER.format(self.id, self.proposal.id),request)
+                else:
+                    if self.assigned_officer:
+                        self.assigned_officer = None
+                        self.save()
+                        # Create a log entry for the proposal
+                        self.proposal.log_user_action(ProposalUserAction.ACTION_UNASSIGN_DISTRICT_ASSESSOR.format(self.id, self.proposal.id),request)
+                        # Create a log entry for the organisation
+                        applicant_field=getattr(self.proposal, self.proposal.applicant_field)
+                        applicant_field.log_user_action(ProposalUserAction.ACTION_UNASSIGN_DISTRICT_ASSESSOR.format(self.id, self.proposal.id),request)
+            except:
+                raise
 
 
 class DistrictProposalDeclinedDetails(models.Model):
