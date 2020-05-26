@@ -99,10 +99,14 @@
                                                 <div class="col-sm-4">
                                                     <div v-show="org.apply_application_discount">
                                                         <div class="col-sm-3">
-                                                            <label class="control-label pull-left"  for="Name">Discount</label>
+                                                            <label class="control-label pull-left"  for="Name">Waiver</label>
                                                         </div>
-                                                        <div class="col-sm-6">
-                                                            <input type="number" class="form-control" min="0" max="100" name="application_discount" placeholder="" v-model="org.application_discount">
+                                                        <div class="col-sm-6 input-group">
+                                                            <label class="input-group-addon" for="number">$</label> 
+                                                            <input type="number" class="form-control" min="0" name="application_discount" placeholder="" v-model="org.application_discount">
+                                                        </div>
+                                                        <div v-show="!validateApplicationDiscount()">
+                                                            <p style="color:red;"> Waiver amount must be between $0 - $10,000 </p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -128,10 +132,14 @@
                                                 <div class="col-sm-4">
                                                     <div v-show="org.apply_licence_discount">
                                                         <div class="col-sm-3">
-                                                            <label class="control-label pull-left"  for="Name">Discount</label>
+                                                            <label class="control-label pull-left"  for="Name">Waiver</label>
                                                         </div>
-                                                        <div class="col-sm-6">
-                                                            <input type="number" class="form-control" min="0" max="100" name="licence_discount" placeholder="" v-model="org.licence_discount">
+                                                        <div class="col-sm-6 input-group">
+                                                            <label class="input-group-addon" for="number">$</label> 
+                                                            <input type="number" class="form-control" min="0" name="licence_discount" placeholder="" v-model="org.licence_discount">
+                                                        </div>
+                                                        <div v-show="!validateLicenceDiscount()">
+                                                            <p style="color:red;"> Waiver amount must be between $0 - $10,000 </p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -142,7 +150,7 @@
 
                                           <div class="form-group">
                                             <div class="col-sm-12">
-                                                <button v-if="!updatingDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()">Update</button>
+                                                <button v-if="!updatingDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button>
                                                 <button v-else disabled class="pull-right btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                                             </div>
                                           </div>
@@ -415,6 +423,8 @@ export default {
         AddContact,
         CommsLogs
     },
+	watch: {
+	},
     computed: {
         isLoading: function () {
           return this.loading.length == 0;
@@ -447,6 +457,26 @@ export default {
         });
     },
     methods: {
+        validateApplicationDiscount: function(){
+            if (this.org.application_discount < 0 || this.org.application_discount > 10000) {
+                return false;
+			}
+            return true;
+        },
+        validateLicenceDiscount: function(){
+            if (this.org.licence_discount < 0 || this.org.licence_discount > 10000) {
+                return false;
+			}
+            return true;
+        },
+        can_update: function(){
+            // can update the Organisation section
+            if (this.validateApplicationDiscount() && this.validateLicenceDiscount()) {
+                return true;
+			}
+            return false;
+        },
+
         addContact: function(){
             this.$refs.add_contact.isModalOpen = true;
         },
@@ -575,5 +605,28 @@ export default {
 }
 .hidePopover {
     display: none;
+}
+
+.input-group {
+    display: table;
+    white-space: nowrap;
+    vertical-align: top;
+    width: 75%;
+}
+.input-group .form-control {
+    display: table-cell;
+    vertical-align: top;
+    width: 75%;
+}
+.input-group .input-group-addon {
+    display: table-cell;
+    width: 1%;
+    vertical-align: top;
+    background: #2f353e;
+    color: #fff;
+    font-size: 1.15rem;
+    line-height: 19px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 </style>

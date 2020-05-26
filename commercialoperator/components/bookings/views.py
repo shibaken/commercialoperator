@@ -45,7 +45,6 @@ from commercialoperator.components.bookings.utils import (
     create_other_invoice,
     create_monthly_confirmation,
     get_basket,
-    allow_full_discount,
     redirect_to_zero_payment_view,
 )
 
@@ -95,7 +94,7 @@ class ApplicationFeeView(TemplateView):
                     invoice_text='Application Fee'
                 )
 
-                if allow_full_discount(proposal):
+                if proposal.allow_full_discount:
                     return redirect_to_zero_payment_view(request, proposal, lines)
 
                 logger.info('{} built payment line item {} for Application Fee and handing over to payment gateway'.format('User {} with id {}'.format(proposal.submitter.get_full_name(),proposal.submitter.id), proposal.id))

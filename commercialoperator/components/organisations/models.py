@@ -45,29 +45,16 @@ class Organisation(models.Model):
     monthly_payment_due_period = models.SmallIntegerField('Monthly Payment Due Period (in #days from Invoicing Date)', default=20)
 
     apply_application_discount = models.BooleanField(default=False)
-    application_discount = models.SmallIntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
+    application_discount = models.SmallIntegerField(default=0, validators=[MinValueValidator(0)])
 
     apply_licence_discount = models.BooleanField(default=False)
-    licence_discount = models.SmallIntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
-
-#                'apply_application_discount',
-#                'application_discount',
-#                'apply_licence_discount',
-#                'licence_discount',
+    licence_discount = models.SmallIntegerField(default=0, validators=[MinValueValidator(0)])
 
     class Meta:
         app_label = 'commercialoperator'
 
     def __str__(self):
         return str(self.organisation)
-
-    @property
-    def allow_full_discount(self):
-        if self.apply_application_discount and self.apply_licence_discount and \
-           self.application_discount == 100 and self.licence_discount == 100:
-            return True
-        return False
-
 
     def log_user_action(self, action, request):
         return OrganisationAction.log_action(self, action, request.user)

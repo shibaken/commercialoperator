@@ -322,15 +322,11 @@ def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
 
     if proposal.application_type.name=='T Class':
         if proposal.org_applicant.apply_application_discount:
-            application_discount = round(proposal.org_applicant.application_discount/100.0 * float(application_price), 0)
-            #application_price = round(float(application_price) - application_discount, 2)
-            #if application_price < 0:
-            #    application_price = 0.0
+            #application_discount = round(proposal.org_applicant.application_discount/100.0 * float(application_price), 0)
+            application_discount = min(proposal.org_applicant.application_discount, application_price)
         if proposal.org_applicant.apply_licence_discount:
-            licence_discount = round(proposal.org_applicant.licence_discount/100.0 * float(licence_price), 0)
-            #licence_price = round(float(licence_price) - licence_discount, 2)
-            #if licence_price < 0:
-            #    licence_price = 0.0
+            #licence_discount = round(proposal.org_applicant.licence_discount/100.0 * float(licence_price), 0)
+            licence_discount = min(proposal.org_applicant.licence_discount, licence_price)
 
 
     line_items = [
@@ -348,18 +344,18 @@ def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
         }
     ]
     if proposal.application_type.name=='T Class' and proposal.org_applicant:
-        if proposal.org_applicant.application_discount:
+        if proposal.org_applicant.apply_application_discount:
             line_items += [
-                {   'ledger_description': 'Application Discount - {} - {} ({}%)'.format(now, proposal.lodgement_number, proposal.org_applicant.application_discount),
+                {   'ledger_description': 'Application Discount - {} - {})'.format(now, proposal.lodgement_number),
                     'oracle_code': proposal.application_type.oracle_code_application,
                     'price_incl_tax':  -application_discount,
                     'price_excl_tax':  -application_discount,
                     'quantity': 1,
                 }
             ]
-        if proposal.org_applicant.licence_discount:
+        if proposal.org_applicant.apply_licence_discount:
             line_items += [
-                {   'ledger_description': 'Licence Discount - {} - {} ({}%)'.format(now, proposal.lodgement_number, proposal.org_applicant.licence_discount),
+                {   'ledger_description': 'Licence Discount - {} - {}'.format(now, proposal.lodgement_number),
                     'oracle_code': proposal.application_type.oracle_code_application,
                     'price_incl_tax':  -licence_discount,
                     'price_excl_tax':  -licence_discount,
@@ -490,8 +486,8 @@ def checkout(request, proposal, lines, return_url_ns='public_booking_success', r
 #
     # Zero booking costs
     #if booking.cost_total < 1 and booking.cost_total > -1:
-    if invoice_text == 'Application Fee' and proposal.application_type.name=='T Class' and proposal.org_applicant and proposal.org_applicant.allow_full_discount:
-        #response = HttpResponseRedirect('/no_application_fee')
+    #if invoice_text == 'Application Fee' and proposal.application_type.name=='T Class' and proposal.org_applicant and proposal.allow_full_discount:
+    if invoice_text == 'Application Fee' and proposal.allow_full_discount:
         response = HttpResponseRedirect(reverse('zero_fee_success'))
         response.set_cookie(
             settings.OSCAR_BASKET_COOKIE_OPEN, basket_hash,
@@ -505,17 +501,13 @@ def oracle_integration(date,override):
     system = '0557'
     oracle_codes = oracle_parser(date, system, 'Commercial Operator Licensing', override=override)
 
-
-def allow_full_discount(proposal):
-    return proposal.application_type.name=='T Class' and proposal.org_applicant and proposal.org_applicant.allow_full_discount
-
 def redirect_to_zero_payment_view(request, proposal, lines):
     """
     redirect to Zero Payment preview, instead of Credit Card checkout view
     """
     template_name = 'commercialoperator/booking/preview.html'
 
-    if allow_full_discount(proposal):
+    if proposal.allow_full_discount:
         logger.info('{} built payment line item {} for Application Fee and handing over to ZERO Payment preview'.format('User {} with id {}'.format(proposal.submitter.get_full_name(),proposal.submitter.id), proposal.id))
         basket  = createCustomBasket(lines, request.user, settings.PAYMENT_SYSTEM_ID)
         context = {

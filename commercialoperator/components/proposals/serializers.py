@@ -446,7 +446,7 @@ class BaseProposalSerializer(serializers.ModelSerializer):
         return obj.trails.all().values_list('trail_id', flat=True)
 
     def get_allow_full_discount(self,obj):
-        return True if obj.application_type.name=='T Class' and obj.org_applicant.allow_full_discount else False
+        return True if obj.application_type.name=='T Class' and obj.allow_full_discount else False
 
 #Not used anymore
 class DTProposalSerializer(BaseProposalSerializer):
