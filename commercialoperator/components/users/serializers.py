@@ -70,8 +70,8 @@ class UserOrganisationSerializer(serializers.ModelSerializer):
     def get_active_proposals(self, obj):
         _list = []
         for application_type in ['T Class', 'Filming', 'Event']:
-            qs = Proposal.objects.filter(application_type__name=application_type, org_applicant=obj).exclude(processing_status__in=['approved', 'declined']).values_list('lodgement_number', flat=True)
-            _list.append( {application_type: list(qs)} )
+            qs = Proposal.objects.filter(application_type__name=application_type, org_applicant=obj).exclude(processing_status__in=['approved', 'declined', 'discarded']).values_list('lodgement_number', flat=True)
+            _list.append( dict(application_type=application_type, proposals=list(qs)) )
         return _list
 
 
