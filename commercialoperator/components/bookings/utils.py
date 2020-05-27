@@ -322,10 +322,8 @@ def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
 
     if proposal.application_type.name=='T Class':
         if proposal.org_applicant.apply_application_discount:
-            #application_discount = round(proposal.org_applicant.application_discount/100.0 * float(application_price), 0)
             application_discount = min(proposal.org_applicant.application_discount, application_price)
         if proposal.org_applicant.apply_licence_discount:
-            #licence_discount = round(proposal.org_applicant.licence_discount/100.0 * float(licence_price), 0)
             licence_discount = min(proposal.org_applicant.licence_discount, licence_price)
 
 

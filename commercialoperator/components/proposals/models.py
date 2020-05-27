@@ -631,8 +631,9 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         """ checks if a fee is payable after discount is applied """
         org = self.org_applicant
         if self.application_type.name=='T Class' and self.other_details.preferred_licence_period and org:
-            application_fee = max( round(self.application_type.application_fee - org.application_discount, 0), 0)
-            licence_fee = max( round(self.licence_fee_amount - org.licence_discount, 0), 0)
+            #import ipdb; ipdb.set_trace()
+            application_fee = max( round(float(self.application_type.application_fee) - org.application_discount, 2), 0)
+            licence_fee = max( round(float(self.licence_fee_amount) - org.licence_discount, 2), 0)
             if licence_fee == 0 and application_fee == 0:
                 return True
         return False
@@ -2052,7 +2053,7 @@ class ApplicationFeeDiscount(RevisionedMixin):
 
     proposal = models.ForeignKey(Proposal, related_name='fee_discounts', null=True)
     discount_type = models.CharField(max_length=40, choices=DISCOUNT_TYPE_CHOICES)
-    discount = models.SmallIntegerField(validators=[MinValueValidator(0)])
+    discount = models.FloatField(validators=[MinValueValidator(0.0)])
     created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(EmailUser,on_delete=models.PROTECT, related_name='created_by_fee_discount')
     reset_date = models.DateTimeField(blank=True, null=True)

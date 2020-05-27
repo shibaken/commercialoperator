@@ -103,7 +103,7 @@
                                                         </div>
                                                         <div class="col-sm-6 input-group">
                                                             <label class="input-group-addon" for="number">$</label> 
-                                                            <input type="number" class="form-control" min="0" name="application_discount" placeholder="" v-model="org.application_discount">
+                                                            <input type="number" class="form-control" min="0" name="application_discount" v-model.number="org.application_discount" @input="handleApplicationCurrencyInput">
                                                         </div>
                                                         <div v-show="!validateApplicationDiscount()">
                                                             <p style="color:red;"> Waiver amount must be between $0 - $10,000 </p>
@@ -136,7 +136,7 @@
                                                         </div>
                                                         <div class="col-sm-6 input-group">
                                                             <label class="input-group-addon" for="number">$</label> 
-                                                            <input type="number" class="form-control" min="0" name="licence_discount" placeholder="" v-model="org.licence_discount">
+                                                            <input type="number" class="form-control" min="0" name="licence_discount" v-model.number="org.licence_discount" @input="handleLicenceCurrencyInput">
                                                         </div>
                                                         <div v-show="!validateLicenceDiscount()">
                                                             <p style="color:red;"> Waiver amount must be between $0 - $10,000 </p>
@@ -367,6 +367,8 @@ export default {
             updatingContact: false,
             empty_list: '/api/empty_list',
             logsTable: null,
+            prev_licence_discount: null,
+            prev_application_discount: null,
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             activate_tables: false,
             comms_url: helpers.add_endpoint_json(api_endpoints.organisations,vm.$route.params.org_id+'/comms_log'),
@@ -457,6 +459,26 @@ export default {
         });
     },
     methods: {
+       handleApplicationCurrencyInput(e) {
+            // allow max 2dp
+            let vm = this;
+		    let stringValue = e.target.value.toString()
+		    let regex = /^\d*(\.\d{1,2})?$/
+		    if(!stringValue.match(regex) && vm.org.licence_discount !== '') {
+			    vm.org.application_discount= vm.prev_application_discount
+		    }
+		    vm.prev_application_discount = vm.org.application_discount
+		},
+       handleLicenceCurrencyInput(e) {
+            // allow max 2dp
+            let vm = this;
+		    let stringValue = e.target.value.toString()
+		    let regex = /^\d*(\.\d{1,2})?$/
+		    if(!stringValue.match(regex) && vm.org.licence_discount !== '') {
+			    vm.org.licence_discount= vm.prev_licence_discount
+		    }
+		    vm.prev_licence_discount = vm.org.licence_discount
+		},
         validateApplicationDiscount: function(){
             if (this.org.application_discount < 0 || this.org.application_discount > 10000) {
                 return false;

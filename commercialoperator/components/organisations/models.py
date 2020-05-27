@@ -45,10 +45,10 @@ class Organisation(models.Model):
     monthly_payment_due_period = models.SmallIntegerField('Monthly Payment Due Period (in #days from Invoicing Date)', default=20)
 
     apply_application_discount = models.BooleanField(default=False)
-    application_discount = models.SmallIntegerField(default=0, validators=[MinValueValidator(0)])
+    application_discount = models.FloatField(default=0.0, validators=[MinValueValidator(0.0)])
 
     apply_licence_discount = models.BooleanField(default=False)
-    licence_discount = models.SmallIntegerField(default=0, validators=[MinValueValidator(0)])
+    licence_discount = models.FloatField(default=0.0, validators=[MinValueValidator(0.0)])
 
     class Meta:
         app_label = 'commercialoperator'
