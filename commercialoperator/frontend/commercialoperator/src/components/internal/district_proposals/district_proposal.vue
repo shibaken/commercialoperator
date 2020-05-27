@@ -95,8 +95,26 @@
                                         <div class="col-sm-12">
                                             <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="proposedDecline()">Propose to Decline</button>
                                         </div>
+                                    </div>  
+                                </template>
+                                <template v-else-if="district_proposal.processing_status == 'With Assessor (Requirements)'">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <strong>Action</strong><br/>
+                                        </div>
                                     </div>
-                                    
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button v-if="changingStatus" style="width:80%;" class="btn btn-primary" :disabled="proposal.can_user_edit" >Back To Processing&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            <button v-if="!changingStatus" style="width:80%;" class="btn btn-primary" :disabled="proposal.can_user_edit" @click.prevent="switchStatus('with_assessor')">Back To Processing</button><br/>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="proposedApproval()">Propose to Approve</button><br/>
+                                        </div>
+                                    </div>
                                 </template>
                             </div>
                         </div>
@@ -171,6 +189,7 @@ export default {
             proposal_parks:null,
             sendingReferral: false,
             showingProposal:true,
+            changingStatus:false,
             form: null,
             members: [],
             department_users : [],
@@ -246,8 +265,8 @@ export default {
         proposal: function(){
             return this.district_proposal != null ? this.district_proposal.proposal : null;
         },
-        hasReferralMode: function(){
-            return this.district_proposal && this.district_proposal.can_process? true: false;
+        hasDistrictAssessorMode: function(){
+            return this.district_proposal && this.district_proposal.can_process_requirements? true: false;
         },
         contactsURL: function(){
             return this.proposal!= null ? helpers.add_endpoint_json(api_endpoints.organisations,this.proposal.applicant.id+'/contacts') : '';
@@ -448,6 +467,86 @@ export default {
                 $(vm.$refs.assigned_officer).trigger('change');
             }
         },
+        switchStatus: function(status){
+            let vm = this;
+            //vm.save_wo();
+            //let vm = this;
+        //     if(vm.district_proposal.processing_status == 'With Assessor' && status == 'with_assessor_requirements'){
+        //         vm.changingStatus=true;
+        //     let formData = new FormData(vm.form);
+
+        //     let data = {'status': status}
+        //     vm.$http.post(helpers.add_endpoint_json(api_endpoints.district_proposals,(vm.district_proposal.id+'/switch_status')),JSON.stringify(data),{
+        //         emulateJSON:true,
+        //     })
+        //     .then((response) => {
+        //         vm.district_proposal = response.body;
+        //         vm.original_district_proposal = helpers.copyObject(response.body);
+        //         vm.$nextTick(() => {
+        //             vm.initialiseAssignedOfficerSelect(true);
+        //             vm.updateAssignedOfficerSelect();
+        //         });
+
+        //     }, (error) => {
+        //         vm.district_proposal = helpers.copyObject(vm.original_district_proposal)
+        //         swal(
+        //             'Application Error',
+        //             helpers.apiVueResourceError(error),
+        //             'error'
+        //         )
+        //     });
+        //     vm.changingStatus=false;
+        // }
+        //if approver is pushing back district_proposal to Assessor then navigate the approver back to dashboard page
+        if(vm.district_proposal.processing_status == 'With Approver' && (status == 'with_assessor_requirements' || status=='with_assessor')) {
+            let data = {'status': status}
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.district_proposals,(vm.district_proposal.id+'/switch_status')),JSON.stringify(data),{
+                emulateJSON:true,
+            })
+            .then((response) => {
+                vm.district_proposal = response.body;
+                vm.original_district_proposal = helpers.copyObject(response.body);
+                vm.$nextTick(() => {
+                    vm.initialiseAssignedOfficerSelect(true);
+                    vm.updateAssignedOfficerSelect();
+                });
+                vm.$router.push({ path: '/internal' });
+            }, (error) => {
+                vm.district_proposal = helpers.copyObject(vm.original_district_proposal)
+                swal(
+                    'Application Error',
+                    helpers.apiVueResourceError(error),
+                    'error'
+                )
+            });
+
+        }
+        else{
+         let data = {'status': status}
+         vm.changingStatus=true;
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.district_proposals,(vm.district_proposal.id+'/switch_status')),JSON.stringify(data),{
+                emulateJSON:true,
+            })
+            .then((response) => {
+                vm.district_proposal = response.body;
+                vm.original_district_proposal = helpers.copyObject(response.body);
+                vm.$nextTick(() => {
+                    vm.initialiseAssignedOfficerSelect(true);
+                    vm.updateAssignedOfficerSelect();
+                });
+                vm.changingStatus=false;
+            }, (error) => {
+                vm.district_proposal = helpers.copyObject(vm.original_district_proposal)
+                swal(
+                    'Application Error',
+                    helpers.apiVueResourceError(error),
+                    'error'
+                )
+                vm.changingStatus=false;
+            });
+            }
+        },
+
         fetchProposalGroupMembers: function(){
             let vm = this;
             vm.loading.push('Loading Application Group Members');

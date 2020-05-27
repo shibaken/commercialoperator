@@ -2555,9 +2555,10 @@ class ProposalUserAction(UserAction):
     ACTION_EDIT_FILMING_PARK = "Edit Filming Park {}"
     ACTION_ASSIGN_TO_DISTRICT_APPROVER = "Assign District application {} of application {} to {} as the approver"
     ACTION_ASSIGN_TO_DISTRICT_ASSESSOR = "Assign District application {} of application {} to {} as the assessor"
-    ACTION_UNASSIGN_DISTRICT_ASSESSOR = "Unassign assessor from District applicatio {} of application {}"
-    ACTION_UNASSIGN_DISTRICT_APPROVER = "Unassign approver from District applicatio {} of application {}"
-
+    ACTION_UNASSIGN_DISTRICT_ASSESSOR = "Unassign assessor from District application {} of application {}"
+    ACTION_UNASSIGN_DISTRICT_APPROVER = "Unassign approver from District application {} of application {}"
+    ACTION_BACK_TO_PROCESSING_DISTRICT = "Back to processing for district application {} of application {}"
+    ACTION_ENTER_REQUIREMENTS_DISTRICT = "Enter Requirements for district application {} of application {}"
 
     #Event
     ACTION_CREATE_EVENT_PARK= "Create Event Park {}"
@@ -4007,6 +4008,13 @@ class DistrictProposal(models.Model):
         else:
             return False
 
+    def can_process_requirements(self,user):
+        #if self.processing_status == 'on_hold' or self.processing_status == 'with_assessor' or self.processing_status == 'with_referral' or self.processing_status == 'with_assessor_requirements':
+        if self.processing_status in ['with_assessor_requirements']:
+            return self.__assessor_group() in user.districtproposalassessorgroup_set.all()
+        else:
+            return False
+
     @property
     def allowed_district_assessors(self):
         if self.processing_status == 'with_approver':
@@ -4068,6 +4076,32 @@ class DistrictProposal(models.Model):
                         applicant_field.log_user_action(ProposalUserAction.ACTION_UNASSIGN_DISTRICT_ASSESSOR.format(self.id, self.proposal.id),request)
             except:
                 raise
+
+    def move_to_status(self,request,status):
+        if not self.can_assess(request.user):
+            raise exceptions.ProposalNotAuthorized()
+        if status in ['with_assessor','with_assessor_requirements','with_approver']:
+            if self.proposal.can_user_edit:
+                raise ValidationError('You cannot change the current status at this time')
+            if self.processing_status != status:
+                #TODO send email to District Approver group when District proposal is pushed to status with approver
+                # if self.processing_status =='with_approver':
+                #     if approver_comment:
+                #         self.approver_comment = approver_comment
+                #         self.save()
+                #         send_proposal_approver_sendback_email_notification(request, self)
+                self.processing_status = status
+                self.save()
+                if status=='with_assessor_requirements':
+                    self.proposal.add_default_requirements()
+
+                # Create a log entry for the proposal
+                if self.processing_status == self.PROCESSING_STATUS_WITH_ASSESSOR:
+                    self.proposal.log_user_action(ProposalUserAction.ACTION_BACK_TO_PROCESSING_DISTRICT.format(self.id, self.proposal.id),request)
+                elif self.processing_status == self.PROCESSING_STATUS_WITH_ASSESSOR_REQUIREMENTS:
+                    self.proposal.log_user_action(ProposalUserAction.ACTION_ENTER_REQUIREMENTS_DISTRICT.format(self.id, self.proposal.id),request)
+        else:
+            raise ValidationError('The provided status cannot be found.')
 
 
 class DistrictProposalDeclinedDetails(models.Model):
