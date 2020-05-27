@@ -1040,6 +1040,7 @@ class ProposalRequirementSerializer(serializers.ModelSerializer):
             'copied_from',
             'referral_group',
             'can_referral_edit',
+            'district_proposal',
             'requirement_documents'
         )
         read_only_fields = ('order','requirement', 'copied_from')

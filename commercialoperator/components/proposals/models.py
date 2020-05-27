@@ -2973,6 +2973,7 @@ class ProposalRequirement(OrderedModel):
     #order = models.IntegerField(default=1)
     #application_type = models.ForeignKey(ApplicationType, null=True, blank=True)
     #fee_invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
+    district_proposal = models.ForeignKey('DistrictProposal',null=True,blank=True,related_name='district_proposal_requirements')
 
 
     class Meta:
