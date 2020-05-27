@@ -41,7 +41,7 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <strong>Status</strong><br/>
-                                {{ proposal.processing_status }}
+                                {{ district_proposal.processing_status }}
                             </div>
                             <div class="col-sm-12">
                                 <div class="separator"></div>
@@ -77,21 +77,27 @@
                                 </div>
                             </div>
                             
-                            <div class="col-sm-12 top-buffer-s" v-if="district_proposal.can_process && district_proposal.can_be_completed">
-                                <div class="row">
-                                    <div class="col-sm-12">
-                                        <strong>Action</strong><br/>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    
-
-                                    <div class="">
+                            <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && canAction">
+                                <template v-if="district_proposal.processing_status == 'With Assessor'">
+                                    <div class="row">
                                         <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" @click.prevent="completeReferral2()">Complete Referral Task</button><br/>
+                                            <strong>Action</strong><br/>
                                         </div>
                                     </div>
-                                </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button v-if="changingStatus" style="width:80%;" class="btn btn-primary top-buffer-s" disabled>Enter Requirements&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            <button v-if="!changingStatus" style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="switchStatus('with_assessor_requirements')">Enter Requirements</button><br/>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="proposedDecline()">Propose to Decline</button>
+                                        </div>
+                                    </div>
+                                    
+                                </template>
                             </div>
                         </div>
                     </div>
