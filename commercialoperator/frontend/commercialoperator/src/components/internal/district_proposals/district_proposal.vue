@@ -2,6 +2,7 @@
     <div v-if="proposal" class="container" id="internalReferral">
             <div class="row">
         <h3>Application: {{ proposal.lodgement_number }}</h3>
+        <h4>District: {{ district_proposal.district_name }}</h4>
         <div class="col-md-3">
             <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url" :disable_add_entry="false"/>
             <div class="row">

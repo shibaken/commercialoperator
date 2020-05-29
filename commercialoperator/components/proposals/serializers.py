@@ -1614,6 +1614,7 @@ class DistrictProposalSerializer(serializers.ModelSerializer):
     allowed_district_assessors = EmailUserSerializer(many=True)
     current_assessor = serializers.SerializerMethodField()
     can_process_requirements = serializers.SerializerMethodField()
+    district_name = serializers.CharField(read_only=True)
     #customer_status = serializers.CharField(source='get_customer_status_display')
     # latest_referrals = ProposalReferralSerializer(many=True)
     # can_be_completed = serializers.BooleanField()
