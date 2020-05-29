@@ -56,7 +56,7 @@
                                           <!--
                                           <div class="form-group">
                                             <div class="row">
-                                                <label class="col-sm-3 control-label" for="">Apply discount for T Class application fee</label>
+                                                <label class="col-sm-3 control-label" for="">Apply waiver for T Class application fee</label>
                                                 <div class="col-sm-6">
                                                     <div class="col-sm-1">
                                                         <label>
@@ -84,7 +84,7 @@
                                           <div class="form-group">
                                             <div class="row">
                                                 <div class="col-sm-4">
-                                                    <label class="control-label pull-right"  for="Name">Apply discount for T Class application fee</label>
+                                                    <label class="control-label pull-right"  for="Name">Apply waiver for T Class application fee</label>
                                                 </div>
                                                 <div class="col-sm-1">
                                                     <label>
@@ -117,7 +117,7 @@
                                           <div class="form-group">
                                             <div class="row">
                                                 <div class="col-sm-4">
-                                                    <label class="control-label pull-right"  for="Name">Apply discount for T Class licence fee</label>
+                                                    <label class="control-label pull-right"  for="Name">Apply waiver for T Class licence fee</label>
                                                 </div>
                                                 <div class="col-sm-1">
                                                     <label>

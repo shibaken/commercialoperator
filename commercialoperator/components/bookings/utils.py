@@ -344,7 +344,7 @@ def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
     if proposal.application_type.name=='T Class' and proposal.org_applicant:
         if proposal.org_applicant.apply_application_discount:
             line_items += [
-                {   'ledger_description': 'Application Discount - {} - {})'.format(now, proposal.lodgement_number),
+                {   'ledger_description': 'Application Fee Waiver - {} - {}'.format(now, proposal.lodgement_number),
                     'oracle_code': proposal.application_type.oracle_code_application,
                     'price_incl_tax':  -application_discount,
                     'price_excl_tax':  -application_discount,
@@ -353,7 +353,7 @@ def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
             ]
         if proposal.org_applicant.apply_licence_discount:
             line_items += [
-                {   'ledger_description': 'Licence Discount - {} - {}'.format(now, proposal.lodgement_number),
+                {   'ledger_description': 'Licence Charge Waiver - {} - {}'.format(now, proposal.lodgement_number),
                     'oracle_code': proposal.application_type.oracle_code_application,
                     'price_incl_tax':  -licence_discount,
                     'price_excl_tax':  -licence_discount,
