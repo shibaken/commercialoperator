@@ -33,6 +33,7 @@ from commercialoperator.components.proposals.models import (
                                     ProposalAssessment,
                                     RequirementDocument,
                                     DistrictProposal,
+                                    DistrictProposalDeclinedDetails,
                                 )
 from commercialoperator.components.organisations.models import (
                                 Organisation
@@ -1608,6 +1609,11 @@ class FilmingDistrictProposalSerializer(InternalFilmingProposalSerializer):
             'assessor_box_view': obj.assessor_comments_view(user)
         }
 
+class DistrictProposalDeclinedDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DistrictProposalDeclinedDetails
+        fields = '__all__'
+
 class DistrictProposalSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source='get_processing_status_display')
     district_assessor_can_assess=serializers.SerializerMethodField()
@@ -1615,6 +1621,7 @@ class DistrictProposalSerializer(serializers.ModelSerializer):
     current_assessor = serializers.SerializerMethodField()
     can_process_requirements = serializers.SerializerMethodField()
     district_name = serializers.CharField(read_only=True)
+    districtproposaldeclineddetails = DistrictProposalDeclinedDetailsSerializer()
     #customer_status = serializers.CharField(source='get_customer_status_display')
     # latest_referrals = ProposalReferralSerializer(many=True)
     # can_be_completed = serializers.BooleanField()

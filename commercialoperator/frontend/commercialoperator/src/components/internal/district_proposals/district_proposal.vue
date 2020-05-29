@@ -157,6 +157,7 @@
             </div>
         </div>
         </div>
+        <ProposedDecline ref="proposed_decline" :processing_status="district_proposal.processing_status" :district_proposal_id="district_proposal.id" @refreshFromResponse="refreshFromResponse"></ProposedDecline>
     </div>
 </template>
 <script>
@@ -170,6 +171,7 @@ import Assessment from '@/components/common/tclass/assessment.vue'
 import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import ProposalFilming from '@/components/form_filming.vue'
 import ProposalEvent from '@/components/form_event.vue'
+import ProposedDecline from './district_proposal_proposed_decline.vue'
 import {
     api_endpoints,
     helpers
@@ -257,7 +259,8 @@ export default {
         ProposalFilming,
         ProposalEvent,
         Requirements,
-        Assessment
+        Assessment,
+        ProposedDecline,
     },
     filters: {
         formatDate: function(data){
@@ -355,6 +358,7 @@ export default {
             return s.replace(/[,;]/g, '\n');
         },
         proposedDecline: function(){
+            this.$refs.proposed_decline.decline = this.district_proposal.proposaldeclineddetails != null ? helpers.copyObject(this.district_proposal.proposaldeclineddetails): {};
             this.$refs.proposed_decline.isModalOpen = true;
         },
         ammendmentRequest: function(){

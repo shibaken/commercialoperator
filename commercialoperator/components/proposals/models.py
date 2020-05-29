@@ -2521,6 +2521,7 @@ class ProposalUserAction(UserAction):
     ACTION_CONCLUDE_ASSESSMENT_ = "Conclude assessment {}"
     ACTION_PROPOSED_APPROVAL = "Application {} has been proposed for approval"
     ACTION_PROPOSED_DECLINE = "Application {} has been proposed for decline"
+
     # Referrals
     ACTION_SEND_REFERRAL_TO = "Send referral {} for application {} to {}"
     ACTION_RESEND_REFERRAL_TO = "Resend referral {} for application {} to {}"
@@ -2559,7 +2560,8 @@ class ProposalUserAction(UserAction):
     ACTION_UNASSIGN_DISTRICT_APPROVER = "Unassign approver from District application {} of application {}"
     ACTION_BACK_TO_PROCESSING_DISTRICT = "Back to processing for district application {} of application {}"
     ACTION_ENTER_REQUIREMENTS_DISTRICT = "Enter Requirements for district application {} of application {}"
-
+    ACTION_DISTRICT_PROPOSED_APPROVAL = "District application {} of application {} has been proposed for approval"
+    ACTION_DISTRICT_PROPOSED_DECLINE = "District application {} of application {} has been proposed for decline"
     #Event
     ACTION_CREATE_EVENT_PARK= "Create Event Park {}"
     ACTION_EDIT_EVENT_PARK = "Edit Event Park {}"
@@ -4113,6 +4115,31 @@ class DistrictProposal(models.Model):
                     self.proposal.log_user_action(ProposalUserAction.ACTION_ENTER_REQUIREMENTS_DISTRICT.format(self.id, self.proposal.id),request)
         else:
             raise ValidationError('The provided status cannot be found.')
+
+    def proposed_decline(self,request,details):
+        with transaction.atomic():
+            try:
+                if not self.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if self.processing_status != 'with_assessor':
+                    raise ValidationError('You cannot propose to decline if it is not with assessor')
+
+                reason = details.get('reason')
+                DistrictProposalDeclinedDetails.objects.update_or_create(
+                    district_proposal = self,
+                    defaults={'officer': request.user, 'reason': reason, 'cc_email': details.get('cc_email',None)}
+                )
+                self.proposed_decline_status = True
+                self.move_to_status(request,'with_approver')
+                # Log proposal action
+                self.proposal.log_user_action(ProposalUserAction.ACTION_DISTRICT_PROPOSED_DECLINE.format(self.id, self.proposal.id),request)
+                # Log entry for organisation
+                applicant_field=getattr(self.proposal, self.proposal.applicant_field)
+                applicant_field.log_user_action(ProposalUserAction.ACTION_DISTRICT_PROPOSED_DECLINE.format(self.id, self.proposal.id),request)
+
+                #send_approver_decline_email_notification(reason, request, self)
+            except:
+                raise
 
 
 class DistrictProposalDeclinedDetails(models.Model):
