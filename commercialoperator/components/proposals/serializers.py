@@ -1022,6 +1022,7 @@ class RequirementDocumentSerializer(serializers.ModelSerializer):
 class ProposalRequirementSerializer(serializers.ModelSerializer):
     due_date = serializers.DateField(input_formats=['%d/%m/%Y'],required=False,allow_null=True)
     can_referral_edit=serializers.SerializerMethodField()
+    can_district_assessor_edit=serializers.SerializerMethodField()
     requirement_documents = RequirementDocumentSerializer(many=True, read_only=True)
     class Meta:
         model = ProposalRequirement
@@ -1041,7 +1042,8 @@ class ProposalRequirementSerializer(serializers.ModelSerializer):
             'referral_group',
             'can_referral_edit',
             'district_proposal',
-            'requirement_documents'
+            'requirement_documents',
+            'can_district_assessor_edit'
         )
         read_only_fields = ('order','requirement', 'copied_from')
 
@@ -1049,6 +1051,11 @@ class ProposalRequirementSerializer(serializers.ModelSerializer):
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         return obj.can_referral_edit(user)
+
+    def get_can_district_assessor_edit(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_district_assessor_edit(user)
 
 class ProposalStandardRequirementSerializer(serializers.ModelSerializer):
     class Meta:
@@ -1606,6 +1613,7 @@ class DistrictProposalSerializer(serializers.ModelSerializer):
     district_assessor_can_assess=serializers.SerializerMethodField()
     allowed_district_assessors = EmailUserSerializer(many=True)
     current_assessor = serializers.SerializerMethodField()
+    can_process_requirements = serializers.SerializerMethodField()
     #customer_status = serializers.CharField(source='get_customer_status_display')
     # latest_referrals = ProposalReferralSerializer(many=True)
     # can_be_completed = serializers.BooleanField()
@@ -1633,3 +1641,8 @@ class DistrictProposalSerializer(serializers.ModelSerializer):
             'name': self.context['request'].user.get_full_name(),
             'email': self.context['request'].user.email
         }
+
+    def get_can_process_requirements(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_process_requirements(user)

@@ -2996,6 +2996,12 @@ class ProposalRequirement(OrderedModel):
                     return False
         return False
 
+    def can_district_assessor_edit(self,user):
+        if self.district_proposal and self.proposal.processing_status=='with_district_assessor':
+            if self.district_proposal.can_process_requirements(user):
+                return True
+        return False
+
     def add_documents(self, request):
         with transaction.atomic():
             try:

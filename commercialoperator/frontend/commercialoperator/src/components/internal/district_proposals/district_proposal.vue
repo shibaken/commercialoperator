@@ -127,9 +127,11 @@
         <div class="col-md-1"></div>
         <div class="col-md-8">
             <div class="row" >
-                <!-- <Requirements :proposal="proposal" :hasReferralMode="hasReferralMode" :referral_group="district_proposal.referral_group"/>
-                <Assessment :proposal="proposal" :assessment="district_proposal.referral_assessment" :hasReferralMode="hasReferralMode" :is_internal="is_internal" :is_referral="is_referral"></Assessment> -->
-                <div class="col-md-12" v-if="showingProposal">
+                <template v-if="district_proposal.processing_status == 'With Assessor (Requirements)' || ((district_proposal.processing_status == 'With Approver' || isFinalised) && showingRequirements)">
+                    <Requirements :proposal="proposal" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal="district_proposal.id" />
+                </template>
+                <template v-if="canSeeSubmission || (!canSeeSubmission && showingProposal)">
+                <div class="col-md-12">
                     <div class="row">
                         <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
                                 <ProposalTClass ref="tclass" v-if="proposal && proposal_parks && proposal.application_type=='T Class'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalTClass>
@@ -150,6 +152,7 @@
                         </form>
                     </div>
                 </div>
+            </template>
             </div>
         </div>
         </div>
@@ -188,7 +191,8 @@ export default {
             referral_comment: '',
             proposal_parks:null,
             sendingReferral: false,
-            showingProposal:true,
+            showingProposal:false,
+            showingRequirements:false,
             changingStatus:false,
             form: null,
             members: [],
@@ -286,6 +290,9 @@ export default {
         isFinalised: function(){
             return this.district_proposal.processing_status == 'Declined' || this.district_proposal.processing_status == 'Approved'; 
         },
+        canSeeSubmission: function(){
+            return this.district_proposal && (this.district_proposal.processing_status != 'With Assessor (Requirements)' && this.district_proposal.processing_status != 'With Approver' && !this.isFinalised)
+        },
         canAssess: function(){
             return this.district_proposal && this.district_proposal.district_assessor_can_assess ? true : false;
         },
@@ -313,6 +320,9 @@ export default {
         },
         toggleProposal:function(){
             this.showingProposal = !this.showingProposal;
+        },
+        toggleRequirements:function(){
+            this.showingRequirements = !this.showingRequirements;
         },
         save_wo: function() {
           let vm = this;
