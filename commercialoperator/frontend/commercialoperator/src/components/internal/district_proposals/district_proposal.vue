@@ -394,8 +394,8 @@ export default {
 
         refreshFromResponse:function(response){
             let vm = this;
-            vm.proposal = helpers.copyObject(response.body);
-            vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
+            vm.district_proposal = helpers.copyObject(response.body);
+            // vm.proposal.applicant.address = vm.proposal.applicant.address != null ? vm.proposal.applicant.address : {};
         },
         initialiseOrgContactTable: function(){
             let vm = this;
@@ -409,7 +409,11 @@ export default {
             return s.replace(/[,;]/g, '\n');
         },
         proposedDecline: function(){
-            this.$refs.proposed_decline.decline = this.district_proposal.proposaldeclineddetails != null ? helpers.copyObject(this.district_proposal.proposaldeclineddetails): {};
+            this.$refs.proposed_decline.decline = this.district_proposal.proposaldeclineddetails != null ? helpers.copyObject(this.district_proposal.districtproposaldeclineddetails): {};
+            this.$refs.proposed_decline.isModalOpen = true;
+        },
+        declineProposal:function(){
+            this.$refs.proposed_decline.decline = this.district_proposal.districtproposaldeclineddetails != null ? helpers.copyObject(this.district_proposal.districtproposaldeclineddetails): {};
             this.$refs.proposed_decline.isModalOpen = true;
         },
         ammendmentRequest: function(){
@@ -424,7 +428,7 @@ export default {
                 'Your application has been saved',
                 'success'
               )
-          },err=>{
+          },err=>{                                  
           });
         },
         // assignTo: function(){

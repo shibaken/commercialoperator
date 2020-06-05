@@ -7,7 +7,7 @@
                 <p>Licence: <a target="_blank" :href="district_proposal.permit">licence.pdf</a></p>
             </div>
             <div v-else class="col-md-12 alert alert-warning">
-                <p>The application was declined. The decision was emailed to {{district_proposal.applicant}}</p>
+                <p>The application was declined. The decision was emailed to {{district_proposal.proposal.applicant}}</p>
             </div>    
         </template>
         

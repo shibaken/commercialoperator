@@ -403,12 +403,16 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     CUSTOMER_STATUS_APPROVED = 'approved'
     CUSTOMER_STATUS_DECLINED = 'declined'
     CUSTOMER_STATUS_DISCARDED = 'discarded'
+    CUSTOMER_STATUS_PARTIALLY_APPROVED = 'partially_approved'
+    CUSTOMER_STATUS_PARTIALLY_DECLINED = 'partially_declined'
     CUSTOMER_STATUS_CHOICES = ((CUSTOMER_STATUS_TEMP, 'Temporary'), ('draft', 'Draft'),
                                (CUSTOMER_STATUS_WITH_ASSESSOR, 'Under Review'),
                                (CUSTOMER_STATUS_AMENDMENT_REQUIRED, 'Amendment Required'),
                                (CUSTOMER_STATUS_APPROVED, 'Approved'),
                                (CUSTOMER_STATUS_DECLINED, 'Declined'),
                                (CUSTOMER_STATUS_DISCARDED, 'Discarded'),
+                               (CUSTOMER_STATUS_PARTIALLY_APPROVED, 'Partially Approved'),
+                               (CUSTOMER_STATUS_PARTIALLY_DECLINED, 'Partially Declined'),
                                )
 
     # List of statuses from above that allow a customer to edit an application.
@@ -439,6 +443,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     PROCESSING_STATUS_APPROVED = 'approved'
     PROCESSING_STATUS_DECLINED = 'declined'
     PROCESSING_STATUS_DISCARDED = 'discarded'
+    PROCESSING_STATUS_PARTIALLY_APPROVED = 'partially_approved'
+    PROCESSING_STATUS_PARTIALLY_DECLINED = 'partially_declined'
     PROCESSING_STATUS_CHOICES = ((PROCESSING_STATUS_TEMP, 'Temporary'),
                                  (PROCESSING_STATUS_DRAFT, 'Draft'),
                                  (PROCESSING_STATUS_WITH_ASSESSOR, 'With Assessor'),
@@ -458,6 +464,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                  (PROCESSING_STATUS_APPROVED, 'Approved'),
                                  (PROCESSING_STATUS_DECLINED, 'Declined'),
                                  (PROCESSING_STATUS_DISCARDED, 'Discarded'),
+                                 (PROCESSING_STATUS_PARTIALLY_APPROVED, 'Partially Approved'),
+                                 (PROCESSING_STATUS_PARTIALLY_DECLINED, 'Partially Declined'),
                                  )
 
     ID_CHECK_STATUS_CHOICES = (('not_checked', 'Not Checked'), ('awaiting_update', 'Awaiting Update'),
@@ -2562,6 +2570,8 @@ class ProposalUserAction(UserAction):
     ACTION_ENTER_REQUIREMENTS_DISTRICT = "Enter Requirements for district application {} of application {}"
     ACTION_DISTRICT_PROPOSED_APPROVAL = "District application {} of application {} has been proposed for approval"
     ACTION_DISTRICT_PROPOSED_DECLINE = "District application {} of application {} has been proposed for decline"
+    ACTION_DISTRICT_DECLINE = "District application {} of application {} has been declined"
+
     #Event
     ACTION_CREATE_EVENT_PARK= "Create Event Park {}"
     ACTION_EDIT_EVENT_PARK = "Edit Event Park {}"
@@ -4138,6 +4148,45 @@ class DistrictProposal(models.Model):
                 applicant_field.log_user_action(ProposalUserAction.ACTION_DISTRICT_PROPOSED_DECLINE.format(self.id, self.proposal.id),request)
 
                 #send_approver_decline_email_notification(reason, request, self)
+            except:
+                raise
+
+    def final_decline(self,request,details):
+        with transaction.atomic():
+            try:
+                if not self.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if self.processing_status != 'with_approver':
+                    raise ValidationError('You cannot decline if it is not with approver')
+
+                proposal_decline, success = DistrictProposalDeclinedDetails.objects.update_or_create(
+                    district_proposal = self,
+                    defaults={'officer':request.user,'reason':details.get('reason'),'cc_email':details.get('cc_email',None)}
+                )
+                self.proposed_decline_status = True
+                self.processing_status = 'declined'
+                #self.customer_status = 'declined'
+                self.save()
+                proposal=self.proposal
+                all_district_proposals=proposal.district_proposals.all()
+                approved_district_proposals=proposal.district_proposals.filter(processing_status='approved')
+                declined_district_proposals=proposal.district_proposals.filter(processing_status='declined')
+                if proposal.processing_status=='partially_declined':
+                    if declined_district_proposals.count() == all_district_proposals.count():
+                        proposal.processing_status='declined'
+                        proposal.customer_status='declined'
+                        proposal.save()
+                if proposal.processing_status== 'with_district_assessor':
+                    proposal.processing_status='partially_declined'
+                    proposal.customer_status='partially_declined'
+                    proposal.save()
+
+                self.proposal.log_user_action(ProposalUserAction.ACTION_DISTRICT_DECLINE.format(self.id, self.proposal.id),request)
+                # Log entry for organisation
+                applicant_field=getattr(self.proposal, self.proposal.applicant_field)
+                applicant_field.log_user_action(ProposalUserAction.ACTION_DISTRICT_DECLINE.format(self.id, self.proposal.id),request)
+
+                #send_proposal_decline_email_notification(self,request, proposal_decline)
             except:
                 raise
 
