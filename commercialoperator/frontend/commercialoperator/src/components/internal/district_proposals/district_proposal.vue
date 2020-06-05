@@ -48,14 +48,27 @@
                                 <div class="separator"></div>
                             </div>
                             
-                            <div class="col-sm-12">
-                                <div class="separator"></div>
-                            </div>
-                            <div class="col-sm-12">
-                                    <strong>Application</strong><br/>
-                                    <a class="actionBtn" v-if="!showingProposal" @click.prevent="toggleProposal()">Show Application</a>
-                                    <a class="actionBtn" v-else @click.prevent="toggleProposal()">Hide Application</a>
-                            </div>
+                            
+                            <template v-if="district_proposal.processing_status == 'With Assessor (Requirements)' || district_proposal.processing_status == 'With Approver' || isFinalised">
+                                <div class="col-sm-12">
+                                        <strong>Application</strong><br/>
+                                        <a class="actionBtn" v-if="!showingProposal" @click.prevent="toggleProposal()">Show Application</a>
+                                        <a class="actionBtn" v-else @click.prevent="toggleProposal()">Hide Application</a>
+                                </div>
+                                <div class="col-sm-12">
+                                    <div class="separator"></div>
+                                </div>
+                            </template>
+                            <template v-if="district_proposal.processing_status == 'With Approver' || isFinalised">
+                                <div class="col-sm-12">
+                                    <strong>Requirements</strong><br/>
+                                    <a class="actionBtn" v-if="!showingRequirements" @click.prevent="toggleRequirements()">Show Requirements</a>
+                                    <a class="actionBtn" v-else @click.prevent="toggleRequirements()">Hide Requirements</a>
+                                </div>
+                                <div class="col-sm-12">
+                                    <div class="separator"></div>
+                                </div>
+                            </template>
                             <div class="col-sm-12">
                                 <div class="separator"></div>
                             </div>
@@ -117,6 +130,38 @@
                                         </div>
                                     </div>
                                 </template>
+                                <template v-else-if="district_proposal.processing_status == 'With Approver'">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <strong>Action</strong><br/>
+                                        </div>
+                                    </div>
+
+                                    <!-- <div class="row">
+                                        <div class="col-sm-12">
+                                            <label class="control-label pull-left"  for="Name">Approver Comments</label>
+                                            <textarea class="form-control" name="name" v-model="approver_comment"></textarea><br>
+                                        </div>
+                                    </div> -->
+
+                                    <div class="row">
+                                        <div class="col-sm-12" v-if="proposal.proposed_decline_status">
+                                            <button style="width:80%;" class="btn btn-primary" :disabled="proposal.can_user_edit" @click.prevent="switchStatus('with_assessor')"><!-- Back To Processing -->Back To Assessor</button><br/>
+                                        </div>
+                                        <div class="col-sm-12" v-else>
+                                            <button style="width:80%;" class="btn btn-primary" :disabled="proposal.can_user_edit" @click.prevent="switchStatus('with_assessor_requirements')"><!-- Back To Requirements -->Back To Assessor</button><br/>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <!-- v-if="!proposal.proposed_decline_status" -->
+                                        <div class="col-sm-12" >
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="issueProposal()">Approve</button><br/>
+                                        </div>
+                                        <div class="col-sm-12">
+                                            <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="declineProposal()">Decline</button><br/>
+                                        </div>
+                                    </div>
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -130,6 +175,9 @@
             <div class="row" >
                 <template v-if="district_proposal.processing_status == 'With Assessor (Requirements)' || ((district_proposal.processing_status == 'With Approver' || isFinalised) && showingRequirements)">
                     <Requirements :proposal="proposal" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal="district_proposal.id" />
+                </template>
+                <template v-if="district_proposal.processing_status == 'With Approver' || isFinalised">
+                    <ApprovalScreen :district_proposal="district_proposal" @refreshFromResponse="refreshFromResponse"/>
                 </template>
                 <template v-if="canSeeSubmission || (!canSeeSubmission && showingProposal)">
                 <div class="col-md-12">
@@ -172,6 +220,8 @@ import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import ProposalFilming from '@/components/form_filming.vue'
 import ProposalEvent from '@/components/form_event.vue'
 import ProposedDecline from './district_proposal_proposed_decline.vue'
+import ApprovalScreen from './district_proposal_approval.vue'
+
 import {
     api_endpoints,
     helpers
@@ -261,6 +311,7 @@ export default {
         Requirements,
         Assessment,
         ProposedDecline,
+        ApprovalScreen,
     },
     filters: {
         formatDate: function(data){
