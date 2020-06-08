@@ -4190,6 +4190,35 @@ class DistrictProposal(models.Model):
             except:
                 raise
 
+    def proposed_approval(self,request,details):
+        with transaction.atomic():
+            try:
+                if not self.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if self.processing_status != 'with_assessor_requirements':
+                    raise ValidationError('You cannot propose for approval if it is not with assessor for requirements')
+                self.proposed_issuance_approval = {
+                    'start_date' : details.get('start_date').strftime('%d/%m/%Y'),
+                    'expiry_date' : details.get('expiry_date').strftime('%d/%m/%Y'),
+                    'details': details.get('details'),
+                    'cc_email':details.get('cc_email')
+                }
+                self.proposed_decline_status = False
+                #approver_comment = ''
+                self.move_to_status(request,'with_approver')
+                self.assigned_officer = None
+                self.save()
+                # Log proposal action
+                self.proposal.log_user_action(ProposalUserAction.ACTION_DISTRICT_PROPOSED_APPROVAL.format(self.id, self.proposal.id),request)
+                # Log entry for organisation
+                applicant_field=getattr(self.proposal, self.proposal.applicant_field)
+                applicant_field.log_user_action(ProposalUserAction.ACTION_DISTRICT_PROPOSED_APPROVAL.format(self.id, self.proposal.id),request)
+
+                #send_approver_approve_email_notification(request, self)
+            except:
+                raise
+
+
 
 class DistrictProposalDeclinedDetails(models.Model):
     #proposal = models.OneToOneField(Proposal, related_name='declined_details')

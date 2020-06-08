@@ -206,6 +206,7 @@
         </div>
         </div>
         <ProposedDecline ref="proposed_decline" :processing_status="district_proposal.processing_status" :district_proposal_id="district_proposal.id" @refreshFromResponse="refreshFromResponse"></ProposedDecline>
+        <ProposedApproval ref="proposed_approval" :processing_status="district_proposal.processing_status" :district_proposal_id="district_proposal.id" :proposal_type='proposal.proposal_type' :isApprovalLevelDocument="isApprovalLevelDocument" @refreshFromResponse="refreshFromResponse"/>
     </div>
 </template>
 <script>
@@ -221,6 +222,7 @@ import ProposalFilming from '@/components/form_filming.vue'
 import ProposalEvent from '@/components/form_event.vue'
 import ProposedDecline from './district_proposal_proposed_decline.vue'
 import ApprovalScreen from './district_proposal_approval.vue'
+import ProposedApproval from './district_proposed_issuance.vue'
 
 import {
     api_endpoints,
@@ -312,6 +314,7 @@ export default {
         Assessment,
         ProposedDecline,
         ApprovalScreen,
+        ProposedApproval,
     },
     filters: {
         formatDate: function(data){
@@ -359,8 +362,8 @@ export default {
                 return this.district_proposal && (this.district_proposal.processing_status == 'With Approver' || this.district_proposal.processing_status == 'With Assessor' || this.district_proposal.processing_status == 'With Assessor (Requirements)') && !this.isFinalised && !this.proposal.can_user_edit && (this.district_proposal.current_assessor.id == this.district_proposal.assigned_officer || this.district_proposal.assigned_officer == null ) && this.district_proposal.district_assessor_can_assess? true : false;
             }
         },
-        referral_form_url: function() {
-          return (this.district_proposal) ? `/api/referrals/${this.district_proposal.id}/complete_referral.json` : '';
+        isApprovalLevelDocument: function(){
+            return this.proposal && this.proposal.processing_status == 'With Approver' && this.proposal.approval_level != null && this.proposal.approval_level_document == null ? true : false;
         },
     },
     methods: {
@@ -416,6 +419,18 @@ export default {
             this.$refs.proposed_decline.decline = this.district_proposal.districtproposaldeclineddetails != null ? helpers.copyObject(this.district_proposal.districtproposaldeclineddetails): {};
             this.$refs.proposed_decline.isModalOpen = true;
         },
+        proposedApproval: function(){
+            this.$refs.proposed_approval.approval = this.district_proposal.proposed_issuance_approval != null ? helpers.copyObject(this.district_proposal.proposed_issuance_approval) : {};
+            if((this.district_proposal.proposed_issuance_approval==null || this.district_proposal.proposed_issuance_approval.expiry_date==null) && this.district_proposal.proposal.filming_activity.completion_date!=null){
+                var test_approval={
+                    'start_date': this.district_proposal.proposal.filming_activity.commencement_date,
+                    'expiry_date': this.district_proposal.proposal.filming_activity.completion_date
+                };
+            }
+            this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
+            
+            this.$refs.proposed_approval.isModalOpen = true;
+        }, 
         ammendmentRequest: function(){
             this.$refs.ammendment_request.isModalOpen = true;
         },
