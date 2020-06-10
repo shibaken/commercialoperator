@@ -94,7 +94,8 @@ from commercialoperator.components.proposals.serializers import (
     InternalFilmingProposalSerializer,
     ProposalEventSerializer,
     InternalEventProposalSerializer,
-    DistrictProposalSerializer
+    DistrictProposalSerializer,
+    ListDistrictProposalSerializer,
 )
 from commercialoperator.components.proposals.serializers_filming import (
     ProposalFilmingOtherDetailsSerializer,
@@ -2591,3 +2592,49 @@ class DistrictProposalViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+
+class DistrictProposalPaginatedViewSet(viewsets.ModelViewSet):
+    #queryset = DistrictProposal.objects.all()
+    #filter_backends = (DatatablesFilterBackend,)
+    filter_backends = (ProposalFilterBackend,)
+    pagination_class = DatatablesPageNumberPagination
+    renderer_classes = (ProposalRenderer,)
+    queryset = DistrictProposal.objects.none()
+    serializer_class = ListDistrictProposalSerializer
+    page_size = 10
+
+
+
+    def get_queryset(self):
+        user = self.request.user
+        if is_internal(self.request): #user.is_authenticated():
+            user_assessor_groups= user.districtproposalassessorgroup_set.all()
+            user_approver_groups= user.districtproposalapprovergroup_set.all()
+            qs= [d.id for d in DistrictProposal.objects.all() if d.assessor_group in user_assessor_groups or d.approver_group in user_approver_groups]
+            queryset= DistrictProposal.objects.filter(id__in=qs)
+            return queryset
+        return DistrictProposal.objects.none()
+
+
+    @list_route(methods=['GET',])
+    def district_proposals_internal(self, request, *args, **kwargs):
+        """
+        Used by the internal dashboard
+
+        http://localhost:8499/api/district_proposal_paginated/district_proposal_paginated_internal/?format=datatables&draw=1&length=2
+        """
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+
+        # on the internal organisations dashboard, filter the DistrictProposal/Approval/Compliance datatables by applicant/organisation
+        # applicant_id = request.GET.get('org_id')
+        # if applicant_id:
+        #     qs = qs.filter(proposal__org_applicant_id=applicant_id)
+        # submitter_id = request.GET.get('submitter_id', None)
+        # if submitter_id:
+        #     qs = qs.filter(proposal__submitter_id=submitter_id)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = ListDistrictProposalSerializer(result_page, context={'request':request}, many=True)
+        return self.paginator.get_paginated_response(serializer.data)

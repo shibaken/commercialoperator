@@ -3989,6 +3989,40 @@ class DistrictProposal(models.Model):
         #return self.region.split(',') if self.region else []
         return self.district.name if self.district else ''
 
+    @property    
+    def assessor_group(self):
+        # TODO get list of assessor groups based on region and activity
+        if self.district:
+            try:
+                check_group = DistrictProposalAssessorGroup.objects.filter(
+                    #activities__name__in=[self.activity],
+                    district__name__in=self.districts_list
+                ).distinct()
+                if check_group:
+                    return check_group[0]
+            except DistrictProposalAssessorGroup.DoesNotExist:
+                pass
+        default_group = DistrictProposalAssessorGroup.objects.get(default=True)
+
+        return default_group
+
+    @property
+    def approver_group(self):
+        # TODO get list of approver groups based on region and activity
+        if self.district:
+            try:
+                check_group = DistrictProposalApproverGroup.objects.filter(
+                    #activities__name__in=[self.activity],
+                    district__name__in=self.districts_list
+                ).distinct()
+                if check_group:
+                    return check_group[0]
+            except DistrictProposalApproverGroup.DoesNotExist:
+                pass
+        default_group = DistrictProposalApproverGroup.objects.get(default=True)
+
+        return default_group
+
     def __assessor_group(self):
         # TODO get list of assessor groups based on region and activity
         if self.district:

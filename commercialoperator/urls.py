@@ -85,6 +85,8 @@ router.register(r'event_trail_container', main_api.TrailTabViewSet, base_name='e
 router.register(r'proposal_filming_parks', proposal_api_filming.ProposalFilmingParksViewSet)
 #router.register(r'filming_activity_tab', proposal_api_filming.FilmingActivityTabView, base_name='filming_activity_tab')
 router.register(r'district_proposals',proposal_api.DistrictProposalViewSet)
+router.register(r'district_proposal_paginated',proposal_api.DistrictProposalPaginatedViewSet)
+
 
 #Events
 router.register(r'proposal_events_parks', proposal_api_event.ProposalEventsParksViewSet)

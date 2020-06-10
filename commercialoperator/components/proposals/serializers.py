@@ -1654,3 +1654,27 @@ class DistrictProposalSerializer(serializers.ModelSerializer):
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         return obj.can_process_requirements(user)
+
+
+class ListDistrictProposalSerializer(serializers.ModelSerializer):
+    processing_status = serializers.CharField(source='get_processing_status_display')
+    district_assessor_can_assess=serializers.SerializerMethodField()
+    district_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = DistrictProposal
+        fields = (
+                'id',
+                'processing_status',
+                'district_name',
+                'district_assessor_can_assess',
+                'proposal',
+
+                )
+
+
+    def get_district_assessor_can_assess(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_assess(user)
+
