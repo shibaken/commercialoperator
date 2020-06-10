@@ -1660,6 +1660,7 @@ class ListDistrictProposalSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source='get_processing_status_display')
     district_assessor_can_assess=serializers.SerializerMethodField()
     district_name = serializers.CharField(read_only=True)
+    submitter= EmailUserAppViewSerializer()
 
     class Meta:
         model = DistrictProposal
@@ -1669,9 +1670,15 @@ class ListDistrictProposalSerializer(serializers.ModelSerializer):
                 'district_name',
                 'district_assessor_can_assess',
                 'proposal',
+                'applicant',
+                'submitter',
 
                 )
 
+
+    def __init__(self,*args,**kwargs):
+        super(ListDistrictProposalSerializer, self).__init__(*args, **kwargs)
+        self.fields['proposal'] = FilmingDistrictProposalSerializer(context={'request':self.context['request']})
 
     def get_district_assessor_can_assess(self,obj):
         request = self.context['request']

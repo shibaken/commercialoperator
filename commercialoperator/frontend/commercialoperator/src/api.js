@@ -62,6 +62,7 @@ module.exports = {
     filter_list_compliances:        "/api/compliances/filter_list.json",
     filter_list_referrals:          "/api/referrals/filter_list.json",
     filter_list_parks:              "/api/parks/filter_list.json",
+    filter_list_district_proposal:  "/api/district_proposals/filter_list.json",
 
     //approvals_paginated:"/api/approvals/user_list_paginated/?format=datatables",
     //compliances_paginated:"/api/compliances/user_list_paginated/?format=datatables",

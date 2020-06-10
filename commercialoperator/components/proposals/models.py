@@ -3989,6 +3989,15 @@ class DistrictProposal(models.Model):
         #return self.region.split(',') if self.region else []
         return self.district.name if self.district else ''
 
+    @property
+    def submitter(self):
+        return self.proposal.submitter
+
+    @property
+    def applicant(self):
+        return self.proposal.applicant    
+    
+
     @property    
     def assessor_group(self):
         # TODO get list of assessor groups based on region and activity
