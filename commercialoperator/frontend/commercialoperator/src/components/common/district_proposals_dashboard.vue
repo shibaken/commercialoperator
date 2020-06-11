@@ -3,7 +3,7 @@
         <div class="col-sm-12">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Distrcict Applications referred to me
+                    <h3 class="panel-title">District Applications referred to me
                         <a :href="'#'+pBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="pBody">
                             <span class="glyphicon glyphicon-chevron-up pull-right "></span>
                         </a>
@@ -162,7 +162,7 @@ export default {
                     },
                     {
                         data: "processing_status",
-                        name: "proposal__processing_status",
+                        name: "processing_status",
                     },
                     {
                         data: "proposal_lodgement_date",
@@ -175,14 +175,14 @@ export default {
                         data: '',
                         mRender:function (data,type,full) {
                             let links = '';
-                            links +=  full.district_assessor_can_assess ? `<a href='/internal/proposal/${full.proposal}/district_proposal/${full.id}'>Process</a><br/>`: `<a href='/internal/proposal/${full.proposal}/district_proposal/${full.id}'>View</a><br/>`;
+                            links +=  full.district_assessor_can_assess ? `<a href='/internal/proposal/${full.proposal.id}/district_proposal/${full.id}'>Process</a><br/>`: `<a href='/internal/proposal/${full.proposal.id}/district_proposal/${full.id}'>View</a><br/>`;
                             return links;
                         },
                         searchable: false,
                         orderable: false,
                         name: ''
                     },
-                    {data: "district_proposal", visible: false},
+                    {data: "proposal", visible: false},
                     {data: "id", visible: false},
 
                 ],

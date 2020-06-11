@@ -56,13 +56,15 @@ module.exports = {
     qaofficer_paginated_internal:   "/api/proposal_paginated/qaofficer_internal/?format=datatables",
     booking_paginated_internal:     "/api/booking_paginated/bookings_external/?format=datatables",
     parkbooking_paginated_internal: "/api/parkbooking_paginated/park_bookings/?format=datatables",
+    district_proposals_paginated_internal:   "/api/district_proposal_paginated/district_proposals_internal/?format=datatables",
+
     //filter_list:                    "/api/proposal_paginated/filter_list.json",
     filter_list:                    "/api/proposal/filter_list.json",
     filter_list_approvals:          "/api/approvals/filter_list.json",
     filter_list_compliances:        "/api/compliances/filter_list.json",
     filter_list_referrals:          "/api/referrals/filter_list.json",
     filter_list_parks:              "/api/parks/filter_list.json",
-    filter_list_district_proposal:  "/api/district_proposals/filter_list.json",
+    filter_list_district_proposals:  "/api/district_proposals/filter_list.json",
 
     //approvals_paginated:"/api/approvals/user_list_paginated/?format=datatables",
     //compliances_paginated:"/api/compliances/user_list_paginated/?format=datatables",

@@ -293,6 +293,12 @@ class ProposalFilterBackend(DatatablesFilterBackend):
                 queryset = queryset.filter(arrival__gte=date_from)
             elif date_to:
                 queryset = queryset.filter(arrival__lte=date_to)
+        elif queryset.model is DistrictProposal:
+            if date_from:
+                queryset = queryset.filter(proposal__lodgement_date__gte=date_from)
+
+            if date_to:
+                queryset = queryset.filter(proposal__lodgement_date__lte=date_to)
 
         queryset = super(ProposalFilterBackend, self).filter_queryset(request, queryset, view)
         setattr(view, '_datatables_total_count', total_count)

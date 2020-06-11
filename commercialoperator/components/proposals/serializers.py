@@ -1660,7 +1660,10 @@ class ListDistrictProposalSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source='get_processing_status_display')
     district_assessor_can_assess=serializers.SerializerMethodField()
     district_name = serializers.CharField(read_only=True)
-    submitter= EmailUserAppViewSerializer()
+    proposal_lodgement_date = serializers.CharField(source='proposal.lodgement_date')
+    proposal_lodgement_number = serializers.CharField(source='proposal.lodgement_number')
+    submitter = serializers.SerializerMethodField()
+    #submitter= EmailUserAppViewSerializer()
 
     class Meta:
         model = DistrictProposal
@@ -1672,16 +1675,33 @@ class ListDistrictProposalSerializer(serializers.ModelSerializer):
                 'proposal',
                 'applicant',
                 'submitter',
+                'proposal_lodgement_date',
+                'proposal_lodgement_number',
 
                 )
 
+        datatables_always_serialize = (
+                'id',
+                'processing_status',
+                'district_name',
+                'district_assessor_can_assess',
+                'proposal',
+                'applicant',
+                'submitter',               
+                'proposal_lodgement_date',
+                'proposal_lodgement_number',
+                )
 
-    def __init__(self,*args,**kwargs):
-        super(ListDistrictProposalSerializer, self).__init__(*args, **kwargs)
-        self.fields['proposal'] = FilmingDistrictProposalSerializer(context={'request':self.context['request']})
+
+    # def __init__(self,*args,**kwargs):
+    #     super(ListDistrictProposalSerializer, self).__init__(*args, **kwargs)
+    #     self.fields['proposal'] = FilmingDistrictProposalSerializer(context={'request':self.context['request']})
 
     def get_district_assessor_can_assess(self,obj):
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         return obj.can_assess(user)
+
+    def get_submitter(self,obj):
+        return EmailUserSerializer(obj.proposal.submitter).data
 
