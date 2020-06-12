@@ -2620,6 +2620,30 @@ class DistrictProposalViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    @detail_route(methods=['POST',])
+    def final_approval(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = ProposedApprovalSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            instance.final_approval(request,serializer.validated_data)
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer_class = DistrictProposalSerializer
+            serializer = serializer_class(instance,context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
 class DistrictProposalPaginatedViewSet(viewsets.ModelViewSet):
     #queryset = DistrictProposal.objects.all()
     #filter_backends = (DatatablesFilterBackend,)

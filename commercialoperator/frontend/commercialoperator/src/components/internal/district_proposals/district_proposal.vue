@@ -431,6 +431,13 @@ export default {
             
             this.$refs.proposed_approval.isModalOpen = true;
         }, 
+        issueProposal:function(){
+            //this.$refs.proposed_approval.approval = helpers.copyObject(this.proposal.proposed_issuance_approval);
+            this.$refs.proposed_approval.approval = this.district_proposal.proposed_issuance_approval != null ? helpers.copyObject(this.district_proposal.proposed_issuance_approval) : {};
+            this.$refs.proposed_approval.state = 'final_approval';
+            this.$refs.proposed_approval.isApprovalLevelDocument = this.isApprovalLevelDocument;
+            this.$refs.proposed_approval.isModalOpen = true;
+        },
         ammendmentRequest: function(){
             this.$refs.ammendment_request.isModalOpen = true;
         },

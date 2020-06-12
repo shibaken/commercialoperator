@@ -3995,7 +3995,11 @@ class DistrictProposal(models.Model):
 
     @property
     def applicant(self):
-        return self.proposal.applicant    
+        return self.proposal.applicant   
+
+    @property
+    def permit(self):
+        return self.proposal.permit    
     
 
     @property    
@@ -4258,6 +4262,166 @@ class DistrictProposal(models.Model):
                 applicant_field.log_user_action(ProposalUserAction.ACTION_DISTRICT_PROPOSED_APPROVAL.format(self.id, self.proposal.id),request)
 
                 #send_approver_approve_email_notification(request, self)
+            except:
+                raise
+
+    def final_approval(self,request,details):
+        from commercialoperator.components.approvals.models import Approval, DistrictApproval
+        with transaction.atomic():
+            try:
+                if not self.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if self.processing_status != 'with_approver':
+                    raise ValidationError('You cannot issue the approval if it is not with an approver')
+                #if not self.applicant.organisation.postal_address:
+                if not self.proposal.applicant_address:
+                    raise ValidationError('The applicant needs to have set their postal address before approving this proposal.')
+
+                self.proposed_issuance_approval = {
+                    'start_date' : details.get('start_date').strftime('%d/%m/%Y'),
+                    'expiry_date' : details.get('expiry_date').strftime('%d/%m/%Y'),
+                    'details': details.get('details'),
+                    'cc_email':details.get('cc_email')
+                }
+                self.proposed_decline_status = False
+                self.processing_status = 'approved'
+                #self.customer_status = 'approved'
+                # Log proposal action
+                self.proposal.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id),request)
+                # Log entry for organisation
+                applicant_field=getattr(self.proposal, self.proposal.applicant_field)
+                applicant_field.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id),request)
+
+                if self.processing_status == 'approved':
+                    # TODO if it is an ammendment proposal then check appropriately
+                    checking_district_proposal = self
+                    checking_proposal = self.proposal
+                    # if self.proposal_type == 'renewal':
+                    #     if self.previous_application:
+                    #         previous_approval = self.previous_application.approval
+                    #         approval,created = Approval.objects.update_or_create(
+                    #             current_proposal = checking_proposal,
+                    #             defaults = {
+                    #                 'issue_date' : timezone.now(),
+                    #                 'expiry_date' : details.get('expiry_date'),
+                    #                 'start_date' : details.get('start_date'),
+                    #                 'submitter': self.submitter,
+                    #                 #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
+                    #                 #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
+                    #                 'org_applicant' : self.org_applicant,
+                    #                 'proxy_applicant' : self.proxy_applicant,
+                    #                 'lodgement_number': previous_approval.lodgement_number
+                    #             }
+                    #         )
+                    #         if created:
+                    #             previous_approval.replaced_by = approval
+                    #             previous_approval.save()
+
+                    # elif self.proposal_type == 'amendment':
+                    #     if self.previous_application:
+                    #         previous_approval = self.previous_application.approval
+                    #         approval,created = Approval.objects.update_or_create(
+                    #             current_proposal = checking_proposal,
+                    #             defaults = {
+                    #                 'issue_date' : timezone.now(),
+                    #                 'expiry_date' : details.get('expiry_date'),
+                    #                 'start_date' : details.get('start_date'),
+                    #                 'submitter': self.submitter,
+                    #                 #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
+                    #                 #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
+                    #                 'org_applicant' : self.org_applicant,
+                    #                 'proxy_applicant' : self.proxy_applicant,
+                    #                 'lodgement_number': previous_approval.lodgement_number
+                    #             }
+                    #         )
+                    #         if created:
+                    #             previous_approval.replaced_by = approval
+                    #             previous_approval.save()
+                    # else:
+                    #     approval,created = Approval.objects.update_or_create(
+                    #         current_proposal = checking_proposal,
+                    #         defaults = {
+                    #             'issue_date' : timezone.now(),
+                    #             'expiry_date' : details.get('expiry_date'),
+                    #             'start_date' : details.get('start_date'),
+                    #             'submitter': self.submitter,
+                    #             #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
+                    #             #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
+                    #             'org_applicant' : self.org_applicant,
+                    #             'proxy_applicant' : self.proxy_applicant,
+                    #             #'extracted_fields' = JSONField(blank=True, null=True)
+                    #         }
+                    #     )
+                    
+                    district_approval,district_created = DistrictApproval.objects.update_or_create(
+                        current_district_proposal = checking_district_proposal,
+                        defaults = {
+                            'issue_date' : timezone.now(),
+                            'expiry_date' : details.get('expiry_date'),
+                            'start_date' : details.get('start_date'),
+                            #'submitter': self.proposal.submitter,
+                            #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
+                            #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
+                            #'org_applicant' : self.proposal.org_applicant,
+                            #'proxy_applicant' : self.proposal.proxy_applicant,
+                            #'extracted_fields' = JSONField(blank=True, null=True)
+                        }
+                    )
+                    approval,created = Approval.objects.update_or_create(
+                        current_proposal = checking_proposal,
+                        defaults = {
+                            'issue_date' : timezone.now(),
+                            'expiry_date' : details.get('expiry_date'),
+                            'start_date' : details.get('start_date'),
+                            'submitter': self.proposal.submitter,
+                            #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
+                            #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
+                            'org_applicant' : self.proposal.org_applicant,
+                            'proxy_applicant' : self.proposal.proxy_applicant,
+                            #'extracted_fields' = JSONField(blank=True, null=True)
+                        }
+                    )
+                    print('district created', district_created, district_approval)
+                    print('approval created',created, approval)
+                    # Generate compliances
+                    from commercialoperator.components.compliances.models import Compliance, ComplianceUserAction
+                    if district_created:
+                        # if self.proposal_type == 'amendment':
+                        #     approval_compliances = Compliance.objects.filter(approval= previous_approval, proposal = self.previous_application, processing_status='future')
+                        #     if approval_compliances:
+                        #         for c in approval_compliances:
+                        #             c.delete()
+                        # Log creation
+                        # Generate the document
+                        approval.generate_doc(request.user)
+                        #self.generate_compliances(approval, request)
+                        # send the doc and log in approval and org
+                    else:
+                        #approval.replaced_by = request.user
+                        #approval.replaced_by = self.approval
+                        # Generate the document
+                        approval.generate_doc(request.user)
+                        #Delete the future compliances if Approval is reissued and generate the compliances again.
+                        # approval_compliances = Compliance.objects.filter(approval= approval, proposal = self, processing_status='future')
+                        # if approval_compliances:
+                        #     for c in approval_compliances:
+                        #         c.delete()
+                        # self.generate_compliances(approval, request)
+                        # Log proposal action
+                        self.proposal.log_user_action(ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(self.id),request)
+                        # Log entry for organisation
+                        applicant_field=getattr(self.proposal, self.proposal.applicant_field)
+                        applicant_field.log_user_action(ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(self.id),request)
+                    self.proposal.approval = approval
+                    self.save()
+                #send Proposal approval email with attachment
+                #send_proposal_approval_email_notification(self,request)
+                district_approval.lodgement_number= approval.lodgement_number
+                district_approval.licence_document= approval.licence_document
+                district_approval.save()
+                self.proposal.save(version_comment='Final District Approval: {} for District Proposal: {}'.format(self.proposal.approval.lodgement_number, self.id))
+                self.proposal.approval.documents.all().update(can_delete=False)
+
             except:
                 raise
 

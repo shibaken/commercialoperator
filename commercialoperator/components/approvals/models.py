@@ -577,11 +577,11 @@ class DistrictApproval(RevisionedMixin):
     lodgement_number = models.CharField(max_length=9, blank=True, default='')
     status = models.CharField(max_length=40, choices=STATUS_CHOICES,
                                        default=STATUS_CHOICES[0][0])
-    #licence_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='licence_document')
+    licence_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='district_licence_document')
     #cover_letter_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='cover_letter_document')
     replaced_by = models.ForeignKey('self', blank=True, null=True)
     current_district_proposal = models.ForeignKey(DistrictProposal,related_name='district_approvals', null=True)
-    #renewal_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='renewal_document')
+    renewal_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='district_renewal_document')
     renewal_sent = models.BooleanField(default=False)
     issue_date = models.DateTimeField()
     original_issue_date = models.DateField(auto_now_add=True)
