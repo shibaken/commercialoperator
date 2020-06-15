@@ -2571,6 +2571,8 @@ class ProposalUserAction(UserAction):
     ACTION_DISTRICT_PROPOSED_APPROVAL = "District application {} of application {} has been proposed for approval"
     ACTION_DISTRICT_PROPOSED_DECLINE = "District application {} of application {} has been proposed for decline"
     ACTION_DISTRICT_DECLINE = "District application {} of application {} has been declined"
+    ACTION_UPDATE_APPROVAL_DISTRICT = "Update Licence by district application {} of application {}"
+    ACTION_ISSUE_APPROVAL_DISTRICT = "Issue Licence by district application {} of application {}"
 
     #Event
     ACTION_CREATE_EVENT_PARK= "Create Event Park {}"
@@ -3965,7 +3967,7 @@ class DistrictProposal(models.Model):
     proposal = models.ForeignKey(Proposal, related_name='district_proposals')
     district = models.ForeignKey(District, related_name='proposals')
     proposal_park=models.ManyToManyField(ProposalFilmingParks)
-    #district_approval=models.ForeignKey(DistrictApproval, null=True)
+    district_approval = models.ForeignKey('commercialoperator.DistrictApproval',null=True,blank=True)
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
                                          default=PROCESSING_STATUS_CHOICES[0][0])
     assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='commercialoperator_district_proposals_assigned', on_delete=models.SET_NULL)
@@ -4287,10 +4289,10 @@ class DistrictProposal(models.Model):
                 self.processing_status = 'approved'
                 #self.customer_status = 'approved'
                 # Log proposal action
-                self.proposal.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id),request)
+                self.proposal.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_DISTRICT.format(self.id, self.proposal.id),request)
                 # Log entry for organisation
                 applicant_field=getattr(self.proposal, self.proposal.applicant_field)
-                applicant_field.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id),request)
+                applicant_field.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_DISTRICT.format(self.id, self.proposal.id),request)
 
                 if self.processing_status == 'approved':
                     # TODO if it is an ammendment proposal then check appropriately
@@ -4359,12 +4361,7 @@ class DistrictProposal(models.Model):
                             'issue_date' : timezone.now(),
                             'expiry_date' : details.get('expiry_date'),
                             'start_date' : details.get('start_date'),
-                            #'submitter': self.proposal.submitter,
-                            #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
-                            #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
-                            #'org_applicant' : self.proposal.org_applicant,
-                            #'proxy_applicant' : self.proposal.proxy_applicant,
-                            #'extracted_fields' = JSONField(blank=True, null=True)
+
                         }
                     )
                     approval,created = Approval.objects.update_or_create(
@@ -4398,7 +4395,7 @@ class DistrictProposal(models.Model):
                         # send the doc and log in approval and org
                     else:
                         #approval.replaced_by = request.user
-                        #approval.replaced_by = self.approval
+                        district_approval.replaced_by = self.district_approval
                         # Generate the document
                         approval.generate_doc(request.user)
                         #Delete the future compliances if Approval is reissued and generate the compliances again.
@@ -4408,17 +4405,35 @@ class DistrictProposal(models.Model):
                         #         c.delete()
                         # self.generate_compliances(approval, request)
                         # Log proposal action
-                        self.proposal.log_user_action(ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(self.id),request)
+                        self.proposal.log_user_action(ProposalUserAction.ACTION_UPDATE_APPROVAL_DISTRICT.format(self.id, self.proposal.id),request)
                         # Log entry for organisation
                         applicant_field=getattr(self.proposal, self.proposal.applicant_field)
-                        applicant_field.log_user_action(ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(self.id),request)
+                        applicant_field.log_user_action(ProposalUserAction.ACTION_UPDATE_APPROVAL_DISTRICT.format(self.id, self.proposal.id),request)
                     self.proposal.approval = approval
+                    self.district_approval = district_approval
                     self.save()
                 #send Proposal approval email with attachment
                 #send_proposal_approval_email_notification(self,request)
                 district_approval.lodgement_number= approval.lodgement_number
                 district_approval.licence_document= approval.licence_document
                 district_approval.save()
+
+                proposal=self.proposal
+                all_district_proposals=proposal.district_proposals.all()
+                approved_district_proposals=proposal.district_proposals.filter(processing_status='approved')
+                declined_district_proposals=proposal.district_proposals.filter(processing_status='declined')
+                if proposal.processing_status=='partially_declined' or proposal.processing_status=='partially_approved' or proposal.processing_status== 'with_district_assessor':
+                    if approved_district_proposals.count() == all_district_proposals.count():
+                        proposal.processing_status='approved'
+                        proposal.customer_status='approved'
+                    else:
+                        proposal.processing_status='partially_approved'
+                        proposal.customer_status='partially_approved'
+                # if proposal.processing_status== 'with_district_assessor':
+
+                #     proposal.processing_status='partially_approved'
+                #     proposal.customer_status='partially_approved'
+
                 self.proposal.save(version_comment='Final District Approval: {} for District Proposal: {}'.format(self.proposal.approval.lodgement_number, self.id))
                 self.proposal.approval.documents.all().update(can_delete=False)
 
