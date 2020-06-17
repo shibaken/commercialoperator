@@ -4391,20 +4391,21 @@ class DistrictProposal(models.Model):
                         # Log creation
                         # Generate the document
                         approval.generate_doc(request.user)
-                        #self.generate_compliances(approval, request)
-                        # send the doc and log in approval and org
+                        requirement_set=self.district_proposal_requirements.all()
+                        self.generate_district_compliances(approval,district_approval, requirement_set, request)                        # send the doc and log in approval and org
                     else:
                         #approval.replaced_by = request.user
                         district_approval.replaced_by = self.district_approval
                         # Generate the document
                         approval.generate_doc(request.user)
                         #Delete the future compliances if Approval is reissued and generate the compliances again.
-                        # approval_compliances = Compliance.objects.filter(approval= approval, proposal = self, processing_status='future')
-                        # if approval_compliances:
-                        #     for c in approval_compliances:
-                        #         c.delete()
-                        # self.generate_compliances(approval, request)
-                        # Log proposal action
+                        district_approval_compliances = Compliance.objects.filter(district_approval= district_approval, district_proposal = self, proposal = self.proposal, processing_status='future')
+                        if district_approval_compliances:
+                            for c in district_approval_compliances:
+                                c.delete()
+                        requirement_set=self.district_proposal_requirements.all()
+                        self.generate_district_compliances(approval,district_approval, requirement_set, request)
+                        #Log proposal action
                         self.proposal.log_user_action(ProposalUserAction.ACTION_UPDATE_APPROVAL_DISTRICT.format(self.id, self.proposal.id),request)
                         # Log entry for organisation
                         applicant_field=getattr(self.proposal, self.proposal.applicant_field)
@@ -4439,6 +4440,86 @@ class DistrictProposal(models.Model):
 
             except:
                 raise
+
+    def generate_district_compliances(self,approval, district_approval, requirement_set, request):
+        today = timezone.now().date()
+        timedelta = datetime.timedelta
+        from commercialoperator.components.compliances.models import Compliance, ComplianceUserAction
+        #For amendment type of Proposal, check for copied requirements from previous proposal
+        if self.proposal.proposal_type == 'amendment':
+            try:
+                for r in requirement_set.filter(copied_from__isnull=False):
+                    cs=[]
+                    cs=Compliance.objects.filter(requirement=r.copied_from, district_proposal=self, processing_status='due')
+                    if cs:
+                        if r.is_deleted == True:
+                            for c in cs:
+                                c.processing_status='discarded'
+                                c.customer_status = 'discarded'
+                                c.reminder_sent=True
+                                c.post_reminder_sent=True
+                                c.save()
+                        if r.is_deleted == False:
+                            for c in cs:
+                                c.proposal= self
+                                c.approval=approval
+                                c.requirement=r
+                                c.save()
+            except:
+                raise
+        #requirement_set= self.requirements.filter(copied_from__isnull=True).exclude(is_deleted=True)
+        requirement_set= requirement_set.exclude(is_deleted=True)
+
+        #for req in self.requirements.all():
+        for req in requirement_set:
+            try:
+                if req.due_date and req.due_date >= today:
+                    current_date = req.due_date
+                    #create a first Compliance
+                    try:
+                        compliance= Compliance.objects.get(requirement = req, due_date = current_date)
+                    except Compliance.DoesNotExist:
+                        compliance =Compliance.objects.create(
+                                    proposal=self.proposal,
+                                    district_proposal=self,
+                                    due_date=current_date,
+                                    processing_status='future',
+                                    approval=approval,
+                                    district_approval=district_approval,
+                                    requirement=req,
+                        )
+                        compliance.log_user_action(ComplianceUserAction.ACTION_CREATE.format(compliance.id),request)
+                    if req.recurrence:
+                        while current_date < approval.expiry_date:
+                            for x in range(req.recurrence_schedule):
+                            #Weekly
+                                if req.recurrence_pattern == 1:
+                                    current_date += timedelta(weeks=1)
+                            #Monthly
+                                elif req.recurrence_pattern == 2:
+                                    current_date += timedelta(weeks=4)
+                                    pass
+                            #Yearly
+                                elif req.recurrence_pattern == 3:
+                                    current_date += timedelta(days=365)
+                            # Create the compliance
+                            if current_date <= approval.expiry_date:
+                                try:
+                                    compliance= Compliance.objects.get(requirement = req, due_date = current_date)
+                                except Compliance.DoesNotExist:
+                                    compliance =Compliance.objects.create(
+                                                proposal=self.proposal,
+                                                due_date=current_date,
+                                                district_proposal=self,
+                                                processing_status='future',
+                                                approval=approval,
+                                                district_approval=district_approval,
+                                                requirement=req,
+                                    )
+                                    compliance.log_user_action(ComplianceUserAction.ACTION_CREATE.format(compliance.id),request)
+            except:
+                raise
+
 
 
 

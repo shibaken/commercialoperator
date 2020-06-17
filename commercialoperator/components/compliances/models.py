@@ -20,7 +20,8 @@ from ledger.licence.models import  Licence
 from commercialoperator import exceptions
 from commercialoperator.components.organisations.models import Organisation
 from commercialoperator.components.main.models import CommunicationsLogEntry, Region, UserAction, Document
-from commercialoperator.components.proposals.models import ProposalRequirement, AmendmentReason
+from commercialoperator.components.proposals.models import ProposalRequirement, AmendmentReason, DistrictProposal
+from commercialoperator.components.approvals.models import DistrictApproval
 from commercialoperator.components.compliances.email import (
                         send_compliance_accept_email_notification,
                         send_amendment_email_notification,
@@ -69,6 +70,8 @@ class Compliance(RevisionedMixin):
     reminder_sent = models.BooleanField(default=False)
     post_reminder_sent = models.BooleanField(default=False)
     fee_invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
+    district_proposal = models.ForeignKey(DistrictProposal,related_name='district_compliance', null=True, blank=True)
+    district_approval = models.ForeignKey(DistrictApproval,related_name='district_compliance', null=True, blank=True)
 
 
     class Meta:
