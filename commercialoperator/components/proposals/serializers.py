@@ -1181,6 +1181,7 @@ class ProposalFilmingSerializer(BaseProposalSerializer):
                 'lodgement_number',
                 'lodgement_sequence',
                 'can_officer_process',
+                'can_view_district_table',
                 'applicant_details',
                 'filming_activity',
                 'filming_access',
@@ -1276,6 +1277,7 @@ class InternalFilmingProposalSerializer(BaseProposalSerializer):
                 'lodgement_number',
                 'lodgement_sequence',
                 'can_officer_process',
+                'can_view_district_table',
                 'proposal_type',
                 'qaofficer_referrals',
                 # tab field models
@@ -1387,6 +1389,7 @@ class ProposalEventSerializer(BaseProposalSerializer):
                 'lodgement_number',
                 'lodgement_sequence',
                 'can_officer_process',
+                'can_view_district_table',
                 'applicant_details',
                 # 'filming_activity',
                 # 'filming_access',
@@ -1486,6 +1489,7 @@ class InternalEventProposalSerializer(BaseProposalSerializer):
                 'lodgement_number',
                 'lodgement_sequence',
                 'can_officer_process',
+                'can_view_district_table',
                 'proposal_type',
                 'qaofficer_referrals',
                 # tab field models
@@ -1588,6 +1592,7 @@ class SaveInternalFilmingProposalSerializer(BaseProposalSerializer):
                 'lodgement_number',
                 'lodgement_sequence',
                 'can_officer_process',
+                'can_view_district_table',
                 'applicant_details',
                 'filming_approval_type',
                 #'activities_land',
@@ -1663,6 +1668,7 @@ class ListDistrictProposalSerializer(serializers.ModelSerializer):
     proposal_lodgement_date = serializers.CharField(source='proposal.lodgement_date')
     proposal_lodgement_number = serializers.CharField(source='proposal.lodgement_number')
     submitter = serializers.SerializerMethodField()
+    assigned_officer = serializers.CharField(source='assigned_officer.get_full_name', allow_null=True)
     #submitter= EmailUserAppViewSerializer()
 
     class Meta:
@@ -1677,6 +1683,7 @@ class ListDistrictProposalSerializer(serializers.ModelSerializer):
                 'submitter',
                 'proposal_lodgement_date',
                 'proposal_lodgement_number',
+                'assigned_officer',
 
                 )
 
@@ -1690,6 +1697,7 @@ class ListDistrictProposalSerializer(serializers.ModelSerializer):
                 'submitter',               
                 'proposal_lodgement_date',
                 'proposal_lodgement_number',
+                'assigned_officer',
                 )
 
 

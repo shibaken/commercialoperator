@@ -3,7 +3,7 @@
         <template v-if="isFinalised">
             <div class="col-md-12 alert alert-success" v-if="proposal.processing_status == 'Approved'">
                 <p>The licence has been issued and has been emailed to {{proposal.applicant.name}}</p>
-                <p>Expiry date: {{proposal.proposed_issuance_approval.expiry_date}}
+                <p v-if="proposal.proposed_issuance_approval">Expiry date: {{proposal.proposed_issuance_approval.expiry_date}}
                 <p>Licence: <a target="_blank" :href="proposal.permit">licence.pdf</a></p>
             </div>
             <div v-else class="col-md-12 alert alert-warning">
@@ -78,10 +78,12 @@
                             <div class="col-sm-12">
                                 <template v-if="!proposal.proposed_decline_status">
                                     <template v-if="isFinalised">
-                                        <p><strong>Decision: Issue</strong></p>
-                                        <p><strong>Start date: {{proposal.proposed_issuance_approval.start_date}}</strong></p>
-                                        <p><strong>Expiry date: {{proposal.proposed_issuance_approval.expiry_date}}</strong></p>
-                                        <p><strong>CC emails: {{proposal.proposed_issuance_approval.cc_email}}</strong></p>
+                                        <div v-if="proposal.proposed_issuance_approval">
+                                            <p><strong>Decision: Issue</strong></p>
+                                            <p><strong>Start date: {{proposal.proposed_issuance_approval.start_date}}</strong></p>
+                                            <p><strong>Expiry date: {{proposal.proposed_issuance_approval.expiry_date}}</strong></p>
+                                            <p><strong>CC emails: {{proposal.proposed_issuance_approval.cc_email}}</strong></p>
+                                        </div>
                                     </template>
                                     <template v-else>
                                         <p><strong>Proposed decision: Issue</strong></p>

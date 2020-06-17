@@ -853,6 +853,14 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             return True
 
     @property
+    def can_view_district_table(self):
+        officer_view_state = ['with_district_assessor','approved','declined','partially_approved','partially_declined', ]
+        if self.filming_approval_type=='lawful_authority' and self.processing_status in officer_view_state:
+            return True
+        else:
+            return False
+
+    @property
     def amendment_requests(self):
         qs =AmendmentRequest.objects.filter(proposal = self)
         return qs
