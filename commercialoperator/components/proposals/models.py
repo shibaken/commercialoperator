@@ -29,7 +29,7 @@ from commercialoperator.components.main.models import CommunicationsLogEntry, Us
 from commercialoperator.components.main.utils import get_department_user
 from commercialoperator.components.proposals.email import send_referral_email_notification, send_proposal_decline_email_notification,send_proposal_approval_email_notification, send_amendment_email_notification
 from commercialoperator.ordered_model import OrderedModel
-from commercialoperator.components.proposals.email import send_submit_email_notification, send_external_submit_email_notification, send_approver_decline_email_notification, send_approver_approve_email_notification, send_referral_complete_email_notification, send_proposal_approver_sendback_email_notification, send_qaofficer_email_notification, send_qaofficer_complete_email_notification
+from commercialoperator.components.proposals.email import send_submit_email_notification, send_external_submit_email_notification, send_approver_decline_email_notification, send_approver_approve_email_notification, send_referral_complete_email_notification, send_proposal_approver_sendback_email_notification, send_qaofficer_email_notification, send_qaofficer_complete_email_notification, send_district_proposal_submit_email_notification
 import copy
 import subprocess
 from django.db.models import Q
@@ -2058,31 +2058,33 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     #Filming application method
     #This is to show basic logic behind creating district Proposal for each district related to parks listed with Filming Application.
     def send_to_districts(self, request):
-        try:
-            if self.application_type.name==ApplicationType.FILMING and self.processing_status=='with_assessor':
-            #Get the list all the Districts of the Parks linked to the Proposal
-                districts_list=self.filming_parks.all().values_list('park__district', flat=True)
-                print('district',districts_list)
-                if districts_list:
-                    for district in districts_list:
-                        district_instance=District.objects.get(id=district)
-                        #Get the list of all the Filming Parks in each district
-                        parks_list=list(ProposalFilmingParks.objects.filter(park__district=district, proposal=self).values_list('id',flat=True))
-                        print('parks',parks_list)
-                        #create a District proposal for each district
-                        district_proposal, created=DistrictProposal.objects.update_or_create(district=district_instance,proposal= self)
-                        print('district proposal',district_proposal, created)
-                        district_proposal.proposal_park= parks_list
-                        district_proposal.save()
-                    self.processing_status='with_district_assessor'
-                    self.save()
-                    self.log_user_action(ProposalUserAction.SEND_TO_DISTRICTS.format(self.id),request)
-                    #TODO Logging
-                    #TODO Change the status for the proposal
-            return self
+        with transaction.atomic():
+            try:
+                if self.application_type.name==ApplicationType.FILMING and self.processing_status=='with_assessor':
+                #Get the list all the Districts of the Parks linked to the Proposal
+                    districts_list=self.filming_parks.all().values_list('park__district', flat=True)
+                    print('district',districts_list)
+                    if districts_list:
+                        for district in districts_list:
+                            district_instance=District.objects.get(id=district)
+                            #Get the list of all the Filming Parks in each district
+                            parks_list=list(ProposalFilmingParks.objects.filter(park__district=district, proposal=self).values_list('id',flat=True))
+                            print('parks',parks_list)
+                            #create a District proposal for each district
+                            district_proposal, created=DistrictProposal.objects.update_or_create(district=district_instance,proposal= self)
+                            print('district proposal',district_proposal, created)
+                            district_proposal.proposal_park= parks_list
+                            district_proposal.save()
+                            send_district_proposal_submit_email_notification(district_proposal, request)
+                        self.processing_status='with_district_assessor'
+                        self.save()
+                        self.log_user_action(ProposalUserAction.SEND_TO_DISTRICTS.format(self.id),request)
+                        
+                        #TODO Logging
+                return self
 
-        except:
-            raise
+            except:
+                raise
 
 class ProposalLogDocument(Document):
     log_entry = models.ForeignKey('ProposalLogEntry',related_name='documents')
@@ -4046,6 +4048,8 @@ class DistrictProposal(models.Model):
 
         return default_group
 
+
+
     def __assessor_group(self):
         # TODO get list of assessor groups based on region and activity
         if self.district:
@@ -4078,6 +4082,21 @@ class DistrictProposal(models.Model):
         default_group = DistrictProposalApproverGroup.objects.get(default=True)
 
         return default_group
+
+    @property
+    def assessor_recipients(self):
+        recipients = []
+        assessor_group=self.__assessor_group()
+        recipients = assessor_group.members_email
+        return recipients
+
+    @property
+    def approver_recipients(self):
+        recipients = []
+        approver_group=self.__approver_group()
+        recipients = approver_group.members_email
+        
+        return recipients
 
     def can_assess(self,user):
         #if self.processing_status == 'on_hold' or self.processing_status == 'with_assessor' or self.processing_status == 'with_referral' or self.processing_status == 'with_assessor_requirements':

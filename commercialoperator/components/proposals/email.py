@@ -71,6 +71,12 @@ class ApproverSendBackNotificationEmail(TemplateEmailBase):
     html_template = 'commercialoperator/emails/proposals/send_approver_sendback_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_approver_sendback_notification.txt'
 
+class DistrictProposalSubmitSendNotificationEmail(TemplateEmailBase):
+    subject = 'An application has been referred for District assessment.'
+    html_template = 'commercialoperator/emails/proposals/send_district_proposal_submit_notification.html'
+    txt_template = 'commercialoperator/emails/proposals/send_district_proposal_submit_notification.txt'
+
+
 def send_qaofficer_email_notification(proposal, recipients, request, reminder=False):
     email = QAOfficerSendNotificationEmail()
     url = request.build_absolute_uri(reverse('internal-proposal-detail',kwargs={'proposal_pk': proposal.id}))
@@ -380,6 +386,29 @@ def send_proposal_approval_email_notification(proposal,request):
         _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
     else:
         _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
+
+def send_district_proposal_submit_email_notification(district_proposal, request):
+    proposal=district_proposal.proposal
+    email = DistrictProposalSubmitSendNotificationEmail()
+    url = request.build_absolute_uri(reverse('internal-district-proposal-detail',kwargs={'proposal_pk': proposal.id, 'district_proposal_pk': district_proposal.id}))
+    if "-internal" not in url:
+        # add it. This email is for internal staff (assessors)
+        url = '-internal.{}'.format(settings.SITE_DOMAIN).join(url.split('.' + settings.SITE_DOMAIN))
+
+    context = {
+        'proposal': proposal,
+        'district_proposal': district_proposal,
+        'url': url
+    }
+
+    msg = email.send(district_proposal.assessor_recipients, context=context)
+    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    _log_proposal_email(msg, proposal, sender=sender)
+    if proposal.org_applicant:
+        _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
+    else:
+        _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
+    return msg
 
 
 def _log_proposal_referral_email(email_message, referral, sender=None):
