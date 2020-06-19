@@ -3,12 +3,16 @@
     <ProposalDashTable level="internal" :url="proposals_url"/>
     <ReferralDashTable :url="referrals_url"/>
     <QAOfficerDashTable v-if="is_qaofficer" level="internal" :url="qaofficer_url"/>
+    <DistrictProposalDashTable level="internal" :url="district_proposals_url"/>
+
 </div>
 </template>
 <script>
 import ProposalDashTable from '@common-utils/proposals_dashboard.vue'
 import ReferralDashTable from '@common-utils/referrals_dashboard.vue'
 import QAOfficerDashTable from '@common-utils/qaofficer_dashboard.vue'
+import DistrictProposalDashTable from '@common-utils/district_proposals_dashboard.vue'
+
 import {
   api_endpoints,
   helpers
@@ -22,6 +26,7 @@ export default {
             proposals_url: api_endpoints.proposals_paginated_internal,
             referrals_url: api_endpoints.referrals_paginated_internal,
             qaofficer_url: api_endpoints.qaofficer_paginated_internal,
+            district_proposals_url: api_endpoints.district_proposals_paginated_internal,
             is_qaofficer: false,
         }
     
@@ -30,7 +35,8 @@ export default {
     components: {
         ProposalDashTable,
         ReferralDashTable,
-        QAOfficerDashTable
+        QAOfficerDashTable,
+        DistrictProposalDashTable
     },
     computed: {
         dashboard_url: function(){

@@ -37,7 +37,9 @@ from commercialoperator.components.proposals.models import (
                                     ProposalFilmingOtherDetails,
                                     ProposalFilmingParks,
                                     Proposal,
-                                    FilmingParkDocument
+                                    FilmingParkDocument,
+                                    DistrictProposal,
+
                                 )
 
 #from commercialoperator.components.organisations.models import (
@@ -51,12 +53,16 @@ from django.db.models import Q
 from reversion.models import Version
 
 
+
 class ProposalFilmingActivitySerializer(serializers.ModelSerializer):
     film_type=serializers.MultipleChoiceField(choices=ProposalFilmingActivity.FILM_TYPE_CHOICES, allow_blank=True, allow_null=True, required=False)
     film_purpose=serializers.MultipleChoiceField(choices=ProposalFilmingActivity.PURPOSE_CHOICES, allow_blank=True, allow_null=True, required=False)
     #sponsorship=serializers.MultipleChoiceField(choices=ProposalFilmingActivity.SPONSORSHIP_CHOICES, allow_blank=True, allow_null=True, required=False)
     film_usage=serializers.MultipleChoiceField(choices=ProposalFilmingActivity.FILM_USE_CHOICES, allow_blank=True, allow_null=True, required=False)
+    commencement_date = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
+    completion_date = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
 
+    
     class Meta:
         model = ProposalFilmingActivity
         fields = '__all__'
@@ -220,4 +226,27 @@ class ProposalFilmingSerializer(serializers.ModelSerializer):
     def get_fee_invoice_url(self,obj):
         return '/cols/payments/invoice-pdf/{}'.format(obj.fee_invoice_reference) if obj.fee_paid else None
 
-    
+ 
+
+
+class DistrictProposalSerializer(serializers.ModelSerializer):
+    processing_status = serializers.CharField(source='get_processing_status_display')
+    #customer_status = serializers.CharField(source='get_customer_status_display')
+    # latest_referrals = ProposalReferralSerializer(many=True)
+    # can_be_completed = serializers.BooleanField()
+    # can_process=serializers.SerializerMethodField()
+    # referral_assessment=ProposalAssessmentSerializer(read_only=True)
+
+
+    class Meta:
+        model = DistrictProposal
+        fields = '__all__'
+
+    def __init__(self,*args,**kwargs):
+        super(DistrictProposalSerializer, self).__init__(*args, **kwargs)
+        self.fields['proposal'] = InternalFilmingProposalSerializer(context={'request':self.context['request']})
+
+    # def get_can_process(self,obj):
+    #     request = self.context['request']
+    #     user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+    #     return obj.can_process(user)

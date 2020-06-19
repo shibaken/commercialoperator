@@ -39,13 +39,15 @@ from commercialoperator.components.proposals.models import (
 	ProposalFilmingAccess,
 	ProposalFilmingParks,
     Proposal,
+    DistrictProposal,
 )
 from commercialoperator.components.proposals.serializers_filming import (
     ProposalFilmingActivitySerializer,
     ProposalFilmingAccessSerializer,
     ProposalFilmingParksSerializer,
     ProposalFilmingSerializer,
-    SaveProposalFilmingParksSerializer
+    SaveProposalFilmingParksSerializer,
+    DistrictProposalSerializer,
 )
 
 from commercialoperator.helpers import is_customer, is_internal
@@ -117,7 +119,7 @@ class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             instance.add_documents(request)
-            instance.proposal.log_user_action(ProposalUserAction.ACTION_EDIT_VEHICLE.format(instance.id),request)
+            instance.proposal.log_user_action(ProposalUserAction.ACTION_EDIT_FILMING_PARK.format(instance.id),request)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -138,7 +140,7 @@ class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             instance=serializer.save()
             instance.add_documents(request)
-            instance.proposal.log_user_action(ProposalUserAction.ACTION_CREATE_VEHICLE.format(instance.id),request)
+            instance.proposal.log_user_action(ProposalUserAction.ACTION_CREATE_FILMING_PARK.format(instance.id),request)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -218,3 +220,16 @@ class FilmingActivityTabView(views.APIView):
         container.update({'film_usage_choices': film_usage_choices})
         
         return Response(container)
+
+class DistrictProposalViewSet(viewsets.ModelViewSet):
+    #queryset = Referral.objects.all()
+    queryset = DistrictProposal.objects.none()
+    serializer_class = DistrictProposalSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated() and is_internal(self.request):
+            #queryset =  Referral.objects.filter(referral=user)
+            queryset =  DistrictProposal.objects.all()
+            return queryset
+        return DistrictProposal.objects.none()

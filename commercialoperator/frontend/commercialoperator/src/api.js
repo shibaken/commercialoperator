@@ -36,9 +36,16 @@ module.exports = {
     vehicles:"/api/vehicles.json",
     vessels:"/api/vessels.json",
     assessments:"/api/assessments.json",
-
+    event_trail_container:"/api/event_trail_container",
+    
     //filming
     proposal_filming_parks:"/api/proposal_filming_parks.json",
+    district_proposals:"/api/district_proposals.json",
+
+    //Events
+    proposal_events_parks:"/api/proposal_events_parks.json",
+    abseiling_climbing_activities:"/api/abseiling_climbing_activities.json",
+    proposal_pre_event_parks:"/api/proposal_pre_event_parks.json",
 
     // used in internal and external dashboards
     proposals_paginated_external:   "/api/proposal_paginated/proposals_external/?format=datatables",
@@ -49,12 +56,15 @@ module.exports = {
     qaofficer_paginated_internal:   "/api/proposal_paginated/qaofficer_internal/?format=datatables",
     booking_paginated_internal:     "/api/booking_paginated/bookings_external/?format=datatables",
     parkbooking_paginated_internal: "/api/parkbooking_paginated/park_bookings/?format=datatables",
+    district_proposals_paginated_internal:   "/api/district_proposal_paginated/district_proposals_internal/?format=datatables",
+
     //filter_list:                    "/api/proposal_paginated/filter_list.json",
     filter_list:                    "/api/proposal/filter_list.json",
     filter_list_approvals:          "/api/approvals/filter_list.json",
     filter_list_compliances:        "/api/compliances/filter_list.json",
     filter_list_referrals:          "/api/referrals/filter_list.json",
     filter_list_parks:              "/api/parks/filter_list.json",
+    filter_list_district_proposals:  "/api/district_proposals/filter_list.json",
 
     //approvals_paginated:"/api/approvals/user_list_paginated/?format=datatables",
     //compliances_paginated:"/api/compliances/user_list_paginated/?format=datatables",
@@ -69,6 +79,12 @@ module.exports = {
     },
     discard_vehicle:function (id) {
       return `/api/vehicles/${id}.json`;
+    },
+    discard_abseiling_climbing:function (id) {
+      return `/api/abseiling_climbing_activities/${id}.json`;
+    },
+    discard_pre_event_park:function (id) {
+      return `/api/proposal_pre_event_parks/${id}.json`;
     },
     site_url: site_url,
     //dep_name: 'Department of Biodiversity, Conservation and Attractions',

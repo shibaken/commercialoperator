@@ -186,6 +186,7 @@ class Zone(models.Model):
         return [i.id for i in self.allowed_activities.all()]
 
 
+
 @python_2_unicode_compatible
 class Trail(models.Model):
     name = models.CharField(max_length=200, unique=True)
@@ -308,8 +309,7 @@ class Question(models.Model):
     #answer_five = models.CharField(max_length=200, blank=True)
     correct_answer = models.CharField('Correct Answer', max_length=40, choices=CORRECT_ANSWER_CHOICES,
                                        default=CORRECT_ANSWER_CHOICES[0][0])
-
-
+    application_type = models.ForeignKey(ApplicationType, null=True, blank=True)
 
     class Meta:
         #ordering = ['name']

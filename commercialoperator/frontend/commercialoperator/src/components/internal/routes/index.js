@@ -17,6 +17,7 @@ import PaymentOrder from '@/components/common/tclass/payment_order.vue'
 //import ParkBookingDash from '@/components/common/parkbookings_dashboard.vue'
 import Reports from '@/components/reports/reports.vue'
 import ParkEntryFeesDashboard from '../park_entry_fees_dashboard.vue'
+import DistrictProposal from '../district_proposals/district_proposal.vue'
 export default
 {
     path: '/internal',
@@ -154,6 +155,11 @@ export default
                             component: Referral,
                             name:"internal-referral"
                         },
+                        {
+                            path: 'district_proposal/:district_proposal_id',
+                            component: DistrictProposal,
+                            name:"internal-district-proposal"
+                        },
                     ]
                 },
             ]
@@ -185,7 +191,33 @@ export default
                 },
             ]
         },
-
+        // {
+        //     path: 'district_proposal',
+        //     component: {
+        //         render(c)
+        //         {
+        //             return c('router-view')
+        //         }
+        //     },
+        //     children: [
+        //         {
+        //             path: ':district_proposal_id',
+        //             component: {
+        //                 render(c)
+        //                 {
+        //                     return c('router-view')
+        //                 }
+        //             },
+        //             children: [
+        //                 {
+        //                     path: '/',
+        //                     component: DistrictProposal,
+        //                     name:"internal-district-proposal"
+        //                 },
+        //             ]
+        //         },
+        //     ]
+        // },
 
         /*{
             path: 'proposal',

@@ -173,9 +173,14 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <button v-if="changingStatus" style="width:80%;" class="btn btn-primary" disabled>Enter Requirements&nbsp;
+                                            <button  v-if="proposal.application_type=='Filming' && proposal.filming_approval_type=='lawful_authority'" style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="sendToDistricts()">Send to Districts</button><br/>
+                                        </div>
+                                    </div>                                    
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button v-if="changingStatus" style="width:80%;" class="btn btn-primary top-buffer-s" disabled>Enter Requirements&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                            <button v-if="!changingStatus" style="width:80%;" class="btn btn-primary" :disabled="proposal.can_user_edit" @click.prevent="switchStatus('with_assessor_requirements')">Enter Requirements</button><br/>
+                                            <button v-if="!changingStatus" style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="switchStatus('with_assessor_requirements')">Enter Requirements</button><br/>
                                         </div>
                                     </div>
                                     <div class="row">
@@ -325,6 +330,7 @@
                             <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
                                 <ProposalTClass ref="tclass" v-if="proposal && proposal_parks && proposal.application_type=='T Class'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalTClass>
                                 <ProposalFilming ref="filming" v-else-if="proposal && proposal.application_type=='Filming'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalFilming>
+                                <ProposalEvent ref="filming" v-else-if="proposal && proposal.application_type=='Event'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalEvent>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                     <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
                                     <input type='hidden' name="proposal_id" :value="1" />
@@ -447,6 +453,7 @@ export default {
             panelClickersInitialised: false,
             sendingReferral: false,
             comparing: false,
+            sendingToDistrict: false,
         }
     },
     components: {
@@ -577,6 +584,41 @@ export default {
         declineProposal:function(){
             this.$refs.proposed_decline.decline = this.proposal.proposaldeclineddetails != null ? helpers.copyObject(this.proposal.proposaldeclineddetails): {};
             this.$refs.proposed_decline.isModalOpen = true;
+        },
+        sendToDistricts: function(){
+            console.log('hello');
+            let vm = this;
+            //vm.save_wo();
+            let formData = new FormData(vm.form);
+            formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
+            formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
+            formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
+            
+            vm.sendingToDistrict = true;
+            vm.$http.post(vm.proposal_form_url,formData).then(res=>{
+            
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/send_to_districts'))).then((response) => {
+                    vm.sendingToDistrict = false;
+                    vm.original_proposal = helpers.copyObject(response.body);
+                    vm.proposal = response.body;
+                    swal(
+                        'Sent',
+                        'The proposal has been sent to Districts',
+                        'success'
+                    )
+                }, (error) => {
+                    console.log(error);
+                    swal(
+                        'Error',
+                        helpers.apiVueResourceError(error),
+                        'error'
+                    )
+                    vm.sendingToDistrict = false;
+                });
+
+              
+            },err=>{
+            });
         },
         amendmentRequest: function(){
             this.save_wo();

@@ -18,7 +18,7 @@ from commercialoperator.components.main.models import (
     Zone,
     RequiredDocument,
     Question,
-    GlobalSettings
+    GlobalSettings,
 )
 #from commercialoperator.components.main.models import Activity, SubActivityLevel1, SubActivityLevel2, SubCategory
 from reversion.admin import VersionAdmin
@@ -99,7 +99,7 @@ class ProposalApproverGroupAdmin(admin.ModelAdmin):
 
 @admin.register(models.ProposalStandardRequirement)
 class ProposalStandardRequirementAdmin(admin.ModelAdmin):
-    list_display = ['code','text','obsolete']
+    list_display = ['code','text','obsolete', 'application_type', 'participant_number_required', 'default']
 
 #@admin.register(models.HelpPage)
 class HelpPageAdmin(admin.ModelAdmin):
@@ -235,10 +235,59 @@ class QAOfficerGroupAdmin(admin.ModelAdmin):
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
-    list_display = ['question_text', 'answer_one', 'answer_two', 'answer_three', 'answer_four',]
+    list_display = ['question_text', 'answer_one', 'answer_two', 'answer_three', 'answer_four', 'application_type',]
     ordering = ('question_text',)
 
 @admin.register(ApplicationFeeInvoice)
 class SectionAdmin(admin.ModelAdmin):
     list_display = [f.name for f in ApplicationFeeInvoice._meta.fields]
 
+
+@admin.register(models.DistrictProposalAssessorGroup)
+class DistrictProposalAssessorGroupAdmin(admin.ModelAdmin):
+    list_display = ['name','default']
+    filter_horizontal = ('members',)
+    form = forms.DistrictProposalAssessorGroupAdminForm
+    #readonly_fields = ['default']
+    #readonly_fields = ['default', 'regions', 'activities']
+
+    def get_actions(self, request):
+        actions =  super(DistrictProposalAssessorGroupAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        if self.model.objects.count() == 1:
+            return False
+        return super(DistrictProposalAssessorGroupAdmin, self).has_delete_permission(request, obj)
+
+    # def has_add_permission(self, request):
+    #     if self.model.objects.count() > 0:
+    #         return False
+    #     return super(DistrictProposalAssessorGroupAdmin, self).has_add_permission(request)
+
+
+@admin.register(models.DistrictProposalApproverGroup)
+class DistrictProposalApproverGroupAdmin(admin.ModelAdmin):
+    list_display = ['name','default']
+    filter_horizontal = ('members',)
+    form = forms.DistrictProposalApproverGroupAdminForm
+    #readonly_fields = ['default']
+    #readonly_fields = ['default', 'regions', 'activities']
+
+    def get_actions(self, request):
+        actions =  super(DistrictProposalApproverGroupAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        if self.model.objects.count() == 1:
+            return False
+        return super(DistrictProposalApproverGroupAdmin, self).has_delete_permission(request, obj)
+
+    # def has_add_permission(self, request):
+    #     if self.model.objects.count() > 0:
+    #         return False
+    #     return super(DistrictProposalApproverGroupAdmin, self).has_add_permission(request)

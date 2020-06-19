@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, B
 from rest_framework.pagination import PageNumberPagination
 from django.urls import reverse
 from commercialoperator.components.main.models import Region, District, Tenure, ApplicationType, ActivityMatrix, AccessType, Park, Trail, ActivityCategory, Activity, RequiredDocument, Question, GlobalSettings
-from commercialoperator.components.main.serializers import RegionSerializer, DistrictSerializer, TenureSerializer, ApplicationTypeSerializer, ActivityMatrixSerializer,  AccessTypeSerializer, ParkSerializer, ParkFilterSerializer, TrailSerializer, ActivitySerializer, ActivityCategorySerializer, RequiredDocumentSerializer, QuestionSerializer, GlobalSettingsSerializer, OracleSerializer, BookingSettlementReportSerializer, LandActivityTabSerializer, MarineActivityTabSerializer
+from commercialoperator.components.main.serializers import RegionSerializer, DistrictSerializer, TenureSerializer, ApplicationTypeSerializer, ActivityMatrixSerializer,  AccessTypeSerializer, ParkSerializer, ParkFilterSerializer, TrailSerializer, ActivitySerializer, ActivityCategorySerializer, RequiredDocumentSerializer, QuestionSerializer, GlobalSettingsSerializer, OracleSerializer, BookingSettlementReportSerializer, LandActivityTabSerializer, MarineActivityTabSerializer, EventsParkSerializer, TrailTabSerializer
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from commercialoperator.components.proposals.models import Proposal
@@ -125,6 +125,12 @@ class ParkViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
     @list_route(methods=['GET',])
+    def events_parks_list(self, request, *args, **kwargs):
+        serializer = EventsParkSerializer(self.get_queryset(),context={'request':request}, many=True)
+        return Response(serializer.data)
+
+
+    @list_route(methods=['GET',])
     def marine_parks(self, request, *args, **kwargs):
         qs = self.get_queryset().filter(park_type='marine')
         serializer = ParkSerializer(qs,context={'request':request}, many=True)
@@ -197,6 +203,19 @@ class RequiredDocumentViewSet(viewsets.ReadOnlyModelViewSet):
 class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
+
+    
+    @list_route(methods=['GET',])
+    def tclass_questions_list(self, request, *args, **kwargs):
+        qs=Question.objects.filter(application_type__name=ApplicationType.TCLASS)
+        serializer = QuestionSerializer(qs,context={'request':request}, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=['GET',])
+    def events_questions_list(self, request, *args, **kwargs):
+        qs=Question.objects.filter(application_type__name=ApplicationType.EVENT)
+        serializer = QuestionSerializer(qs,context={'request':request}, many=True)
+        return Response(serializer.data)
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
@@ -320,5 +339,17 @@ class OracleJob(views.APIView):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e[0]))
 
-
-
+#To display only trails and activity types on Event activity tab
+class TrailTabViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    A simple ViewSet for listing the various serialized viewsets in a single container
+    """
+    def list(self, request):
+        #Container = namedtuple('ActivityLandTab', ('access_types', 'activity_types', 'regions'))
+        Container = namedtuple('TrailTab', ('land_activity_types', 'trails',))
+        container = Container(
+            land_activity_types=Activity.objects.filter(activity_category__activity_type='land').order_by('id'),
+            trails=Trail.objects.all().order_by('id'),
+        )
+        serializer = TrailTabSerializer(container)
+        return Response(serializer.data)

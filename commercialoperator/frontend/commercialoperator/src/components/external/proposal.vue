@@ -438,9 +438,9 @@ export default {
           // }
 
       } else if (vm.proposal.application_type=='Event') {
-          if (vm.proposal.other_details.preferred_licence_period=='' || vm.proposal.other_details.preferred_licence_period==null ){
-            blank_fields.push(' Preferred Licence Period is required')
-          }
+          // if (vm.proposal.other_details.preferred_licence_period=='' || vm.proposal.other_details.preferred_licence_period==null ){
+          //   blank_fields.push(' Preferred Licence Period is required')
+          // }
 
       }
 

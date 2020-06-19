@@ -35,15 +35,22 @@ from commercialoperator.components.proposals.models import (
                                     ProposalEventManagement,
                                     ProposalEventVehiclesVessels,
                                     ProposalEventOtherDetails,
+                                    ProposalEventsParks,
+                                    EventsParkDocument,
+                                    AbseilingClimbingActivity,
+                                    PreEventsParkDocument,
+                                    ProposalPreEventsParks
                                     #ProposalEventOnlineTraining,
                                 )
-
+from commercialoperator.components.main.serializers import CommunicationLogEntrySerializer, ParkFilterSerializer
 from rest_framework import serializers
 from django.db.models import Q
 from reversion.models import Version
 
 
 class ProposalEventActivitiesSerializer(serializers.ModelSerializer):
+    commencement_date = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
+    completion_date = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
 
     class Meta:
         model = ProposalEventActivities
@@ -66,6 +73,7 @@ class ProposalEventVehiclesVesselsSerializer(serializers.ModelSerializer):
 
 class ProposalEventOtherDetailsSerializer(serializers.ModelSerializer):
     insurance_expiry = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
+    training_date = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
 
     class Meta:
         model = ProposalEventOtherDetails
@@ -73,16 +81,54 @@ class ProposalEventOtherDetailsSerializer(serializers.ModelSerializer):
         fields=(
                 'id',
                 'insurance_expiry',
+                'training_date',
+                'participants_number',
+                'officials_number',
+                'support_vehicle_number',
                 'proposal',
                 )
 
+class EventsParkDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventsParkDocument
+        fields = ('id', 'name', '_file')
+
+class ProposalEventsParksSerializer(serializers.ModelSerializer):
+    park=ParkFilterSerializer()
+    #activities=serializers.CharField(source='activities.name', many=True)
+    events_park_documents = EventsParkDocumentSerializer(many=True, read_only=True)
+    class Meta:
+        model = ProposalEventsParks
+        fields = ('id', 'park', 'activities','activities_names', 'proposal', 'events_park_documents')
+
+class SaveProposalEventsParksSerializer(serializers.ModelSerializer):
+    #park=ParkFilterSerializer()
+    class Meta:
+        model = ProposalEventsParks
+        fields = ('id', 'park','proposal', 'activities')
+
+class AbseilingClimbingActivitySerializer(serializers.ModelSerializer):
+    expiry_date = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
+    class Meta:
+        model = AbseilingClimbingActivity
+        fields = '__all__'
 
 
-#class ProposalEventOnlineTrainingSerializer(serializers.ModelSerializer):
-#    insurance_expiry = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
-#
-#    class Meta:
-#        model = ProposalEventOnlineTraining
-#        fields = '__all__'
+class PreEventsParkDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PreEventsParkDocument
+        fields = ('id', 'name', '_file')
 
+class ProposalPreEventsParksSerializer(serializers.ModelSerializer):
+    park=ParkFilterSerializer()
+    #activities=serializers.CharField(source='activities.name', many=True)
+    pre_event_park_documents = PreEventsParkDocumentSerializer(many=True, read_only=True)
+    class Meta:
+        model = ProposalPreEventsParks
+        fields = ('id', 'park', 'activities', 'pre_event_park_documents', 'proposal')
 
+class SaveProposalPreEventsParksSerializer(serializers.ModelSerializer):
+    #park=ParkFilterSerializer()
+    class Meta:
+        model = ProposalPreEventsParks
+        fields = ('id', 'park','proposal', 'activities')
