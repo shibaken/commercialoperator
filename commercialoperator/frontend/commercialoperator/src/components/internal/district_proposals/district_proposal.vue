@@ -426,8 +426,9 @@ export default {
                     'start_date': this.district_proposal.proposal.filming_activity.commencement_date,
                     'expiry_date': this.district_proposal.proposal.filming_activity.completion_date
                 };
+                this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
             }
-            this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
+            //this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
             
             this.$refs.proposed_approval.isModalOpen = true;
         }, 

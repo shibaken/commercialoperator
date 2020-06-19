@@ -29,7 +29,7 @@ from commercialoperator.components.main.models import CommunicationsLogEntry, Us
 from commercialoperator.components.main.utils import get_department_user
 from commercialoperator.components.proposals.email import send_referral_email_notification, send_proposal_decline_email_notification,send_proposal_approval_email_notification, send_amendment_email_notification
 from commercialoperator.ordered_model import OrderedModel
-from commercialoperator.components.proposals.email import send_submit_email_notification, send_external_submit_email_notification, send_approver_decline_email_notification, send_approver_approve_email_notification, send_referral_complete_email_notification, send_proposal_approver_sendback_email_notification, send_qaofficer_email_notification, send_qaofficer_complete_email_notification, send_district_proposal_submit_email_notification
+from commercialoperator.components.proposals.email import send_submit_email_notification, send_external_submit_email_notification, send_approver_decline_email_notification, send_approver_approve_email_notification, send_referral_complete_email_notification, send_proposal_approver_sendback_email_notification, send_qaofficer_email_notification, send_qaofficer_complete_email_notification, send_district_proposal_submit_email_notification,send_district_proposal_approver_sendback_email_notification, send_district_approver_decline_email_notification, send_district_approver_approve_email_notification
 import copy
 import subprocess
 from django.db.models import Q
@@ -4184,11 +4184,11 @@ class DistrictProposal(models.Model):
                 raise ValidationError('You cannot change the current status at this time')
             if self.processing_status != status:
                 #TODO send email to District Approver group when District proposal is pushed to status with approver
-                # if self.processing_status =='with_approver':
-                #     if approver_comment:
-                #         self.approver_comment = approver_comment
-                #         self.save()
-                #         send_proposal_approver_sendback_email_notification(request, self)
+                if self.processing_status =='with_approver':
+                    # # if approver_comment:
+                    # #     self.approver_comment = approver_comment
+                    #     self.save()
+                    send_district_proposal_approver_sendback_email_notification(request, self)
                 self.processing_status = status
                 self.save()
                 if status=='with_assessor_requirements':
@@ -4223,7 +4223,7 @@ class DistrictProposal(models.Model):
                 applicant_field=getattr(self.proposal, self.proposal.applicant_field)
                 applicant_field.log_user_action(ProposalUserAction.ACTION_DISTRICT_PROPOSED_DECLINE.format(self.id, self.proposal.id),request)
 
-                #send_approver_decline_email_notification(reason, request, self)
+                send_district_approver_decline_email_notification(reason, request, self)
             except:
                 raise
 
@@ -4290,7 +4290,7 @@ class DistrictProposal(models.Model):
                 applicant_field=getattr(self.proposal, self.proposal.applicant_field)
                 applicant_field.log_user_action(ProposalUserAction.ACTION_DISTRICT_PROPOSED_APPROVAL.format(self.id, self.proposal.id),request)
 
-                #send_approver_approve_email_notification(request, self)
+                send_district_approver_approve_email_notification(request, self)
             except:
                 raise
 

@@ -76,6 +76,21 @@ class DistrictProposalSubmitSendNotificationEmail(TemplateEmailBase):
     html_template = 'commercialoperator/emails/proposals/send_district_proposal_submit_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_district_proposal_submit_notification.txt'
 
+class DistrictApproverSendBackNotificationEmail(TemplateEmailBase):
+    subject = 'A District Application has been sent back by approver.'
+    html_template = 'commercialoperator/emails/proposals/send_district_approver_sendback_notification.html'
+    txt_template = 'commercialoperator/emails/proposals/send_district_approver_sendback_notification.txt'
+
+class DistrictApproverDeclineSendNotificationEmail(TemplateEmailBase):
+    subject = 'A District Application has been recommended for decline.'
+    html_template = 'commercialoperator/emails/proposals/send_district_approver_decline_notification.html'
+    txt_template = 'commercialoperator/emails/proposals/send_district_approver_decline_notification.txt'
+
+class DistrictApproverApproveSendNotificationEmail(TemplateEmailBase):
+    subject = 'A District Application has been recommended for approval.'
+    html_template = 'commercialoperator/emails/proposals/send_district_approver_approve_notification.html'
+    txt_template = 'commercialoperator/emails/proposals/send_district_approver_approve_notification.txt'
+
 
 def send_qaofficer_email_notification(proposal, recipients, request, reminder=False):
     email = QAOfficerSendNotificationEmail()
@@ -409,6 +424,74 @@ def send_district_proposal_submit_email_notification(district_proposal, request)
     else:
         _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
     return msg
+
+def send_district_proposal_approver_sendback_email_notification(request, district_proposal):
+    proposal=district_proposal.proposal    
+    email = DistrictApproverSendBackNotificationEmail()
+    url = request.build_absolute_uri(reverse('internal-district-proposal-detail',kwargs={'proposal_pk': proposal.id, 'district_proposal_pk': district_proposal.id}))
+
+    # if 'test-emails' in request.path_info:
+    #     approver_comment = 'This is my test comment'
+    # else:
+    #     approver_comment = proposal.approver_comment
+
+
+    context = {
+        'proposal': proposal,
+        'district_proposal': district_proposal,        
+        'url': url,
+        # 'approver_comment': approver_comment
+    }
+
+    msg = email.send(district_proposal.assessor_recipients, context=context)
+    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    _log_proposal_email(msg, proposal, sender=sender)
+    if proposal.org_applicant:
+        _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
+    else:
+        _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
+
+#send email when Proposal is 'proposed to decline' by assessor.
+def send_district_approver_decline_email_notification(reason, request, district_proposal):
+    proposal=district_proposal.proposal        
+    email = DistrictApproverDeclineSendNotificationEmail()
+    url = request.build_absolute_uri(reverse('internal-district-proposal-detail',kwargs={'proposal_pk': proposal.id, 'district_proposal_pk': district_proposal.id}))
+    context = {
+        'proposal': proposal,
+        'reason': reason,
+        'url': url,
+        'district_proposal': district_proposal,        
+
+    }
+
+    msg = email.send(district_proposal.approver_recipients, context=context)
+    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    _log_proposal_email(msg, proposal, sender=sender)
+    if proposal.org_applicant:
+        _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
+    else:
+        _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
+
+
+def send_district_approver_approve_email_notification(request, district_proposal):
+    proposal=district_proposal.proposal    
+    email = DistrictApproverApproveSendNotificationEmail()
+    url = request.build_absolute_uri(reverse('internal-district-proposal-detail',kwargs={'proposal_pk': proposal.id, 'district_proposal_pk': district_proposal.id}))
+    context = {
+        'start_date' : district_proposal.proposed_issuance_approval.get('start_date'),
+        'expiry_date' : district_proposal.proposed_issuance_approval.get('expiry_date'),
+        'details': district_proposal.proposed_issuance_approval.get('details'),
+        'proposal': proposal,
+        'district_proposal': district_proposal,        
+        'url': url
+    }
+    msg = email.send(district_proposal.approver_recipients, context=context)
+    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    _log_proposal_email(msg, proposal, sender=sender)
+    if proposal.org_applicant:
+        _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
+    else:
+        _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
 
 
 def _log_proposal_referral_email(email_message, referral, sender=None):
