@@ -19,7 +19,7 @@ from ledger.accounts.models import EmailUser, RevisionedMixin
 from ledger.licence.models import  Licence
 from commercialoperator import exceptions
 from commercialoperator.components.organisations.models import Organisation
-from commercialoperator.components.proposals.models import Proposal, ProposalUserAction
+from commercialoperator.components.proposals.models import Proposal, ProposalUserAction, DistrictProposal
 from commercialoperator.components.main.models import CommunicationsLogEntry, UserAction, Document, ApplicationType
 from commercialoperator.components.approvals.email import (
     send_approval_expire_email_notification,
@@ -563,6 +563,48 @@ def delete_documents(sender, instance, *args, **kwargs):
             document.delete()
         except:
             pass
+
+#Filming Models
+class DistrictApproval(RevisionedMixin):
+    STATUS_CHOICES = (
+        ('current','Current'),
+        ('expired','Expired'),
+        ('cancelled','Cancelled'),
+        ('surrendered','Surrendered'),
+        ('suspended','Suspended'),
+        ('extended','extended'),
+    )
+    lodgement_number = models.CharField(max_length=9, blank=True, default='')
+    status = models.CharField(max_length=40, choices=STATUS_CHOICES,
+                                       default=STATUS_CHOICES[0][0])
+    licence_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='district_licence_document')
+    #cover_letter_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='cover_letter_document')
+    replaced_by = models.ForeignKey('self', blank=True, null=True)
+    current_district_proposal = models.ForeignKey(DistrictProposal,related_name='district_approvals', null=True)
+    renewal_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='district_renewal_document')
+    renewal_sent = models.BooleanField(default=False)
+    issue_date = models.DateTimeField()
+    original_issue_date = models.DateField(auto_now_add=True)
+    start_date = models.DateField()
+    expiry_date = models.DateField()
+    surrender_details = JSONField(blank=True,null=True)
+    suspension_details = JSONField(blank=True,null=True)
+    #submitter = models.ForeignKey(EmailUser, on_delete=models.PROTECT, blank=True, null=True, related_name='commercialoperator_approvals')
+    #org_applicant = models.ForeignKey(Organisation,on_delete=models.PROTECT, blank=True, null=True, related_name='org_approvals')
+    #proxy_applicant = models.ForeignKey(EmailUser,on_delete=models.PROTECT, blank=True, null=True, related_name='proxy_approvals')
+    extracted_fields = JSONField(blank=True, null=True)
+    cancellation_details = models.TextField(blank=True)
+    extend_details = models.TextField(blank=True)
+    cancellation_date = models.DateField(blank=True, null=True)
+    set_to_cancel = models.BooleanField(default=False)
+    set_to_suspend = models.BooleanField(default=False)
+    set_to_surrender = models.BooleanField(default=False)
+    renewal_count = models.PositiveSmallIntegerField('Number of times an Approval has been renewed', default=0)
+    migrated=models.BooleanField(default=False)
+    
+    class Meta:
+        app_label = 'commercialoperator'
+        unique_together= ('lodgement_number', 'issue_date')
 
 #import reversion
 #reversion.register(Approval, follow=['documents', 'approval_set', 'action_logs'])

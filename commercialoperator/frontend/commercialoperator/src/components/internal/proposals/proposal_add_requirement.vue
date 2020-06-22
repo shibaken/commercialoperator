@@ -142,6 +142,15 @@ export default {
             referral_group:{
                 type:Number,
                 default: null
+            },
+            hasDistrictAssessorMode:{
+                type:Boolean,
+                default: false
+            },
+            district_proposal:{
+                type:Number,
+                default: null
+
             }
     },
     data:function () {
@@ -160,6 +169,7 @@ export default {
                 num_files: 0,
                 input_name: 'requirement_doc',
                 requirement_documents: [],
+                district_proposal:vm.district_proposal,
             },
             addingRequirement: false,
             updatingRequirement: false,

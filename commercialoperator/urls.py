@@ -76,9 +76,23 @@ router.register(r'marine_activities', main_api.MarineActivitiesViewSet)
 router.register(r'required_documents', main_api.RequiredDocumentViewSet)
 router.register(r'questions', main_api.QuestionViewSet)
 router.register(r'payment', main_api.PaymentViewSet)
+router.register(r'event_trail_container', main_api.TrailTabViewSet, base_name='event_trail_container')
+
 
 # Filming
 #router.register(r'proposal',proposal_api_filming.ProposalViewSet)
+#router.register(r'proposal_filming', proposal_api_filming.ProposalFilmingViewSet)
+router.register(r'proposal_filming_parks', proposal_api_filming.ProposalFilmingParksViewSet)
+#router.register(r'filming_activity_tab', proposal_api_filming.FilmingActivityTabView, base_name='filming_activity_tab')
+router.register(r'district_proposals',proposal_api.DistrictProposalViewSet)
+router.register(r'district_proposal_paginated',proposal_api.DistrictProposalPaginatedViewSet)
+
+
+#Events
+router.register(r'proposal_events_parks', proposal_api_event.ProposalEventsParksViewSet)
+router.register(r'abseiling_climbing_activities', proposal_api_event.AbseilingClimbingActivityViewSet)
+router.register(r'proposal_pre_event_parks', proposal_api_event.ProposalPreEventsParksViewSet)
+
 
 api_patterns = [
     url(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
@@ -102,6 +116,10 @@ api_patterns = [
 
 
     url(r'^api/reports/booking_settlements$', main_api.BookingSettlementReportView.as_view(),name='booking-settlements-report'),
+    #Filming
+    url(r'^api/filming_activity_tab',proposal_api_filming.FilmingActivityTabView.as_view(),name='filming_activity_tab'),
+
+
 ]
 
 # URL Patterns

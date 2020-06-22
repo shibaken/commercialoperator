@@ -128,7 +128,7 @@ from '@/utils/hooks'
         methods:{
             fetchQuestions: function(){
                 let vm = this;
-                vm.$http.get('/api/questions.json').then((response) => {
+                vm.$http.get('/api/questions/events_questions_list.json').then((response) => {
                     vm.questions = response.body;
                     for(var i=0; i<vm.questions.length;i++){
                         vm.questions[i].is_correct=false;

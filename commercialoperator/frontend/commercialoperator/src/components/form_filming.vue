@@ -58,10 +58,12 @@
                   <div v-else>
                     <Applicant :proposal="proposal" id="proposalStartApplicant"></Applicant>
                     <div v-if="is_internal">
+                      <ApprovalType :proposal="proposal" :hasAssessorMode="hasAssessorMode"></ApprovalType>
                       <Assessment :proposal="proposal" :assessment="proposal.assessor_assessment" :hasAssessorMode="hasAssessorMode" :is_internal="is_internal" :is_referral="is_referral"></Assessment>
                       <div v-for="assess in proposal.referral_assessments">
                         <Assessment :proposal="proposal" :assessment="assess"></Assessment>
                       </div>
+
                     </div>
                   </div>
               </div>
@@ -93,6 +95,7 @@
     import Assessment from '@/components/common/tclass/assessment.vue'
 
     //import Applicant from '@/components/common/filming/applicant.vue'
+    import ApprovalType from '@/components/common/filming/approval_type.vue'
     import Activity from '@/components/common/filming/activity.vue'
     import Access from '@/components/common/filming/access.vue'
     import Equipment from '@/components/common/filming/equipment.vue'
@@ -153,7 +156,8 @@
             Confirmation,
             Profile,
             Organisation,
-            Assessment
+            Assessment,
+            ApprovalType
         },
         computed:{
           applicantType: function(){

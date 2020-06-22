@@ -363,3 +363,35 @@ class OracleSerializer(serializers.Serializer):
     override = serializers.BooleanField(default=False)
 
 
+
+class ActivityFilterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Activity
+        fields = ('id', 'name',)
+
+class EventsParkSerializer(serializers.ModelSerializer):
+    allowed_activities= serializers.SerializerMethodField()
+
+    class Meta:
+        model = Park
+        fields=('id', 'name', 'allowed_activities', )
+
+    def get_allowed_activities(self, obj):
+        """ The way ro push parent date to child level nested childen (ZoneSerializer --> ActivitySerializer)
+        """
+        children=[]
+        if obj.park_type=='land':
+            children = obj.allowed_activities
+        if obj.park_type=='marine':
+            for zone in obj.zones.all():
+                #children.append(zone.allowed_activities.all())
+                zone_activities=[i for i in zone.allowed_activities.all()]
+                children=children+zone_activities
+        serializer_context = {'request': self.context.get('request'),
+                              }
+        serializer = ActivityFilterSerializer(children, many=True, context=serializer_context)
+        return serializer.data
+
+class TrailTabSerializer(serializers.Serializer):
+    land_activity_types = ActivitySerializer(many=True, read_only=True)
+    trails = TrailSerializer(many=True, read_only=True)

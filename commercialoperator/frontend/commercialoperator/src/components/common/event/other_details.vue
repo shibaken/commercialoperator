@@ -3,60 +3,86 @@
     <div class="col-sm-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">Safety<small></small>
+                <h3 class="panel-title">Pre-Event Training<small></small>
                 <a class="panelClicker" :href="'#'+lBody" data-toggle="collapse"  data-parent="#otherInfo" expanded="true" :aria-controls="lBody">
                 <span class="glyphicon glyphicon-chevron-up pull-right "></span>
                 </a>
                 </h3>
             </div>
             <div class="panel-body collapse in" :id="lBody">
-                <div class="" >                        
+                <div class="" >
                     <div class="form-horizontal col-sm-12 borderDecoration">
-                        
-                        <div class="form-group">
+                        <div class="">
                             <div class="row">
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">What steps have been taken to ensure the well being of others in your party</label>
+                                    <label class="control-label pull-left"  for="Name">Date of Pre-event training
+                                    </label>
                                 </div>
                                 <div class="col-sm-6">
-                                    <div class="input-group date" ref="safety_details" style="width: 70%;">
-                                        <input type="text" class="form-control" v-model="proposal.other_details.safety_details" name="safety_details" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
-                                        <!--
-                                        <input type="text" class="form-control" name="safety_details" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
-                                        -->
+                                    <div class="input-group date" ref="training_date" style="width: 70%;">
+                                        <input type="text" class="form-control" name="training_date" placeholder="DD/MM/YYYY" v-model="proposal.event_other_details.training_date" :disabled="proposal.readonly">
+                                            <span class="input-group-addon">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </span>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="form-horizontal col-sm-12 borderDecoration">                        
+                        <div class="">
+                            <div class="row">
+                                <PreEventParksTable :url="pre_event_parks_url" :proposal="proposal"  ref="pre_event_parks_table"></PreEventParksTable>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                        </div> 
+                    </div>
+
+                    <div class="form-horizontal col-sm-12 borderDecoration">
+                        
+                        <div class="">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Number of Participants expected</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="input-group date" ref="participants_number" style="width: 70%;">
+                                        <input type="text" class="form-control" v-model="proposal.event_other_details.participants_number" name="participants_number" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Number of officials</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="input-group date" ref="officials_number" style="width: 70%;">
+                                        <input type="text" class="form-control" v-model="proposal.event_other_details.officials_number" name="officials_number" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Number of officials</label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="input-group date" ref="support_vehicle_number" style="width: 70%;">
+                                        <input type="text" class="form-control" v-model="proposal.event_other_details.support_vehicle_number" name="support_vehicle_number" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">&nbsp;</div>
+
                         </div> 
                     </div>
                 </div>
             </div>                
         </div>
     </div>
-    <div class="col-sm-12">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">Payment of Fees and Charges<small></small>
-                <a class="panelClicker" :href="'#'+mBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="mBody">
-                <span class="glyphicon glyphicon-chevron-up pull-right "></span>
-                </a>
-                </h3>
-            </div>
-            <div class="panel-body collapse in" :id="mBody">
-                <div class="" >                        
-                    <div class="form-horizontal col-sm-12 borderDecoration">
-                        <div class="form-group">
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <label>Depending on the filming operation, fees and charges may apply. Please see ...</label>
-                                </div>   
-                            </div>
-                        </div>
-                   </div>
-                </div>
-            </div>                
-        </div>
-    </div>
+    
     <div class="col-sm-12">
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -68,7 +94,7 @@
             </div>
             <div class="panel-body collapse in" :id="iBody">
                 <div class="" >                        
-                    <div class="form-horizontal col-sm-12 borderDecoration">
+                    <div class="form-horizontal col-sm-12">
                         <div class="form-group">
                             <div class="row">
                                 <div class="col-sm-12">
@@ -94,7 +120,7 @@
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="input-group date" ref="insurance_expiry" style="width: 70%;">
-                                        <input type="text" class="form-control" name="insurance_expiry" placeholder="DD/MM/YYYY" v-model="proposal.other_details.insurance_expiry" :disabled="proposal.readonly">
+                                        <input type="text" class="form-control" name="insurance_expiry" placeholder="DD/MM/YYYY" v-model="proposal.event_other_details.insurance_expiry" :disabled="proposal.readonly">
                                             <span class="input-group-addon">
                                                 <span class="glyphicon glyphicon-calendar"></span>
                                             </span>
@@ -118,7 +144,7 @@
             </div>
             <div class="panel-body collapse in" :id="dBody">
                 <div class="" >                        
-                    <div class="form-horizontal col-sm-12 borderDecoration">
+                    <div class="form-horizontal col-sm-12 ">
                         <div class="form-group">
                            <div class="row">
                                 <div class="col-sm-12">
@@ -138,7 +164,7 @@
             </div>                
         </div>
     </div>
--->
+
 
 </div>
 </template>
@@ -146,6 +172,7 @@
 <script>
 import Vue from 'vue' 
 //import Accreditation from './accreditation_type.vue'
+import PreEventParksTable from './pre_event_parks_table.vue'
 import FileField from '@/components/forms/filefield.vue'
 import {
   api_endpoints,
@@ -178,16 +205,18 @@ export default {
                 global_settings:[],
                 //mooring:[{'value':''}],
                 datepickerOptions:{
-                format: 'DD/MM/YYYY',
-                showClear:true,
-                useCurrent:false,
-                keepInvalid:true,
-                allowInputToggle:true,
-            },
+                    format: 'DD/MM/YYYY',
+                    showClear:true,
+                    useCurrent:false,
+                    keepInvalid:true,
+                    allowInputToggle:true,
+                },
+                pre_event_parks_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/pre_event_parks'),
             }
         },
         components: {
           FileField,
+          PreEventParksTable,
           //Accreditation
         },
         computed: {
@@ -217,7 +246,7 @@ export default {
         watch:{
             
             accreditation_type: function(){
-                this.proposal.other_details.accreditation_type=this.accreditation_type.key;
+                this.proposal.event_other_details.accreditation_type=this.accreditation_type.key;
             },
         },
         methods:{
@@ -243,7 +272,7 @@ export default {
             },
             showDockteNumber: function(){
                 let vm=this;
-                if(vm.proposal && vm.proposal.other_details.credit_docket_books){
+                if(vm.proposal && vm.proposal.event_other_details.credit_docket_books){
                     var input = this.$refs.docket_books_yes;
                     var e = document.createEvent('HTMLEvents');
                     e.initEvent('change', true, true);
@@ -263,7 +292,7 @@ export default {
             },
             showCreditFacilityLink: function(){
                 let vm=this;
-                if(vm.proposal && vm.proposal.other_details.credit_fees){
+                if(vm.proposal && vm.proposal.event_other_details.credit_fees){
                     var input = this.$refs.credit_fees_yes;
                     var e = document.createEvent('HTMLEvents');
                     e.initEvent('change', true, true);
@@ -284,19 +313,19 @@ export default {
             addMooring: function(){
                 let vm=this;
                 //var new_mooring= helpers.copyObject(vm.mooring)
-                var new_mooring= helpers.copyObject(vm.proposal.other_details.mooring)
+                var new_mooring= helpers.copyObject(vm.proposal.event_other_details.mooring)
                 new_mooring.push('');
-                vm.proposal.other_details.mooring=new_mooring;
-                console.log(vm.proposal.other_details.mooring);
+                vm.proposal.event_other_details.mooring=new_mooring;
+                console.log(vm.proposal.event_other_details.mooring);
             },
             fetchAccreditationChoices: function(){
                 let vm = this;
                 vm.$http.get('/api/accreditation_choices.json').then((response) => {
                     vm.accreditation_choices = response.body;
-                    if(vm.proposal.other_details.accreditation_type
+                    if(vm.proposal.event_other_details.accreditation_type
                         ){
                         for(var i=0; i<vm.accreditation_choices.length; i++){
-                            if(vm.accreditation_choices[i].key==vm.proposal.other_details.accreditation_type){
+                            if(vm.accreditation_choices[i].key==vm.proposal.event_other_details.accreditation_type){
                                 vm.accreditation_type=vm.accreditation_choices[i]
                             }
                         }
@@ -326,10 +355,10 @@ export default {
             },
             checkProposalAccreditation: function(){
                 let vm= this;
-                if(vm.proposal && vm.proposal.other_details){
-                    for(var i=0; i<vm.proposal.other_details.accreditations.length; i++){
-                        vm.proposal.other_details.accreditations[i].is_deleted=false;
-                        vm.selected_accreditations.push(vm.proposal.other_details.accreditations[i].accreditation_type);
+                if(vm.proposal && vm.proposal.event_other_details){
+                    for(var i=0; i<vm.proposal.event_other_details.accreditations.length; i++){
+                        vm.proposal.event_other_details.accreditations[i].is_deleted=false;
+                        vm.selected_accreditations.push(vm.proposal.event_other_details.accreditations[i].accreditation_type);
                     }
                 }
             },
@@ -337,10 +366,10 @@ export default {
                 let vm=this;
                 if(e.target.checked){
                     var found=false;
-                    for(var i=0;i<vm.proposal.other_details.accreditations.length; i++){
-                        if(vm.proposal.other_details.accreditations[i].accreditation_type==accreditation_type.key){
+                    for(var i=0;i<vm.proposal.event_other_details.accreditations.length; i++){
+                        if(vm.proposal.event_other_details.accreditations[i].accreditation_type==accreditation_type.key){
                             found=true;
-                            vm.proposal.other_details.accreditations[i].is_deleted=false;
+                            vm.proposal.event_other_details.accreditations[i].is_deleted=false;
                         }
                     }
                     if(found==false){
@@ -348,31 +377,31 @@ export default {
                         'accreditation_type': accreditation_type.key,
                         'accreditation_expiry':null,
                         'comments':'',
-                        'proposal_other_details': vm.proposal.other_details.id,
+                        'proposal_other_details': vm.proposal.event_other_details.id,
                         'is_deleted': false,
                         'accreditation_type_value': accreditation_type.value
                     }
-                    var acc=helpers.copyObject(vm.proposal.other_details.accreditations);
+                    var acc=helpers.copyObject(vm.proposal.event_other_details.accreditations);
                     acc.push(data);
-                    vm.proposal.other_details.accreditations=acc;
+                    vm.proposal.event_other_details.accreditations=acc;
                     }
                 }
                 else{
-                    for(var i=0;i<vm.proposal.other_details.accreditations.length; i++)
+                    for(var i=0;i<vm.proposal.event_other_details.accreditations.length; i++)
                     {
 
-                        if(vm.proposal.other_details.accreditations[i].accreditation_type==accreditation_type.key)
+                        if(vm.proposal.event_other_details.accreditations[i].accreditation_type==accreditation_type.key)
                         {
-                            if(vm.proposal.other_details.accreditations[i].id){
+                            if(vm.proposal.event_other_details.accreditations[i].id){
                                 //console.log('yes')
-                                var acc=helpers.copyObject(vm.proposal.other_details.accreditations);
+                                var acc=helpers.copyObject(vm.proposal.event_other_details.accreditations);
                                 acc[i].is_deleted=true;
-                                vm.proposal.other_details.accreditations=acc;
+                                vm.proposal.event_other_details.accreditations=acc;
                             }
                             else{
-                                var acc=helpers.copyObject(vm.proposal.other_details.accreditations);
+                                var acc=helpers.copyObject(vm.proposal.event_other_details.accreditations);
                                 acc.splice(i,1);
-                                vm.proposal.other_details.accreditations=acc;
+                                vm.proposal.event_other_details.accreditations=acc;
                             }
                         }
                     }
@@ -384,7 +413,7 @@ export default {
                 var date= new Date()
                 var today= new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-                /* 
+                 
                 //Insurance expiry date listener
                 $(vm.$refs.insurance_expiry).datetimepicker(vm.datepickerOptions);
                 //Set minimum date on datetimepicker so that
@@ -392,30 +421,27 @@ export default {
                 $(vm.$refs.insurance_expiry).data("DateTimePicker").minDate(today);
                 $(vm.$refs.insurance_expiry).on('dp.change', function(e){
                     if ($(vm.$refs.insurance_expiry).data('DateTimePicker').date()) {                       
-                        vm.proposal.other_details.insurance_expiry =  e.date.format('DD/MM/YYYY');
+                        vm.proposal.event_other_details.insurance_expiry =  e.date.format('DD/MM/YYYY');
                     }
                     else if ($(vm.$refs.insurance_expiry).data('date') === "") {
-                        vm.proposal.other_details.insurance_expiry = "";
+                        vm.proposal.event_other_details.insurance_expiry = "";
                     }
                  });
-                */
 
-                // Intialise select2
-                $(vm.$refs.preferred_licence_period).select2({
-                    "theme": "bootstrap",
-                    allowClear: true,
-                    placeholder:"Select preferred licence term"
-                }).
-                on("select2:select",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.proposal.other_details.preferred_licence_period = selected.val();
-                    vm.proposal.other_details.preferred_licence_period_id = selected.val();
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.proposal.other_details.preferred_licence_period = selected.val();
-                    vm.proposal.other_details.preferred_licence_period_id = selected.val();
-                });
+                //Training date listener
+                $(vm.$refs.training_date).datetimepicker(vm.datepickerOptions);
+                //Set minimum date on datetimepicker so that
+                //Training date cannot be selected prior to today
+                $(vm.$refs.training_date).data("DateTimePicker").minDate(today);
+                $(vm.$refs.training_date).on('dp.change', function(e){
+                    if ($(vm.$refs.training_date).data('DateTimePicker').date()) {                       
+                        vm.proposal.event_other_details.training_date =  e.date.format('DD/MM/YYYY');
+                    }
+                    else if ($(vm.$refs.training_date).data('date') === "") {
+                        vm.proposal.event_other_details.training_date = "";
+                    }
+                 });
+                
             },
         },
         mounted: function(){
@@ -438,6 +464,12 @@ export default {
         zoom:1;
         display: inline;
     }*/
+    .borderDecoration {
+    border: 1px solid;
+    border-radius: 5px;
+    padding: 5px;
+    margin-top: 5px;
+    }
     fieldset.scheduler-border {
     border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;

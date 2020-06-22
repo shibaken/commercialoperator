@@ -112,10 +112,46 @@
                                     </div>
                                 </div>
 
+                                <div v-if="compliance.participant_number_required && !isFinalised && !compliance.fee_paid">
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <label class="col-sm-3 control-label pull-left"  for="Name">Number of Adults:</label>
+                                            <div class="col-sm-6">
+                                                <input type="text" :disabled="isFinalised" class="form-control" name="detail" placeholder="">
+                                            </div>
+                                        </div>                                 
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <label class="col-sm-3 control-label pull-left"  for="Name">Number of Children:</label>
+                                            <div class="col-sm-6">
+                                                <input type="text" :disabled="isFinalised" class="form-control" name="detail" placeholder="">
+                                            </div>
+                                        </div>                                 
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <label class="col-sm-3 control-label pull-left"  for="Name">Number of Concession:</label>
+                                            <div class="col-sm-6">
+                                                <input type="text" :disabled="isFinalised" class="form-control" name="detail" placeholder="">
+                                            </div>
+                                        </div>                                 
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <label class="col-sm-3 control-label pull-left"  for="Name">Number of Free of charge:</label>
+                                            <div class="col-sm-6">
+                                                <input type="text" :disabled="isFinalised" class="form-control" name="detail" placeholder="">
+                                            </div>
+                                        </div>                                 
+                                    </div>
+                                </div>
+
                                 <div class="row">
-                                    <div class="form-group">
-                                    <div class="col-lg-2 pull-right">
-                                        <button v-if="!isFinalised" @click.prevent="submit()" class="btn btn-primary">Submit</button>
+                                    <div class="">
+                                    <div class="pull-right">
+                                        <button v-if="compliance.participant_number_required && !isFinalised && !compliance.fee_paid" @click.prevent="submit()" class="btn btn-primary">Pay and Submit</button>
+                                        <button v-else-if="!isFinalised" @click.prevent="submit()" class="btn btn-primary">Submit</button>
                                         <button v-if="!isFinalised" @click.prevent="close()" class="btn btn-primary">Close</button>
                                     </div>
                                    

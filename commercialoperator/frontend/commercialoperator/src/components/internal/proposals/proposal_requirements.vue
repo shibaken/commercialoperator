@@ -12,14 +12,14 @@
                 <div class="panel-body panel-collapse collapse in" :id="panelBody">
                     <form class="form-horizontal" action="index.html" method="post">
                         <div class="col-sm-12">
-                            <button v-if="hasAssessorMode || hasReferralMode" @click.prevent="addRequirement()" style="margin-bottom:10px;" class="btn btn-primary pull-right">Add Requirement</button>
+                            <button v-if="hasAssessorMode || hasReferralMode || hasDistrictAssessorMode" @click.prevent="addRequirement()" style="margin-bottom:10px;" class="btn btn-primary pull-right">Add Requirement</button>
                         </div>
                         <datatable ref="requirements_datatable" :id="'requirements-datatable-'+_uid" :dtOptions="requirement_options" :dtHeaders="requirement_headers"/>
                     </form>
                 </div>
             </div>
         </div>
-        <RequirementDetail ref="requirement_detail" :proposal_id="proposal.id" :requirements="requirements" :hasReferralMode="hasReferralMode" :referral_group="referral_group"/>
+        <RequirementDetail ref="requirement_detail" :proposal_id="proposal.id" :requirements="requirements" :hasReferralMode="hasReferralMode" :referral_group="referral_group" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal="district_proposal"/>
     </div>
 </template>
 <script>
@@ -38,9 +38,18 @@ export default {
             type:Boolean,
             default: false
         },
+        hasDistrictAssessorMode:{
+            type:Boolean,
+            default: false
+        },
         referral_group:{
             type:Number,
             default: null
+        },
+        district_proposal:{
+            type:Number,
+            default: null
+
         }
     },
     data: function() {
@@ -154,8 +163,16 @@ export default {
                                 //links +=  `<a href='#' class="editRequirement" data-id="${full.id}">Edit</a><br/>`;
                                 links +=  `<a href='#' class="deleteRequirement" data-id="${full.id}">Delete</a><br/>`;
                             }
+                            else if(vm.hasReferralMode && full.can_referral_edit){
+                                    if(full.copied_from==null)
+                                {
+                                    links +=  `<a href='#' class="editRequirement" data-id="${full.id}">Edit</a><br/>`;
+                                }
+                                //links +=  `<a href='#' class="editRequirement" data-id="${full.id}">Edit</a><br/>`;
+                                links +=  `<a href='#' class="deleteRequirement" data-id="${full.id}">Delete</a><br/>`;
+                            }
                             else{
-                                if(vm.hasReferralMode && full.can_referral_edit){
+                                if(vm.hasDistrictAssessorMode && full.can_district_assessor_edit){
                                     if(full.copied_from==null)
                                 {
                                     links +=  `<a href='#' class="editRequirement" data-id="${full.id}">Edit</a><br/>`;
@@ -233,7 +250,8 @@ export default {
     },
     methods:{
         addRequirement(){
-            this.$refs.requirement_detail.requirement.referral_group=this.referral_group
+            this.$refs.requirement_detail.requirement.referral_group=this.referral_group;
+            this.$refs.requirement_detail.requirement.district_proposal=this.district_proposal;
             this.$refs.requirement_detail.isModalOpen = true;
         },
         removeRequirement(_id){
@@ -278,6 +296,7 @@ export default {
                 this.$refs.requirement_detail.requirement = response.body;
                 this.$refs.requirement_detail.requirement.due_date =  response.body.due_date != null && response.body.due_date != undefined ? moment(response.body.due_date).format('DD/MM/YYYY'): '';
                 this.$refs.requirement_detail.requirement.referral_group=response.body.referral_group;
+                this.$refs.requirement_detail.requirement.district_proposal=response.body.district_proposal;
                 this.$refs.requirement_detail.requirement.requirement_documents=response.body.requirement_documents;
                 response.body.standard ? $(this.$refs.requirement_detail.$refs.standard_req).val(response.body.standard_requirement).trigger('change'): '';
                 this.addRequirement();

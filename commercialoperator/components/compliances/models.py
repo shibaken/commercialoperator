@@ -68,6 +68,7 @@ class Compliance(RevisionedMixin):
     submitter = models.ForeignKey(EmailUser, blank=True, null=True, related_name='commercialoperator_compliances')
     reminder_sent = models.BooleanField(default=False)
     post_reminder_sent = models.BooleanField(default=False)
+    fee_invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
 
 
     class Meta:
@@ -117,6 +118,17 @@ class Compliance(RevisionedMixin):
     def amendment_requests(self):
         qs =ComplianceAmendmentRequest.objects.filter(compliance = self)
         return qs
+
+    @property
+    def participant_number_required(self):
+        if self.requirement.standard_requirement and self.requirement.standard_requirement.participant_number_required:
+            return True
+        return False
+
+    @property
+    def fee_paid(self):
+        return True if self.fee_invoice_reference else False
+
 
     def save(self, *args, **kwargs):
         super(Compliance, self).save(*args,**kwargs)
