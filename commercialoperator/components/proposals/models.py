@@ -3855,6 +3855,23 @@ class ProposalFilmingParks(models.Model):
     class Meta:
         app_label = 'commercialoperator'
 
+    def can_assessor_edit(self,user):
+        assessor_group=None
+        if self.proposal.processing_status == 'with_district_assessor':
+            if self.park.district:
+                check_group = DistrictProposalAssessorGroup.objects.filter(
+                        district__name=self.park.district.name
+                    ).distinct()
+                if check_group:
+                    assessor_group = check_group[0]
+                else:
+                    assessor_group = DistrictProposalAssessorGroup.objects.get(default=True)
+                return assessor_group in user.districtproposalassessorgroup_set.all()
+        elif self.proposal.processing_status == 'with_assessor':
+                return self.proposal.can_assess(user)        
+        else:
+            return False
+
     def add_documents(self, request):
         with transaction.atomic():
             try:

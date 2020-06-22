@@ -1016,7 +1016,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             qs = instance.filming_parks
             #qs = qs.filter(status = 'requested')
-            serializer = ProposalFilmingParksSerializer(qs,many=True)
+            serializer = ProposalFilmingParksSerializer(qs,many=True,context={'request':request})
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
