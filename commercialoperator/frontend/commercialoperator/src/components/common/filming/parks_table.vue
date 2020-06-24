@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-sm-12"> 
             <div class="row" >
-                <div class="col-md-3" v-if="!proposal.readonly">
+                <div class="col-md-3" v-if="canEditActivities">
                             <!-- <button style="margin-top:25px;" class="btn btn-primary pull-right">New Application</button> -->
                             <input type="button" style="margin-top:25px;" @click.prevent="newPark" class="btn btn-primary" value="Add" />
                 </div>
@@ -43,6 +43,18 @@ export default {
             type: String,
             required: true
         },
+        hasDistrictAssessorMode:{
+            type:Boolean,
+            default: false
+        },
+        district_proposal:{
+            type:Object,
+            default:null
+        },
+        canEditActivities:{
+              type: Boolean,
+              default: true
+        },
     },
     data() {
         let vm = this;
@@ -52,7 +64,7 @@ export default {
                 feature_of_interest:'',
                 from_date:null,
                 to_date:null,
-                proposal: vm.proposal.id
+                 proposal: vm.proposal.id
             },
             pBody: 'pBody' + vm._uid,
             datatable_id: 'park-datatable-'+vm._uid,

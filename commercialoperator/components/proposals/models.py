@@ -4126,7 +4126,7 @@ class DistrictProposal(models.Model):
 
     def can_process_requirements(self,user):
         #if self.processing_status == 'on_hold' or self.processing_status == 'with_assessor' or self.processing_status == 'with_referral' or self.processing_status == 'with_assessor_requirements':
-        if self.processing_status in ['with_assessor_requirements']:
+        if self.processing_status in ['with_assessor','with_assessor_requirements']:
             return self.__assessor_group() in user.districtproposalassessorgroup_set.all()
         else:
             return False

@@ -72,7 +72,7 @@
                 <Activity :proposal="proposal" id="proposalStartActivity"></Activity>
               </div>
               <div class="tab-pane fade" id="pills-access" role="tabpanel" aria-labelledby="pills-access-tab">
-                <Access :proposal="proposal" id="proposalStartAccess"></Access>
+                <Access :proposal="proposal" id="proposalStartAccess" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal= "district_proposal" :canEditActivities="canEditActivities" ></Access>
               </div>
               <div class="tab-pane fade" id="pills-equipment" role="tabpanel" aria-labelledby="pills-equipment-tab">
                 <Equipment :proposal="proposal" id="proposalStartEquipment"></Equipment>
@@ -138,6 +138,14 @@
                 required:false
             },
             proposal_parks:{
+                type:Object,
+                default:null
+            },
+            hasDistrictAssessorMode:{
+                type:Boolean,
+                default: false
+            },
+            district_proposal:{
                 type:Object,
                 default:null
             },

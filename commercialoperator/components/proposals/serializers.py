@@ -1606,11 +1606,10 @@ class FilmingDistrictProposalSerializer(InternalFilmingProposalSerializer):
         # TODO check if the proposal has been accepted or declined
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
-        
         return {
-            'assessor_mode': True,
+            'assessor_mode': False,
             'assessor_can_assess': obj.can_assess(user),
-            'assessor_level': 'referral',
+            'assessor_level': 'district',
             'assessor_box_view': obj.assessor_comments_view(user)
         }
 
@@ -1640,8 +1639,8 @@ class DistrictProposalSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def __init__(self,*args,**kwargs):
-        super(DistrictProposalSerializer, self).__init__(*args, **kwargs)
-        self.fields['proposal'] = FilmingDistrictProposalSerializer(context={'request':self.context['request']})
+        super(DistrictProposalSerializer, self).__init__(*args, **kwargs)       
+        self.fields['proposal'] = FilmingDistrictProposalSerializer(context={'request': self.context['request']})
 
     def get_district_assessor_can_assess(self,obj):
         request = self.context['request']

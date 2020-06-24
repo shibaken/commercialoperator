@@ -327,6 +327,9 @@ export default {
         proposal: function(){
             return this.district_proposal != null ? this.district_proposal.proposal : null;
         },
+        canEditActivities: function(){
+            return this.district_proposal && this.district_proposal.can_process_requirements? true: false;
+        },
         hasDistrictAssessorMode: function(){
             return this.district_proposal && this.district_proposal.can_process_requirements? true: false;
         },
