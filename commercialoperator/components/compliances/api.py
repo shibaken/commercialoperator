@@ -189,6 +189,7 @@ class ComplianceViewSet(viewsets.ModelViewSet):
     def submit(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
+                import ipdb; ipdb.set_trace()
                 instance = self.get_object()
                 data = {
                 'text': request.data.get('detail')

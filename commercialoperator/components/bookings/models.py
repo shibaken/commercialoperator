@@ -7,6 +7,7 @@ from django.utils import timezone
 from ledger.accounts.models import EmailUser, RevisionedMixin
 from ledger.payments.models import Invoice
 from commercialoperator.components.proposals.models import Proposal
+from commercialoperator.components.compliances.models import Compliance
 from commercialoperator.components.main.models import Park
 from decimal import Decimal as D
 from ledger.checkout.utils import calculate_excl_gst
@@ -375,6 +376,50 @@ class ApplicationFeeInvoice(RevisionedMixin):
             pass
         return False
 
+class ComplianceFee(Payment):
+    PAYMENT_TYPE_INTERNET = 0
+    PAYMENT_TYPE_RECEPTION = 1
+    PAYMENT_TYPE_BLACK = 2
+    PAYMENT_TYPE_TEMPORARY = 3
+    PAYMENT_TYPE_CHOICES = (
+        (PAYMENT_TYPE_INTERNET, 'Internet booking'),
+        (PAYMENT_TYPE_RECEPTION, 'Reception booking'),
+        (PAYMENT_TYPE_BLACK, 'Black booking'),
+        (PAYMENT_TYPE_TEMPORARY, 'Temporary reservation'),
+#        (4, 'Cancelled Booking'),
+#        (5, 'Changed Booking')
+    )
+
+    compliance = models.ForeignKey(Compliance, on_delete=models.PROTECT, blank=True, null=True, related_name='compliance_fees')
+    payment_type = models.SmallIntegerField(choices=PAYMENT_TYPE_CHOICES, default=0)
+    cost = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
+    created_by = models.ForeignKey(EmailUser,on_delete=models.PROTECT, blank=True, null=True,related_name='created_by_compliance_fee')
+
+    def __str__(self):
+        return 'Compliance {} : Invoice {}'.format(self.compliance, self.compliance_fee_invoices.last())
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+class ComplianceFeeInvoice(RevisionedMixin):
+    compliance_fee = models.ForeignKey(ComplianceFee, related_name='compliance_fee_invoices')
+    invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
+
+    def __str__(self):
+        return 'Compliance Fee {} : Invoice #{}'.format(self.id,self.invoice_reference)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+    @property
+    def active(self):
+        try:
+            invoice = Invoice.objects.get(reference=self.invoice_reference)
+            return False if invoice.voided else True
+        except Invoice.DoesNotExist:
+            pass
+        return False
+
 
 import reversion
 reversion.register(Booking, follow=['invoices', 'park_bookings'])
@@ -382,5 +427,6 @@ reversion.register(ParkBooking)
 reversion.register(BookingInvoice)
 reversion.register(ApplicationFee, follow=['application_fee_invoices'])
 reversion.register(ApplicationFeeInvoice)
-
+reversion.register(ComplianceFee, follow=['compliance_fee_invoices'])
+reversion.register(ComplianceFeeInvoice)
 

@@ -129,6 +129,9 @@ class Compliance(RevisionedMixin):
     def fee_paid(self):
         return True if self.fee_invoice_reference else False
 
+    @property
+    def fee_amount(self):
+        return Invoice.objects.get(reference=self.fee_invoice_reference).amount if self.fee_paid else None
 
     def save(self, *args, **kwargs):
         super(Compliance, self).save(*args,**kwargs)
@@ -359,7 +362,7 @@ class ComplianceAmendmentRequest(CompRequest):
 
 
 import reversion
-reversion.register(Compliance, follow=['documents', 'action_logs', 'comms_logs', 'comprequest_set'])
+reversion.register(Compliance, follow=['documents', 'action_logs', 'comms_logs', 'comprequest_set', 'compliance_fees'])
 reversion.register(ComplianceDocument)
 reversion.register(ComplianceUserAction)
 reversion.register(ComplianceLogEntry, follow=['documents'])
