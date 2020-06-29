@@ -116,6 +116,10 @@ export default {
             type: String,
             default: 'edit'
         },
+        district_proposal:{
+            type:Object,
+            default:null
+        },
     },
     data:function () {
         let vm = this;
@@ -193,6 +197,14 @@ export default {
         fetchLandParks: function(id){
             let vm = this;
             vm.$http.get(helpers.add_endpoint_json(api_endpoints.parks,'land_parks')).then((response) => {
+                vm.land_parks = response.body; 
+            },(error) => {
+                console.log(error);
+            } );
+        },
+        fetchDistrictLandParks: function(id){
+            let vm = this;
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.districts,id+'/land_parks')).then((response) => {
                 vm.land_parks = response.body; 
             },(error) => {
                 console.log(error);
@@ -366,7 +378,13 @@ export default {
    mounted:function () {
         let vm =this;
         //vm.fetchAccessTypes();
-        vm.fetchLandParks();
+        if(vm.district_proposal){
+            vm.fetchDistrictLandParks(vm.district_proposal.district);
+        }
+        else{
+            vm.fetchLandParks();
+        }
+        
         vm.form = document.forms.parkForm;
         vm.addFormValidations();
         this.$nextTick(()=>{

@@ -33,6 +33,7 @@ module.exports = {
     application_types:"/api/application_types.json",
     access_types:"/api/access_types.json",
     parks:"/api/parks.json",
+    districts:"/api/districts.json",
     vehicles:"/api/vehicles.json",
     vessels:"/api/vessels.json",
     assessments:"/api/assessments.json",

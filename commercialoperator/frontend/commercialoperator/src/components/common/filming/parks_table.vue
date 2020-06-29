@@ -14,7 +14,7 @@
                 </div>
             </div>
         </div>
-        <editPark ref="edit_park" :park_id="park_id" @refreshFromResponse="refreshFromResponse"></editPark>
+        <editPark ref="edit_park" :park_id="park_id" @refreshFromResponse="refreshFromResponse" :district_proposal="district_proposal"></editPark>
     </div>
 </template> 
 <script>
