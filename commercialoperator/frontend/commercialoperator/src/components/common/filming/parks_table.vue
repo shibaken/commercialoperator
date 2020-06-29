@@ -55,6 +55,10 @@ export default {
               type: Boolean,
               default: true
         },
+        is_external:{
+              type: Boolean,
+              default: false
+        },
     },
     data() {
         let vm = this;
@@ -139,10 +143,18 @@ export default {
                         data: '',
                         mRender:function (data,type,full) {
                             let links = '';
-                            if(!vm.proposal.readonly){
-                            links +=  `<a href='#${full.id}' data-edit-park='${full.id}'>Edit Park</a><br/>`;
-                            links +=  `<a href='#${full.id}' data-discard-park='${full.id}'>Discard</a><br/>`;
-                        }
+                            if(vm.is_external){
+                                if(!vm.proposal.readonly){
+                                links +=  `<a href='#${full.id}' data-edit-park='${full.id}'>Edit Park</a><br/>`;
+                                links +=  `<a href='#${full.id}' data-discard-park='${full.id}'>Discard</a><br/>`;
+                                }
+                            }
+                            if(!vm.is_external){
+                                if(full.can_assessor_edit){
+                                    links +=  `<a href='#${full.id}' data-edit-park='${full.id}'>Edit Park</a><br/>`;
+                                    links +=  `<a href='#${full.id}' data-discard-park='${full.id}'>Discard</a><br/>`;
+                                }
+                            }
                         //     if (!vm.is_external){
                         //         if (full.can_user_view) {
                         //             links +=  `<a href='/internal/compliance/${full.id}'>Process</a><br/>`;
@@ -222,9 +234,9 @@ export default {
             return this.is_external ? this.external_status : this.internal_status;
             //return [];
         }, */
-        is_external: function(){
-            return this.level == 'external';
-        },
+        // is_external: function(){
+        //     return this.level == 'external';
+        // },
     },
     methods:{
         fetchFilterLists: function(){
@@ -313,10 +325,10 @@ export default {
             vm.addEventListeners();
             vm.initialiseSearch();
         });
-        if(vm.is_external){
-            var column = vm.$refs.park_datatable.vmDataTable.columns(8); //Hide 'Assigned To column for external'
-            column.visible(false);
-        }
+        // if(vm.is_external){
+        //     var column = vm.$refs.park_datatable.vmDataTable.columns(8); //Hide 'Assigned To column for external'
+        //     column.visible(false);
+        // }
         
     }
 }
