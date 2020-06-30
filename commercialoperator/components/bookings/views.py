@@ -21,6 +21,7 @@ from commercialoperator.components.main.models import Park
 from commercialoperator.components.organisations.models import Organisation
 from commercialoperator.components.bookings.context_processors import commercialoperator_url, template_context
 from commercialoperator.components.bookings.invoice_pdf import create_invoice_pdf_bytes
+from commercialoperator.components.bookings.invoice_compliance_pdf import create_invoice_compliance_pdf_bytes
 from commercialoperator.components.bookings.confirmation_pdf import create_confirmation_pdf_bytes
 from commercialoperator.components.bookings.monthly_confirmation_pdf import create_monthly_confirmation_pdf_bytes
 from commercialoperator.components.bookings.email import (
@@ -37,13 +38,26 @@ from commercialoperator.components.bookings.utils import (
     create_lines,
     checkout,
     create_fee_lines,
+    create_compliance_fee_lines,
     get_session_application_invoice,
     set_session_application_invoice,
     delete_session_application_invoice,
+    get_session_compliance_invoice,
+    set_session_compliance_invoice,
+    delete_session_compliance_invoice,
     calc_payment_due_date,
     create_bpay_invoice,
     create_other_invoice,
     create_monthly_confirmation,
+)
+from commercialoperator.components.bookings.models import (
+    Booking,
+    ParkBooking,
+    BookingInvoice,
+    ApplicationFee,
+    ApplicationFeeInvoice,
+    ComplianceFee,
+    ComplianceFeeInvoice,
 )
 
 from commercialoperator.components.proposals.serializers import ProposalSerializer
@@ -53,7 +67,6 @@ from ledger.payments.utils import oracle_parser_on_invoice,update_payments
 import json
 from decimal import Decimal
 
-from commercialoperator.components.bookings.models import Booking, ParkBooking, BookingInvoice, ApplicationFee, ApplicationFeeInvoice
 from ledger.payments.models import Invoice
 from ledger.basket.models import Basket
 from ledger.payments.mixins import InvoiceOwnerMixin
@@ -115,14 +128,14 @@ class ComplianceFeeView(TemplateView):
         try:
             with transaction.atomic():
                 set_session_compliance_invoice(request.session, compliance_fee)
-                lines = create_compliance_fee_lines(proposal)
+                lines = create_compliance_fee_lines(compliance)
                 checkout_response = checkout(
                     request,
-                    proposal,
+                    compliance.proposal,
                     lines,
-                    return_url_ns='fee_success',
-                    return_preload_url_ns='fee_success',
-                    invoice_text='Compliance Fee'
+                    return_url_ns='compliance_fee_success',
+                    return_preload_url_ns='compliance_fee_success',
+                    invoice_text='Compliance Fee ({} - {})'.format(compliance.proposal.event_activity.commencement_date, compliance.proposal.event_activity.completion_date)
                 )
 
                 logger.info('{} built payment line item {} for Compliance Fee and handing over to payment gateway'.format('User {} with id {}'.format(compliance.proposal.submitter.get_full_name(),compliance.proposal.submitter.id), compliance.id))
@@ -292,7 +305,7 @@ class ComplianceFeeSuccessView(TemplateView):
             context = template_context(self.request)
             basket = None
             compliance_fee = get_session_compliance_invoice(request.session)
-            compliance = compliance_fee.proposal
+            compliance = compliance_fee.compliance
             proposal = compliance.proposal
 
             try:
@@ -332,6 +345,7 @@ class ComplianceFeeSuccessView(TemplateView):
                     update_payments(invoice_ref)
 
                     if proposal and (invoice.payment_status == 'paid' or invoice.payment_status == 'over_paid'):
+                        compliance.submit(request)
                         compliance.fee_invoice_reference = invoice_ref
                         compliance.save()
                     else:
@@ -343,7 +357,6 @@ class ComplianceFeeSuccessView(TemplateView):
                     delete_session_compliance_invoice(request.session)
 
                     send_compliance_fee_invoice_events_email_notification(request, compliance, invoice, recipients=[recipient])
-                    send_compliance_fee_confirmation_events_email_notification(request, compliance_fee, invoice, recipients=[recipient])
 
                     context = {
                         'compliance': compliance,
@@ -600,6 +613,26 @@ class InvoicePDFView(View):
         if self.check_owner(organisation):
             response = HttpResponse(content_type='application/pdf')
             response.write(create_invoice_pdf_bytes('invoice.pdf', invoice, proposal))
+            return response
+        raise PermissionDenied
+
+    def get_object(self):
+        return  get_object_or_404(Invoice, reference=self.kwargs['reference'])
+
+    def check_owner(self, organisation):
+        return is_in_organisation_contacts(self.request, organisation) or is_internal(self.request) or self.request.user.is_superuser
+
+class InvoiceCompliancePDFView(View):
+    def get(self, request, *args, **kwargs):
+        invoice = get_object_or_404(Invoice, reference=self.kwargs['reference'])
+        cfi=ComplianceFeeInvoice.objects.filter(invoice_reference=invoice.reference).last()
+
+        compliance = cfi.compliance_fee.compliance
+
+        organisation = compliance.proposal.org_applicant.organisation.organisation_set.all()[0]
+        if self.check_owner(organisation):
+            response = HttpResponse(content_type='application/pdf')
+            response.write(create_invoice_compliance_pdf_bytes('invoice.pdf', invoice, compliance))
             return response
         raise PermissionDenied
 

@@ -55,7 +55,9 @@ class ComplianceSerializer(serializers.ModelSerializer):
             'allowed_assessors',
             'lodgement_date',
             'approval_lodgement_number',
+            'num_participants',
             'participant_number_required',
+            'fee_invoice_reference',
             'fee_paid',
 
         )
@@ -121,8 +123,9 @@ class InternalComplianceSerializer(serializers.ModelSerializer):
             'lodgement_date',
             'approval_lodgement_number',
             'participant_number_required',
+            'num_participants',
+            'fee_invoice_reference',
             'fee_paid',
-
         )
 
     def get_documents(self,obj):
@@ -148,7 +151,7 @@ class SaveComplianceSerializer(serializers.ModelSerializer):
             'id',
             'title',
             'text',
-
+            'num_participants',
         )
 
 class ComplianceActionSerializer(serializers.ModelSerializer):

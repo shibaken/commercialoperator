@@ -18,9 +18,9 @@
                         </h3>
                       </div>
                       <div class="panel-body collapse in" :id="oBody">
-                        <div v-for="a in amendment_request">                      
+                        <div v-for="a in amendment_request">
                           <p>Reason: {{a.reason}}</p>
-                          <p>Details: {{a.text}}</p>                        
+                          <p>Details: {{a.text}}</p>
                       </div>
                     </div>
                   </div>
@@ -115,36 +115,38 @@
                                 <div v-if="compliance.participant_number_required && !isFinalised && !compliance.fee_paid">
                                     <div class="row">
                                         <div class="form-group">
-                                            <label class="col-sm-3 control-label pull-left"  for="Name">Number of Adults:</label>
+                                            <label class="col-sm-3 control-label pull-left"  for="Name">Number of participants:</label>
                                             <div class="col-sm-6">
-                                                <input type="text" :disabled="isFinalised" class="form-control" name="detail" placeholder="">
+                                                <input type="text" :disabled="isFinalised" class="form-control" name="num_participants" placeholder="">
                                             </div>
-                                        </div>                                 
+                                        </div>
                                     </div>
+                                    <!--
                                     <div class="row">
                                         <div class="form-group">
                                             <label class="col-sm-3 control-label pull-left"  for="Name">Number of Children:</label>
                                             <div class="col-sm-6">
-                                                <input type="text" :disabled="isFinalised" class="form-control" name="detail" placeholder="">
+                                                <input type="text" :disabled="isFinalised" class="form-control" name="num_children" placeholder="">
                                             </div>
-                                        </div>                                 
+                                        </div>
                                     </div>
                                     <div class="row">
                                         <div class="form-group">
                                             <label class="col-sm-3 control-label pull-left"  for="Name">Number of Concession:</label>
                                             <div class="col-sm-6">
-                                                <input type="text" :disabled="isFinalised" class="form-control" name="detail" placeholder="">
+                                                <input type="text" :disabled="isFinalised" class="form-control" name="num_concession" placeholder="">
                                             </div>
-                                        </div>                                 
+                                        </div>
                                     </div>
                                     <div class="row">
                                         <div class="form-group">
                                             <label class="col-sm-3 control-label pull-left"  for="Name">Number of Free of charge:</label>
                                             <div class="col-sm-6">
-                                                <input type="text" :disabled="isFinalised" class="form-control" name="detail" placeholder="">
+                                                <input type="text" :disabled="isFinalised" class="form-control" name="num_free" placeholder="">
                                             </div>
-                                        </div>                                 
+                                        </div>
                                     </div>
+                                    -->
                                 </div>
 
                                 <div class="row">
@@ -418,6 +420,7 @@ export default {
                         vm.addingCompliance = false;
                         vm.errorString = helpers.apiVueResourceError(error);
                     });     
+            })
         }
     },
 

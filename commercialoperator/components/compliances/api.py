@@ -189,15 +189,26 @@ class ComplianceViewSet(viewsets.ModelViewSet):
     def submit(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                import ipdb; ipdb.set_trace()
                 instance = self.get_object()
                 data = {
-                'text': request.data.get('detail')
+                    'text': request.data.get('detail'),
+                    'num_participants': request.data.get('num_participants')
                 }
+
                 serializer = SaveComplianceSerializer(instance, data=data)
                 serializer.is_valid(raise_exception=True)
                 instance = serializer.save()
-                instance.submit(request)
+
+                if request.data.has_key('num_participants'):
+                    if request.FILES:
+                        # if num_adults is present instance.submit is executed after payment in das_payment/views.py
+                        for f in request.FILES:
+                            document = instance.documents.create(name=str(request.FILES[f]))
+                            document._file = request.FILES[f]
+                            document.save()
+                else:
+                    instance.submit(request)
+
                 serializer = self.get_serializer(instance)
                 # Save the files
                 '''for f in request.FILES:

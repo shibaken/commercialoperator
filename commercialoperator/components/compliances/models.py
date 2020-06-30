@@ -35,7 +35,6 @@ from commercialoperator.components.compliances.email import (
 import logging
 logger = logging.getLogger(__name__)
 
-
 #class Compliance(models.Model):
 class Compliance(RevisionedMixin):
 
@@ -59,6 +58,8 @@ class Compliance(RevisionedMixin):
     approval = models.ForeignKey('commercialoperator.Approval',related_name='compliances')
     due_date = models.DateField()
     text = models.TextField(blank=True)
+    #meta = JSONField(null=True, blank=True)
+    num_participants = models.SmallIntegerField('Number of participants', blank=True, null=True)
     processing_status = models.CharField(choices=PROCESSING_STATUS_CHOICES,max_length=20)
     customer_status = models.CharField(choices=CUSTOMER_STATUS_CHOICES,max_length=20, default=CUSTOMER_STATUS_CHOICES[1][0])
     assigned_to = models.ForeignKey(EmailUser,related_name='commercialoperator_compliance_assignments',null=True,blank=True)

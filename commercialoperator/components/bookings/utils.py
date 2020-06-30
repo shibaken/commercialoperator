@@ -10,7 +10,8 @@ from dateutil.relativedelta import relativedelta
 from commercialoperator.components.main.models import Park, ApplicationType
 from commercialoperator.components.proposals.models import Proposal, ProposalUserAction
 from commercialoperator.components.organisations.models import Organisation
-from commercialoperator.components.bookings.models import Booking, ParkBooking, BookingInvoice, ApplicationFee
+from commercialoperator.components.bookings.models import Booking, ParkBooking, BookingInvoice, ApplicationFee, ComplianceFee
+
 from commercialoperator.components.bookings.email import (
     send_invoice_tclass_email_notification,
     send_monthly_confirmation_tclass_email_notification,
@@ -213,8 +214,8 @@ def create_bpay_invoice(user, booking):
     return failed_bookings
 
 def create_other_invoice(user, booking):
-    """ This method allows internal payments officer to pay via ledger directly i.e. over the phone credit card details or cheque by post or cash etc 
-    
+    """ This method allows internal payments officer to pay via ledger directly i.e. over the phone credit card details or cheque by post or cash etc
+
         Currently not USED in COLS (Only Payments by CC, BPAY and Monthly Invoicing is allowed), but implemented for use possibly in the future
     """
 
@@ -311,6 +312,72 @@ def delete_session_application_invoice(session):
         del session['cols_app_invoice']
         session.modified = True
 
+def get_session_compliance_invoice(session):
+    """ Compliance Fee session ID """
+    if 'cols_comp_invoice' in session:
+        compliance_fee_id = session['cols_comp_invoice']
+    else:
+        raise Exception('Compliance not in Session')
+
+    try:
+        return ComplianceFee.objects.get(id=compliance_fee_id)
+    except Invoice.DoesNotExist:
+        raise Exception('Compliance record not found for compliance {}'.format(compliance_fee_id))
+
+def set_session_compliance_invoice(session, compliance_fee):
+    """ Compliance Fee session ID """
+    session['cols_comp_invoice'] = compliance_fee.id
+    session.modified = True
+
+def delete_session_compliance_invoice(session):
+    """ Compliance Fee session ID """
+    if 'cols_comp_invoice' in session:
+        del session['cols_comp_invoice']
+        session.modified = True
+
+def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], internal=False):
+    """ Create the ledger lines - line item for compliance fee sent to payment system """
+
+    def add_line_item(park, price, no_persons):
+        price = round(float(price), 2)
+        if no_persons > 0:
+            return {
+                #'ledger_description': '{} - {} - {}'.format(park.name, arrival, age_group),
+                'ledger_description': 'Compliance Fee - {} - {}'.format(now, compliance.lodgement_number),
+                #'oracle_code': park.oracle_code.encode('utf-8'),
+                #'oracle_code': park.oracle_code.encode('utf-8'),
+                'oracle_code': 'NNP415 GST',
+                'price_incl_tax':  price,
+                'price_excl_tax':  price if park.is_gst_exempt else round(float(calculate_excl_gst(price)), 2),
+                'quantity': no_persons,
+            }
+        return None
+
+    now = datetime.now().strftime('%Y-%m-%d %H:%M')
+    events_park_price = compliance.proposal.application_type.events_park_fee
+    #events_park_price = 10.0
+    events_parks = compliance.proposal.events_parks.all()
+    #cost_per_park = (events_park_price * compliance.num_participants) / len(events_parks)
+    cost_per_park = events_park_price
+
+    lines = []
+    for events_park in events_parks:
+        park = events_park.park
+        lines.append(add_line_item(park, price=cost_per_park, no_persons=compliance.num_participants))
+
+#    line_items = [
+#        {   'ledger_description': 'Compliance Fee - {} - {}'.format(now, compliance.lodgement_number),
+#            'oracle_code': compliance.proposal.application_type.oracle_code_application,
+#            'price_incl_tax':  application_price,
+#            #'price_excl_tax':  application_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(application_price),
+#            'price_excl_tax':  application_price,
+#            'quantity': 1,
+#        },
+#    ]
+
+    logger.info('{}'.format(lines))
+    return lines
+
 def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
     """ Create the ledger lines - line item for application fee sent to payment system """
 
@@ -341,7 +408,7 @@ def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
                 'price_excl_tax':  application_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(application_price),
                 'quantity': 1,
             },
-        ]   
+        ]
     logger.info('{}'.format(line_items))
     return line_items
 
