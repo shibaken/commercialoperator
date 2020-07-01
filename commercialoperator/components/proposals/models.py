@@ -29,7 +29,7 @@ from commercialoperator.components.main.models import CommunicationsLogEntry, Us
 from commercialoperator.components.main.utils import get_department_user
 from commercialoperator.components.proposals.email import send_referral_email_notification, send_proposal_decline_email_notification,send_proposal_approval_email_notification, send_amendment_email_notification
 from commercialoperator.ordered_model import OrderedModel
-from commercialoperator.components.proposals.email import send_submit_email_notification, send_external_submit_email_notification, send_approver_decline_email_notification, send_approver_approve_email_notification, send_referral_complete_email_notification, send_proposal_approver_sendback_email_notification, send_qaofficer_email_notification, send_qaofficer_complete_email_notification, send_district_proposal_submit_email_notification,send_district_proposal_approver_sendback_email_notification, send_district_approver_decline_email_notification, send_district_approver_approve_email_notification
+from commercialoperator.components.proposals.email import send_submit_email_notification, send_external_submit_email_notification, send_approver_decline_email_notification, send_approver_approve_email_notification, send_referral_complete_email_notification, send_proposal_approver_sendback_email_notification, send_qaofficer_email_notification, send_qaofficer_complete_email_notification, send_district_proposal_submit_email_notification,send_district_proposal_approver_sendback_email_notification, send_district_approver_decline_email_notification, send_district_approver_approve_email_notification, send_district_proposal_decline_email_notification, send_district_proposal_approval_email_notification
 import copy
 import subprocess
 from django.db.models import Q
@@ -4279,7 +4279,7 @@ class DistrictProposal(models.Model):
                 applicant_field=getattr(self.proposal, self.proposal.applicant_field)
                 applicant_field.log_user_action(ProposalUserAction.ACTION_DISTRICT_DECLINE.format(self.id, self.proposal.id),request)
 
-                #send_proposal_decline_email_notification(self,request, proposal_decline)
+                send_district_proposal_decline_email_notification(self,request, proposal_decline)
             except:
                 raise
 
@@ -4478,7 +4478,7 @@ class DistrictProposal(models.Model):
 
                 #     proposal.processing_status='partially_approved'
                 #     proposal.customer_status='partially_approved'
-
+                send_district_proposal_approval_email_notification(self, approval, request)
                 self.proposal.save(version_comment='Final District Approval: {} for District Proposal: {}'.format(self.proposal.approval.lodgement_number, self.id))
                 self.proposal.approval.documents.all().update(can_delete=False)
 

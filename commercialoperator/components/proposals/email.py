@@ -91,6 +91,16 @@ class DistrictApproverApproveSendNotificationEmail(TemplateEmailBase):
     html_template = 'commercialoperator/emails/proposals/send_district_approver_approve_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_district_approver_approve_notification.txt'
 
+class DistrictProposalDeclineSendNotificationEmail(TemplateEmailBase):
+    subject = 'Your Application has been declined.'
+    html_template = 'commercialoperator/emails/proposals/send_district_decline_notification.html'
+    txt_template = 'commercialoperator/emails/proposals/send_district_decline_notification.txt'
+
+class DistrictProposalApprovalSendNotificationEmail(TemplateEmailBase):
+    subject = '{} - Commercial Operations Licence Approved.'.format(settings.DEP_NAME)
+    html_template = 'commercialoperator/emails/proposals/send_district_approval_notification.html'
+    #html_template = 'commercialoperator/emails/proposals/send_district_decline_notification.html'
+    txt_template = 'commercialoperator/emails/proposals/send_district_approval_notification.txt'
 
 def send_qaofficer_email_notification(proposal, recipients, request, reminder=False):
     email = QAOfficerSendNotificationEmail()
@@ -486,6 +496,121 @@ def send_district_approver_approve_email_notification(request, district_proposal
         'url': url
     }
     msg = email.send(district_proposal.approver_recipients, context=context)
+    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    _log_proposal_email(msg, proposal, sender=sender)
+    if proposal.org_applicant:
+        _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
+    else:
+        _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
+
+def send_district_proposal_decline_email_notification(district_proposal,request,proposal_decline):
+    email = DistrictProposalDeclineSendNotificationEmail()
+    proposal=district_proposal.proposal
+
+    context = {
+        'proposal': proposal,
+        'district_proposal': district_proposal
+
+    }
+    cc_list = proposal_decline.cc_email
+    all_ccs = []
+    if cc_list:
+        all_ccs = cc_list.split(',')
+    if proposal.org_applicant and proposal.org_applicant.email:
+        all_ccs.append(proposal.org_applicant.email)
+
+    msg = email.send(proposal.submitter.email, bcc= all_ccs, context=context)
+    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    _log_proposal_email(msg, proposal, sender=sender)
+    if proposal.org_applicant:
+        _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
+    else:
+        _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
+
+def send_district_proposal_approval_email_notification(district_proposal,approval, request,):
+    email = DistrictProposalApprovalSendNotificationEmail()
+    proposal=district_proposal.proposal
+
+    cc_list = district_proposal.proposed_issuance_approval['cc_email']
+    all_ccs = []
+    if cc_list:
+        all_ccs = cc_list.split(',')
+
+    url = request.build_absolute_uri(reverse('external'))
+    if "-internal" in url:
+        # remove '-internal'. This email is for external submitters
+        url = ''.join(url.split('-internal'))
+
+    attachments = []
+    licence_document= approval.licence_document._file
+    if licence_document is not None:
+        file_name = approval.licence_document.name
+        attachment = (file_name, licence_document.file.read(), 'application/pdf')
+        attachments.append(attachment)
+
+        for requirement in district_proposal.district_proposal_requirements.all():
+            for doc in requirement.requirement_documents.all():
+                file_name = doc._file.name
+                attachment = (file_name, doc._file.file.read())
+                attachments.append(attachment)
+    context = {
+        'proposal': proposal,
+        'district_proposal': district_proposal,
+        'url': url,
+        'num_requirement_docs': len(attachments)
+    }
+    
+    #import ipdb; ipdb.set_trace()
+    msg = email.send(proposal.submitter.email, bcc= all_ccs, context=context, attachments=attachments)
+    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    _log_proposal_email(msg, proposal, sender=sender)
+    if proposal.org_applicant:
+        _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
+    else:
+        _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
+
+def send_district_proposal_approval_email_notification_orig(district_proposal,approval,request):
+
+    email = DistrictProposalApprovalSendNotificationEmail()
+    proposal=district_proposal.proposal
+
+    cc_list = district_proposal.proposed_issuance_approval['cc_email']
+    all_ccs = []
+    if cc_list:
+        all_ccs = cc_list.split(',')
+
+    url = request.build_absolute_uri(reverse('external'))
+    if "-internal" in url:
+        # remove '-internal'. This email is for external submitters
+        url = ''.join(url.split('-internal'))
+    print url  
+    attachments = []
+    licence_document= approval.licence_document._file
+    if licence_document is not None:
+        file_name = approval.licence_document.name
+        attachment = (file_name, licence_document.file.read(), 'application/pdf')
+        attachments.append(attachment)
+
+        # add requirement documents
+        for requirement in district_proposal.district_proposal_requirements.all():
+            for doc in requirement.requirement_documents.all():
+                file_name = doc._file.name
+                #attachment = (file_name, doc._file.file.read(), 'image/*')
+                attachment = (file_name, doc._file.file.read())
+                attachments.append(attachment)
+
+    #url=''            
+
+    context = {
+        'proposal': proposal,
+        'district_proposal': district_proposal,
+        'url': url,
+        'num_requirement_docs': len(attachments)
+
+    }
+
+    msg = email.send(proposal.submitter.email, bcc= all_ccs, attachments=attachments, context=context)
+    print msg
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     _log_proposal_email(msg, proposal, sender=sender)
     if proposal.org_applicant:
