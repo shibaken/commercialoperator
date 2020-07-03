@@ -3353,7 +3353,10 @@ def clone_proposal_with_status_reset(proposal):
         try:
             original_proposal = copy.deepcopy(proposal)
             #proposal = duplicate_object(proposal) # clone object and related objects
-            proposal=duplicate_tclass(proposal)
+            if original_proposal.application_type.name==ApplicationType.TCLASS:
+                proposal=duplicate_tclass(proposal)
+            if original_proposal.application_type.name==ApplicationType.FILMING:
+                proposal=duplicate_filming(proposal)
             # manually duplicate the comms logs -- hck, not hndled by duplicate object (maybe due to inheritance?)
             # proposal.comms_logs.create(text='cloning proposal reset (original proposal {}, new proposal {})'.format(original_proposal.id, proposal.id))
             # for comms_log in proposal.comms_logs.all():
@@ -3612,6 +3615,69 @@ def duplicate_tclass(p):
             new_acc.save()
     except ProposalOtherDetails.DoesNotExist:
         other_details=ProposalOtherDetails.objects.create(proposal=p)
+
+    for vehicle in original_proposal.vehicles.all():
+        vehicle.id=None
+        vehicle.proposal=p
+        vehicle.save()
+    for vessel in original_proposal.vessels.all():
+        vessel.id=None
+        vessel.proposal=p
+        vessel.save()
+
+    return p
+
+def duplicate_filming(p):
+    original_proposal=copy.deepcopy(p)
+    p.id=None
+    p.save()
+    print ('new proposal',p)
+
+    for park in original_proposal.filming_parks.all():
+
+        original_park=copy.deepcopy(park)
+        park.id=None
+        park.proposal=p
+        park.save()
+        for park_document in FilmingParkDocument.objects.filter(filming_park=original_park.id):
+            park_document.filming_park = park
+            park_document.id = None
+            park_document._file.name = u'{}/proposals/{}/filming_park_documents/{}'.format(settings.MEDIA_APP_DIR, p.id, park_document.name)
+            park_document.can_delete = True
+            park_document.save() 
+
+    try:
+        other_details=ProposalFilmingOtherDetails.objects.get(proposal=original_proposal)
+        other_details.id=None
+        other_details.proposal=p
+        other_details.save()
+        #print('proposal:',original_proposal, original_proposal.filming_other_details.id, other_details.id)
+    except ProposalFilmingOtherDetails.DoesNotExist:
+        other_details=ProposalFilmingOtherDetails.objects.create(proposal=p)
+
+    try:
+        filming_activity=ProposalFilmingActivity.objects.get(proposal=original_proposal)
+        filming_activity.id=None
+        filming_activity.proposal=p
+        filming_activity.save()
+    except ProposalFilmingActivity.DoesNotExist:
+        filming_activity=ProposalFilmingActivity.objects.create(proposal=p)
+
+    try:
+        filming_access=ProposalFilmingAccess.objects.get(proposal=original_proposal)
+        filming_access.id=None
+        filming_access.proposal=p
+        filming_access.save()
+    except ProposalFilmingAccess.DoesNotExist:
+        filming_access=ProposalFilmingAccess.objects.create(proposal=p)
+    
+    try:
+        filming_equipment=ProposalFilmingEquipment.objects.get(proposal=original_proposal)
+        filming_equipment.id=None
+        filming_equipment.proposal=p
+        filming_equipment.save()
+    except ProposalFilmingEquipment.DoesNotExist:
+        filming_equipment=ProposalFilmingEquipment.objects.create(proposal=p)
 
     for vehicle in original_proposal.vehicles.all():
         vehicle.id=None
