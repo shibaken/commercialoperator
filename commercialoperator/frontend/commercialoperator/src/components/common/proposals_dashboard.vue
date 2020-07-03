@@ -146,6 +146,7 @@ export default {
                 {value: 'approved', name: 'Approved'},
                 {value: 'declined', name: 'Declined'},
                 {value: 'discarded', name: 'Discarded'},
+                {value: 'awaiting_payment', name: 'Awaiting Payment'},
             ],
             internal_status:[
                 {value: 'draft', name: 'Draft'},
@@ -158,6 +159,7 @@ export default {
                 {value: 'approved', name: 'Approved'},
                 {value: 'declined', name: 'Declined'},
                 {value: 'discarded', name: 'Discarded'},
+                {value: 'awaiting_payment', name: 'Awaiting Payment'},
             ],
             proposal_submitters: [],
             proposal_status: [],
@@ -232,9 +234,7 @@ export default {
                             if (!vm.is_external){
                                 /*if(vm.check_assessor(full) && full.can_officer_process)*/
                                 if(full.assessor_process){
-                                    
                                     links +=  `<a href='/internal/proposal/${full.id}'>Process</a><br/>`;
-                                
                             }
                                 else{
                                     links +=  `<a href='/internal/proposal/${full.id}'>View</a><br/>`;
@@ -248,8 +248,11 @@ export default {
                                 else if (full.can_user_view) {
                                     links +=  `<a href='/external/proposal/${full.id}'>View</a><br/>`;
                                 }
+                                if (full.customer_status=='Awaiting Payment') {
+                                    links +=  `<a href='/external/proposal/${full.id}'>Make Payment</a><br/>`;
+                                }
                             }
-                            if (full.fee_paid && full.proposal_type!='Amendment'){
+                            if (full.fee_invoice_reference && full.proposal_type!='Amendment'){
                                 links +=  `<a href='/cols/payments/invoice-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i>&nbsp #${full.fee_invoice_reference}</a><br/>`;
                             }
                             return links;
@@ -379,9 +382,13 @@ export default {
                                     links +=  `<a href='/external/proposal/${full.id}'>View</a><br/>`;
                                 }
                             }
-                            if (full.fee_paid && full.proposal_type!='Amendment'){
+                            if (full.fee_invoice_reference && full.proposal_type!='Amendment'){
                                 if(vm.is_payment_admin){
-                                    links +=  `<a href='/ledger/payments/invoice/payment?invoice=${full.fee_invoice_reference}' target='_blank'>View Payment</a><br/>`;
+                                    if(full.processing_status=='Awaiting Payment'){
+                                        links +=  `<a href='/ledger/payments/invoice/payment?invoice=${full.fee_invoice_reference}' target='_blank'>Record Payment</a><br/>`;
+                                    } else {
+                                        links +=  `<a href='/ledger/payments/invoice/payment?invoice=${full.fee_invoice_reference}' target='_blank'>View Payment</a><br/>`;
+                                    }
                                 }
                                 links +=  `<a href='/cols/payments/invoice-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i>&nbsp #${full.fee_invoice_reference}</a><br/>`;
                             }

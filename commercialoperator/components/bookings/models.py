@@ -377,6 +377,7 @@ class ApplicationFeeInvoice(RevisionedMixin):
         return False
 
 class ComplianceFee(Payment):
+    """ For Application Type Events """
     PAYMENT_TYPE_INTERNET = 0
     PAYMENT_TYPE_RECEPTION = 1
     PAYMENT_TYPE_BLACK = 2
@@ -402,11 +403,60 @@ class ComplianceFee(Payment):
         app_label = 'commercialoperator'
 
 class ComplianceFeeInvoice(RevisionedMixin):
+    """ For Application Type Events """
     compliance_fee = models.ForeignKey(ComplianceFee, related_name='compliance_fee_invoices')
     invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
 
     def __str__(self):
         return 'Compliance Fee {} : Invoice #{}'.format(self.id,self.invoice_reference)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+    @property
+    def active(self):
+        try:
+            invoice = Invoice.objects.get(reference=self.invoice_reference)
+            return False if invoice.voided else True
+        except Invoice.DoesNotExist:
+            pass
+        return False
+
+class FilmingFee(Payment):
+    """ For Application Type Filming """
+    PAYMENT_TYPE_INTERNET = 0
+    PAYMENT_TYPE_RECEPTION = 1
+    PAYMENT_TYPE_BLACK = 2
+    PAYMENT_TYPE_TEMPORARY = 3
+    PAYMENT_TYPE_CHOICES = (
+        (PAYMENT_TYPE_INTERNET, 'Internet booking'),
+        (PAYMENT_TYPE_RECEPTION, 'Reception booking'),
+        (PAYMENT_TYPE_BLACK, 'Black booking'),
+        (PAYMENT_TYPE_TEMPORARY, 'Temporary reservation'),
+#        (4, 'Cancelled Booking'),
+#        (5, 'Changed Booking')
+    )
+
+    proposal = models.ForeignKey(Proposal, on_delete=models.PROTECT, blank=True, null=True, related_name='filming_fees')
+    payment_type = models.SmallIntegerField(choices=PAYMENT_TYPE_CHOICES, default=0)
+    cost = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
+    created_by = models.ForeignKey(EmailUser,on_delete=models.PROTECT, blank=True, null=True,related_name='created_by_filming_fee')
+    deferred_payment_date = models.DateField(blank=True, null=True)
+    payment_due_notification_sent = models.BooleanField(default=False)
+
+    def __str__(self):
+        return 'Proposal {} : Invoice {}'.format(self.proposal, self.filming_fee_invoices.last())
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+class FilmingFeeInvoice(RevisionedMixin):
+    """ For Application Type Filming """
+    filming_fee = models.ForeignKey(FilmingFee, related_name='filming_fee_invoices')
+    invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
+
+    def __str__(self):
+        return 'Filming Fee {} : Invoice #{}'.format(self.id,self.invoice_reference)
 
     class Meta:
         app_label = 'commercialoperator'
@@ -429,4 +479,6 @@ reversion.register(ApplicationFee, follow=['application_fee_invoices'])
 reversion.register(ApplicationFeeInvoice)
 reversion.register(ComplianceFee, follow=['compliance_fee_invoices'])
 reversion.register(ComplianceFeeInvoice)
+reversion.register(FilmingFee, follow=['filming_fee_invoices'])
+reversion.register(FilmingFeeInvoice)
 

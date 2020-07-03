@@ -41,6 +41,11 @@ class ProposalApprovalSendNotificationEmail(TemplateEmailBase):
     html_template = 'commercialoperator/emails/proposals/send_approval_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_approval_notification.txt'
 
+class ProposalAwaitingPaymentApprovalSendNotificationEmail(TemplateEmailBase):
+    subject = '{} - Commercial Operations Licence Approved - Pending Payment.'.format(settings.DEP_NAME)
+    html_template = 'commercialoperator/emails/proposals/send_awaiting_payment_approval_notification.html'
+    txt_template = 'commercialoperator/emails/proposals/send_awaiting_payment_approval_notification.txt'
+
 class AmendmentRequestSendNotificationEmail(TemplateEmailBase):
     subject = '{} - Commercial Operations Incomplete application.'.format(settings.DEP_NAME)
     html_template = 'commercialoperator/emails/proposals/send_amendment_notification.html'
@@ -380,6 +385,40 @@ def send_proposal_approval_email_notification(proposal,request):
         _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
     else:
         _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
+
+def send_proposal_awaiting_payment_approval_email_notification(proposal, request, invoice):
+    """ Send External Email with attached invoice and URL link to pay by credit card """
+    email = ProposalAwaitingPaymentApprovalSendNotificationEmail()
+
+    cc_list = proposal.proposed_issuance_approval['cc_email']
+    all_ccs = []
+    if cc_list:
+        all_ccs = cc_list.split(',')
+
+    url = request.build_absolute_uri(reverse('external'))
+    if "-internal" in url:
+        # remove '-internal'. This email is for external submitters
+        url = ''.join(url.split('-internal'))
+
+    filename = 'invoice.pdf'
+#    doc = create_awaiting_payment_invoice_pdf_bytes(filename, invoice, proposal)
+#    attachment = (filename, doc, 'application/pdf')
+    attachment = None
+
+    context = {
+        'proposal': proposal,
+        'url': url,
+        'payment_url': url,
+    }
+
+    msg = email.send(proposal.submitter.email, bcc=all_ccs, attachments=[attachment], context=context)
+    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    _log_proposal_email(msg, proposal, sender=sender)
+    if proposal.org_applicant:
+        _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
+    else:
+        _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
+
 
 
 def _log_proposal_referral_email(email_message, referral, sender=None):

@@ -56,13 +56,22 @@ class ApprovalDocument(Document):
 
 #class Approval(models.Model):
 class Approval(RevisionedMixin):
+    APPROVAL_STATUS_CURRENT = 'current'
+    APPROVAL_STATUS_EXPIRED = 'expired'
+    APPROVAL_STATUS_CANCELLED = 'cancelled'
+    APPROVAL_STATUS_SURRENDERED = 'surrendered'
+    APPROVAL_STATUS_SUSPENDED = 'suspended'
+    APPROVAL_STATUS_EXTENDED = 'extended'
+    APPROVAL_STATUS_AWAITING_PAYMENT = 'awaiting_payment'
+
     STATUS_CHOICES = (
-        ('current','Current'),
-        ('expired','Expired'),
-        ('cancelled','Cancelled'),
-        ('surrendered','Surrendered'),
-        ('suspended','Suspended'),
-        ('extended','extended'),
+        (APPROVAL_STATUS_CURRENT ,'Current'),
+        (APPROVAL_STATUS_EXPIRED ,'Expired'),
+        (APPROVAL_STATUS_CANCELLED ,'Cancelled'),
+        (APPROVAL_STATUS_SURRENDERED ,'Surrendered'),
+        (APPROVAL_STATUS_SUSPENDED ,'Suspended'),
+        (APPROVAL_STATUS_EXTENDED ,'extended'),
+        (APPROVAL_STATUS_AWAITING_PAYMENT ,'Awaiting Payment'),
     )
     lodgement_number = models.CharField(max_length=9, blank=True, default='')
     status = models.CharField(max_length=40, choices=STATUS_CHOICES,
@@ -601,7 +610,7 @@ class DistrictApproval(RevisionedMixin):
     set_to_surrender = models.BooleanField(default=False)
     renewal_count = models.PositiveSmallIntegerField('Number of times an Approval has been renewed', default=0)
     migrated=models.BooleanField(default=False)
-    
+
     class Meta:
         app_label = 'commercialoperator'
         unique_together= ('lodgement_number', 'issue_date')

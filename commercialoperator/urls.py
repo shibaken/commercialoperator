@@ -154,6 +154,7 @@ urlpatterns = [
     url(r'^success/fee/$', booking_views.ApplicationFeeSuccessView.as_view(), name='fee_success'),
     url(r'^success/compliance_fee/$', booking_views.ComplianceFeeSuccessView.as_view(), name='compliance_fee_success'),
     url(r'cols/payments/invoice-pdf/(?P<reference>\d+)',booking_views.InvoicePDFView.as_view(), name='cols-invoice-pdf'),
+    url(r'cols/payments/invoice-filmingfee-pdf/(?P<reference>\d+)',booking_views.InvoiceFilmingFeePDFView.as_view(), name='cols-invoice-filmingfee-pdf'),
     url(r'cols/payments/invoice-compliance-pdf/(?P<reference>\d+)',booking_views.InvoiceCompliancePDFView.as_view(), name='cols-invoice-compliance-pdf'),
     url(r'cols/payments/confirmation-pdf/(?P<reference>\d+)',booking_views.ConfirmationPDFView.as_view(), name='cols-confirmation-pdf'),
     url(r'cols/payments/monthly-confirmation-pdf/booking/(?P<id>\d+)',booking_views.MonthlyConfirmationPDFBookingView.as_view(), name='cols-monthly-confirmation-pdf'),

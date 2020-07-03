@@ -22,6 +22,7 @@ from commercialoperator.components.organisations.models import Organisation
 from commercialoperator.components.bookings.context_processors import commercialoperator_url, template_context
 from commercialoperator.components.bookings.invoice_pdf import create_invoice_pdf_bytes
 from commercialoperator.components.bookings.invoice_compliance_pdf import create_invoice_compliance_pdf_bytes
+from commercialoperator.components.bookings.invoice_filmingfee_pdf import create_invoice_filmingfee_pdf_bytes
 from commercialoperator.components.bookings.confirmation_pdf import create_confirmation_pdf_bytes
 from commercialoperator.components.bookings.monthly_confirmation_pdf import create_monthly_confirmation_pdf_bytes
 from commercialoperator.components.bookings.email import (
@@ -149,7 +150,8 @@ class ComplianceFeeView(TemplateView):
 
 
 class DeferredInvoicingPreviewView(TemplateView):
-    template_name = 'commercialoperator/booking/preview.html'
+    #template_name = 'commercialoperator/booking/preview.html'
+    template_name = 'commercialoperator/booking/success.html'
 
     def post(self, request, *args, **kwargs):
 
@@ -241,7 +243,8 @@ class DeferredInvoicingView(TemplateView):
                 })
                 if payment_method=='other':
                     if is_payment_admin(request.user):
-                        return HttpResponseRedirect(reverse('payments:invoice-payment') + '?invoice={}'.format(invoice_reference))
+                        #return HttpResponseRedirect(reverse('payments:invoice-payment') + '?invoice={}'.format(invoice_reference))
+                        return HttpResponseRedirect(reverse('home'))
                     else:
                         raise PermissionDenied
                 else:
@@ -621,6 +624,26 @@ class InvoicePDFView(View):
 
     def check_owner(self, organisation):
         return is_in_organisation_contacts(self.request, organisation) or is_internal(self.request) or self.request.user.is_superuser
+
+class InvoiceFilmingFeePDFView(View):
+    def get(self, request, *args, **kwargs):
+        invoice = get_object_or_404(Invoice, reference=self.kwargs['reference'])
+        proposal = Proposal.objects.get(fee_invoice_reference=invoice.reference)
+
+        organisation = proposal.org_applicant.organisation.organisation_set.all()[0]
+        if self.check_owner(organisation):
+            response = HttpResponse(content_type='application/pdf')
+            response.write(create_invoice_filmingfee_pdf_bytes('invoice.pdf', invoice, proposal))
+            return response
+        raise PermissionDenied
+
+    def get_object(self):
+        return  get_object_or_404(Invoice, reference=self.kwargs['reference'])
+
+    def check_owner(self, organisation):
+        return is_in_organisation_contacts(self.request, organisation) or is_internal(self.request) or self.request.user.is_superuser
+
+
 
 class InvoiceCompliancePDFView(View):
     def get(self, request, *args, **kwargs):
