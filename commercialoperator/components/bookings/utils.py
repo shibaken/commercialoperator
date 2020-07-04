@@ -529,6 +529,42 @@ def create_lines(request, invoice_text=None, vouchers=[], internal=False):
 
     return lines
 
+#def create_filmingfee_lines(request, proposal, invoice_text=None, vouchers=[], internal=False):
+#
+#    if proposal.filming_activity.num_filming_days == 1:
+#        licence_fee = proposal.application_type.filming_fee_full_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_full_day
+#        licence_text =  'Full day'
+#    elif proposal.filming_activity.num_filming_days > 1 and proposal.filming_activity.num_filming_days < 4:
+#        full_day_fee = proposal.application_type.filming_fee_full_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_full_day
+#        subsequent_day_fee = proposal.application_type.filming_fee_subsequent_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_subsequent_day
+#        licence_fee = full_day_fee + (subsequent_day_fee * (proposal.filming_activity.num_filming_days-1))
+#        licence_text = '{} days'.format(proposal.filming_activity.num_filming_days)
+#    elif proposal.filming_activity.num_filming_days >= 4:
+#        licence_fee = proposal.application_type.filming_fee_4days if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_full_4days
+#        licence_text = '4 days or more'.format(proposal.filming_activity.num_filming_days)
+#
+#    application_fee = proposal.application_type.application_fee
+#    filming_period = '{} - {}'.format(proposal.filming_activity.commencement_date, proposal.filming_activity.completion_date)
+#
+#    lines = [
+#        {
+#            'ledger_description': 'Filming/Photography Application Fee - {}'.format(proposal.lodgement_number),
+#            'oracle_code': proposal.application_type.oracle_code_licence,
+#            'price_incl_tax':  application_fee,
+#            'price_excl_tax':  application_fee if proposal.application_type.is_gst_exempt else calculate_excl_gst(application_fee),
+#            'quantity': 1
+#        },
+#        {
+#            'ledger_description': 'Filming/Photography Licence Fee ({} - {}) - {}'.format(licence_text, filming_period, proposal.lodgement_number),
+#            'oracle_code': proposal.application_type.oracle_code_licence,
+#            'price_incl_tax':  licence_fee,
+#            'price_excl_tax':  licence_fee if proposal.application_type.is_gst_exempt else calculate_excl_gst(licence_fee),
+#            'quantity': 1
+#        },
+#    ]
+#
+#    return lines
+
 def checkout(request, proposal, lines, return_url_ns='public_booking_success', return_preload_url_ns='public_booking_success', invoice_text=None, vouchers=[], proxy=False):
     basket_params = {
         'products': lines,
@@ -550,6 +586,7 @@ def checkout(request, proposal, lines, return_url_ns='public_booking_success', r
         'force_redirect': True,
         #'proxy': proxy,
         'invoice_text': invoice_text,                                                         # 'Reservation for Jawaid Mushtaq from 2019-05-17 to 2019-05-19 at RIA 005'
+        #'invoice_reference': '05572565342',
     }
 #    if not internal:
 #        checkout_params['check_url'] = request.build_absolute_uri('/api/booking/{}/booking_checkout_status.json'.format(booking.id))

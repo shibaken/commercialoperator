@@ -673,7 +673,7 @@ class SaveProposalSerializer(BaseProposalSerializer):
                 'filming_approval_type',
                 #'activities_land',
                 #'activities_marine',
-                #'other_details',                                               
+                #'other_details',
                 )
         read_only_fields=('documents','requirements',)
 
@@ -1226,7 +1226,7 @@ class InternalFilmingProposalSerializer(BaseProposalSerializer):
     filming_equipment=ProposalFilmingEquipmentSerializer()
     filming_other_details=ProposalFilmingOtherDetailsSerializer()
     #training_completed=serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Proposal
         fields = (
@@ -1349,7 +1349,7 @@ class ProposalEventSerializer(BaseProposalSerializer):
     event_other_details=ProposalEventOtherDetailsSerializer()
     event_management=ProposalEventManagementSerializer()
     event_vehicles_vessels=ProposalEventVehiclesVesselsSerializer()
-    trails=ProposalTrailSerializer(many=True)    
+    trails=ProposalTrailSerializer(many=True)
 
     class Meta:
         model = Proposal
@@ -1399,7 +1399,7 @@ class ProposalEventSerializer(BaseProposalSerializer):
                 )
         read_only_fields=('documents','requirements',)
 
-    
+
 
     def get_readonly(self,obj):
         return obj.can_user_view
@@ -1433,10 +1433,10 @@ class InternalEventProposalSerializer(BaseProposalSerializer):
     event_other_details=ProposalEventOtherDetailsSerializer()
     event_management=ProposalEventManagementSerializer()
     event_vehicles_vessels=ProposalEventVehiclesVesselsSerializer()
-    trails=ProposalTrailSerializer(many=True)    
+    trails=ProposalTrailSerializer(many=True)
 
-    
-    
+
+
     class Meta:
         model = Proposal
         fields = (
@@ -1592,7 +1592,7 @@ class SaveInternalFilmingProposalSerializer(BaseProposalSerializer):
                 'filming_approval_type',
                 #'activities_land',
                 #'activities_marine',
-                #'other_details',                                               
+                #'other_details',
                 )
         read_only_fields=('documents','requirements',)
 
@@ -1601,7 +1601,7 @@ class FilmingDistrictProposalSerializer(InternalFilmingProposalSerializer):
         # TODO check if the proposal has been accepted or declined
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
-        
+
         return {
             'assessor_mode': True,
             'assessor_can_assess': obj.can_assess(user),
@@ -1687,7 +1687,7 @@ class ListDistrictProposalSerializer(serializers.ModelSerializer):
                 'district_assessor_can_assess',
                 'proposal',
                 'applicant',
-                'submitter',               
+                'submitter',
                 'proposal_lodgement_date',
                 'proposal_lodgement_number',
                 )

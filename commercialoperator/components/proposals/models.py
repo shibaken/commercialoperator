@@ -858,15 +858,9 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
     @property
     def can_officer_process(self):
-        """
-        :return: True if the application is in one of the processable status for Assessor role.
-        """
-        #officer_view_state = ['draft','approved','declined','temp','discarded']
-        officer_view_state = ['draft','approved','declined','temp','discarded', 'with_referral', 'with_qa_officer']
-        if self.processing_status in officer_view_state:
-            return False
-        else:
-            return True
+        """ :return: True if the application is in one of the processable status for Assessor role."""
+        officer_view_state = ['draft','approved','declined','temp','discarded', 'with_referral', 'with_qa_officer', 'waiting_payment']
+        return False if self.processing_status in officer_view_state else True
 
     @property
     def amendment_requests(self):
@@ -1784,7 +1778,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 if self.application_type.name == ApplicationType.FILMING and self.filming_approval_type==self.LICENCE:
                     self.processing_status = self.PROCESSING_STATUS_AWAITING_PAYMENT
                     self.customer_status = self.CUSTOMER_STATUS_AWAITING_PAYMENT
-                    invoice = self.create_filming_fee_invoice(request)
+                    invoice = self.__create_filming_fee_invoice(request)
                     # Log proposal action
                     if invoice:
                         self.log_user_action(ProposalUserAction.ACTION_AWAITING_PAYMENT_APPROVAL_.format(self.id),request)
@@ -1910,51 +1904,91 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             except:
                 raise
 
+    def __create_filmingfee_lines(self):
+        if self.filming_activity.num_filming_days == 1:
+            licence_fee = self.application_type.filming_fee_full_day if 'motion_film' in self.filming_activity.film_type else self.application_type.photography_fee_full_day
+            licence_text =  'Full day'
+        elif self.filming_activity.num_filming_days > 1 and self.filming_activity.num_filming_days < 4:
+            full_day_fee = self.application_type.filming_fee_full_day if 'motion_film' in self.filming_activity.film_type else self.application_type.photography_fee_full_day
+            subsequent_day_fee = self.application_type.filming_fee_subsequent_day if 'motion_film' in self.filming_activity.film_type else self.application_type.photography_fee_subsequent_day
+            licence_fee = full_day_fee + (subsequent_day_fee * (self.filming_activity.num_filming_days-1))
+            licence_text = '{} days'.format(self.filming_activity.num_filming_days)
+        elif self.filming_activity.num_filming_days >= 4:
+            licence_fee = self.application_type.filming_fee_4days if 'motion_film' in self.filming_activity.film_type else self.application_type.photography_fee_full_4days
+            licence_text = '4 days or more'.format(self.filming_activity.num_filming_days)
 
-    def create_filming_fee_invoice(self, request):
+        application_fee = self.application_type.application_fee
+        filming_period = '{} - {}'.format(self.filming_activity.commencement_date, self.filming_activity.completion_date)
+
+        lines = [
+            {
+                'ledger_description': 'Filming/Photography Application Fee - {}'.format(self.lodgement_number),
+                'oracle_code': self.application_type.oracle_code_licence,
+                'price_incl_tax':  application_fee,
+                'price_excl_tax':  application_fee if self.application_type.is_gst_exempt else calculate_excl_gst(application_fee),
+                'quantity': 1
+            },
+            {
+                'ledger_description': 'Filming/Photography Licence Fee ({} - {}) - {}'.format(licence_text, filming_period, self.lodgement_number),
+                'oracle_code': self.application_type.oracle_code_licence,
+                'price_incl_tax':  licence_fee,
+                'price_excl_tax':  licence_fee if self.application_type.is_gst_exempt else calculate_excl_gst(licence_fee),
+                'quantity': 1
+            },
+        ]
+
+#        lines = [{
+#            u'ledger_description': u'Helena and Aurora Range Conservation Park - 2020-07-02 - Adult',
+#            u'oracle_code': u'NNP487 GST',
+#            u'price_excl_tax': D('9.090909090909'),
+#            u'price_incl_tax': D('10.00'),
+#            u'quantity': 2
+#        }]
+
+        return lines
+
+    def __create_filming_fee_invoice(self, request):
 
         from dateutil.relativedelta import relativedelta
         from ledger.checkout.utils import createCustomBasket
         from ledger.payments.invoice.utils import CreateInvoiceBasket
 
-        #import ipdb; ipdb.set_trace()
-        products = [{
-            u'ledger_description': u'Helena and Aurora Range Conservation Park - 2020-07-02 - Adult',
-            u'oracle_code': u'NNP487 GST',
-            u'price_excl_tax': D('9.090909090909'),
-            u'price_incl_tax': D('10.00'),
-            u'quantity': 2
-        }]
+        if self.application_type.name == ApplicationType.FILMING and self.filming_approval_type==self.LICENCE \
+            and not self.fee_invoice_reference and len(self.filming_activity.film_type)>0:
 
-        invoice = None
-        with transaction.atomic():
-            #if is_invoicing_period(booking) and is_monthly_invoicing_allowed(booking):
-            if True:
-                try:
-                    logger.info('Creating standalone invoice')
+            lines = self.__create_filmingfee_lines()
 
-                    #import ipdb; ipdb.set_trace()
-                    payment_method = 'other'
-                    invoice_text = 'Payment Invoice'
-                    basket  = createCustomBasket(products, request.user, settings.PAYMENT_SYSTEM_ID)
-                    order = CreateInvoiceBasket(
-                        payment_method=payment_method, system=settings.PAYMENT_SYSTEM_PREFIX
-                    ).create_invoice_and_order(basket, 0, None, None, user=request.user, invoice_text=invoice_text)
+            invoice = None
+            with transaction.atomic():
+                #if is_invoicing_period(booking) and is_monthly_invoicing_allowed(booking):
+                if True:
+                    try:
+                        logger.info('Creating standalone invoice')
 
-                    invoice = Invoice.objects.get(order_number=order.number)
+                        #import ipdb; ipdb.set_trace()
+                        payment_method = 'other'
+                        film_types = '/'.join([w.capitalize().replace('_',' ') for w in self.filming_activity.film_type])
+                        #invoice_text = 'Payment Invoice: {} - {}'.format(film_types, self.filming_activity.activity_title)
+                        invoice_text = 'Payment Invoice: {}'.format(film_types)
+                        basket  = createCustomBasket(lines, request.user, settings.PAYMENT_SYSTEM_ID)
+                        order = CreateInvoiceBasket(
+                            payment_method=payment_method, system=settings.PAYMENT_SYSTEM_PREFIX
+                        ).create_invoice_and_order(basket, 0, None, None, user=request.user, invoice_text=invoice_text)
 
-                    #deferred_payment_date = invoice.created + relativedelta(months=1)
-                    #filming_fee = FilmingFee.objects.create(proposal=self, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_BLACK, deferred_payment_date=deferred_payment_date)
-                    #filming_fee_inv = FilmingFeeInvoice.objects.create(filming_fee=filming_fee, invoice_reference=invoice.reference)
-    #                deferred_payment_date = calc_payment_due_date(booking, invoice.created + relativedelta(months=1))
-    #                book_inv = BookingInvoice.objects.create(booking=booking, invoice_reference=invoice.reference, payment_method=invoice.payment_method, deferred_payment_date=deferred_payment_date)
-    #
-    #                recipients = list(set([booking.proposal.applicant_email, user.email])) # unique list
-    #                send_monthly_invoice_tclass_email_notification(user, booking, invoice, recipients=recipients)
-    #                ProposalUserAction.log_action(booking.proposal,ProposalUserAction.ACTION_SEND_MONTHLY_INVOICE.format(invoice.reference, booking.proposal.id, ', '.join(recipients)), user)
-                except Exception, e:
-                    logger.error('Failed to create standalone invoice')
-                    logger.error('{}'.format(e))
+                        invoice = Invoice.objects.get(order_number=order.number)
+
+                        #deferred_payment_date = invoice.created + relativedelta(months=1)
+                        #filming_fee = FilmingFee.objects.create(proposal=self, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_BLACK, deferred_payment_date=deferred_payment_date)
+                        #filming_fee_inv = FilmingFeeInvoice.objects.create(filming_fee=filming_fee, invoice_reference=invoice.reference)
+        #                deferred_payment_date = calc_payment_due_date(booking, invoice.created + relativedelta(months=1))
+        #                book_inv = BookingInvoice.objects.create(booking=booking, invoice_reference=invoice.reference, payment_method=invoice.payment_method, deferred_payment_date=deferred_payment_date)
+        #
+        #                recipients = list(set([booking.proposal.applicant_email, user.email])) # unique list
+        #                send_monthly_invoice_tclass_email_notification(user, booking, invoice, recipients=recipients)
+        #                ProposalUserAction.log_action(booking.proposal,ProposalUserAction.ACTION_SEND_MONTHLY_INVOICE.format(invoice.reference, booking.proposal.id, ', '.join(recipients)), user)
+                    except Exception, e:
+                        logger.error('Failed to create standalone invoice')
+                        logger.error('{}'.format(e))
 
         return invoice
 
@@ -3873,7 +3907,7 @@ class ProposalFilmingActivity(models.Model):
 
     @property
     def num_filming_days(self):
-        return (self.completion_date - self.commencement_date).days
+        return (self.completion_date - self.commencement_date).days + 1
 
 class ProposalFilmingAccess(models.Model):
     proposal = models.OneToOneField(Proposal, related_name='filming_access', null=True)

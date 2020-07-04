@@ -149,6 +149,7 @@ class ApplicationTypeAdmin(admin.ModelAdmin):
             self.exclude = (
                 "max_renewals", "max_renewal_period", "licence_fee_2mth", "licence_fee_1yr",
                 "filming_fee_half_day", "filming_fee_full_day", "filming_fee_subsequent_day", "filming_fee_4days",
+                "photography_fee_half_day", "photography_fee_full_day", "photography_fee_subsequent_day", "photography_fee_4days",
             )
         elif obj.name == "Filming":
             self.exclude = (
@@ -158,12 +159,14 @@ class ApplicationTypeAdmin(admin.ModelAdmin):
         elif obj.name == "T Class":
             self.exclude = (
                 "filming_fee_half_day", "filming_fee_full_day", "filming_fee_subsequent_day", "filming_fee_4days",
+                "photography_fee_half_day", "photography_fee_full_day", "photography_fee_subsequent_day", "photography_fee_4days",
                 "events_park_fee",
             )
         elif obj.name == "E Class":
             self.exclude = (
                 "max_renewals", "max_renewal_period", "licence_fee_2mth", "licence_fee_1yr",
                 "filming_fee_half_day", "filming_fee_full_day", "filming_fee_subsequent_day", "filming_fee_4days",
+                "photography_fee_half_day", "photography_fee_full_day", "photography_fee_subsequent_day", "photography_fee_4days",
                 "events_park_fee",
             )
 

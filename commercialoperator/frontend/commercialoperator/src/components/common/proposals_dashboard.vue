@@ -368,7 +368,7 @@ export default {
                                 /*if(vm.check_assessor(full) && full.can_officer_process)*/
                                 if(full.assessor_process){   
                                         links +=  `<a href='/internal/proposal/${full.id}'>Process</a><br/>`;    
-                            }
+                                }
                                 else{
                                     links +=  `<a href='/internal/proposal/${full.id}'>View</a><br/>`;
                                 }
