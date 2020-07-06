@@ -15,6 +15,10 @@ from ledger.checkout.utils import calculate_excl_gst
 import logging
 logger = logging.getLogger(__name__)
 
+
+def expiry_time():
+    return timezone.now() + timedelta(minutes=30)
+
 class Payment(RevisionedMixin):
 
     send_invoice = models.BooleanField(default=False)
@@ -337,11 +341,13 @@ class ApplicationFee(Payment):
     PAYMENT_TYPE_RECEPTION = 1
     PAYMENT_TYPE_BLACK = 2
     PAYMENT_TYPE_TEMPORARY = 3
+    PAYMENT_TYPE_ZERO = 4
     PAYMENT_TYPE_CHOICES = (
         (PAYMENT_TYPE_INTERNET, 'Internet booking'),
         (PAYMENT_TYPE_RECEPTION, 'Reception booking'),
         (PAYMENT_TYPE_BLACK, 'Black booking'),
         (PAYMENT_TYPE_TEMPORARY, 'Temporary reservation'),
+        (PAYMENT_TYPE_ZERO, 'No payment'), # 100% Discount
 #        (4, 'Cancelled Booking'),
 #        (5, 'Changed Booking')
     )
@@ -364,8 +370,21 @@ class ApplicationFeeInvoice(RevisionedMixin):
     def __str__(self):
         return 'Application Fee {} : Invoice #{}'.format(self.id,self.invoice_reference)
 
+    @property
+    def invoice(self):
+        try:
+            invoice = Invoice.objects.get(reference=self.invoice_reference)
+            return invoice
+        except Invoice.DoesNotExist:
+            pass
+        return False
+
     class Meta:
         app_label = 'commercialoperator'
+
+    @property
+    def payment_amount(self):
+        return self.invoice.amount
 
     @property
     def active(self):
@@ -481,4 +500,6 @@ reversion.register(ComplianceFee, follow=['compliance_fee_invoices'])
 reversion.register(ComplianceFeeInvoice)
 reversion.register(FilmingFee, follow=['filming_fee_invoices'])
 reversion.register(FilmingFeeInvoice)
+#reversion.register(ApplicationFeeInvoice, follow=['application_fee_discounts'])
+
 

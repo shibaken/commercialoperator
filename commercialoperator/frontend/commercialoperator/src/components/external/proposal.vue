@@ -160,6 +160,8 @@ export default {
           return 'Submit';
       } else if (vm.proposal.fee_paid) {
           return 'Resubmit';
+      } else if (vm.proposal.allow_full_discount)  {
+          return 'Submit';
       } else {
           return 'Pay and Submit';
       }
@@ -174,7 +176,8 @@ export default {
         vm.$refs.proposal_tclass.$refs.profile.updateContact();
       }
       if(vm.proposal.applicant_type == 'ORG'){
-        vm.$refs.proposal_tclass.$refs.organisation.updateDetails();
+        vm.$refs.proposal_tclass.$refs.organisation.updateDetails_noconfirm();
+        //vm.$refs.proposal_tclass.$refs.organisation.updateDetails();
         vm.$refs.proposal_tclass.$refs.organisation.updateAddress();
       }
     },

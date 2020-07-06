@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.shortcuts import render
 
 from datetime import datetime, timedelta, date
 from django.utils import timezone
@@ -27,6 +28,7 @@ from commercialoperator.components.bookings.email import (
     send_monthly_invoice_tclass_email_notification,
 )
 from ledger.checkout.utils import create_basket_session, create_checkout_session, calculate_excl_gst, createCustomBasket
+from ledger.checkout.utils import create_basket_session, create_checkout_session, calculate_excl_gst, get_cookie_basket, createCustomBasket
 from ledger.payments.invoice.utils import CreateInvoiceBasket
 from ledger.accounts.models import EmailUser
 from ledger.payments.models import Invoice
@@ -433,26 +435,73 @@ def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], inte
     return lines
 
 def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
+    lines = []
+    if proposal.application_type.name==ApplicationType.TCLASS:
+        lines = create_tclass_fee_lines(proposal, invoice_text, vouchers, internal)
+    elif proposal.application_type.name==ApplicationType.EVENT:
+        lines = create_event_fee_lines(proposal, invoice_text, vouchers, internal)
+
+	return lines
+
+def create_tclass_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
     """ Create the ledger lines - line item for application fee sent to payment system """
 
     now = datetime.now().strftime('%Y-%m-%d %H:%M')
     application_price = proposal.application_type.application_fee
+    licence_price = proposal.licence_fee_amount
+
+
     if proposal.application_type.name==ApplicationType.TCLASS:
-        licence_price = proposal.licence_fee_amount
-        line_items = [
-            {   'ledger_description': 'Application Fee - {} - {}'.format(now, proposal.lodgement_number),
-                'oracle_code': proposal.application_type.oracle_code_application,
-                'price_incl_tax':  application_price,
-                'price_excl_tax':  application_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(application_price),
-                'quantity': 1,
-            },
-            {   'ledger_description': 'Licence Charge {} - {} - {}'.format(proposal.other_details.get_preferred_licence_period_display(), now, proposal.lodgement_number),
-                'oracle_code': proposal.application_type.oracle_code_licence,
-                'price_incl_tax':  licence_price,
-                'price_excl_tax':  licence_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(licence_price),
-                'quantity': 1,
-            }
-        ]
+        if proposal.org_applicant.apply_application_discount:
+            application_discount = min(proposal.org_applicant.application_discount, application_price)
+        if proposal.org_applicant.apply_licence_discount:
+            licence_discount = min(proposal.org_applicant.licence_discount, licence_price)
+
+
+    line_items = [
+        {   'ledger_description': 'Application Fee - {} - {}'.format(now, proposal.lodgement_number),
+            'oracle_code': proposal.application_type.oracle_code_application,
+            'price_incl_tax':  application_price,
+            'price_excl_tax':  application_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(application_price),
+            'quantity': 1,
+        },
+        {   'ledger_description': 'Licence Charge {} - {} - {}'.format(proposal.other_details.get_preferred_licence_period_display(), now, proposal.lodgement_number),
+            'oracle_code': proposal.application_type.oracle_code_licence,
+            'price_incl_tax':  licence_price,
+            'price_excl_tax':  licence_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(licence_price),
+            'quantity': 1,
+        }
+    ]
+
+    # Add fee Waiver To T Class, if any
+    if proposal.application_type.name=='T Class' and proposal.org_applicant:
+        if proposal.org_applicant.apply_application_discount:
+            line_items += [
+                {   'ledger_description': 'Application Fee Waiver - {} - {}'.format(now, proposal.lodgement_number),
+                    'oracle_code': proposal.application_type.oracle_code_application,
+                    'price_incl_tax':  -application_discount,
+                    'price_excl_tax':  -application_discount,
+                    'quantity': 1,
+                }
+            ]
+        if proposal.org_applicant.apply_licence_discount:
+            line_items += [
+                {   'ledger_description': 'Licence Charge Waiver - {} - {}'.format(now, proposal.lodgement_number),
+                    'oracle_code': proposal.application_type.oracle_code_application,
+                    'price_incl_tax':  -licence_discount,
+                    'price_excl_tax':  -licence_discount,
+                    'quantity': 1,
+                }
+            ]
+
+    logger.info('{}'.format(line_items))
+    return line_items
+
+def create_event_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
+    """ EVENT: Create the ledger lines - line item for application fee sent to payment system """
+
+    now = datetime.now().strftime('%Y-%m-%d %H:%M')
+    application_price = proposal.application_type.application_fee
     if proposal.application_type.name==ApplicationType.EVENT:
         #There is no Licence fee for Event application.
         line_items = [
@@ -462,7 +511,7 @@ def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
                 'price_excl_tax':  application_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(application_price),
                 'quantity': 1,
             },
-        ]
+        ]   
     logger.info('{}'.format(line_items))
     return line_items
 
@@ -565,6 +614,9 @@ def create_lines(request, invoice_text=None, vouchers=[], internal=False):
 #
 #    return lines
 
+def get_basket(request):
+    return get_cookie_basket(settings.OSCAR_BASKET_COOKIE_OPEN,request)
+
 def checkout(request, proposal, lines, return_url_ns='public_booking_success', return_preload_url_ns='public_booking_success', invoice_text=None, vouchers=[], proxy=False):
     basket_params = {
         'products': lines,
@@ -618,22 +670,41 @@ def checkout(request, proposal, lines, return_url_ns='public_booking_success', r
 #            secure=settings.OSCAR_BASKET_COOKIE_SECURE, httponly=True
 #        )
 #
-#    # Zero booking costs
-#    if booking.cost_total < 1 and booking.cost_total > -1:
-#        response = HttpResponseRedirect('/no-payment')
-#        response.set_cookie(
-#            settings.OSCAR_BASKET_COOKIE_OPEN, basket_hash,
-#            max_age=settings.OSCAR_BASKET_COOKIE_LIFETIME,
-#            secure=settings.OSCAR_BASKET_COOKIE_SECURE, httponly=True
-#        )
+    # Zero booking costs
+    #if booking.cost_total < 1 and booking.cost_total > -1:
+    #if invoice_text == 'Application Fee' and proposal.application_type.name=='T Class' and proposal.org_applicant and proposal.allow_full_discount:
+    if invoice_text == 'Application Fee' and proposal.allow_full_discount:
+        response = HttpResponseRedirect(reverse('zero_fee_success'))
+        response.set_cookie(
+            settings.OSCAR_BASKET_COOKIE_OPEN, basket_hash,
+            max_age=settings.OSCAR_BASKET_COOKIE_LIFETIME,
+            secure=settings.OSCAR_BASKET_COOKIE_SECURE, httponly=True
+        )
 
     return response
-
 
 def oracle_integration(date,override):
     system = '0557'
     oracle_codes = oracle_parser(date, system, 'Commercial Operator Licensing', override=override)
 
+def redirect_to_zero_payment_view(request, proposal, lines):
+    """
+    redirect to Zero Payment preview, instead of Credit Card checkout view
+    """
+    template_name = 'commercialoperator/booking/preview.html'
+
+    if proposal.allow_full_discount:
+        logger.info('{} built payment line item {} for Application Fee and handing over to ZERO Payment preview'.format('User {} with id {}'.format(proposal.submitter.get_full_name(),proposal.submitter.id), proposal.id))
+        basket  = createCustomBasket(lines, request.user, settings.PAYMENT_SYSTEM_ID)
+        context = {
+            'basket': basket,
+            'lines': basket.lines.all(),
+            'line_details': basket.lines.all(), #request.POST['payment'],
+            'proposal_id': proposal.id,
+            'payment_method': 'ZERO',
+            'redirect_url': reverse('zero_fee_success'),
+        }
+        return render(request, template_name, context)
 
 def test_create_invoice(payment_method='bpay'):
     """
