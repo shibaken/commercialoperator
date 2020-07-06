@@ -1970,23 +1970,48 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 proposal.previous_application = self
                 proposal.proposed_issuance_approval= None
 
-                # require user to re-enter mandatory info in 'Other Details' tab, when renewing
-                proposal.other_details.insurance_expiry = None
-                proposal.other_details.preferred_licence_period = None
-                proposal.other_details.nominated_start_date = None
-                ProposalAccreditation.objects.filter(proposal_other_details__proposal=proposal).delete()
-                proposal.documents.filter(input_name__in=['deed_poll','currency_certificate']).delete()
+                if proposal.application_type.name==ApplicationType.TCLASS:
+                    # require user to re-enter mandatory info in 'Other Details' tab, when renewing
+                    proposal.other_details.insurance_expiry = None
+                    proposal.other_details.preferred_licence_period = None
+                    proposal.other_details.nominated_start_date = None
+                    ProposalAccreditation.objects.filter(proposal_other_details__proposal=proposal).delete()
+                    proposal.documents.filter(input_name__in=['deed_poll','currency_certificate']).delete()
 
-                # require  user to pay Application and Licence Fee again
-                proposal.fee_invoice_reference = None
+                    # require  user to pay Application and Licence Fee again
+                    proposal.fee_invoice_reference = None
 
-                try:
-                    ProposalOtherDetails.objects.get(proposal=proposal)
-                except ProposalOtherDetails.DoesNotExist:
-                    ProposalOtherDetails.objects.create(proposal=proposal)
-                # Create a log entry for the proposal
-                proposal.other_details.nominated_start_date=self.approval.expiry_date+ datetime.timedelta(days=1)
-                proposal.other_details.save()
+                    try:
+                        ProposalOtherDetails.objects.get(proposal=proposal)
+                    except ProposalOtherDetails.DoesNotExist:
+                        ProposalOtherDetails.objects.create(proposal=proposal)
+                    # Create a log entry for the proposal
+                    proposal.other_details.nominated_start_date=self.approval.expiry_date+ datetime.timedelta(days=1)
+                    proposal.other_details.save()
+                if proposal.application_type.name==ApplicationType.FILMING:
+
+                    proposal.filming_other_details.insurance_expiry = None
+                    proposal.filming_other_details.save()
+                    proposal.filming_activity.commencement_date=None
+                    proposal.filming_activity.completion_date=None
+                    proposal.filming_activity.save()
+                    proposal.documents.filter(input_name__in=['deed_poll','currency_certificate']).delete()
+
+                    # require  user to pay Application and Licence Fee again
+                    proposal.fee_invoice_reference = None
+
+                if proposal.application_type.name==ApplicationType.EVENT:
+
+                    proposal.event_other_details.insurance_expiry = None
+                    proposal.event_other_details.save()
+                    proposal.event_activity.commencement_date=None
+                    proposal.event_activity.completion_date=None
+                    proposal.event_activity.save()
+                    proposal.documents.filter(input_name__in=['deed_poll','currency_certificate']).delete()
+
+                    # require  user to pay Application and Licence Fee again
+                    proposal.fee_invoice_reference = None
+
                 self.log_user_action(ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.id),request)
                 # Create a log entry for the organisation
                 applicant_field=getattr(self, self.applicant_field)
