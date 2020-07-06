@@ -249,7 +249,7 @@ export default {
                                     links +=  `<a href='/external/proposal/${full.id}'>View</a><br/>`;
                                 }
                                 if (full.customer_status=='Awaiting Payment') {
-                                    links +=  `<a href='/external/proposal/${full.id}'>Make Payment</a><br/>`;
+                                    links +=  `<a href='/external/proposal/${full.id}'>Make Payment (TODO)</a><br/>`;
                                 }
                             }
                             if (full.fee_invoice_reference && full.proposal_type!='Amendment'){

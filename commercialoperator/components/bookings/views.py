@@ -150,8 +150,7 @@ class ComplianceFeeView(TemplateView):
 
 
 class DeferredInvoicingPreviewView(TemplateView):
-    #template_name = 'commercialoperator/booking/preview.html'
-    template_name = 'commercialoperator/booking/success.html'
+    template_name = 'commercialoperator/booking/preview.html'
 
     def post(self, request, *args, **kwargs):
 
@@ -243,8 +242,11 @@ class DeferredInvoicingView(TemplateView):
                 })
                 if payment_method=='other':
                     if is_payment_admin(request.user):
-                        #return HttpResponseRedirect(reverse('payments:invoice-payment') + '?invoice={}'.format(invoice_reference))
-                        return HttpResponseRedirect(reverse('home'))
+#                        if proposal.processing_status == Proposal.PROCESSING_STATUS_AWAITING_PAYMENT:
+#                            return HttpResponseRedirect(reverse('/'))
+#                        else:
+#                            return HttpResponseRedirect(reverse('payments:invoice-payment') + '?invoice={}'.format(invoice_reference))
+                        return HttpResponseRedirect(reverse('payments:invoice-payment') + '?invoice={}'.format(invoice_reference))
                     else:
                         raise PermissionDenied
                 else:

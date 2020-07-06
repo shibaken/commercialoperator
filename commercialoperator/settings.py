@@ -21,6 +21,7 @@ INTERNAL_IPS = [
 ]
 
 INSTALLED_APPS += [
+    'debug_toolbar',
     'reversion_compare',
     'bootstrap3',
     'commercialoperator',
@@ -38,7 +39,6 @@ INSTALLED_APPS += [
     'reset_migrations',
     'ckeditor',
     'multiselectfield',
-    'debug_toolbar',
 ]
 
 ADD_REVERSION_ADMIN=True

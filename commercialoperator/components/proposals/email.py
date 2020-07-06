@@ -4,8 +4,11 @@ from django.core.mail import EmailMultiAlternatives, EmailMessage
 from django.utils.encoding import smart_text
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 
 from commercialoperator.components.emails.emails import TemplateEmailBase
+from commercialoperator.components.bookings.invoice_filmingfee_pdf import create_invoice_filmingfee_pdf_bytes
 
 logger = logging.getLogger(__name__)
 
@@ -401,19 +404,21 @@ def send_proposal_awaiting_payment_approval_email_notification(proposal, request
         url = ''.join(url.split('-internal'))
 
     filename = 'invoice.pdf'
-#    doc = create_awaiting_payment_invoice_pdf_bytes(filename, invoice, proposal)
-#    attachment = (filename, doc, 'application/pdf')
-    attachment = None
+    doc = create_invoice_filmingfee_pdf_bytes(filename, invoice, proposal)
+    attachment = (filename, doc, 'application/pdf')
 
     context = {
         'proposal': proposal,
         'url': url,
-        'payment_url': url,
+        'payment_url': url, # TODO change to payment url
     }
 
     msg = email.send(proposal.submitter.email, bcc=all_ccs, attachments=[attachment], context=context)
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
-    _log_proposal_email(msg, proposal, sender=sender)
+    
+    filename_appended = '{}_{}.{}'.format('invoice', invoice.created.strftime('%d%b%Y'), 'pdf')
+    log_proposal = _log_proposal_email(msg, proposal, sender=sender, file_bytes=doc, filename=filename_appended)
+
     if proposal.org_applicant:
         _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
     else:
@@ -471,7 +476,7 @@ def _log_proposal_referral_email(email_message, referral, sender=None):
 
 
 
-def _log_proposal_email(email_message, proposal, sender=None):
+def _log_proposal_email(email_message, proposal, sender=None, file_bytes=None, filename=None):
     from commercialoperator.components.proposals.models import ProposalLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
         # TODO this will log the plain text body, should we log the html instead
@@ -514,6 +519,12 @@ def _log_proposal_email(email_message, proposal, sender=None):
     }
 
     email_entry = ProposalLogEntry.objects.create(**kwargs)
+
+    if file_bytes:
+        # attach the file to the comms_log also
+        path_to_file = '{}/proposals/{}/communications/{}'.format(settings.MEDIA_APP_DIR, proposal.id, filename)
+        path = default_storage.save(path_to_file, ContentFile(file_bytes))
+        email_entry.documents.get_or_create(_file=path_to_file, name=filename)
 
     return email_entry
 
