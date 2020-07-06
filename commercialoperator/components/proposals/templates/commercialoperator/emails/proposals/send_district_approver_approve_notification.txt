@@ -1,0 +1,20 @@
+{%  extends 'commercialoperator/emails/base_email.txt' %}
+
+{%  block content %}
+    The Application {{ proposal.lodgement_number }} for district {{ district_proposal.district_name }} has been assessed and has been recommended for approval.
+
+    
+        
+        Approved: 
+        
+        Start date: {{ start_date }}
+        Expiry date: {{ expiry_date }}
+        Details: {{ details }}
+
+    
+    You can access this Application using the following link:
+    
+    {{url}}
+
+
+{%  endblock %}

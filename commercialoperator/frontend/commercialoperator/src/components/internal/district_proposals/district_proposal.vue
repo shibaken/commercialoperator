@@ -184,7 +184,7 @@
                     <div class="row">
                         <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
                                 <ProposalTClass ref="tclass" v-if="proposal && proposal_parks && proposal.application_type=='T Class'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalTClass>
-                                <ProposalFilming ref="filming" v-else-if="proposal && proposal.application_type=='Filming'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode"></ProposalFilming>
+                                <ProposalFilming ref="filming" v-else-if="proposal && proposal.application_type=='Filming'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :district_proposal="district_proposal"></ProposalFilming>
                                 <ProposalEvent ref="filming" v-else-if="proposal && proposal.application_type=='Event'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalEvent>
                                 <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                 <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
@@ -327,6 +327,9 @@ export default {
         proposal: function(){
             return this.district_proposal != null ? this.district_proposal.proposal : null;
         },
+        canEditActivities: function(){
+            return this.district_proposal && this.district_proposal.can_process_requirements? true: false;
+        },
         hasDistrictAssessorMode: function(){
             return this.district_proposal && this.district_proposal.can_process_requirements? true: false;
         },
@@ -426,8 +429,9 @@ export default {
                     'start_date': this.district_proposal.proposal.filming_activity.commencement_date,
                     'expiry_date': this.district_proposal.proposal.filming_activity.completion_date
                 };
+                this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
             }
-            this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
+            //this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
             
             this.$refs.proposed_approval.isModalOpen = true;
         }, 

@@ -1,0 +1,15 @@
+{%  extends 'commercialoperator/emails/base_email.html' %}
+
+{%  block content %}
+	The District Application {{ proposal.lodgement_number }} for district {{  distict_proposal.district_name }} has been sent back by approver.
+
+<!--     <p>Approver comments: {{ approver_comment }}</p>
+ -->    
+
+    <p>
+    You can access this Application using the following link:
+    </p>
+    <a href="{{url}}">Access Application</a>
+
+
+{%  endblock %}

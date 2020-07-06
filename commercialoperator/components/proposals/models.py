@@ -29,7 +29,7 @@ from commercialoperator.components.main.models import CommunicationsLogEntry, Us
 from commercialoperator.components.main.utils import get_department_user
 from commercialoperator.components.proposals.email import send_referral_email_notification, send_proposal_decline_email_notification,send_proposal_approval_email_notification, send_amendment_email_notification
 from commercialoperator.ordered_model import OrderedModel
-from commercialoperator.components.proposals.email import send_submit_email_notification, send_external_submit_email_notification, send_approver_decline_email_notification, send_approver_approve_email_notification, send_referral_complete_email_notification, send_proposal_approver_sendback_email_notification, send_qaofficer_email_notification, send_qaofficer_complete_email_notification
+from commercialoperator.components.proposals.email import send_submit_email_notification, send_external_submit_email_notification, send_approver_decline_email_notification, send_approver_approve_email_notification, send_referral_complete_email_notification, send_proposal_approver_sendback_email_notification, send_qaofficer_email_notification, send_qaofficer_complete_email_notification, send_district_proposal_submit_email_notification,send_district_proposal_approver_sendback_email_notification, send_district_approver_decline_email_notification, send_district_approver_approve_email_notification, send_district_proposal_decline_email_notification, send_district_proposal_approval_email_notification
 import copy
 import subprocess
 from django.db.models import Q
@@ -851,6 +851,14 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             return False
         else:
             return True
+
+    @property
+    def can_view_district_table(self):
+        officer_view_state = ['with_district_assessor','approved','declined','partially_approved','partially_declined', ]
+        if self.filming_approval_type=='lawful_authority' and self.processing_status in officer_view_state:
+            return True
+        else:
+            return False
 
     @property
     def amendment_requests(self):
@@ -2050,31 +2058,33 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     #Filming application method
     #This is to show basic logic behind creating district Proposal for each district related to parks listed with Filming Application.
     def send_to_districts(self, request):
-        try:
-            if self.application_type.name==ApplicationType.FILMING and self.processing_status=='with_assessor':
-            #Get the list all the Districts of the Parks linked to the Proposal
-                districts_list=self.filming_parks.all().values_list('park__district', flat=True)
-                print('district',districts_list)
-                if districts_list:
-                    for district in districts_list:
-                        district_instance=District.objects.get(id=district)
-                        #Get the list of all the Filming Parks in each district
-                        parks_list=list(ProposalFilmingParks.objects.filter(park__district=district, proposal=self).values_list('id',flat=True))
-                        print('parks',parks_list)
-                        #create a District proposal for each district
-                        district_proposal, created=DistrictProposal.objects.update_or_create(district=district_instance,proposal= self)
-                        print('district proposal',district_proposal, created)
-                        district_proposal.proposal_park= parks_list
-                        district_proposal.save()
-                    self.processing_status='with_district_assessor'
-                    self.save()
-                    self.log_user_action(ProposalUserAction.SEND_TO_DISTRICTS.format(self.id),request)
-                    #TODO Logging
-                    #TODO Change the status for the proposal
-            return self
+        with transaction.atomic():
+            try:
+                if self.application_type.name==ApplicationType.FILMING and self.processing_status=='with_assessor':
+                #Get the list all the Districts of the Parks linked to the Proposal
+                    districts_list=self.filming_parks.all().values_list('park__district', flat=True)
+                    print('district',districts_list)
+                    if districts_list:
+                        for district in districts_list:
+                            district_instance=District.objects.get(id=district)
+                            #Get the list of all the Filming Parks in each district
+                            parks_list=list(ProposalFilmingParks.objects.filter(park__district=district, proposal=self).values_list('id',flat=True))
+                            print('parks',parks_list)
+                            #create a District proposal for each district
+                            district_proposal, created=DistrictProposal.objects.update_or_create(district=district_instance,proposal= self)
+                            print('district proposal',district_proposal, created)
+                            district_proposal.proposal_park= parks_list
+                            district_proposal.save()
+                            send_district_proposal_submit_email_notification(district_proposal, request)
+                        self.processing_status='with_district_assessor'
+                        self.save()
+                        self.log_user_action(ProposalUserAction.SEND_TO_DISTRICTS.format(self.id),request)
+                        
+                        #TODO Logging
+                return self
 
-        except:
-            raise
+            except:
+                raise
 
 class ProposalLogDocument(Document):
     log_entry = models.ForeignKey('ProposalLogEntry',related_name='documents')
@@ -3845,6 +3855,23 @@ class ProposalFilmingParks(models.Model):
     class Meta:
         app_label = 'commercialoperator'
 
+    def can_assessor_edit(self,user):
+        assessor_group=None
+        if self.proposal.processing_status == 'with_district_assessor':
+            if self.park.district:
+                check_group = DistrictProposalAssessorGroup.objects.filter(
+                        district__name=self.park.district.name
+                    ).distinct()
+                if check_group:
+                    assessor_group = check_group[0]
+                else:
+                    assessor_group = DistrictProposalAssessorGroup.objects.get(default=True)
+                return assessor_group in user.districtproposalassessorgroup_set.all()
+        elif self.proposal.processing_status == 'with_assessor':
+                return self.proposal.can_assess(user)        
+        else:
+            return False
+
     def add_documents(self, request):
         with transaction.atomic():
             try:
@@ -4038,6 +4065,8 @@ class DistrictProposal(models.Model):
 
         return default_group
 
+
+
     def __assessor_group(self):
         # TODO get list of assessor groups based on region and activity
         if self.district:
@@ -4071,6 +4100,21 @@ class DistrictProposal(models.Model):
 
         return default_group
 
+    @property
+    def assessor_recipients(self):
+        recipients = []
+        assessor_group=self.__assessor_group()
+        recipients = assessor_group.members_email
+        return recipients
+
+    @property
+    def approver_recipients(self):
+        recipients = []
+        approver_group=self.__approver_group()
+        recipients = approver_group.members_email
+        
+        return recipients
+
     def can_assess(self,user):
         #if self.processing_status == 'on_hold' or self.processing_status == 'with_assessor' or self.processing_status == 'with_referral' or self.processing_status == 'with_assessor_requirements':
         if self.processing_status in ['with_assessor', 'with_assessor_requirements']:
@@ -4082,7 +4126,7 @@ class DistrictProposal(models.Model):
 
     def can_process_requirements(self,user):
         #if self.processing_status == 'on_hold' or self.processing_status == 'with_assessor' or self.processing_status == 'with_referral' or self.processing_status == 'with_assessor_requirements':
-        if self.processing_status in ['with_assessor_requirements']:
+        if self.processing_status in ['with_assessor','with_assessor_requirements']:
             return self.__assessor_group() in user.districtproposalassessorgroup_set.all()
         else:
             return False
@@ -4157,11 +4201,11 @@ class DistrictProposal(models.Model):
                 raise ValidationError('You cannot change the current status at this time')
             if self.processing_status != status:
                 #TODO send email to District Approver group when District proposal is pushed to status with approver
-                # if self.processing_status =='with_approver':
-                #     if approver_comment:
-                #         self.approver_comment = approver_comment
-                #         self.save()
-                #         send_proposal_approver_sendback_email_notification(request, self)
+                if self.processing_status =='with_approver':
+                    # # if approver_comment:
+                    # #     self.approver_comment = approver_comment
+                    #     self.save()
+                    send_district_proposal_approver_sendback_email_notification(request, self)
                 self.processing_status = status
                 self.save()
                 if status=='with_assessor_requirements':
@@ -4196,7 +4240,7 @@ class DistrictProposal(models.Model):
                 applicant_field=getattr(self.proposal, self.proposal.applicant_field)
                 applicant_field.log_user_action(ProposalUserAction.ACTION_DISTRICT_PROPOSED_DECLINE.format(self.id, self.proposal.id),request)
 
-                #send_approver_decline_email_notification(reason, request, self)
+                send_district_approver_decline_email_notification(reason, request, self)
             except:
                 raise
 
@@ -4235,7 +4279,7 @@ class DistrictProposal(models.Model):
                 applicant_field=getattr(self.proposal, self.proposal.applicant_field)
                 applicant_field.log_user_action(ProposalUserAction.ACTION_DISTRICT_DECLINE.format(self.id, self.proposal.id),request)
 
-                #send_proposal_decline_email_notification(self,request, proposal_decline)
+                send_district_proposal_decline_email_notification(self,request, proposal_decline)
             except:
                 raise
 
@@ -4263,7 +4307,7 @@ class DistrictProposal(models.Model):
                 applicant_field=getattr(self.proposal, self.proposal.applicant_field)
                 applicant_field.log_user_action(ProposalUserAction.ACTION_DISTRICT_PROPOSED_APPROVAL.format(self.id, self.proposal.id),request)
 
-                #send_approver_approve_email_notification(request, self)
+                send_district_approver_approve_email_notification(request, self)
             except:
                 raise
 
@@ -4391,20 +4435,21 @@ class DistrictProposal(models.Model):
                         # Log creation
                         # Generate the document
                         approval.generate_doc(request.user)
-                        #self.generate_compliances(approval, request)
-                        # send the doc and log in approval and org
+                        requirement_set=self.district_proposal_requirements.all()
+                        self.generate_district_compliances(approval,district_approval, requirement_set, request)                        # send the doc and log in approval and org
                     else:
                         #approval.replaced_by = request.user
                         district_approval.replaced_by = self.district_approval
                         # Generate the document
                         approval.generate_doc(request.user)
                         #Delete the future compliances if Approval is reissued and generate the compliances again.
-                        # approval_compliances = Compliance.objects.filter(approval= approval, proposal = self, processing_status='future')
-                        # if approval_compliances:
-                        #     for c in approval_compliances:
-                        #         c.delete()
-                        # self.generate_compliances(approval, request)
-                        # Log proposal action
+                        district_approval_compliances = Compliance.objects.filter(district_approval= district_approval, district_proposal = self, proposal = self.proposal, processing_status='future')
+                        if district_approval_compliances:
+                            for c in district_approval_compliances:
+                                c.delete()
+                        requirement_set=self.district_proposal_requirements.all()
+                        self.generate_district_compliances(approval,district_approval, requirement_set, request)
+                        #Log proposal action
                         self.proposal.log_user_action(ProposalUserAction.ACTION_UPDATE_APPROVAL_DISTRICT.format(self.id, self.proposal.id),request)
                         # Log entry for organisation
                         applicant_field=getattr(self.proposal, self.proposal.applicant_field)
@@ -4433,12 +4478,92 @@ class DistrictProposal(models.Model):
 
                 #     proposal.processing_status='partially_approved'
                 #     proposal.customer_status='partially_approved'
-
+                send_district_proposal_approval_email_notification(self, approval, request)
                 self.proposal.save(version_comment='Final District Approval: {} for District Proposal: {}'.format(self.proposal.approval.lodgement_number, self.id))
                 self.proposal.approval.documents.all().update(can_delete=False)
 
             except:
                 raise
+
+    def generate_district_compliances(self,approval, district_approval, requirement_set, request):
+        today = timezone.now().date()
+        timedelta = datetime.timedelta
+        from commercialoperator.components.compliances.models import Compliance, ComplianceUserAction
+        #For amendment type of Proposal, check for copied requirements from previous proposal
+        if self.proposal.proposal_type == 'amendment':
+            try:
+                for r in requirement_set.filter(copied_from__isnull=False):
+                    cs=[]
+                    cs=Compliance.objects.filter(requirement=r.copied_from, district_proposal=self, processing_status='due')
+                    if cs:
+                        if r.is_deleted == True:
+                            for c in cs:
+                                c.processing_status='discarded'
+                                c.customer_status = 'discarded'
+                                c.reminder_sent=True
+                                c.post_reminder_sent=True
+                                c.save()
+                        if r.is_deleted == False:
+                            for c in cs:
+                                c.proposal= self
+                                c.approval=approval
+                                c.requirement=r
+                                c.save()
+            except:
+                raise
+        #requirement_set= self.requirements.filter(copied_from__isnull=True).exclude(is_deleted=True)
+        requirement_set= requirement_set.exclude(is_deleted=True)
+
+        #for req in self.requirements.all():
+        for req in requirement_set:
+            try:
+                if req.due_date and req.due_date >= today:
+                    current_date = req.due_date
+                    #create a first Compliance
+                    try:
+                        compliance= Compliance.objects.get(requirement = req, due_date = current_date)
+                    except Compliance.DoesNotExist:
+                        compliance =Compliance.objects.create(
+                                    proposal=self.proposal,
+                                    district_proposal=self,
+                                    due_date=current_date,
+                                    processing_status='future',
+                                    approval=approval,
+                                    district_approval=district_approval,
+                                    requirement=req,
+                        )
+                        compliance.log_user_action(ComplianceUserAction.ACTION_CREATE.format(compliance.id),request)
+                    if req.recurrence:
+                        while current_date < approval.expiry_date:
+                            for x in range(req.recurrence_schedule):
+                            #Weekly
+                                if req.recurrence_pattern == 1:
+                                    current_date += timedelta(weeks=1)
+                            #Monthly
+                                elif req.recurrence_pattern == 2:
+                                    current_date += timedelta(weeks=4)
+                                    pass
+                            #Yearly
+                                elif req.recurrence_pattern == 3:
+                                    current_date += timedelta(days=365)
+                            # Create the compliance
+                            if current_date <= approval.expiry_date:
+                                try:
+                                    compliance= Compliance.objects.get(requirement = req, due_date = current_date)
+                                except Compliance.DoesNotExist:
+                                    compliance =Compliance.objects.create(
+                                                proposal=self.proposal,
+                                                due_date=current_date,
+                                                district_proposal=self,
+                                                processing_status='future',
+                                                approval=approval,
+                                                district_approval=district_approval,
+                                                requirement=req,
+                                    )
+                                    compliance.log_user_action(ComplianceUserAction.ACTION_CREATE.format(compliance.id),request)
+            except:
+                raise
+
 
 
 
