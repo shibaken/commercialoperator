@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-sm-12"> 
             <div class="row" >
-                <div class="col-md-3" v-if="!proposal.readonly">
+                <div class="col-md-3" v-if="canEditActivities">
                             <!-- <button style="margin-top:25px;" class="btn btn-primary pull-right">New Application</button> -->
                             <input type="button" style="margin-top:25px;" @click.prevent="newPark" class="btn btn-primary" value="Add" />
                 </div>
@@ -14,7 +14,7 @@
                 </div>
             </div>
         </div>
-        <editPark ref="edit_park" :park_id="park_id" @refreshFromResponse="refreshFromResponse"></editPark>
+        <editPark ref="edit_park" :park_id="park_id" @refreshFromResponse="refreshFromResponse" :district_proposal="district_proposal"></editPark>
     </div>
 </template> 
 <script>
@@ -43,6 +43,22 @@ export default {
             type: String,
             required: true
         },
+        hasDistrictAssessorMode:{
+            type:Boolean,
+            default: false
+        },
+        district_proposal:{
+            type:Object,
+            default:null
+        },
+        canEditActivities:{
+              type: Boolean,
+              default: true
+        },
+        is_external:{
+              type: Boolean,
+              default: false
+        },
     },
     data() {
         let vm = this;
@@ -52,7 +68,7 @@ export default {
                 feature_of_interest:'',
                 from_date:null,
                 to_date:null,
-                proposal: vm.proposal.id
+                 proposal: vm.proposal.id
             },
             pBody: 'pBody' + vm._uid,
             datatable_id: 'park-datatable-'+vm._uid,
@@ -127,10 +143,18 @@ export default {
                         data: '',
                         mRender:function (data,type,full) {
                             let links = '';
-                            if(!vm.proposal.readonly){
-                            links +=  `<a href='#${full.id}' data-edit-park='${full.id}'>Edit Park</a><br/>`;
-                            links +=  `<a href='#${full.id}' data-discard-park='${full.id}'>Discard</a><br/>`;
-                        }
+                            if(vm.is_external){
+                                if(!vm.proposal.readonly){
+                                links +=  `<a href='#${full.id}' data-edit-park='${full.id}'>Edit Park</a><br/>`;
+                                links +=  `<a href='#${full.id}' data-discard-park='${full.id}'>Discard</a><br/>`;
+                                }
+                            }
+                            if(!vm.is_external){
+                                if(full.can_assessor_edit){
+                                    links +=  `<a href='#${full.id}' data-edit-park='${full.id}'>Edit Park</a><br/>`;
+                                    links +=  `<a href='#${full.id}' data-discard-park='${full.id}'>Discard</a><br/>`;
+                                }
+                            }
                         //     if (!vm.is_external){
                         //         if (full.can_user_view) {
                         //             links +=  `<a href='/internal/compliance/${full.id}'>Process</a><br/>`;
@@ -210,9 +234,9 @@ export default {
             return this.is_external ? this.external_status : this.internal_status;
             //return [];
         }, */
-        is_external: function(){
-            return this.level == 'external';
-        },
+        // is_external: function(){
+        //     return this.level == 'external';
+        // },
     },
     methods:{
         fetchFilterLists: function(){
@@ -301,10 +325,10 @@ export default {
             vm.addEventListeners();
             vm.initialiseSearch();
         });
-        if(vm.is_external){
-            var column = vm.$refs.park_datatable.vmDataTable.columns(8); //Hide 'Assigned To column for external'
-            column.visible(false);
-        }
+        // if(vm.is_external){
+        //     var column = vm.$refs.park_datatable.vmDataTable.columns(8); //Hide 'Assigned To column for external'
+        //     column.visible(false);
+        // }
         
     }
 }

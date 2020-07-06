@@ -57,6 +57,7 @@ router.register(r'users',users_api.UserViewSet)
 router.register(r'amendment_request',proposal_api.AmendmentRequestViewSet)
 router.register(r'compliance_amendment_request',compliances_api.ComplianceAmendmentRequestViewSet)
 router.register(r'regions', main_api.RegionViewSet)
+router.register(r'districts', main_api.DistrictViewSet)
 router.register(r'global_settings', main_api.GlobalSettingsViewSet)
 router.register(r'activity_matrix', main_api.ActivityMatrixViewSet)
 #router.register(r'tenure', main_api.TenureViewSet)
@@ -165,6 +166,9 @@ urlpatterns = [
     url(r'^internal/proposal/(?P<proposal_pk>\d+)/$', views.InternalProposalView.as_view(), name='internal-proposal-detail'),
     url(r'^external/compliance/(?P<compliance_pk>\d+)/$', views.ExternalComplianceView.as_view(), name='external-compliance-detail'),
     url(r'^internal/compliance/(?P<compliance_pk>\d+)/$', views.InternalComplianceView.as_view(), name='internal-compliance-detail'),
+   
+    #filming
+    url(r'^internal/proposal/(?P<proposal_pk>\d+)/district_proposal/(?P<district_proposal_pk>\d+)/$', views.DistrictProposalView.as_view(), name='internal-district-proposal-detail'),
 
     #url(r'^organisations/(?P<pk>\d+)/confirm-delegate-access/(?P<uid>[0-9A-Za-z]+)-(?P<token>.+)/$', views.ConfirmDelegateAccess.as_view(), name='organisation_confirm_delegate_access'),
     # reversion history-compare

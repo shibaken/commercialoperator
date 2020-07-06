@@ -119,9 +119,16 @@ class ProposalFilmingParksSerializer(serializers.ModelSerializer):
     from_date=serializers.DateField(format="%d/%m/%Y")
     to_date=serializers.DateField(format="%d/%m/%Y")
     filming_park_documents = FilmingParkDocumentSerializer(many=True, read_only=True)
+    can_assessor_edit= serializers.SerializerMethodField()
+
     class Meta:
         model = ProposalFilmingParks
-        fields = ('id', 'park', 'feature_of_interest', 'from_date', 'to_date', 'proposal', 'filming_park_documents')
+        fields = ('id', 'park', 'feature_of_interest', 'from_date', 'to_date', 'proposal', 'filming_park_documents', 'can_assessor_edit')
+
+    def get_can_assessor_edit(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_assessor_edit(user)    
 
 class SaveProposalFilmingParksSerializer(serializers.ModelSerializer):
     #park=ParkFilterSerializer()

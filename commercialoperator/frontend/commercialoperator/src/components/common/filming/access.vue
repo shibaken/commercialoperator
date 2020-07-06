@@ -18,7 +18,7 @@
                                 
                                 <div class="col-sm-12">
                                     <label class="control-label pull-left"  for="Name">List all parks, terrestrial and/or marine ...</label>
-                                    <ParkTable :url="parks_url" :proposal="proposal"  ref="parks_table"></ParkTable>
+                                    <ParkTable :url="parks_url" :proposal="proposal"  ref="parks_table" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal= "district_proposal" :canEditActivities="canEditActivities" :is_external= "is_external"></ParkTable>
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -268,7 +268,23 @@ from '@/utils/hooks'
             proposal:{
                 type: Object,
                 required:true
-            }
+            },
+            hasDistrictAssessorMode:{
+                type:Boolean,
+                default: false
+            },
+            district_proposal:{
+                type:Object,
+                default:null
+            },
+            canEditActivities:{
+              type: Boolean,
+              default: true
+            },
+            is_external:{
+              type: Boolean,
+              default: false
+            },
         },
         data:function () {
             let vm = this;

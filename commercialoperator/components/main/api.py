@@ -31,6 +31,14 @@ class DistrictViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = District.objects.all().order_by('id')
     serializer_class = DistrictSerializer
 
+    @detail_route(methods=['GET',])
+    def land_parks(self, request, *args, **kwargs):            
+        instance = self.get_object()
+        qs = instance.land_parks
+        qs.order_by('id')
+        serializer = ParkSerializer(qs,context={'request':request}, many=True)
+        return Response(serializer.data)
+
 
 class RegionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Region.objects.all().order_by('id')

@@ -171,12 +171,15 @@
                                             <strong>Action</strong><br/>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <button  v-if="proposal.application_type=='Filming' && proposal.filming_approval_type=='lawful_authority'" style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="sendToDistricts()">Send to Districts</button><br/>
+                                    <div class="row" v-if="proposal.application_type=='Filming' && proposal.filming_approval_type=='lawful_authority'">
+                                        <div class="col-sm-12"  >
+                                            <!-- <button  v-if="proposal.application_type=='Filming' && proposal.filming_approval_type=='lawful_authority'" style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="sendToDistricts()">Send to Districts</button><br/> -->
+                                            <button v-if="sendingToDistrict" style="width:80%;" class="btn btn-primary top-buffer-s" disabled>Send to Districts&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            <button  v-if="!sendingToDistrict" style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="sendToDistricts()">Send to Districts</button><br/>
                                         </div>
                                     </div>                                    
-                                    <div class="row">
+                                    <div v-else class="row">
                                         <div class="col-sm-12">
                                             <button v-if="changingStatus" style="width:80%;" class="btn btn-primary top-buffer-s" disabled>Enter Requirements&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -321,6 +324,9 @@
                 <template v-if="proposal.processing_status == 'With Approver' || isFinalised">
                     <ApprovalScreen :proposal="proposal" @refreshFromResponse="refreshFromResponse"/>
                 </template>
+                <template v-if="proposal.can_view_district_table">
+                    <FilmingDistrictProposalsTable :proposal="proposal" @refreshFromResponse="refreshFromResponse" :url="district_proposals_url"/>
+                </template>
                 <template v-if="proposal.processing_status == 'With Assessor (Requirements)' || ((proposal.processing_status == 'With Approver' || isFinalised) && showingRequirements)">
                     <Requirements :proposal="proposal"/>
                 </template>
@@ -378,6 +384,7 @@ import ProposalFilming from '@/components/form_filming.vue'
 import ProposalEvent from '@/components/form_event.vue'
 import OnHold from './proposal_onhold.vue'
 import WithQAOfficer from './proposal_qaofficer.vue'
+import FilmingDistrictProposalsTable from '@common-utils/filming_district_proposals_table.vue'
 import {
     api_endpoints,
     helpers
@@ -450,6 +457,7 @@ export default {
             comms_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/comms_log'),
             comms_add_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/add_comms_log'),
             logs_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/action_log'),
+            district_proposals_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/district_proposals'),
             panelClickersInitialised: false,
             sendingReferral: false,
             comparing: false,
@@ -472,6 +480,7 @@ export default {
         ProposalEvent,
         OnHold,
         WithQAOfficer,
+        FilmingDistrictProposalsTable
     },
     filters: {
         formatDate: function(data){

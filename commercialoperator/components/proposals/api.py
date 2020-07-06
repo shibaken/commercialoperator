@@ -1016,7 +1016,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             qs = instance.filming_parks
             #qs = qs.filter(status = 'requested')
-            serializer = ProposalFilmingParksSerializer(qs,many=True)
+            serializer = ProposalFilmingParksSerializer(qs,many=True,context={'request':request})
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())
@@ -1071,6 +1071,24 @@ class ProposalViewSet(viewsets.ModelViewSet):
             qs = instance.event_abseiling_climbing_activity.all()
             #qs = qs.filter(status = 'requested')
             serializer = AbseilingClimbingActivitySerializer(qs,many=True)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',])
+    def district_proposals(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            qs = instance.district_proposals.all()
+            #qs = qs.filter(status = 'requested')
+            serializer = ListDistrictProposalSerializer(qs,context={'request':request},many=True)
             return Response(serializer.data)
         except serializers.ValidationError:
             print(traceback.print_exc())

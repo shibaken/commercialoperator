@@ -178,7 +178,7 @@ require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
                 selected_film_usage:[],
                 datepickerOptions:{
                     format: 'DD/MM/YYYY',
-                    showClear:true,
+                    showClear:false,
                     useCurrent:false,
                     keepInvalid:true,
                     allowInputToggle:true,
