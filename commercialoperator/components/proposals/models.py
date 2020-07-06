@@ -2020,10 +2020,11 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 proposal.schema = ptype.schema
                 proposal.submitter = request.user
                 proposal.previous_application = self
-                try:
-                    ProposalOtherDetails.objects.get(proposal=proposal)
-                except ProposalOtherDetails.DoesNotExist:
-                    ProposalOtherDetails.objects.create(proposal=proposal)
+                if proposal.application_type.name==ApplicationType.TCLASS:
+                    try:
+                        ProposalOtherDetails.objects.get(proposal=proposal)
+                    except ProposalOtherDetails.DoesNotExist:
+                        ProposalOtherDetails.objects.create(proposal=proposal)
                 #copy all the requirements from the previous proposal
                 #req=self.requirements.all()
                 req=self.requirements.all().exclude(is_deleted=True)
@@ -3357,6 +3358,8 @@ def clone_proposal_with_status_reset(proposal):
                 proposal=duplicate_tclass(proposal)
             if original_proposal.application_type.name==ApplicationType.FILMING:
                 proposal=duplicate_filming(proposal)
+            if original_proposal.application_type.name==ApplicationType.EVENT:
+                proposal=duplicate_event(proposal)
             # manually duplicate the comms logs -- hck, not hndled by duplicate object (maybe due to inheritance?)
             # proposal.comms_logs.create(text='cloning proposal reset (original proposal {}, new proposal {})'.format(original_proposal.id, proposal.id))
             # for comms_log in proposal.comms_logs.all():
@@ -3679,6 +3682,24 @@ def duplicate_filming(p):
     except ProposalFilmingEquipment.DoesNotExist:
         filming_equipment=ProposalFilmingEquipment.objects.create(proposal=p)
 
+    # for trail in original_proposal.trails.all():
+    #     original_trail=copy.deepcopy(trail)
+    #     trail.id=None
+    #     trail.proposal=p
+    #     trail.save()
+
+    #     for section in original_trail.sections.all():
+    #         original_section=copy.deepcopy(section)
+    #         section.id=None
+    #         section.proposal_trail=trail
+    #         section.save()
+    #         print('new section', section, trail)
+    #         for act in original_section.trail_activities.all():
+    #             act.id=None
+    #             act.trail_section=section
+    #             act.save()
+    #             print('new trail activity', act, section)
+
     for vehicle in original_proposal.vehicles.all():
         vehicle.id=None
         vehicle.proposal=p
@@ -3690,7 +3711,110 @@ def duplicate_filming(p):
 
     return p
 
+def duplicate_event(p):
+    original_proposal=copy.deepcopy(p)
+    p.id=None
+    p.save()
+    print ('new proposal',p)
 
+    for park in original_proposal.events_parks.all():
+
+        original_park=copy.deepcopy(park)
+        park.id=None
+        park.proposal=p
+        park.save()
+        for park_document in EventsParkDocument.objects.filter(events_park=original_park.id):
+            park_document.events_park = park
+            park_document.id = None
+            park_document._file.name = u'{}/proposals/{}/events_park_documents/{}'.format(settings.MEDIA_APP_DIR, p.id, park_document.name)
+            park_document.can_delete = True
+            park_document.save() 
+
+    for park in original_proposal.pre_event_parks.all():
+
+        original_park=copy.deepcopy(park)
+        park.id=None
+        park.proposal=p
+        park.save()
+        for park_document in PreEventsParkDocument.objects.filter(pre_event_park=original_park.id):
+            park_document.pre_event_park = park
+            park_document.id = None
+            park_document._file.name = u'{}/proposals/{}/pre_event_park_documents/{}'.format(settings.MEDIA_APP_DIR, p.id, park_document.name)
+            park_document.can_delete = True
+            park_document.save() 
+
+    try:
+        other_details=ProposalEventOtherDetails.objects.get(proposal=original_proposal)
+        other_details.id=None
+        other_details.proposal=p
+        other_details.save()
+        #print('proposal:',original_proposal, original_proposal.filming_other_details.id, other_details.id)
+    except ProposalEventOtherDetails.DoesNotExist:
+        other_details=ProposalEventOtherDetails.objects.create(proposal=p)
+
+    try:
+        event_activity=ProposalEventActivities.objects.get(proposal=original_proposal)
+        new_abseiling=[]
+        for acc in event_activity.abseiling_climbing_activity_data.all():
+            acc.id=None
+            acc.save()
+            new_abseiling.append(acc)
+
+        event_activity.id=None
+        event_activity.proposal=p
+        event_activity.save()
+        for new_acc in new_abseiling:
+            new_acc.event_activities=event_activity
+            new_acc.proposal=p
+            new_acc.save()
+    except ProposalEventActivities.DoesNotExist:
+        event_activity=ProposalEventActivities.objects.create(proposal=p)
+
+    try:
+        event_vehicle_vessel=ProposalEventVehiclesVessels.objects.get(proposal=original_proposal)
+        event_vehicle_vessel.id=None
+        event_vehicle_vessel.proposal=p
+        event_vehicle_vessel.save()
+    except ProposalEventVehiclesVessels.DoesNotExist:
+        event_vehicle_vessel=ProposalEventVehiclesVessels.objects.create(proposal=p)
+
+    try:
+        event_management=ProposalEventManagement.objects.get(proposal=original_proposal)
+        event_management.id=None
+        event_management.proposal=p
+        event_management.save()
+    except ProposalEventManagement.DoesNotExist:
+        event_management=ProposalEventManagement.objects.create(proposal=p)
+
+    for vehicle in original_proposal.vehicles.all():
+        vehicle.id=None
+        vehicle.proposal=p
+        vehicle.save()
+    for vessel in original_proposal.vessels.all():
+        vessel.id=None
+        vessel.proposal=p
+        vessel.save()
+
+    for trail in original_proposal.trails.all():
+        original_trail=copy.deepcopy(trail)
+        trail.id=None
+        trail.proposal=p
+        trail.save()
+
+        for section in original_trail.sections.all():
+            original_section=copy.deepcopy(section)
+            section.id=None
+            section.proposal_trail=trail
+            section.save()
+            print('new section', section, trail)
+            for act in original_section.trail_activities.all():
+                act.id=None
+                act.trail_section=section
+                act.save()
+                print('new trail activity', act, section)
+
+
+    return p
 
 def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance, is_internal= True):
     from commercialoperator.utils import search, search_approval, search_compliance
