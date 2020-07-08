@@ -583,7 +583,8 @@ def create_invoice(booking, payment_method='bpay'):
     from ledger.accounts.models import EmailUser
     from decimal import Decimal
 
-    products = Booking.objects.last().as_line_items
+    #products = Booking.objects.last().as_line_items
+    products = booking.as_line_items
     user = EmailUser.objects.get(email=booking.proposal.applicant_email.lower())
 
     if payment_method=='monthly_invoicing':
