@@ -414,7 +414,11 @@ def send_proposal_approval_email_notification(proposal,request):
 
     msg = email.send(proposal.submitter.email, bcc= all_ccs, attachments=attachments, context=context)
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
-    _log_proposal_email(msg, proposal, sender=sender)
+
+    email_entry =_log_proposal_email(msg, proposal, sender=sender)
+    path_to_file = '{}/proposals/{}/approvals/{}'.format(settings.MEDIA_APP_DIR, proposal.id, file_name)
+    email_entry.documents.get_or_create(_file=path_to_file, name=file_name)
+
     if proposal.org_applicant:
         _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
     else:
@@ -753,7 +757,7 @@ def _log_proposal_email(email_message, proposal, sender=None, file_bytes=None, f
 
     email_entry = ProposalLogEntry.objects.create(**kwargs)
 
-    if file_bytes:
+    if file_bytes and filename:
         # attach the file to the comms_log also
         path_to_file = '{}/proposals/{}/communications/{}'.format(settings.MEDIA_APP_DIR, proposal.id, filename)
         path = default_storage.save(path_to_file, ContentFile(file_bytes))
