@@ -879,6 +879,19 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             return True
         return False
 
+    @property
+    def is_lawful_authority(self):
+        if self.application_type.name==ApplicationType.FILMING and self.filming_approval_type=='lawful_authority':
+            return True
+        return False
+
+    @property
+    def is_lawful_authority_finalised(self):
+        if self.application_type.name==ApplicationType.FILMING and self.filming_approval_type=='lawful_authority':
+            final_status=['declined', 'approved']
+            if self.district_proposals.all().count()==self.district_proposals.filter(processing_status__in=final_status).count():
+                return True
+        return False
     
     def search_data_orig(self):
         search_data={}
@@ -2111,6 +2124,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
             except:
                 raise
+
 
 class ProposalLogDocument(Document):
     log_entry = models.ForeignKey('ProposalLogEntry',related_name='documents')

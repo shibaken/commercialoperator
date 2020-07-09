@@ -287,10 +287,34 @@ class Approval(RevisionedMixin):
             if proposal:
                 return False
         except Proposal.DoesNotExist:
-            if self.can_renew:
-                return True
+            if self.current_proposal.is_lawful_authority:
+                if self.current_proposal.is_lawful_authority_finalised and self.can_renew:
+                        return True
+                else:
+                        return False
             else:
-                return False
+                if self.can_renew:
+                    return True
+                else:
+                    return False
+        return False
+
+
+    # @property
+    # def can_amend(self):
+    #     try:
+    #         amend_conditions = {
+    #                 'previous_application': self.current_proposal,
+    #                 'proposal_type': 'amendment'
+    #                 }
+    #         proposal=Proposal.objects.get(**amend_conditions)
+    #         if proposal:
+    #             return False
+    #     except Proposal.DoesNotExist:
+    #             if self.can_renew:
+    #                 return True
+    #             else:
+    #                 return False
 
 
     def generate_doc(self, user, preview=False):
