@@ -152,7 +152,7 @@ def create_monthly_invoice(user, offset_months=-1):
                     #invoice.settlement_date = calc_payment_due_date(booking, invoice.created + relativedelta(months=1))
                     #invoice.save()
 
-                    deferred_payment_date = calc_payment_due_date(booking, invoice.created + relativedelta(months=1))
+                    deferred_payment_date = calc_payment_due_date(booking, invoice.created)
                     book_inv = BookingInvoice.objects.create(booking=booking, invoice_reference=invoice.reference, payment_method=invoice.payment_method, deferred_payment_date=deferred_payment_date)
 
                     recipients = list(set([booking.proposal.applicant_email, user.email])) # unique list
@@ -246,12 +246,9 @@ def create_other_invoice(user, booking):
 
 def calc_payment_due_date(booking, _date):
     org_applicant = booking.proposal.org_applicant
-    if isinstance(org_applicant, Organisation):
-        return calc_monthly_invoicing_date(_date, org_applicant.monthly_invoicing_period) + relativedelta(days=org_applicant.monthly_payment_due_period)
-    return None
-
-def calc_monthly_invoicing_date(_date, offset_days):
-    return _date + relativedelta(days=offset_days)
+    if isinstance(org_applicant, Organisation) and org_applicant.monthly_payment_due_period > 0:
+        return _date + relativedelta(days=org_applicant.monthly_payment_due_period)
+    return _date + relativedelta(days=30)
 
 def is_invoicing_period(booking):
     org_applicant = booking.proposal.org_applicant
