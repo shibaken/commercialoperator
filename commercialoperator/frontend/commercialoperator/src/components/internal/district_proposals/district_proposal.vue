@@ -174,7 +174,7 @@
         <div class="col-md-8">
             <div class="row" >
                 <template v-if="district_proposal.processing_status == 'With Assessor (Requirements)' || ((district_proposal.processing_status == 'With Approver' || isFinalised) && showingRequirements)">
-                    <Requirements :proposal="proposal" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal="district_proposal.id" />
+                    <Requirements :proposal="proposal" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal="district_proposal.id" :district="district_proposal.district"/>
                 </template>
                 <template v-if="district_proposal.processing_status == 'With Approver' || isFinalised">
                     <ApprovalScreen :district_proposal="district_proposal" @refreshFromResponse="refreshFromResponse"/>

@@ -2073,6 +2073,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         r.proposal = proposal
                         r.copied_from=old_r
                         r.id = None
+                        r.district_proposal=None
                         r.save()
                 #copy all the requirement documents from previous proposal
                 for requirement in proposal.requirements.all():
@@ -2118,8 +2119,17 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         self.processing_status='with_district_assessor'
                         self.save()
                         self.log_user_action(ProposalUserAction.SEND_TO_DISTRICTS.format(self.id),request)
-                        
-                        #TODO Logging
+                    
+                    #for Amendment Proposal, Find the Requirements copied from previous application and assign to district Proposal according to distrcit    
+                    if self.proposal_type=='amendment':
+                        for district_proposal in self.district_proposals.all():
+                            qs=self.requirements.filter(district=district_proposal.district, district_proposal__isnull=True)
+                            print('district', self.district, 'qs', qs)
+                            qs.update(district_proposal=district_proposal)
+                        #Mark the remaining requirements as deleted
+                        qs_requirements= self.requirements.filter(district_proposal__isnull=True)
+                        print('to be deleted', qs_requirements)
+                        qs_requirements.update(is_deleted=True)
                 return self
 
             except:
@@ -3038,8 +3048,9 @@ class ProposalRequirement(OrderedModel):
     #order = models.IntegerField(default=1)
     #application_type = models.ForeignKey(ApplicationType, null=True, blank=True)
     #fee_invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
+    #To determing requirements related to district Proposal
     district_proposal = models.ForeignKey('DistrictProposal',null=True,blank=True,related_name='district_proposal_requirements')
-
+    district = models.ForeignKey(District, related_name='district_requirements', null=True,blank=True)
 
     class Meta:
         app_label = 'commercialoperator'
@@ -3061,7 +3072,8 @@ class ProposalRequirement(OrderedModel):
         return False
 
     def can_district_assessor_edit(self,user):
-        if self.district_proposal and self.proposal.processing_status=='with_district_assessor':
+        allowed_status=['with_district_assessor', 'partially_approved', 'partially_declined']
+        if self.district_proposal and self.district_proposal.processing_status=='with_assessor_requirements' and self.proposal.processing_status in allowed_status:
             if self.district_proposal.can_process_requirements(user):
                 return True
         return False
@@ -4437,8 +4449,8 @@ class DistrictProposal(models.Model):
                     send_district_proposal_approver_sendback_email_notification(request, self)
                 self.processing_status = status
                 self.save()
-                if status=='with_assessor_requirements':
-                    self.proposal.add_default_requirements()
+                # if status=='with_assessor_requirements':
+                #     self.proposal.add_default_requirements()
 
                 # Create a log entry for the proposal
                 if self.processing_status == self.PROCESSING_STATUS_WITH_ASSESSOR:
@@ -4571,6 +4583,15 @@ class DistrictProposal(models.Model):
                     # TODO if it is an ammendment proposal then check appropriately
                     checking_district_proposal = self
                     checking_proposal = self.proposal
+                    district_approval,district_created = DistrictApproval.objects.update_or_create(
+                        current_district_proposal = checking_district_proposal,
+                        defaults = {
+                            'issue_date' : timezone.now(),
+                            'expiry_date' : details.get('expiry_date'),
+                            'start_date' : details.get('start_date'),
+
+                        }
+                    )
                     # if self.proposal_type == 'renewal':
                     #     if self.previous_application:
                     #         previous_approval = self.previous_application.approval
@@ -4592,75 +4613,81 @@ class DistrictProposal(models.Model):
                     #             previous_approval.replaced_by = approval
                     #             previous_approval.save()
 
-                    # elif self.proposal_type == 'amendment':
-                    #     if self.previous_application:
-                    #         previous_approval = self.previous_application.approval
-                    #         approval,created = Approval.objects.update_or_create(
-                    #             current_proposal = checking_proposal,
-                    #             defaults = {
-                    #                 'issue_date' : timezone.now(),
-                    #                 'expiry_date' : details.get('expiry_date'),
-                    #                 'start_date' : details.get('start_date'),
-                    #                 'submitter': self.submitter,
-                    #                 #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
-                    #                 #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
-                    #                 'org_applicant' : self.org_applicant,
-                    #                 'proxy_applicant' : self.proxy_applicant,
-                    #                 'lodgement_number': previous_approval.lodgement_number
-                    #             }
-                    #         )
-                    #         if created:
-                    #             previous_approval.replaced_by = approval
-                    #             previous_approval.save()
-                    # else:
-                    #     approval,created = Approval.objects.update_or_create(
-                    #         current_proposal = checking_proposal,
-                    #         defaults = {
-                    #             'issue_date' : timezone.now(),
-                    #             'expiry_date' : details.get('expiry_date'),
-                    #             'start_date' : details.get('start_date'),
-                    #             'submitter': self.submitter,
-                    #             #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
-                    #             #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
-                    #             'org_applicant' : self.org_applicant,
-                    #             'proxy_applicant' : self.proxy_applicant,
-                    #             #'extracted_fields' = JSONField(blank=True, null=True)
-                    #         }
-                    #     )
+                    #elif self.proposal_type == 'amendment':
+                    if self.proposal.proposal_type == 'amendment':
+                        if self.proposal.previous_application:
+                            previous_approval = self.proposal.previous_application.approval
+                            print('previous approval', previous_approval.id)
+                            approval,created = Approval.objects.update_or_create(
+                                current_proposal = checking_proposal,
+                                defaults = {
+                                    'issue_date' : timezone.now(),
+                                    'expiry_date' : details.get('expiry_date'),
+                                    'start_date' : details.get('start_date'),
+                                    'submitter': self.proposal.submitter,
+                                    #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
+                                    #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
+                                    'org_applicant' : self.proposal.org_applicant,
+                                    'proxy_applicant' : self.proposal.proxy_applicant,
+                                    'lodgement_number': previous_approval.lodgement_number
+                                }
+                            )
+                            if created:
+                                previous_approval.replaced_by = approval
+                                previous_approval.save()
+                            print('new approval', approval.id)
+                    else:
+                        approval,created = Approval.objects.update_or_create(
+                            current_proposal = checking_proposal,
+                            defaults = {
+                                'issue_date' : timezone.now(),
+                                'expiry_date' : details.get('expiry_date'),
+                                'start_date' : details.get('start_date'),
+                                'submitter': self.proposal.submitter,
+                                #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
+                                #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
+                                'org_applicant' : self.proposal.org_applicant,
+                                'proxy_applicant' : self.proposal.proxy_applicant,
+                                #'extracted_fields' = JSONField(blank=True, null=True)
+                            }
+                        )
                     
-                    district_approval,district_created = DistrictApproval.objects.update_or_create(
-                        current_district_proposal = checking_district_proposal,
-                        defaults = {
-                            'issue_date' : timezone.now(),
-                            'expiry_date' : details.get('expiry_date'),
-                            'start_date' : details.get('start_date'),
+                    # district_approval,district_created = DistrictApproval.objects.update_or_create(
+                    #     current_district_proposal = checking_district_proposal,
+                    #     defaults = {
+                    #         'issue_date' : timezone.now(),
+                    #         'expiry_date' : details.get('expiry_date'),
+                    #         'start_date' : details.get('start_date'),
 
-                        }
-                    )
-                    approval,created = Approval.objects.update_or_create(
-                        current_proposal = checking_proposal,
-                        defaults = {
-                            'issue_date' : timezone.now(),
-                            'expiry_date' : details.get('expiry_date'),
-                            'start_date' : details.get('start_date'),
-                            'submitter': self.proposal.submitter,
-                            #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
-                            #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
-                            'org_applicant' : self.proposal.org_applicant,
-                            'proxy_applicant' : self.proposal.proxy_applicant,
-                            #'extracted_fields' = JSONField(blank=True, null=True)
-                        }
-                    )
+                    #     }
+                    # )
+                    # approval,created = Approval.objects.update_or_create(
+                    #     current_proposal = checking_proposal,
+                    #     defaults = {
+                    #         'issue_date' : timezone.now(),
+                    #         'expiry_date' : details.get('expiry_date'),
+                    #         'start_date' : details.get('start_date'),
+                    #         'submitter': self.proposal.submitter,
+                    #         #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
+                    #         #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
+                    #         'org_applicant' : self.proposal.org_applicant,
+                    #         'proxy_applicant' : self.proposal.proxy_applicant,
+                    #         #'extracted_fields' = JSONField(blank=True, null=True)
+                    #     }
+                    # )
                     print('district created', district_created, district_approval)
                     print('approval created',created, approval)
                     # Generate compliances
                     from commercialoperator.components.compliances.models import Compliance, ComplianceUserAction
+                    #When first district proposal is created and Approval object is created (not updated) for Amendment proposal, delete all the future compliancs linked to previous application.
                     if district_created:
-                        # if self.proposal_type == 'amendment':
-                        #     approval_compliances = Compliance.objects.filter(approval= previous_approval, proposal = self.previous_application, processing_status='future')
-                        #     if approval_compliances:
-                        #         for c in approval_compliances:
-                        #             c.delete()
+                        if created:
+                            if self.proposal.proposal_type == 'amendment':
+                                approval_compliances = Compliance.objects.filter(approval= previous_approval, proposal = self.proposal.previous_application, processing_status='future')
+                                if approval_compliances:
+                                    for c in approval_compliances:
+                                        print ('compliance deleted',c.id)
+                                        c.delete()
                         # Log creation
                         # Generate the document
                         approval.generate_doc(request.user)
@@ -4721,21 +4748,42 @@ class DistrictProposal(models.Model):
         #For amendment type of Proposal, check for copied requirements from previous proposal
         if self.proposal.proposal_type == 'amendment':
             try:
-                for r in requirement_set.filter(copied_from__isnull=False):
+                for r in self.proposal.requirements.filter(copied_from__isnull=False, district_proposal__isnull=True):
                     cs=[]
-                    cs=Compliance.objects.filter(requirement=r.copied_from, district_proposal=self, processing_status='due')
+                    cs=Compliance.objects.filter(requirement=r.copied_from, proposal=self.proposal.previous_application, processing_status='due')
                     if cs:
                         if r.is_deleted == True:
                             for c in cs:
+                                print('discard proposal compliance', c)
                                 c.processing_status='discarded'
                                 c.customer_status = 'discarded'
                                 c.reminder_sent=True
                                 c.post_reminder_sent=True
                                 c.save()
-                        if r.is_deleted == False:
+            except:
+                raise
+
+        if self.proposal.proposal_type == 'amendment':
+            try:
+                for r in requirement_set.filter(copied_from__isnull=False):
+                    cs=[]
+                    cs=Compliance.objects.filter(requirement=r.copied_from, processing_status='due')
+                    if cs:
+                        if r.is_deleted == True:
                             for c in cs:
-                                c.proposal= self
+                                print('discarded compliance', c)
+                                c.processing_status='discarded'
+                                c.customer_status = 'discarded'
+                                c.reminder_sent=True
+                                c.post_reminder_sent=True
+                                c.save()
+                        if r.is_deleted == False: 
+                            for c in cs:
+                                print('not deleted', c)
+                                c.district_proposal=self
+                                c.proposal= self.proposal
                                 c.approval=approval
+                                c.district_approval=c.district_approval
                                 c.requirement=r
                                 c.save()
             except:
