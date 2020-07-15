@@ -2115,7 +2115,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             print('district proposal',district_proposal, created)
                             district_proposal.proposal_park= parks_list
                             district_proposal.save()
-                            send_district_proposal_submit_email_notification(district_proposal, request)
+                            if created:
+                                send_district_proposal_submit_email_notification(district_proposal, request)
                         self.processing_status='with_district_assessor'
                         self.save()
                         self.log_user_action(ProposalUserAction.SEND_TO_DISTRICTS.format(self.id),request)
@@ -4592,26 +4593,26 @@ class DistrictProposal(models.Model):
 
                         }
                     )
-                    # if self.proposal_type == 'renewal':
-                    #     if self.previous_application:
-                    #         previous_approval = self.previous_application.approval
-                    #         approval,created = Approval.objects.update_or_create(
-                    #             current_proposal = checking_proposal,
-                    #             defaults = {
-                    #                 'issue_date' : timezone.now(),
-                    #                 'expiry_date' : details.get('expiry_date'),
-                    #                 'start_date' : details.get('start_date'),
-                    #                 'submitter': self.submitter,
-                    #                 #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
-                    #                 #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
-                    #                 'org_applicant' : self.org_applicant,
-                    #                 'proxy_applicant' : self.proxy_applicant,
-                    #                 'lodgement_number': previous_approval.lodgement_number
-                    #             }
-                    #         )
-                    #         if created:
-                    #             previous_approval.replaced_by = approval
-                    #             previous_approval.save()
+                    if self.proposal.proposal_type == 'renewal':
+                        if self.proposal.previous_application:
+                            previous_approval = self.proposal.previous_application.approval
+                            approval,created = Approval.objects.update_or_create(
+                                current_proposal = checking_proposal,
+                                defaults = {
+                                    'issue_date' : timezone.now(),
+                                    'expiry_date' : details.get('expiry_date'),
+                                    'start_date' : details.get('start_date'),
+                                    'submitter': self.proposal.submitter,
+                                    #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
+                                    #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
+                                    'org_applicant' : self.proposal.org_applicant,
+                                    'proxy_applicant' : self.proposal.proxy_applicant,
+                                    'lodgement_number': previous_approval.lodgement_number
+                                }
+                            )
+                            if created:
+                                previous_approval.replaced_by = approval
+                                previous_approval.save()
 
                     #elif self.proposal_type == 'amendment':
                     if self.proposal.proposal_type == 'amendment':
