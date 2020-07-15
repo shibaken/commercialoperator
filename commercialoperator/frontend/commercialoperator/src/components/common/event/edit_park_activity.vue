@@ -190,6 +190,13 @@ export default {
                       if(vm.park.park)
                       {
                         vm.events_park_id=vm.park.park.id
+                        //$(vm.$refs.events_park).val(vm.park.park.id).trigger('change');
+                        vm.fetchAllowedActivities();
+                      }
+                      if(vm.park.activities)
+                      {
+                        vm.selected_activities=vm.park.activities;
+                        $(vm.$refs.activities_select).val(vm.park.activities).trigger('change');
                       }
                       // if(vm.park.from_date){
                       //   vm.park.from_date=vm.park.from_date.format('DD/MM/YYYY')
