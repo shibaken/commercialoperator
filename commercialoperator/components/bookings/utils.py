@@ -437,9 +437,9 @@ def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], inte
 def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
     lines = []
     if proposal.application_type.name==ApplicationType.TCLASS:
-        lines = create_tclass_fee_lines(proposal, invoice_text, vouchers, internal)
+        return create_tclass_fee_lines(proposal, invoice_text, vouchers, internal)
     elif proposal.application_type.name==ApplicationType.EVENT:
-        lines = create_event_fee_lines(proposal, invoice_text, vouchers, internal)
+        return create_event_fee_lines(proposal, invoice_text, vouchers, internal)
 
 	return lines
 
