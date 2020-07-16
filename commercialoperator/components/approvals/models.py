@@ -299,6 +299,17 @@ class Approval(RevisionedMixin):
                     return False
         return False
 
+    @property
+    def is_lawful_authority(self):
+        return self.current_proposal.is_lawful_authority
+
+    @property
+    def can_reissue_lawful_authority(self):
+        if self.current_proposal.is_lawful_authority and self.current_proposal.is_lawful_authority_finalised:
+            return self.can_reissue
+        return False    
+        
+    
 
     # @property
     # def can_amend(self):

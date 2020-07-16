@@ -888,7 +888,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     @property
     def is_lawful_authority_finalised(self):
         if self.application_type.name==ApplicationType.FILMING and self.filming_approval_type=='lawful_authority':
-            final_status=['declined', 'approved']
+            final_status=['declined', 'approved', 'discarded']
             if self.district_proposals.all().count()==self.district_proposals.filter(processing_status__in=final_status).count():
                 return True
         return False
@@ -1473,18 +1473,36 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
 
     def reissue_approval(self,request,status):
-        if not self.processing_status=='approved' :
-            raise ValidationError('You cannot change the current status at this time')
-        elif self.approval and self.approval.can_reissue:
-            if self.__approver_group() in request.user.proposalapprovergroup_set.all():
-                self.processing_status = status
-                self.save()
-                # Create a log entry for the proposal
-                self.log_user_action(ProposalUserAction.ACTION_REISSUE_APPROVAL.format(self.id),request)
+        if self.application_type.name==ApplicationType.FILMING and self.filming_approval_type=='lawful_authority':
+            allowed_status=['approved', 'partially_approved']
+            if not self.processing_status in allowed_status and not is_lawful_authority_finalised:
+                raise ValidationError('You cannot change the current status at this time')
+            elif self.approval and self.approval.can_reissue:
+                if self.__assessor_group() in request.user.proposalassessorgroup_set.all():
+                    self.processing_status = status
+                    self.save(version_comment='Reissue Approval: {}'.format(self.approval.lodgement_number))
+                    #self.save()
+                    # Create a log entry for the proposal
+                    self.log_user_action(ProposalUserAction.ACTION_REISSUE_APPROVAL.format(self.id),request)
+                else:
+                    raise ValidationError('Cannot reissue Approval. User not permitted.')
             else:
-                raise ValidationError('Cannot reissue Approval. User not permitted.')
+                raise ValidationError('Cannot reissue Approval')
+
         else:
-            raise ValidationError('Cannot reissue Approval')
+            if not self.processing_status=='approved' :
+                raise ValidationError('You cannot change the current status at this time')
+            elif self.approval and self.approval.can_reissue:
+                if self.__approver_group() in request.user.proposalapprovergroup_set.all():
+                    self.processing_status = status
+                    #self.save()
+                    self.save(version_comment='Reissue Approval: {}'.format(self.approval.lodgement_number))
+                    # Create a log entry for the proposal
+                    self.log_user_action(ProposalUserAction.ACTION_REISSUE_APPROVAL.format(self.id),request)
+                else:
+                    raise ValidationError('Cannot reissue Approval. User not permitted.')
+            else:
+                raise ValidationError('Cannot reissue Approval')
 
 
     def proposed_decline(self,request,details):
@@ -2101,21 +2119,28 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         with transaction.atomic():
             try:
                 if self.application_type.name==ApplicationType.FILMING and self.processing_status=='with_assessor':
-                #Get the list all the Districts of the Parks linked to the Proposal
+                    #If reissueing approval check for compare previous district proposals and new district proposals
+                    new_district_proposal_ids=[]
+                    previous_district_proposal_ids=[]
+                    if self.approval:
+                        previous_district_proposal_ids= self.district_proposals.all().values_list('id', flat=True)
+
+                    #Get the list all the Districts of the Parks linked to the Proposal
                     districts_list=self.filming_parks.all().values_list('park__district', flat=True)
-                    print('district',districts_list)
+
                     if districts_list:
                         for district in districts_list:
                             district_instance=District.objects.get(id=district)
                             #Get the list of all the Filming Parks in each district
                             parks_list=list(ProposalFilmingParks.objects.filter(park__district=district, proposal=self).values_list('id',flat=True))
-                            print('parks',parks_list)
                             #create a District proposal for each district
                             district_proposal, created=DistrictProposal.objects.update_or_create(district=district_instance,proposal= self)
-                            print('district proposal',district_proposal, created)
                             district_proposal.proposal_park= parks_list
+                            status=district_proposal.processing_status #for reissue
+                            district_proposal.processing_status='with_assessor'
                             district_proposal.save()
-                            if created:
+                            new_district_proposal_ids.append(district_proposal.id)
+                            if created or status!='with_assessor' :
                                 send_district_proposal_submit_email_notification(district_proposal, request)
                         self.processing_status='with_district_assessor'
                         self.save()
@@ -2125,12 +2150,25 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     if self.proposal_type=='amendment':
                         for district_proposal in self.district_proposals.all():
                             qs=self.requirements.filter(district=district_proposal.district, district_proposal__isnull=True)
-                            print('district', self.district, 'qs', qs)
                             qs.update(district_proposal=district_proposal)
                         #Mark the remaining requirements as deleted
                         qs_requirements= self.requirements.filter(district_proposal__isnull=True)
-                        print('to be deleted', qs_requirements)
                         qs_requirements.update(is_deleted=True)
+
+                    if self.approval: #If reissuing proposal
+                        for item in previous_district_proposal_ids:
+                            if item not in new_district_proposal_ids:
+                                instance=DistrictProposal.objects.get(id=item)
+                                instance.processing_status='discarded' #Mark proposal as discarded
+                                instance.save()
+                                qs= instance.district_proposal_requirements.all()
+                                qs.update(is_deleted=True)#Delete all the requirements
+                                from commercialoperator.components.compliances.models import Compliance, ComplianceUserAction
+                                due_compliances=Compliance.objects.filter(processing_status='due', district_proposal=item)
+                                due_compliances.update(processing_status='discarded', customer_status='discarded', reminder_sent=True, post_reminder_sent=True)
+                                future_compliances=Compliance.objects.filter(processing_status='future', district_proposal=item)
+                                future_compliances.delete()
+
                 return self
 
             except:
