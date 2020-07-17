@@ -610,7 +610,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
     #Append 'P' to Proposal id to generate Lodgement number. Lodgement number and lodgement sequence are used to generate Reference.
     def save(self, *args, **kwargs):
-        #import ipdb; ipdb.set_trace()
         orig_processing_status = self._original_state['processing_status']
         super(Proposal, self).save(*args,**kwargs)
         if self.processing_status != orig_processing_status:
@@ -679,7 +678,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         """ checks if a fee is payable after discount is applied """
         org = self.org_applicant
         if self.application_type.name=='T Class' and self.other_details.preferred_licence_period and org:
-            #import ipdb; ipdb.set_trace()
             application_fee = max( round(float(self.application_type.application_fee) - org.application_discount, 2), 0)
             licence_fee = max( round(float(self.licence_fee_amount) - org.licence_discount, 2), 0)
             if licence_fee == 0 and application_fee == 0:
@@ -1806,12 +1804,9 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         from commercialoperator.components.approvals.models import Approval
         with transaction.atomic():
             try:
-                import ipdb; ipdb.set_trace()
-                #invoice = self.create_filming_fee_invoice(request)
                 if self.processing_status==Proposal.PROCESSING_STATUS_AWAITING_PAYMENT and self.fee_paid:
                     # for 'Awaiting Payment' approval. External user fires this method from external URL after full payment
-                    pass
-                    #details = self.data[0]['approval_details']
+                    self.data[0].pop('approval_details') # this temp variable no longer required
                 else:
                     if not self.can_assess(request.user):
                         raise exceptions.ProposalNotAuthorized()
@@ -1857,11 +1852,9 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     applicant_field.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id),request)
 
                 if self.processing_status == self.PROCESSING_STATUS_AWAITING_PAYMENT:
-                    #import ipdb; ipdb.set_trace()
                     #send Proposal awaiting payment approval email
                     send_proposal_awaiting_payment_approval_email_notification(self,request, invoice)
                     self.fee_invoice_reference = invoice.reference
-                    import ipdb; ipdb.set_trace()
                     self.data[0].update(dict(approval_details=json.loads(json.dumps(details, default=str))))  # temp store for approval_details. Used after Licence is generated post invoice payment
                     self.save(version_comment='Final Approval - Awaiting Payment, Proposal: {}'.format(self.lodgement_number))
 
@@ -2025,7 +2018,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     try:
                         logger.info('Creating standalone invoice')
 
-                        #import ipdb; ipdb.set_trace()
                         payment_method = 'other'
                         film_types = '/'.join([w.capitalize().replace('_',' ') for w in self.filming_activity.film_type])
                         #invoice_text = 'Payment Invoice: {} - {}'.format(film_types, self.filming_activity.activity_title)
