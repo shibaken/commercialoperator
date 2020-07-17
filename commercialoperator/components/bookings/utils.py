@@ -38,6 +38,7 @@ import ast
 from decimal import Decimal
 
 
+from ledger.basket.middleware import BasketMiddleware
 
 import logging
 logger = logging.getLogger('payment_checkout')
@@ -368,6 +369,7 @@ def delete_session_application_invoice(session):
         del session['cols_app_invoice']
         session.modified = True
 
+# Events - Compliance
 def get_session_compliance_invoice(session):
     """ Compliance Fee session ID """
     if 'cols_comp_invoice' in session:
@@ -390,6 +392,31 @@ def delete_session_compliance_invoice(session):
     if 'cols_comp_invoice' in session:
         del session['cols_comp_invoice']
         session.modified = True
+
+## Filming - Fee (Application and Licence)
+#def get_session_filming_invoice(session):
+#    """ Filming Fee session ID """
+#    if 'cols_filming_invoice' in session:
+#        filming_fee_id = session['cols_filming_invoice']
+#    else:
+#        raise Exception('Filming not in Session')
+#
+#    try:
+#        return ComplianceFee.objects.get(id=compliance_fee_id)
+#    except Invoice.DoesNotExist:
+#        raise Exception('Compliance record not found for compliance {}'.format(compliance_fee_id))
+#
+#def set_session_compliance_invoice(session, compliance_fee):
+#    """ Compliance Fee session ID """
+#    session['cols_comp_invoice'] = compliance_fee.id
+#    session.modified = True
+#
+#def delete_session_compliance_invoice(session):
+#    """ Compliance Fee session ID """
+#    if 'cols_comp_invoice' in session:
+#        del session['cols_comp_invoice']
+#        session.modified = True
+
 
 def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], internal=False):
     """ Create the ledger lines - line item for compliance fee sent to payment system """
@@ -511,7 +538,7 @@ def create_event_fee_lines(proposal, invoice_text=None, vouchers=[], internal=Fa
                 'price_excl_tax':  application_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(application_price),
                 'quantity': 1,
             },
-        ]   
+        ]
     logger.info('{}'.format(line_items))
     return line_items
 
@@ -682,6 +709,66 @@ def checkout(request, proposal, lines, return_url_ns='public_booking_success', r
         )
 
     return response
+
+def checkout_existing_invoice(request, invoice, return_url_ns='public_booking_success', return_preload_url_ns='public_booking_success', invoice_text=None, vouchers=[], proxy=False):
+    lines = list(invoice.order.basket.lines.all().values())
+    [line.pop('basket_id') for line in lines]
+    [line.pop('id') for line in lines]
+    basket_params = {
+        #'products': [line.pop('basket_id') for line in lines],
+        'products': lines,
+        'vouchers': vouchers,
+        'system': settings.PAYMENT_SYSTEM_ID,
+        'custom_basket': True,
+    }
+
+    basket, basket_hash = create_basket_session(request, basket_params)
+
+    import ipdb; ipdb.set_trace()
+    #basket = invoice.order.basket
+    #basket.thaw()
+    #basket.status = basket.OPEN
+    #basket.save()
+    #basket_hash = BasketMiddleware().get_basket_hash(basket.id)
+    #fallback_url = request.build_absolute_uri('/')
+    checkout_params = {
+        'system': settings.PAYMENT_SYSTEM_ID,
+        'fallback_url': request.build_absolute_uri('/'),
+        'return_url': request.build_absolute_uri(reverse(return_url_ns)),
+        'return_preload_url': request.build_absolute_uri(reverse(return_url_ns)),
+        'force_redirect': True,
+        #'proxy': proxy,
+        'invoice_text': invoice_text,
+        #'invoice_reference': '05572565342',
+
+        'order_number': invoice.order_number,
+        'basket_id': invoice.order.basket.id,
+        'existing_invoice': invoice.reference,
+        #'basket': invoice.order.basket,
+        #'basket': basket,
+        #'card_method': 'capture',
+    }
+    if proxy or request.user.is_anonymous():
+        #checkout_params['basket_owner'] = proposal.submitter_id
+        checkout_params['basket_owner'] = request.user.id
+
+
+    create_checkout_session(request, checkout_params)
+
+#    if internal:
+#        response = place_order_submission(request)
+#    else:
+    response = HttpResponseRedirect(reverse('checkout:index'))
+    # inject the current basket into the redirect response cookies
+    # or else, anonymous users will be directionless
+    response.set_cookie(
+            settings.OSCAR_BASKET_COOKIE_OPEN, basket_hash,
+            max_age=settings.OSCAR_BASKET_COOKIE_LIFETIME,
+            secure=settings.OSCAR_BASKET_COOKIE_SECURE, httponly=True
+    )
+
+    return response
+
 
 def oracle_integration(date,override):
     system = '0557'

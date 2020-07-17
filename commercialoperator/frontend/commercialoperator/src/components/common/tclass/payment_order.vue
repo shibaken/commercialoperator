@@ -47,6 +47,8 @@
                           </div>
                         </div>
 
+                        <button type="submit" class="dropdown-item" @click="payment_method='existing_invoice'">Existing invoice</button>
+
                     </form>
                 </div>
             </div>
@@ -221,9 +223,14 @@ from '@/utils/hooks'
 
             submit: function (e) {
                 let vm = this;
+                var form = document.forms.new_payment;
+                if (vm.payment_method == 'existing_invoice') {
+                    form.action = '/existing_invoice_payment/' + '05572566192'  + '/?method=' + vm.payment_method;
+                    form.submit();
+                }
+
                 vm.errors = vm.check_form_valid();
 
-                var form = document.forms.new_payment;
                 if (vm.payment_method == 'monthly_invoicing' || vm.payment_method == 'bpay' || vm.payment_method == 'other') {
                     //form.action = '/payment_monthly/' + vm.selected_licence.value  + '/';
                     form.action = '/preview_deferred/' + vm.selected_licence.value  + '/?method=' + vm.payment_method;
