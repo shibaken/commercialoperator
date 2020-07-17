@@ -4541,7 +4541,7 @@ class DistrictProposal(models.Model):
                 #self.customer_status = 'declined'
                 self.save()
                 proposal=self.proposal
-                all_district_proposals=proposal.district_proposals.all()
+                all_district_proposals=proposal.district_proposals.all().exclude(processing_status='discarded')
                 approved_district_proposals=proposal.district_proposals.filter(processing_status='approved')
                 declined_district_proposals=proposal.district_proposals.filter(processing_status='declined')
                 if proposal.processing_status=='partially_declined':
@@ -4759,7 +4759,7 @@ class DistrictProposal(models.Model):
                 district_approval.save()
 
                 proposal=self.proposal
-                all_district_proposals=proposal.district_proposals.all()
+                all_district_proposals=proposal.district_proposals.all().exclude(processing_status='discarded')
                 approved_district_proposals=proposal.district_proposals.filter(processing_status='approved')
                 declined_district_proposals=proposal.district_proposals.filter(processing_status='declined')
                 if proposal.processing_status=='partially_declined' or proposal.processing_status=='partially_approved' or proposal.processing_status== 'with_district_assessor':
@@ -5093,7 +5093,7 @@ reversion.register(Referral, follow=['referral_documents', 'assessment'])
 reversion.register(ReferralDocument, follow=['referral_document'])
 
 #reversion.register(Proposal, follow=['documents', 'onhold_documents','required_documents','qaofficer_documents','comms_logs','other_details', 'parks', 'trails', 'vehicles', 'vessels', 'proposalrequest_set','proposaldeclineddetails', 'proposalonhold', 'requirements', 'referrals', 'qaofficer_referrals', 'compliances', 'referrals', 'approvals', 'park_entries', 'assessment', 'bookings', 'application_fees'])
-reversion.register(Proposal, follow=['documents', 'onhold_documents','required_documents','qaofficer_documents','comms_logs','other_details', 'parks', 'trails', 'vehicles', 'vessels', 'proposalrequest_set','proposaldeclineddetails', 'proposalonhold', 'requirements', 'referrals', 'qaofficer_referrals', 'compliances', 'referrals', 'approvals', 'park_entries', 'assessment'])
+reversion.register(Proposal, follow=['documents', 'onhold_documents','required_documents','qaofficer_documents','comms_logs','other_details', 'parks', 'trails', 'vehicles', 'vessels', 'proposalrequest_set','proposaldeclineddetails', 'proposalonhold', 'requirements', 'referrals', 'qaofficer_referrals', 'compliances', 'referrals', 'approvals', 'park_entries', 'assessment', 'district_proposals', 'filming_parks', 'events_parks', 'pre_event_parks','filming_activity', 'filming_access', 'filming_equipment', 'filming_other_details', 'event_activity', 'event_management', 'event_vehicles_vessels', 'event_other_details','event_abseiling_climbing_activity' ])
 reversion.register(ProposalDocument, follow=['onhold_documents'])
 reversion.register(OnHoldDocument)
 reversion.register(ProposalRequest)
@@ -5143,5 +5143,36 @@ reversion.register(HelpPage)
 reversion.register(ChecklistQuestion, follow=['answers'])
 reversion.register(ProposalAssessment, follow=['answers'])
 reversion.register(ProposalAssessmentAnswer)
+
+#Filming
+reversion.register(ProposalFilmingActivity)
+reversion.register(ProposalFilmingAccess)
+reversion.register(ProposalFilmingEquipment)
+reversion.register(ProposalFilmingOtherDetails)
+reversion.register(ProposalFilmingParks, follow=['filming_park_documents'])
+reversion.register(FilmingParkDocument)
+reversion.register(DistrictProposal, follow=['district_compliance', 'district_requirements', 'district_approvals'])
+
+#Event
+reversion.register(ProposalEventActivities, follow=['abseiling_climbing_activity_data'])
+reversion.register(ProposalEventManagement)
+reversion.register(ProposalEventVehiclesVessels)
+reversion.register(ProposalEventOtherDetails)
+reversion.register(ProposalEventsParks, follow=['events_park_documents'])
+reversion.register(AbseilingClimbingActivity)
+reversion.register(EventsParkDocument)
+reversion.register(ProposalPreEventsParks, follow=['pre_event_park_documents'])
+
+
+
+
+
+
+
+
+
+
+
+
 
 

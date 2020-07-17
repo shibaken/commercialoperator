@@ -654,4 +654,6 @@ reversion.register(ApprovalDocument, follow=['licence_document', 'cover_letter_d
 reversion.register(ApprovalLogEntry, follow=['documents'])
 reversion.register(ApprovalLogDocument)
 reversion.register(ApprovalUserAction)
+reversion.register(DistrictApproval)
+
 
