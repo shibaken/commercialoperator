@@ -384,11 +384,9 @@ def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], inte
         price = round(float(price), 2)
         if no_persons > 0:
             return {
-                #'ledger_description': '{} - {} - {}'.format(park.name, arrival, age_group),
-                'ledger_description': 'Compliance Fee - {} - {}'.format(now, compliance.lodgement_number),
-                #'oracle_code': park.oracle_code.encode('utf-8'),
-                #'oracle_code': park.oracle_code.encode('utf-8'),
-                'oracle_code': 'NNP415 GST',
+                'ledger_description': '{}'.format(park.name),
+                'oracle_code': park.oracle_code,
+                #'oracle_code': 'NNP415 GST',
                 'price_incl_tax':  price,
                 'price_excl_tax':  price if park.is_gst_exempt else round(float(calculate_excl_gst(price)), 2),
                 'quantity': no_persons,
@@ -397,7 +395,6 @@ def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], inte
 
     now = datetime.now().strftime('%Y-%m-%d %H:%M')
     events_park_price = compliance.proposal.application_type.events_park_fee
-    #events_park_price = 10.0
     events_parks = compliance.proposal.events_parks.all()
     #cost_per_park = (events_park_price * compliance.num_participants) / len(events_parks)
     cost_per_park = events_park_price
@@ -407,17 +404,7 @@ def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], inte
         park = events_park.park
         lines.append(add_line_item(park, price=cost_per_park, no_persons=compliance.num_participants))
 
-#    line_items = [
-#        {   'ledger_description': 'Compliance Fee - {} - {}'.format(now, compliance.lodgement_number),
-#            'oracle_code': compliance.proposal.application_type.oracle_code_application,
-#            'price_incl_tax':  application_price,
-#            #'price_excl_tax':  application_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(application_price),
-#            'price_excl_tax':  application_price,
-#            'quantity': 1,
-#        },
-#    ]
-
-    logger.info('{}'.format(lines))
+    #logger.info('{}'.format(lines))
     return lines
 
 def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
