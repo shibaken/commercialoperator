@@ -567,10 +567,11 @@ class ApplicationFeeSuccessView(TemplateView):
                         details = proposal.data[0]['approval_details']
                         details['start_date'] = datetime.strptime(details['start_date'], '%Y-%m-%d').date()
                         details['expiry_date'] = datetime.strptime(details['expiry_date'], '%Y-%m-%d').date()
-                        proposal = proposal.final_approval(request, OrderedDict(details))
+                        proposal.final_approval(request, OrderedDict(details))
                     else:
                         proposal = proposal_submit(proposal, request)
 
+                    #import ipdb; ipdb.set_trace()
                     if proposal and (invoice.payment_status == 'paid' or invoice.payment_status == 'over_paid'):
                         proposal.fee_invoice_reference = invoice_ref
                         proposal.save()

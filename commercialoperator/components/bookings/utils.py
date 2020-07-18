@@ -670,16 +670,12 @@ def checkout(request, proposal, lines, return_url_ns='public_booking_success', r
     return response
 
 def checkout_existing_invoice(request, invoice, return_url_ns='public_booking_success', return_preload_url_ns='public_booking_success', invoice_text=None, vouchers=[], proxy=False):
-    lines = list(invoice.order.basket.lines.all().values())
-    [line.pop('basket_id') for line in lines]
-    [line.pop('id') for line in lines]
     basket_params = {
-        'products': lines,
+        'products': invoice.order.basket.subset_lines(),
         'vouchers': vouchers,
         'system': settings.PAYMENT_SYSTEM_ID,
         'custom_basket': True,
     }
-
     basket, basket_hash = create_basket_session(request, basket_params)
 
     checkout_params = {
@@ -689,9 +685,8 @@ def checkout_existing_invoice(request, invoice, return_url_ns='public_booking_su
         'return_preload_url': request.build_absolute_uri(reverse(return_url_ns)),
         'force_redirect': True,
         #'proxy': proxy,
-        'invoice_text': invoice_text,
-
-        'order_number': invoice.order_number,
+        'invoice_text': invoice.text,
+        'existing_invoice': invoice.reference,
     }
     if proxy or request.user.is_anonymous():
         #checkout_params['basket_owner'] = proposal.submitter_id

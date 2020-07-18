@@ -2025,7 +2025,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         basket  = createCustomBasket(lines, request.user, settings.PAYMENT_SYSTEM_ID)
                         order = CreateInvoiceBasket(
                             payment_method=payment_method, system=settings.PAYMENT_SYSTEM_PREFIX
-                        ).create_invoice_and_order(basket, 0, None, None, user=request.user, invoice_text=invoice_text, status='Awaiting Payment')
+                        ).create_invoice_and_order(basket, 0, None, None, user=request.user, invoice_text=invoice_text, status='Awaiting Payment', basket_status='Saved')
 
                         invoice = Invoice.objects.get(order_number=order.number)
 
