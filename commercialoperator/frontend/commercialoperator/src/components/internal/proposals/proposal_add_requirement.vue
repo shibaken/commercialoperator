@@ -151,7 +151,13 @@ export default {
                 type:Number,
                 default: null
 
+            },
+            district:{
+            type:Number,
+            default: null
+
             }
+
     },
     data:function () {
         let vm = this;
@@ -170,6 +176,7 @@ export default {
                 input_name: 'requirement_doc',
                 requirement_documents: [],
                 district_proposal:vm.district_proposal,
+                district: vm.district,
             },
             addingRequirement: false,
             updatingRequirement: false,

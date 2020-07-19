@@ -11,7 +11,7 @@
             </div>
             <div class="panel-body collapse in" :id="lBody">
                 <div class="" >                        
-                    <div class="form-horizontal col-sm-12 borderDecoration">
+                    <div class="form-horizontal col-sm-12 borderDecoration" style="z-index: 0">
                         
                         <div class="form-group">
                             <div class="row">
@@ -53,13 +53,37 @@
                                     <input type="text" class="form-control" name="Previous contact Person" placeholder="" :disabled="proposal.readonly" v-model="proposal.filming_activity.previous_contact_person">
                                 </div>
                             </div>
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <label class="control-label pull-left"  for="Name">Does the film have Tourism WA sponsorship</label>
+                                </div>
+                                <div class="col-sm-9" style="margin-bottom: 5px">
+                                    <!-- <select style="width:100%" class="form-control input-sm" multiple ref="filmSponsorshipSelect" v-model="proposal.filming_activity.sponsorship">
+                                        <option v-for="s in sponsorship_choices" :value="s.key">{{s.value}}</option>
+                                    </select> -->
+                                    <ul class="list-inline"  >
+                                        <li v-for="s in sponsorship_choices" class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio" @click="selectFilmType($event, s)" v-model="proposal.filming_activity.sponsorship" :value="s.key" data-parsley-required :disabled="proposal.readonly" name="sponsorship"/>
+                                            {{ s.value }}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <label class="control-label pull-left"  for="Name">Description of production</label>
+                                </div>
+                                <div class="col-sm-9" style="margin-bottom: 5px">
+                                    <textarea class="form-control" v-model="proposal.filming_activity.production_description" :disabled="proposal.readonly" style="width: 80%"></textarea>
+                                </div>
+                            </div>
                             <div class="row">&nbsp;</div>
                             <div class="row">
                                 <div class="col-sm-3">
                                     <label class="control-label pull-left"  for="Name">Type of film to be undertaken</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
-                                    <select style="width:100%" class="form-control input-sm" multiple ref="film_type_select" v-model="proposal.filming_activity.film_type">
+                                    <select style="width:100%;" class="form-control input-sm" multiple ref="film_type_select" v-model="proposal.filming_activity.film_type">
                                         <option v-for="f in film_type_choices" :value="f.key">{{f.value}}</option>
                                     </select>
                                     <!--
@@ -97,14 +121,12 @@
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div class="row">
+                            <!-- <div class="row">
                                 <div class="col-sm-3">
                                     <label class="control-label pull-left"  for="Name">Does the film have Tourism WA sponsorship</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
-                                    <!-- <select style="width:100%" class="form-control input-sm" multiple ref="filmSponsorshipSelect" v-model="proposal.filming_activity.sponsorship">
-                                        <option v-for="s in sponsorship_choices" :value="s.key">{{s.value}}</option>
-                                    </select> -->
+                                    
                                     <ul class="list-inline"  >
                                         <li v-for="s in sponsorship_choices" class="form-check list-inline-item">
                                             <input  class="form-check-input" ref="Radio" type="radio" @click="selectFilmType($event, s)" v-model="proposal.filming_activity.sponsorship" :value="s.key" data-parsley-required :disabled="proposal.readonly" name="sponsorship"/>
@@ -112,7 +134,7 @@
                                         </li>
                                     </ul>
                                 </div>
-                            </div>
+                            </div> -->
                             <div class="row">&nbsp;</div>
                             <div class="row">
                                 <div class="col-sm-3">
@@ -131,14 +153,14 @@
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div class="row">
+                            <!-- <div class="row">
                                 <div class="col-sm-3">
                                     <label class="control-label pull-left"  for="Name">Description of production</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
                                     <textarea class="form-control" v-model="proposal.filming_activity.production_description" :disabled="proposal.readonly" style="width: 80%"></textarea>
                                 </div>
-                            </div>
+                            </div> -->
 
                             <div class="row">&nbsp;</div>
 
@@ -307,5 +329,6 @@ require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
 </script>
 
 <style lang="css" scoped>
+
 </style>
 

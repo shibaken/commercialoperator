@@ -87,6 +87,9 @@ module.exports = {
     discard_pre_event_park:function (id) {
       return `/api/proposal_pre_event_parks/${id}.json`;
     },
+    discard_filming_park:function (id) {
+      return `/api/proposal_filming_parks/${id}.json`;
+    },
     site_url: site_url,
     //dep_name: 'Department of Biodiversity, Conservation and Attractions',
     //dep_name_short: 'DBCA',
