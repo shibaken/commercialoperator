@@ -19,7 +19,7 @@
                 </div>
             </div>
         </div>
-        <RequirementDetail ref="requirement_detail" :proposal_id="proposal.id" :requirements="requirements" :hasReferralMode="hasReferralMode" :referral_group="referral_group" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal="district_proposal"/>
+        <RequirementDetail ref="requirement_detail" :proposal_id="proposal.id" :requirements="requirements" :hasReferralMode="hasReferralMode" :referral_group="referral_group" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal="district_proposal" :district="district"/>
     </div>
 </template>
 <script>
@@ -47,6 +47,11 @@ export default {
             default: null
         },
         district_proposal:{
+            type:Number,
+            default: null
+
+        },
+        district:{
             type:Number,
             default: null
 
@@ -252,6 +257,7 @@ export default {
         addRequirement(){
             this.$refs.requirement_detail.requirement.referral_group=this.referral_group;
             this.$refs.requirement_detail.requirement.district_proposal=this.district_proposal;
+            this.$refs.requirement_detail.requirement.district=this.district;
             this.$refs.requirement_detail.isModalOpen = true;
         },
         removeRequirement(_id){
@@ -297,6 +303,7 @@ export default {
                 this.$refs.requirement_detail.requirement.due_date =  response.body.due_date != null && response.body.due_date != undefined ? moment(response.body.due_date).format('DD/MM/YYYY'): '';
                 this.$refs.requirement_detail.requirement.referral_group=response.body.referral_group;
                 this.$refs.requirement_detail.requirement.district_proposal=response.body.district_proposal;
+                this.$refs.requirement_detail.requirement.district=response.body.district;
                 this.$refs.requirement_detail.requirement.requirement_documents=response.body.requirement_documents;
                 response.body.standard ? $(this.$refs.requirement_detail.$refs.standard_req).val(response.body.standard_requirement).trigger('change'): '';
                 this.addRequirement();

@@ -143,6 +143,36 @@ class ApplicationTypeAdmin(admin.ModelAdmin):
     list_display = ['name', 'order', 'visible', 'max_renewals', 'max_renewal_period', 'application_fee']
     ordering = ('order',)
 
+    def get_form(self, request, obj=None, **kwargs):
+        self.exclude = ()
+        if obj.name == "Event":
+            self.exclude = (
+                "max_renewals", "max_renewal_period", "licence_fee_2mth", "licence_fee_1yr",
+                "filming_fee_half_day", "filming_fee_full_day", "filming_fee_subsequent_day", "filming_fee_4days",
+                "photography_fee_half_day", "photography_fee_full_day", "photography_fee_subsequent_day", "photography_fee_4days",
+            )
+        elif obj.name == "Filming":
+            self.exclude = (
+                "max_renewals", "max_renewal_period", "licence_fee_2mth", "licence_fee_1yr",
+                "events_park_fee",
+            )
+        elif obj.name == "T Class":
+            self.exclude = (
+                "filming_fee_half_day", "filming_fee_full_day", "filming_fee_subsequent_day", "filming_fee_4days",
+                "photography_fee_half_day", "photography_fee_full_day", "photography_fee_subsequent_day", "photography_fee_4days",
+                "events_park_fee",
+            )
+        elif obj.name == "E Class":
+            self.exclude = (
+                "max_renewals", "max_renewal_period", "licence_fee_2mth", "licence_fee_1yr",
+                "filming_fee_half_day", "filming_fee_full_day", "filming_fee_subsequent_day", "filming_fee_4days",
+                "photography_fee_half_day", "photography_fee_full_day", "photography_fee_subsequent_day", "photography_fee_4days",
+                "events_park_fee",
+            )
+
+        form = super(ApplicationTypeAdmin, self).get_form(request, obj, **kwargs)
+        return form
+
 @admin.register(Park)
 class ParkAdmin(admin.ModelAdmin):
     list_display = ['name', 'district']

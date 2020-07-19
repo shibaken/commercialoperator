@@ -160,7 +160,7 @@ export default {
                 expiry_date:null,
                 rego_number:'',
                 proposal: vm.proposal.id,
-                event_activities: 1,
+                event_activities: vm.proposal.event_activity.id,
             }
             //this.$refs.edit_abseiling_climbing.abseiling_climbing=this.new_abseiling_climbing;
             this.$refs.edit_abseiling_climbing.abseiling_climbing=new_abseiling_climbing_another;

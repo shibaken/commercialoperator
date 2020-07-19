@@ -25,6 +25,7 @@ from datetime import datetime, timedelta
 from collections import OrderedDict
 from django.core.cache import cache
 from ledger.accounts.models import EmailUser, Address
+from ledger.accounts.models import Organisation as ledger_org
 from ledger.address.models import Country
 from datetime import datetime, timedelta, date
 from django.urls import reverse
@@ -229,6 +230,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
                 try:
                     if request.data.get('applicant_type') == 'org':
                         org_applicant = Organisation.objects.get(organisation_id=request.data.get('holder-selected'))
+                        #org_applicant = ledger_org.objects.get(id=request.data.get('holder-selected'))
                     else:
                         proxy_applicant = EmailUser.objects.get(id=request.data.get('holder-selected'))
                 except:

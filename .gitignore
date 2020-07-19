@@ -3,8 +3,10 @@
 venv/
 venv2/
 node_modules/
-cronjobs
+#cronjobs
+.ropeproject/
 mooring/cache/*
+.ropeproject/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

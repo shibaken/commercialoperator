@@ -56,13 +56,22 @@ class ApprovalDocument(Document):
 
 #class Approval(models.Model):
 class Approval(RevisionedMixin):
+    APPROVAL_STATUS_CURRENT = 'current'
+    APPROVAL_STATUS_EXPIRED = 'expired'
+    APPROVAL_STATUS_CANCELLED = 'cancelled'
+    APPROVAL_STATUS_SURRENDERED = 'surrendered'
+    APPROVAL_STATUS_SUSPENDED = 'suspended'
+    APPROVAL_STATUS_EXTENDED = 'extended'
+    APPROVAL_STATUS_AWAITING_PAYMENT = 'awaiting_payment'
+
     STATUS_CHOICES = (
-        ('current','Current'),
-        ('expired','Expired'),
-        ('cancelled','Cancelled'),
-        ('surrendered','Surrendered'),
-        ('suspended','Suspended'),
-        ('extended','extended'),
+        (APPROVAL_STATUS_CURRENT ,'Current'),
+        (APPROVAL_STATUS_EXPIRED ,'Expired'),
+        (APPROVAL_STATUS_CANCELLED ,'Cancelled'),
+        (APPROVAL_STATUS_SURRENDERED ,'Surrendered'),
+        (APPROVAL_STATUS_SUSPENDED ,'Suspended'),
+        (APPROVAL_STATUS_EXTENDED ,'extended'),
+        (APPROVAL_STATUS_AWAITING_PAYMENT ,'Awaiting Payment'),
     )
     lodgement_number = models.CharField(max_length=9, blank=True, default='')
     status = models.CharField(max_length=40, choices=STATUS_CHOICES,
@@ -287,10 +296,45 @@ class Approval(RevisionedMixin):
             if proposal:
                 return False
         except Proposal.DoesNotExist:
-            if self.can_renew:
-                return True
+            if self.current_proposal.is_lawful_authority:
+                if self.current_proposal.is_lawful_authority_finalised and self.can_renew:
+                        return True
+                else:
+                        return False
             else:
-                return False
+                if self.can_renew:
+                    return True
+                else:
+                    return False
+        return False
+
+    @property
+    def is_lawful_authority(self):
+        return self.current_proposal.is_lawful_authority
+
+    @property
+    def can_reissue_lawful_authority(self):
+        if self.current_proposal.is_lawful_authority and self.current_proposal.is_lawful_authority_finalised:
+            return self.can_reissue
+        return False    
+        
+    
+
+    # @property
+    # def can_amend(self):
+    #     try:
+    #         amend_conditions = {
+    #                 'previous_application': self.current_proposal,
+    #                 'proposal_type': 'amendment'
+    #                 }
+    #         proposal=Proposal.objects.get(**amend_conditions)
+    #         if proposal:
+    #             return False
+    #     except Proposal.DoesNotExist:
+    #             if self.can_renew:
+    #                 return True
+    #             else:
+    #                 return False
 
 
     def generate_doc(self, user, preview=False):
@@ -601,7 +645,7 @@ class DistrictApproval(RevisionedMixin):
     set_to_surrender = models.BooleanField(default=False)
     renewal_count = models.PositiveSmallIntegerField('Number of times an Approval has been renewed', default=0)
     migrated=models.BooleanField(default=False)
-    
+
     class Meta:
         app_label = 'commercialoperator'
         unique_together= ('lodgement_number', 'issue_date')
@@ -619,4 +663,6 @@ reversion.register(ApprovalDocument, follow=['licence_document', 'cover_letter_d
 reversion.register(ApprovalLogEntry, follow=['documents'])
 reversion.register(ApprovalLogDocument)
 reversion.register(ApprovalUserAction)
+reversion.register(DistrictApproval)
+
 

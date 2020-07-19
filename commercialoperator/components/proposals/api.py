@@ -252,7 +252,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
                     if payment_status.lower() == 'unpaid':
                         # for deferred payment where invoice not yet created (monthly invoicing), append the following qs
                         queryset = queryset | ParkBooking.objects.filter(booking__invoices__isnull=True)
-                               
+
         date_from = request.GET.get('date_from')
         date_to = request.GET.get('date_to')
         if queryset.model is Proposal:
@@ -1406,8 +1406,11 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if not status:
                 raise serializers.ValidationError('Status is required')
             else:
-                if not status in ['with_approver']:
-                    raise serializers.ValidationError('The status provided is not allowed')
+                if instance.application_type.name==ApplicationType.FILMING and instance.filming_approval_type=='lawful_authority':
+                    status='with_assessor'
+                else:
+                    if not status in ['with_approver']:
+                        raise serializers.ValidationError('The status provided is not allowed')
             instance.reissue_approval(request,status)
             serializer = InternalProposalSerializer(instance,context={'request':request})
             return Response(serializer.data)
