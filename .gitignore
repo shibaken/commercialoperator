@@ -4,6 +4,7 @@ venv/
 venv2/
 node_modules/
 #cronjobs
+.ropeproject/
 mooring/cache/*
 
 # Byte-compiled / optimized / DLL files
