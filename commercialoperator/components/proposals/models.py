@@ -1837,7 +1837,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             try:
                 if self.processing_status==Proposal.PROCESSING_STATUS_AWAITING_PAYMENT and self.fee_paid:
                     # for 'Awaiting Payment' approval. External user fires this method from external URL after full payment
-                    self.data[0].pop('approval_details') # this temp variable no longer required
+                    pass
                 else:
                     if not self.can_assess(request.user):
                         raise exceptions.ProposalNotAuthorized()
@@ -1847,12 +1847,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     if not self.applicant_address:
                         raise ValidationError('The applicant needs to have set their postal address before approving this proposal.')
 
-                self.proposed_issuance_approval = {
-                    'start_date' : details.get('start_date').strftime('%d/%m/%Y'),
-                    'expiry_date' : details.get('expiry_date').strftime('%d/%m/%Y'),
-                    'details': details.get('details'),
-                    'cc_email':details.get('cc_email')
-                }
+                    self.proposed_issuance_approval = {
+                        'start_date' : details.get('start_date').strftime('%d/%m/%Y'),
+                        'expiry_date' : details.get('expiry_date').strftime('%d/%m/%Y'),
+                        'details': details.get('details'),
+                        'cc_email':details.get('cc_email')
+                    }
 
                 self.proposed_decline_status = False
 
@@ -1886,7 +1886,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     #send Proposal awaiting payment approval email
                     send_proposal_awaiting_payment_approval_email_notification(self,request, invoice)
                     self.fee_invoice_reference = invoice.reference
-                    self.data[0].update(dict(approval_details=json.loads(json.dumps(details, default=str))))  # temp store for approval_details. Used after Licence is generated post invoice payment
                     self.save(version_comment='Final Approval - Awaiting Payment, Proposal: {}'.format(self.lodgement_number))
 
                 elif self.processing_status == self.PROCESSING_STATUS_APPROVED:
@@ -1899,8 +1898,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                 current_proposal = checking_proposal,
                                 defaults = {
                                     'issue_date' : timezone.now(),
-                                    'expiry_date' : details.get('expiry_date'),
-                                    'start_date' : details.get('start_date'),
+                                    'expiry_date' : datetime.datetime.strptime(self.proposed_issuance_approval.get('expiry_date'), '%d/%m/%Y').date(),
+                                    'start_date' : datetime.datetime.strptime(self.proposed_issuance_approval.get('start_date'), '%d/%m/%Y').date(),
                                     'submitter': self.submitter,
                                     #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
                                     #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
@@ -1922,8 +1921,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                 current_proposal = checking_proposal,
                                 defaults = {
                                     'issue_date' : timezone.now(),
-                                    'expiry_date' : details.get('expiry_date'),
-                                    'start_date' : details.get('start_date'),
+                                    'expiry_date' : datetime.datetime.strptime(self.proposed_issuance_approval.get('expiry_date'), '%d/%m/%Y').date(),
+                                    'start_date' : datetime.datetime.strptime(self.proposed_issuance_approval.get('start_date'), '%d/%m/%Y').date(),
                                     'submitter': self.submitter,
                                     #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
                                     #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
@@ -1940,8 +1939,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             current_proposal = checking_proposal,
                             defaults = {
                                 'issue_date' : timezone.now(),
-                                'expiry_date' : details.get('expiry_date'),
-                                'start_date' : details.get('start_date'),
+                                'expiry_date' : datetime.datetime.strptime(self.proposed_issuance_approval.get('expiry_date'), '%d/%m/%Y').date(),
+                                'start_date' : datetime.datetime.strptime(self.proposed_issuance_approval.get('start_date'), '%d/%m/%Y').date(),
                                 'submitter': self.submitter,
                                 #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
                                 #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,

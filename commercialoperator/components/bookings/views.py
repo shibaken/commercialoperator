@@ -563,10 +563,7 @@ class ApplicationFeeSuccessView(TemplateView):
                     update_payments(invoice_ref)
 
                     if proposal.processing_status==Proposal.PROCESSING_STATUS_AWAITING_PAYMENT and proposal.application_type.name==ApplicationType.FILMING:
-                        details = proposal.data[0]['approval_details']
-                        details['start_date'] = datetime.strptime(details['start_date'], '%Y-%m-%d').date()
-                        details['expiry_date'] = datetime.strptime(details['expiry_date'], '%Y-%m-%d').date()
-                        proposal.final_approval(request, OrderedDict(details))
+                        proposal.final_approval(request, None)
                     else:
                         proposal = proposal_submit(proposal, request)
 
