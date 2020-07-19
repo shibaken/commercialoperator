@@ -2,13 +2,18 @@
     <div>
         <template v-if="isFinalised">
             <div class="col-md-12 alert alert-success" v-if="proposal.processing_status == 'Approved'">
-                <p>The licence has been issued and has been emailed to {{proposal.applicant.name}}</p>
+                <p>The licence has been issued and has been emailed to {{proposal.applicant}}</p>
                 <p v-if="proposal.proposed_issuance_approval">Expiry date: {{proposal.proposed_issuance_approval.expiry_date}}
                 <p>Licence: <a target="_blank" :href="proposal.permit">licence.pdf</a></p>
             </div>
             <div v-else class="col-md-12 alert alert-warning">
                 <p>The application was declined. The decision was emailed to {{proposal.applicant}}</p>
-            </div>    
+            </div>
+        </template>
+        <template v-else-if="proposal.processing_status == 'Awaiting Payment'">
+            <div class="col-md-12 alert alert-info">
+                <p>The licence has been approved, pending payment and an invoice has been emailed to {{proposal.applicant}}</p>
+            </div>
         </template>
         <!--
         <div class="col-md-12">

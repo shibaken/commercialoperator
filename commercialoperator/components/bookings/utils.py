@@ -395,9 +395,9 @@ def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], inte
 
     now = datetime.now().strftime('%Y-%m-%d %H:%M')
     events_park_price = compliance.proposal.application_type.events_park_fee
-    events_parks = compliance.proposal.events_parks.all()
+    events_parks = compliance.proposal.events_parks.all().distinct('park__name')
     #cost_per_park = (events_park_price * compliance.num_participants) / len(events_parks)
-    cost_per_park = events_park_price
+    cost_per_park = events_park_price / len(events_parks)
 
     lines = []
     for events_park in events_parks:
@@ -659,6 +659,7 @@ def checkout(request, proposal, lines, return_url_ns='public_booking_success', r
 def checkout_existing_invoice(request, invoice, return_url_ns='public_booking_success', return_preload_url_ns='public_booking_success', invoice_text=None, vouchers=[], proxy=False):
     basket_params = {
         'products': invoice.order.basket.subset_lines(),
+        'existing_basket_id': invoice.order.basket.id,
         'vouchers': vouchers,
         'system': settings.PAYMENT_SYSTEM_ID,
         'custom_basket': True,
