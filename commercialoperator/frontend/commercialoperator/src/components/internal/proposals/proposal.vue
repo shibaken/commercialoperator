@@ -509,7 +509,7 @@ export default {
           return (this.proposal) ? `/api/proposal/${this.proposal.id}/assessor_save.json` : '';
         },
         isFinalised: function(){
-            return this.proposal.processing_status == 'Declined' || this.proposal.processing_status == 'Approved';
+            return this.proposal.processing_status == 'Declined' || this.proposal.processing_status == 'Approved' || this.proposal.processing_status == 'Awaiting Payment';
         },
         canAssess: function(){
             return this.proposal && this.proposal.assessor_mode.assessor_can_assess ? true : false;

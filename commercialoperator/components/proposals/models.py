@@ -1223,7 +1223,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             return False
 
     def has_assessor_mode(self,user):
-        status_without_assessor = ['with_approver','approved','declined','draft']
+        status_without_assessor = ['with_approver','approved','waiting_payment','declined','draft']
         if self.processing_status in status_without_assessor:
             return False
         else:
