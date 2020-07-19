@@ -635,6 +635,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         return self.invoice.amount if self.fee_paid else None
 
     @property
+    def can_create_final_approval(self):
+        return self.fee_paid and self.processing_status==Proposal.PROCESSING_STATUS_AWAITING_PAYMENT
+
+    @property
     def licence_fee_amount(self):
         if self.application_type.name==ApplicationType.TCLASS:
             period = self.other_details.preferred_licence_period
@@ -674,7 +678,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         """ checks if a fee is payable after discount is applied """
         org = self.org_applicant
         if self.application_type.name=='T Class' and self.other_details.preferred_licence_period and org:
-            #import ipdb; ipdb.set_trace()
             application_fee = max( round(float(self.application_type.application_fee) - org.application_discount, 2), 0)
             licence_fee = max( round(float(self.licence_fee_amount) - org.licence_discount, 2), 0)
             if licence_fee == 0 and application_fee == 0:
@@ -1801,15 +1804,17 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         from commercialoperator.components.approvals.models import Approval
         with transaction.atomic():
             try:
-                #import ipdb; ipdb.set_trace()
-                #invoice = self.create_filming_fee_invoice(request)
-                if not self.can_assess(request.user):
-                    raise exceptions.ProposalNotAuthorized()
-                if self.processing_status != 'with_approver':
-                    raise ValidationError('You cannot issue the approval if it is not with an approver')
-                #if not self.applicant.organisation.postal_address:
-                if not self.applicant_address:
-                    raise ValidationError('The applicant needs to have set their postal address before approving this proposal.')
+                if self.processing_status==Proposal.PROCESSING_STATUS_AWAITING_PAYMENT and self.fee_paid:
+                    # for 'Awaiting Payment' approval. External user fires this method from external URL after full payment
+                    self.data[0].pop('approval_details') # this temp variable no longer required
+                else:
+                    if not self.can_assess(request.user):
+                        raise exceptions.ProposalNotAuthorized()
+                    if self.processing_status != 'with_approver':
+                        raise ValidationError('You cannot issue the approval if it is not with an approver')
+                    #if not self.applicant.organisation.postal_address:
+                    if not self.applicant_address:
+                        raise ValidationError('The applicant needs to have set their postal address before approving this proposal.')
 
                 self.proposed_issuance_approval = {
                     'start_date' : details.get('start_date').strftime('%d/%m/%Y'),
@@ -1820,7 +1825,9 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
                 self.proposed_decline_status = False
 
-                if self.application_type.name == ApplicationType.FILMING and self.filming_approval_type==self.LICENCE:
+                if self.application_type.name == ApplicationType.FILMING and self.filming_approval_type == self.LICENCE and \
+                        self.processing_status in [Proposal.PROCESSING_STATUS_WITH_APPROVER]:
+                        #self.processing_status not in [Proposal.PROCESSING_STATUS_AWAITING_PAYMENT, Proposal.PROCESSING_STATUS_APPROVED]:
                     self.processing_status = self.PROCESSING_STATUS_AWAITING_PAYMENT
                     self.customer_status = self.CUSTOMER_STATUS_AWAITING_PAYMENT
                     invoice = self.__create_filming_fee_invoice(request)
@@ -1845,10 +1852,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     applicant_field.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id),request)
 
                 if self.processing_status == self.PROCESSING_STATUS_AWAITING_PAYMENT:
-                    #import ipdb; ipdb.set_trace()
                     #send Proposal awaiting payment approval email
                     send_proposal_awaiting_payment_approval_email_notification(self,request, invoice)
                     self.fee_invoice_reference = invoice.reference
+                    self.data[0].update(dict(approval_details=json.loads(json.dumps(details, default=str))))  # temp store for approval_details. Used after Licence is generated post invoice payment
                     self.save(version_comment='Final Approval - Awaiting Payment, Proposal: {}'.format(self.lodgement_number))
 
                 elif self.processing_status == self.PROCESSING_STATUS_APPROVED:
@@ -1960,7 +1967,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             licence_fee = full_day_fee + (subsequent_day_fee * (self.filming_activity.num_filming_days-1))
             licence_text = '{} days'.format(self.filming_activity.num_filming_days)
         elif self.filming_activity.num_filming_days >= 4:
-            licence_fee = self.application_type.filming_fee_4days if 'motion_film' in self.filming_activity.film_type else self.application_type.photography_fee_full_4days
+            licence_fee = self.application_type.filming_fee_4days if 'motion_film' in self.filming_activity.film_type else self.application_type.photography_fee_4days
             licence_text = '4 days or more'.format(self.filming_activity.num_filming_days)
 
         application_fee = self.application_type.application_fee
@@ -2011,7 +2018,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     try:
                         logger.info('Creating standalone invoice')
 
-                        #import ipdb; ipdb.set_trace()
                         payment_method = 'other'
                         film_types = '/'.join([w.capitalize().replace('_',' ') for w in self.filming_activity.film_type])
                         #invoice_text = 'Payment Invoice: {} - {}'.format(film_types, self.filming_activity.activity_title)
@@ -2019,7 +2025,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         basket  = createCustomBasket(lines, request.user, settings.PAYMENT_SYSTEM_ID)
                         order = CreateInvoiceBasket(
                             payment_method=payment_method, system=settings.PAYMENT_SYSTEM_PREFIX
-                        ).create_invoice_and_order(basket, 0, None, None, user=request.user, invoice_text=invoice_text)
+                        ).create_invoice_and_order(basket, 0, None, None, user=request.user, invoice_text=invoice_text, status='Awaiting Payment', basket_status='Saved')
 
                         invoice = Invoice.objects.get(order_number=order.number)
 
@@ -2244,7 +2250,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         self.processing_status='with_district_assessor'
                         self.save()
                         self.log_user_action(ProposalUserAction.SEND_TO_DISTRICTS.format(self.id),request)
-                        
+
                         #TODO Logging
                 return self
 
@@ -4078,7 +4084,7 @@ class ProposalFilmingParks(models.Model):
                     assessor_group = DistrictProposalAssessorGroup.objects.get(default=True)
                 return assessor_group in user.districtproposalassessorgroup_set.all()
         elif self.proposal.processing_status == 'with_assessor':
-                return self.proposal.can_assess(user)        
+                return self.proposal.can_assess(user)
         else:
             return False
 
@@ -4322,7 +4328,7 @@ class DistrictProposal(models.Model):
         recipients = []
         approver_group=self.__approver_group()
         recipients = approver_group.members_email
-        
+
         return recipients
 
     def can_assess(self,user):

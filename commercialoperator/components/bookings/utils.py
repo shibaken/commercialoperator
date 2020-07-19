@@ -38,6 +38,7 @@ import ast
 from decimal import Decimal
 
 
+from ledger.basket.middleware import BasketMiddleware
 
 import logging
 logger = logging.getLogger('payment_checkout')
@@ -148,47 +149,6 @@ TEST 2:
 
 
 """
-def _create_filming_fee_invoice(proposal, user, offset_months=-1):
-
-    products = [{
-        u'ledger_description': u'Helena and Aurora Range Conservation Park - 2020-07-02 - Adult',
-        u'oracle_code': u'NNP487 GST',
-        u'price_excl_tax': Decimal('9.090909090909'),
-        u'price_incl_tax': Decimal('10.00'),
-        u'quantity': 2
-    }]
-
-    invoice = None
-    with transaction.atomic():
-        #if is_invoicing_period(booking) and is_monthly_invoicing_allowed(booking):
-        if True:
-            try:
-                logger.info('Creating standalone invoice')
-
-                payment_method = 'other'
-                invoice_text = 'Payment Invoice'
-                basket  = createCustomBasket(products, user, settings.PAYMENT_SYSTEM_ID)
-                order = CreateInvoiceBasket(
-                    payment_method=payment_method, system=settings.PAYMENT_SYSTEM_PREFIX
-                ).create_invoice_and_order(basket, 0, None, None, user=user, invoice_text=invoice_text)
-
-                invoice = Invoice.objects.get(order_number=order.number)
-
-                deferred_payment_date = invoice.created + relativedelta(months=1)
-                filming_fee = FilmingFee.objects.create(proposal=proposal, created_by=user, payment_type=FilmingFee.PAYMENT_TYPE_BLACK, deferred_payment_date=deferred_payment_date)
-                filming_fee_inv = FilmingFeeInvoice.objects.create(filming_fee=filming_fee, invoice_reference=invoice.reference)
-#                deferred_payment_date = calc_payment_due_date(booking, invoice.created + relativedelta(months=1))
-#                book_inv = BookingInvoice.objects.create(booking=booking, invoice_reference=invoice.reference, payment_method=invoice.payment_method, deferred_payment_date=deferred_payment_date)
-#
-#                recipients = list(set([booking.proposal.applicant_email, user.email])) # unique list
-#                send_monthly_invoice_tclass_email_notification(user, booking, invoice, recipients=recipients)
-#                ProposalUserAction.log_action(booking.proposal,ProposalUserAction.ACTION_SEND_MONTHLY_INVOICE.format(invoice.reference, booking.proposal.id, ', '.join(recipients)), user)
-            except Exception, e:
-                logger.error('Failed to create standalone invoice')
-                logger.error('{}'.format(e))
-
-    return invoice
-
 
 def create_monthly_invoice(user, offset_months=-1):
     bookings = Booking.objects.filter(
@@ -368,6 +328,7 @@ def delete_session_application_invoice(session):
         del session['cols_app_invoice']
         session.modified = True
 
+# Events - Compliance
 def get_session_compliance_invoice(session):
     """ Compliance Fee session ID """
     if 'cols_comp_invoice' in session:
@@ -391,6 +352,31 @@ def delete_session_compliance_invoice(session):
         del session['cols_comp_invoice']
         session.modified = True
 
+## Filming - Fee (Application and Licence)
+#def get_session_filming_invoice(session):
+#    """ Filming Fee session ID """
+#    if 'cols_filming_invoice' in session:
+#        filming_fee_id = session['cols_filming_invoice']
+#    else:
+#        raise Exception('Filming not in Session')
+#
+#    try:
+#        return ComplianceFee.objects.get(id=compliance_fee_id)
+#    except Invoice.DoesNotExist:
+#        raise Exception('Compliance record not found for compliance {}'.format(compliance_fee_id))
+#
+#def set_session_compliance_invoice(session, compliance_fee):
+#    """ Compliance Fee session ID """
+#    session['cols_comp_invoice'] = compliance_fee.id
+#    session.modified = True
+#
+#def delete_session_compliance_invoice(session):
+#    """ Compliance Fee session ID """
+#    if 'cols_comp_invoice' in session:
+#        del session['cols_comp_invoice']
+#        session.modified = True
+
+
 def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], internal=False):
     """ Create the ledger lines - line item for compliance fee sent to payment system """
 
@@ -398,11 +384,9 @@ def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], inte
         price = round(float(price), 2)
         if no_persons > 0:
             return {
-                #'ledger_description': '{} - {} - {}'.format(park.name, arrival, age_group),
-                'ledger_description': 'Compliance Fee - {} - {}'.format(now, compliance.lodgement_number),
-                #'oracle_code': park.oracle_code.encode('utf-8'),
-                #'oracle_code': park.oracle_code.encode('utf-8'),
-                'oracle_code': 'NNP415 GST',
+                'ledger_description': '{}'.format(park.name),
+                'oracle_code': park.oracle_code,
+                #'oracle_code': 'NNP415 GST',
                 'price_incl_tax':  price,
                 'price_excl_tax':  price if park.is_gst_exempt else round(float(calculate_excl_gst(price)), 2),
                 'quantity': no_persons,
@@ -411,7 +395,6 @@ def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], inte
 
     now = datetime.now().strftime('%Y-%m-%d %H:%M')
     events_park_price = compliance.proposal.application_type.events_park_fee
-    #events_park_price = 10.0
     events_parks = compliance.proposal.events_parks.all()
     #cost_per_park = (events_park_price * compliance.num_participants) / len(events_parks)
     cost_per_park = events_park_price
@@ -421,17 +404,7 @@ def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], inte
         park = events_park.park
         lines.append(add_line_item(park, price=cost_per_park, no_persons=compliance.num_participants))
 
-#    line_items = [
-#        {   'ledger_description': 'Compliance Fee - {} - {}'.format(now, compliance.lodgement_number),
-#            'oracle_code': compliance.proposal.application_type.oracle_code_application,
-#            'price_incl_tax':  application_price,
-#            #'price_excl_tax':  application_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(application_price),
-#            'price_excl_tax':  application_price,
-#            'quantity': 1,
-#        },
-#    ]
-
-    logger.info('{}'.format(lines))
+    #logger.info('{}'.format(lines))
     return lines
 
 def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
@@ -511,7 +484,7 @@ def create_event_fee_lines(proposal, invoice_text=None, vouchers=[], internal=Fa
                 'price_excl_tax':  application_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(application_price),
                 'quantity': 1,
             },
-        ]   
+        ]
     logger.info('{}'.format(line_items))
     return line_items
 
@@ -682,6 +655,44 @@ def checkout(request, proposal, lines, return_url_ns='public_booking_success', r
         )
 
     return response
+
+def checkout_existing_invoice(request, invoice, return_url_ns='public_booking_success', return_preload_url_ns='public_booking_success', invoice_text=None, vouchers=[], proxy=False):
+    basket_params = {
+        'products': invoice.order.basket.subset_lines(),
+        'vouchers': vouchers,
+        'system': settings.PAYMENT_SYSTEM_ID,
+        'custom_basket': True,
+    }
+    basket, basket_hash = create_basket_session(request, basket_params)
+
+    checkout_params = {
+        'system': settings.PAYMENT_SYSTEM_ID,
+        'fallback_url': request.build_absolute_uri('/'),
+        'return_url': request.build_absolute_uri(reverse(return_url_ns)),
+        'return_preload_url': request.build_absolute_uri(reverse(return_url_ns)),
+        'force_redirect': True,
+        #'proxy': proxy,
+        'invoice_text': invoice.text,
+        'existing_invoice': invoice.reference,
+    }
+    if proxy or request.user.is_anonymous():
+        #checkout_params['basket_owner'] = proposal.submitter_id
+        checkout_params['basket_owner'] = request.user.id
+
+
+    create_checkout_session(request, checkout_params)
+
+    response = HttpResponseRedirect(reverse('checkout:index'))
+    # inject the current basket into the redirect response cookies
+    # or else, anonymous users will be directionless
+    response.set_cookie(
+            settings.OSCAR_BASKET_COOKIE_OPEN, basket_hash,
+            max_age=settings.OSCAR_BASKET_COOKIE_LIFETIME,
+            secure=settings.OSCAR_BASKET_COOKIE_SECURE, httponly=True
+    )
+
+    return response
+
 
 def oracle_integration(date,override):
     system = '0557'

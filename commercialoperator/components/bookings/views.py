@@ -17,7 +17,7 @@ from dateutil.relativedelta import relativedelta
 
 from commercialoperator.components.proposals.models import Proposal
 from commercialoperator.components.compliances.models import Compliance
-from commercialoperator.components.main.models import Park
+from commercialoperator.components.main.models import Park, ApplicationType
 from commercialoperator.components.organisations.models import Organisation
 from commercialoperator.components.bookings.context_processors import commercialoperator_url, template_context
 from commercialoperator.components.bookings.invoice_pdf import create_invoice_pdf_bytes
@@ -38,6 +38,7 @@ from commercialoperator.components.bookings.utils import (
     delete_session_booking,
     create_lines,
     checkout,
+    checkout_existing_invoice,
     create_fee_lines,
     create_compliance_fee_lines,
     get_session_application_invoice,
@@ -70,6 +71,7 @@ from ledger.payments.utils import oracle_parser_on_invoice,update_payments
 from ledger.payments.invoice.utils import CreateInvoiceBasket
 import json
 from decimal import Decimal
+from collections import OrderedDict
 
 from ledger.payments.models import Invoice
 from ledger.basket.models import Basket
@@ -91,10 +93,10 @@ class ApplicationFeeView(TemplateView):
 
     def post(self, request, *args, **kwargs):
 
-        proposal = self.get_object()
-        application_fee = ApplicationFee.objects.create(proposal=proposal, created_by=request.user, payment_type=ApplicationFee.PAYMENT_TYPE_TEMPORARY)
-
         try:
+            proposal = self.get_object()
+            application_fee = ApplicationFee.objects.create(proposal=proposal, created_by=request.user, payment_type=ApplicationFee.PAYMENT_TYPE_TEMPORARY)
+
             with transaction.atomic():
                 lines = create_fee_lines(proposal)
 
@@ -119,6 +121,40 @@ class ApplicationFeeView(TemplateView):
             if application_fee:
                 application_fee.delete()
             raise
+
+class ExistingPaymentView(TemplateView):
+    #template_name = 'mooring/booking/make_booking.html'
+    template_name = 'commercialoperator/booking/success.html'
+
+    def get_object(self):
+        #return get_object_or_404(Proposal, fee_invoice_reference='05572566221')
+        return get_object_or_404(Proposal, fee_invoice_reference=self.kwargs['invoice_ref'])
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            proposal = self.get_object()
+            invoice = proposal.invoice
+            application_fee = ApplicationFee.objects.create(proposal=proposal, created_by=request.user, payment_type=ApplicationFee.PAYMENT_TYPE_TEMPORARY)
+            #invoice_reference = '05572565392'
+
+            with transaction.atomic():
+                set_session_application_invoice(request.session, application_fee)
+                checkout_response = checkout_existing_invoice(
+                    request,
+                    invoice,
+                    return_url_ns='fee_success',
+                    return_preload_url_ns='fee_success',
+                    invoice_text='Payment Invoice',
+                )
+
+                logger.info('built payment line items {} for Existing Invoice'.format(invoice.reference))
+                return checkout_response
+
+        except Exception, e:
+            logger.error('Existing Invoice Payment: {}'.format(e))
+            raise
+
 
 class ComplianceFeeView(TemplateView):
     template_name = 'commercialoperator/booking/success.html'
@@ -298,6 +334,7 @@ class MakePaymentView(TemplateView):
             if booking:
                 booking.delete()
             raise
+
 
 class ComplianceFeeSuccessView(TemplateView):
     template_name = 'commercialoperator/booking/success_compliance_fee.html'
@@ -525,7 +562,15 @@ class ApplicationFeeSuccessView(TemplateView):
                     application_fee.expiry_time = None
                     update_payments(invoice_ref)
 
-                    proposal = proposal_submit(proposal, request)
+                    if proposal.processing_status==Proposal.PROCESSING_STATUS_AWAITING_PAYMENT and proposal.application_type.name==ApplicationType.FILMING:
+                        details = proposal.data[0]['approval_details']
+                        details['start_date'] = datetime.strptime(details['start_date'], '%Y-%m-%d').date()
+                        details['expiry_date'] = datetime.strptime(details['expiry_date'], '%Y-%m-%d').date()
+                        proposal.final_approval(request, OrderedDict(details))
+                    else:
+                        proposal = proposal_submit(proposal, request)
+
+                    #import ipdb; ipdb.set_trace()
                     if proposal and (invoice.payment_status == 'paid' or invoice.payment_status == 'over_paid'):
                         proposal.fee_invoice_reference = invoice_ref
                         proposal.save()

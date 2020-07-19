@@ -6,6 +6,7 @@ node_modules/
 #cronjobs
 .ropeproject/
 mooring/cache/*
+.ropeproject/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
