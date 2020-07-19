@@ -164,7 +164,6 @@ class ComplianceFeeView(TemplateView):
 
     def post(self, request, *args, **kwargs):
 
-        import ipdb; ipdb.set_trace()
         compliance = self.get_object()
         compliance_fee = ComplianceFee.objects.create(compliance=compliance, created_by=request.user, payment_type=ComplianceFee.PAYMENT_TYPE_TEMPORARY)
 
