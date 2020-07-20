@@ -18,7 +18,7 @@
                                 <div class="col-sm-3">
                                     <label class="control-label pull-left"  for="Name">Period of proposed filming/ photography</label>
                                 </div>
-                                <div class="col-sm-4">
+                                <div class="col-sm-3">
                                     <div class="input-group date" ref="commencement_date" style="width: 70%;">
                                         <input type="text" class="form-control" v-model="proposal.filming_activity.commencement_date" name="commencement_date" placeholder="Commencement date" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
                                         <span class="input-group-addon">
@@ -26,13 +26,17 @@
                                         </span>
                                     </div>
                                 </div>
-                                <div class="col-sm-4">
+                                <div class="col-sm-3">
                                     <div class="input-group date" ref="completion_date" style="width: 70%;">
                                         <input type="text" class="form-control" v-model="proposal.filming_activity.completion_date" name="completion_date" placeholder="Completion date" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
                                         <span class="input-group-addon">
                                             <span class="glyphicon glyphicon-calendar"></span>
                                         </span>
                                     </div>
+                                </div>
+                                <div class="col-sm-3" v-show="showHalfDay">
+                                    <input  class="form-check-input" ref="Checkbox" type="checkbox"  data-parsley-required :disabled="proposal.readonly" v-model="proposal.filming_activity.half_day" />
+                                    Half Day?
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -205,6 +209,14 @@ require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
                     keepInvalid:true,
                     allowInputToggle:true,
                 },
+            }
+        },
+        computed: {
+            showHalfDay: function(){
+                let vm=this;
+                if(vm.proposal && vm.proposal.filming_activity.commencement_date && vm.proposal.filming_activity.completion_date){
+                    return vm.proposal.filming_activity.commencement_date == vm.proposal.filming_activity.completion_date
+                }
             }
         },
         methods:{
