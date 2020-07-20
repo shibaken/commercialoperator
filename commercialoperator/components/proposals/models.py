@@ -10,6 +10,7 @@ from django.dispatch import receiver
 from django.db.models.signals import pre_delete
 from django.utils.encoding import python_2_unicode_compatible
 from django.core.exceptions import ValidationError, MultipleObjectsReturned
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.postgres.fields.jsonb import JSONField
 from django.utils import timezone
 from django.contrib.sites.models import Site
@@ -27,7 +28,13 @@ from commercialoperator import exceptions
 from commercialoperator.components.organisations.models import Organisation, OrganisationContact, UserDelegation
 from commercialoperator.components.main.models import CommunicationsLogEntry, UserAction, Document, Region, District, Tenure, ApplicationType, Park, Activity, ActivityCategory, AccessType, Trail, Section, Zone, RequiredDocument#, RevisionedMixin
 from commercialoperator.components.main.utils import get_department_user
-from commercialoperator.components.proposals.email import send_referral_email_notification, send_proposal_decline_email_notification,send_proposal_approval_email_notification, send_amendment_email_notification
+from commercialoperator.components.proposals.email import (
+    send_referral_email_notification,
+    send_proposal_decline_email_notification,
+    send_proposal_approval_email_notification,
+    send_proposal_awaiting_payment_approval_email_notification,
+    send_amendment_email_notification,
+)
 from commercialoperator.ordered_model import OrderedModel
 from commercialoperator.components.proposals.email import send_submit_email_notification, send_external_submit_email_notification, send_approver_decline_email_notification, send_approver_approve_email_notification, send_referral_complete_email_notification, send_proposal_approver_sendback_email_notification, send_qaofficer_email_notification, send_qaofficer_complete_email_notification, send_district_proposal_submit_email_notification,send_district_proposal_approver_sendback_email_notification, send_district_approver_decline_email_notification, send_district_approver_approve_email_notification, send_district_proposal_decline_email_notification, send_district_proposal_approval_email_notification
 import copy
@@ -405,6 +412,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     CUSTOMER_STATUS_DISCARDED = 'discarded'
     CUSTOMER_STATUS_PARTIALLY_APPROVED = 'partially_approved'
     CUSTOMER_STATUS_PARTIALLY_DECLINED = 'partially_declined'
+    CUSTOMER_STATUS_AWAITING_PAYMENT = 'awaiting_payment'
     CUSTOMER_STATUS_CHOICES = ((CUSTOMER_STATUS_TEMP, 'Temporary'), ('draft', 'Draft'),
                                (CUSTOMER_STATUS_WITH_ASSESSOR, 'Under Review'),
                                (CUSTOMER_STATUS_AMENDMENT_REQUIRED, 'Amendment Required'),
@@ -413,6 +421,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                (CUSTOMER_STATUS_DISCARDED, 'Discarded'),
                                (CUSTOMER_STATUS_PARTIALLY_APPROVED, 'Partially Approved'),
                                (CUSTOMER_STATUS_PARTIALLY_DECLINED, 'Partially Declined'),
+                               (CUSTOMER_STATUS_AWAITING_PAYMENT, 'Awaiting Payment'),
                                )
 
     # List of statuses from above that allow a customer to edit an application.
@@ -422,7 +431,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             ]
 
     # List of statuses from above that allow a customer to view an application (read-only)
-    CUSTOMER_VIEWABLE_STATE = ['with_assessor', 'under_review', 'id_required', 'returns_required', 'approved', 'declined']
+    CUSTOMER_VIEWABLE_STATE = ['with_assessor', 'under_review', 'id_required', 'returns_required', 'awaiting_payment', 'approved', 'declined']
 
     PROCESSING_STATUS_TEMP = 'temp'
     PROCESSING_STATUS_DRAFT = 'draft'
@@ -445,6 +454,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     PROCESSING_STATUS_DISCARDED = 'discarded'
     PROCESSING_STATUS_PARTIALLY_APPROVED = 'partially_approved'
     PROCESSING_STATUS_PARTIALLY_DECLINED = 'partially_declined'
+    PROCESSING_STATUS_AWAITING_PAYMENT = 'awaiting_payment'
     PROCESSING_STATUS_CHOICES = ((PROCESSING_STATUS_TEMP, 'Temporary'),
                                  (PROCESSING_STATUS_DRAFT, 'Draft'),
                                  (PROCESSING_STATUS_WITH_ASSESSOR, 'With Assessor'),
@@ -466,7 +476,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                  (PROCESSING_STATUS_DISCARDED, 'Discarded'),
                                  (PROCESSING_STATUS_PARTIALLY_APPROVED, 'Partially Approved'),
                                  (PROCESSING_STATUS_PARTIALLY_DECLINED, 'Partially Declined'),
-                                 )
+                                 (PROCESSING_STATUS_AWAITING_PAYMENT, 'Awaiting Payment'),
+                                )
 
     ID_CHECK_STATUS_CHOICES = (('not_checked', 'Not Checked'), ('awaiting_update', 'Awaiting Update'),
                                ('updated', 'Updated'), ('accepted', 'Accepted'))
@@ -584,9 +595,9 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     #Following field is only used to approval type for Filming application otherwise ignore
     filming_approval_type = models.CharField('Filming Approval Type', max_length=30, choices=FILMING_APPROVAL_TYPE_CHOICES,
                                      default=FILMING_APPROVAL_TYPE_CHOICES[1][0])
-    
+
     # Event
-    
+
     fee_invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
 
     class Meta:
@@ -610,12 +621,22 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             self.save(version_comment='processing_status: {}'.format(self.processing_status))
 
     @property
+    def invoice(self):
+        return Invoice.objects.get(reference=self.fee_invoice_reference) if self.fee_invoice_reference else None
+
+    @property
     def fee_paid(self):
-        return True if self.fee_invoice_reference or self.proposal_type=='amendment' else False
+        if (self.invoice and self.invoice.payment_status in ['paid','over_paid']) or self.proposal_type=='amendment':
+            return True
+        return False
 
     @property
     def fee_amount(self):
-        return Invoice.objects.get(reference=self.fee_invoice_reference).amount if self.fee_paid else None
+        return self.invoice.amount if self.fee_paid else None
+
+    @property
+    def can_create_final_approval(self):
+        return self.fee_paid and self.processing_status==Proposal.PROCESSING_STATUS_AWAITING_PAYMENT
 
     @property
     def licence_fee_amount(self):
@@ -627,6 +648,41 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 return int(period.split('_')[0]) * self.application_type.licence_fee_1yr
         if self.application_type.name==ApplicationType.EVENT:
             return self.application_type.licence_fee_1yr
+
+    def reset_licence_discount(self, user):
+        """ reset when licence is issued"""
+        org = self.org_applicant
+        if self.application_type.name=='T Class' and org and org.licence_discount > 0:
+            if org.licence_discount > 0:
+                lic_disc = self.fee_discounts.get(discount_type=ApplicationFeeDiscount.DISCOUNT_TYPE_LICENCE)
+                lic_disc.reset_date = timezone.now()
+                lic_disc.save()
+            org.apply_licence_discount = False
+            org.licence_discount = 0.0
+            org.save()
+
+    def reset_application_discount(self, user):
+        """ reset when application is submitted"""
+        org = self.org_applicant
+        if self.application_type.name=='T Class' and org:
+            if org.application_discount > 0 or org.licence_discount > 0:
+                app_disc = ApplicationFeeDiscount.objects.create(proposal=self, discount_type=ApplicationFeeDiscount.DISCOUNT_TYPE_APPLICATION, discount=org.application_discount, reset_date=timezone.now(), user=user)
+                lic_disc = ApplicationFeeDiscount.objects.create(proposal=self, discount_type=ApplicationFeeDiscount.DISCOUNT_TYPE_LICENCE, discount=org.licence_discount, user=user)
+
+            org.apply_application_discount = False
+            org.application_discount = 0.0
+            org.save()
+
+    @property
+    def allow_full_discount(self):
+        """ checks if a fee is payable after discount is applied """
+        org = self.org_applicant
+        if self.application_type.name=='T Class' and self.other_details.preferred_licence_period and org:
+            application_fee = max( round(float(self.application_type.application_fee) - org.application_discount, 2), 0)
+            licence_fee = max( round(float(self.licence_fee_amount) - org.licence_discount, 2), 0)
+            if licence_fee == 0 and application_fee == 0:
+                return True
+        return False
 
     @property
     def reference(self):
@@ -842,15 +898,9 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
     @property
     def can_officer_process(self):
-        """
-        :return: True if the application is in one of the processable status for Assessor role.
-        """
-        #officer_view_state = ['draft','approved','declined','temp','discarded']
-        officer_view_state = ['draft','approved','declined','temp','discarded', 'with_referral', 'with_qa_officer']
-        if self.processing_status in officer_view_state:
-            return False
-        else:
-            return True
+        """ :return: True if the application is in one of the processable status for Assessor role."""
+        officer_view_state = ['draft','approved','declined','temp','discarded', 'with_referral', 'with_qa_officer', 'waiting_payment']
+        return False if self.processing_status in officer_view_state else True
 
     @property
     def can_view_district_table(self):
@@ -892,7 +942,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             if self.district_proposals.all().count()==self.district_proposals.filter(processing_status__in=final_status).count():
                 return True
         return False
-    
+
     def search_data_orig(self):
         search_data={}
         parks=[]
@@ -938,7 +988,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             search_data.update({'accreditations':[]})
         return search_data
 
-    
+
     @property
     def search_data(self):
         search_data={}
@@ -948,7 +998,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         vehicles=[]
         vessels=[]
         accreditations=[]
-        
+
         land_parks_name=list(self.parks.filter(park__park_type='land').values_list('park__name', flat=True))
         land_activities_name=list(self.parks.filter(park__park_type='land', activities__isnull=False).values_list('activities__activity__name', flat=True))
         marine_parks_name=list(self.parks.filter(park__park_type='marine').values_list('park__name', flat=True))
@@ -958,7 +1008,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         vehicles=list(self.vehicles.all().values_list('rego', flat=True))
         vessels=list(self.vessels.all().values_list('spv_no', flat=True))
 
-        parks=land_parks_name + marine_parks_name 
+        parks=land_parks_name + marine_parks_name
         activities = land_activities_name + marine_activities_name + trail_activities_name
 
 
@@ -1173,7 +1223,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             return False
 
     def has_assessor_mode(self,user):
-        status_without_assessor = ['with_approver','approved','declined','draft']
+        status_without_assessor = ['with_approver','approved','waiting_payment','declined','draft']
         if self.processing_status in status_without_assessor:
             return False
         else:
@@ -1785,30 +1835,60 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         from commercialoperator.components.approvals.models import Approval
         with transaction.atomic():
             try:
-                if not self.can_assess(request.user):
-                    raise exceptions.ProposalNotAuthorized()
-                if self.processing_status != 'with_approver':
-                    raise ValidationError('You cannot issue the approval if it is not with an approver')
-                #if not self.applicant.organisation.postal_address:
-                if not self.applicant_address:
-                    raise ValidationError('The applicant needs to have set their postal address before approving this proposal.')
+                if self.processing_status==Proposal.PROCESSING_STATUS_AWAITING_PAYMENT and self.fee_paid:
+                    # for 'Awaiting Payment' approval. External user fires this method from external URL after full payment
+                    pass
+                else:
+                    if not self.can_assess(request.user):
+                        raise exceptions.ProposalNotAuthorized()
+                    if self.processing_status != 'with_approver':
+                        raise ValidationError('You cannot issue the approval if it is not with an approver')
+                    #if not self.applicant.organisation.postal_address:
+                    if not self.applicant_address:
+                        raise ValidationError('The applicant needs to have set their postal address before approving this proposal.')
 
-                self.proposed_issuance_approval = {
-                    'start_date' : details.get('start_date').strftime('%d/%m/%Y'),
-                    'expiry_date' : details.get('expiry_date').strftime('%d/%m/%Y'),
-                    'details': details.get('details'),
-                    'cc_email':details.get('cc_email')
-                }
+                    self.proposed_issuance_approval = {
+                        'start_date' : details.get('start_date').strftime('%d/%m/%Y'),
+                        'expiry_date' : details.get('expiry_date').strftime('%d/%m/%Y'),
+                        'details': details.get('details'),
+                        'cc_email':details.get('cc_email')
+                    }
+
                 self.proposed_decline_status = False
-                self.processing_status = 'approved'
-                self.customer_status = 'approved'
-                # Log proposal action
-                self.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id),request)
-                # Log entry for organisation
-                applicant_field=getattr(self, self.applicant_field)
-                applicant_field.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id),request)
 
-                if self.processing_status == 'approved':
+                if self.application_type.name == ApplicationType.FILMING and self.filming_approval_type == self.LICENCE and \
+                        self.processing_status in [Proposal.PROCESSING_STATUS_WITH_APPROVER]:
+                        #self.processing_status not in [Proposal.PROCESSING_STATUS_AWAITING_PAYMENT, Proposal.PROCESSING_STATUS_APPROVED]:
+                    self.processing_status = self.PROCESSING_STATUS_AWAITING_PAYMENT
+                    self.customer_status = self.CUSTOMER_STATUS_AWAITING_PAYMENT
+                    invoice = self.__create_filming_fee_invoice(request)
+                    # Log proposal action
+                    if invoice:
+                        self.log_user_action(ProposalUserAction.ACTION_AWAITING_PAYMENT_APPROVAL_.format(self.id),request)
+                        # Log entry for organisation
+                        applicant_field=getattr(self, self.applicant_field)
+                        applicant_field.log_user_action(ProposalUserAction.ACTION_AWAITING_PAYMENT_APPROVAL_.format(self.id),request)
+
+                    else:
+                        logger.info('Cannot create Filming awaiting payment invoice: {}'.format(self.name))
+                        raise
+
+                else:
+                    self.processing_status = 'approved'
+                    self.customer_status = 'approved'
+                    # Log proposal action
+                    self.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id),request)
+                    # Log entry for organisation
+                    applicant_field=getattr(self, self.applicant_field)
+                    applicant_field.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id),request)
+
+                if self.processing_status == self.PROCESSING_STATUS_AWAITING_PAYMENT:
+                    #send Proposal awaiting payment approval email
+                    send_proposal_awaiting_payment_approval_email_notification(self,request, invoice)
+                    self.fee_invoice_reference = invoice.reference
+                    self.save(version_comment='Final Approval - Awaiting Payment, Proposal: {}'.format(self.lodgement_number))
+
+                elif self.processing_status == self.PROCESSING_STATUS_APPROVED:
                     # TODO if it is an ammendment proposal then check appropriately
                     checking_proposal = self
                     if self.proposal_type == 'renewal':
@@ -1818,8 +1898,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                 current_proposal = checking_proposal,
                                 defaults = {
                                     'issue_date' : timezone.now(),
-                                    'expiry_date' : details.get('expiry_date'),
-                                    'start_date' : details.get('start_date'),
+                                    'expiry_date' : datetime.datetime.strptime(self.proposed_issuance_approval.get('expiry_date'), '%d/%m/%Y').date(),
+                                    'start_date' : datetime.datetime.strptime(self.proposed_issuance_approval.get('start_date'), '%d/%m/%Y').date(),
                                     'submitter': self.submitter,
                                     #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
                                     #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
@@ -1832,6 +1912,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                 previous_approval.replaced_by = approval
                                 previous_approval.save()
 
+                            self.reset_licence_discount(request.user)
+
                     elif self.proposal_type == 'amendment':
                         if self.previous_application:
                             previous_approval = self.previous_application.approval
@@ -1839,8 +1921,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                 current_proposal = checking_proposal,
                                 defaults = {
                                     'issue_date' : timezone.now(),
-                                    'expiry_date' : details.get('expiry_date'),
-                                    'start_date' : details.get('start_date'),
+                                    'expiry_date' : datetime.datetime.strptime(self.proposed_issuance_approval.get('expiry_date'), '%d/%m/%Y').date(),
+                                    'start_date' : datetime.datetime.strptime(self.proposed_issuance_approval.get('start_date'), '%d/%m/%Y').date(),
                                     'submitter': self.submitter,
                                     #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
                                     #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
@@ -1857,8 +1939,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             current_proposal = checking_proposal,
                             defaults = {
                                 'issue_date' : timezone.now(),
-                                'expiry_date' : details.get('expiry_date'),
-                                'start_date' : details.get('start_date'),
+                                'expiry_date' : datetime.datetime.strptime(self.proposed_issuance_approval.get('expiry_date'), '%d/%m/%Y').date(),
+                                'start_date' : datetime.datetime.strptime(self.proposed_issuance_approval.get('start_date'), '%d/%m/%Y').date(),
                                 'submitter': self.submitter,
                                 #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
                                 #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
@@ -1867,6 +1949,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                 #'extracted_fields' = JSONField(blank=True, null=True)
                             }
                         )
+                        self.reset_licence_discount(request.user)
                     # Generate compliances
                     from commercialoperator.components.compliances.models import Compliance, ComplianceUserAction
                     if created:
@@ -1881,8 +1964,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         self.generate_compliances(approval, request)
                         # send the doc and log in approval and org
                     else:
-                        #approval.replaced_by = request.user
-                        #approval.replaced_by = self.approval
                         # Generate the document
                         approval.generate_doc(request.user)
                         #Delete the future compliances if Approval is reissued and generate the compliances again.
@@ -1897,13 +1978,92 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         applicant_field=getattr(self, self.applicant_field)
                         applicant_field.log_user_action(ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(self.id),request)
                     self.approval = approval
-                #send Proposal approval email with attachment
-                send_proposal_approval_email_notification(self,request)
-                self.save(version_comment='Final Approval: {}'.format(self.approval.lodgement_number))
-                self.approval.documents.all().update(can_delete=False)
+
+                    #send Proposal approval email with attachment
+                    send_proposal_approval_email_notification(self,request)
+                    self.save(version_comment='Final Approval: {}'.format(self.approval.lodgement_number))
+                    self.approval.documents.all().update(can_delete=False)
 
             except:
                 raise
+
+    def __create_filming_fee_lines(self):
+        if self.filming_activity.num_filming_days == 1:
+            licence_fee = self.application_type.filming_fee_full_day if 'motion_film' in self.filming_activity.film_type else self.application_type.photography_fee_full_day
+            licence_text =  'Full day'
+        elif self.filming_activity.num_filming_days > 1 and self.filming_activity.num_filming_days < 4:
+            full_day_fee = self.application_type.filming_fee_full_day if 'motion_film' in self.filming_activity.film_type else self.application_type.photography_fee_full_day
+            subsequent_day_fee = self.application_type.filming_fee_subsequent_day if 'motion_film' in self.filming_activity.film_type else self.application_type.photography_fee_subsequent_day
+            licence_fee = full_day_fee + (subsequent_day_fee * (self.filming_activity.num_filming_days-1))
+            licence_text = '{} days'.format(self.filming_activity.num_filming_days)
+        elif self.filming_activity.num_filming_days >= 4:
+            licence_fee = self.application_type.filming_fee_4days if 'motion_film' in self.filming_activity.film_type else self.application_type.photography_fee_4days
+            licence_text = '4 days or more'.format(self.filming_activity.num_filming_days)
+
+        application_fee = self.application_type.application_fee
+        filming_period = '{} - {}'.format(self.filming_activity.commencement_date, self.filming_activity.completion_date)
+
+        lines = [
+            {
+                'ledger_description': 'Filming/Photography Application Fee - {}'.format(self.lodgement_number),
+                'oracle_code': self.application_type.oracle_code_licence,
+                'price_incl_tax':  application_fee,
+                'price_excl_tax':  application_fee if self.application_type.is_gst_exempt else calculate_excl_gst(application_fee),
+                'quantity': 1
+            },
+            {
+                'ledger_description': 'Filming/Photography Licence Fee ({} - {}) - {}'.format(licence_text, filming_period, self.lodgement_number),
+                'oracle_code': self.application_type.oracle_code_licence,
+                'price_incl_tax':  licence_fee,
+                'price_excl_tax':  licence_fee if self.application_type.is_gst_exempt else calculate_excl_gst(licence_fee),
+                'quantity': 1
+            },
+        ]
+
+        return lines
+
+    def __create_filming_fee_invoice(self, request):
+
+        from dateutil.relativedelta import relativedelta
+        from ledger.checkout.utils import createCustomBasket
+        from ledger.payments.invoice.utils import CreateInvoiceBasket
+
+        if self.application_type.name == ApplicationType.FILMING and self.filming_approval_type==self.LICENCE \
+            and not self.fee_invoice_reference and len(self.filming_activity.film_type)>0:
+
+            lines = self.__create_filming_fee_lines()
+
+            invoice = None
+            with transaction.atomic():
+                try:
+                    logger.info('Creating standalone invoice')
+
+                    payment_method = 'other'
+                    film_types = '/'.join([w.capitalize().replace('_',' ') for w in self.filming_activity.film_type])
+                    #invoice_text = 'Payment Invoice: {} - {}'.format(film_types, self.filming_activity.activity_title)
+                    invoice_text = 'Payment Invoice: {}'.format(film_types)
+                    basket  = createCustomBasket(lines, request.user, settings.PAYMENT_SYSTEM_ID)
+                    order = CreateInvoiceBasket(
+                        payment_method=payment_method, system=settings.PAYMENT_SYSTEM_PREFIX
+                    ).create_invoice_and_order(basket, 0, None, None, user=request.user, invoice_text=invoice_text, status='Awaiting Payment', basket_status='Saved')
+
+                    invoice = Invoice.objects.get(order_number=order.number)
+
+                    #deferred_payment_date = invoice.created + relativedelta(months=1)
+                    #filming_fee = FilmingFee.objects.create(proposal=self, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_BLACK, deferred_payment_date=deferred_payment_date)
+                    #filming_fee_inv = FilmingFeeInvoice.objects.create(filming_fee=filming_fee, invoice_reference=invoice.reference)
+    #                deferred_payment_date = calc_payment_due_date(booking, invoice.created + relativedelta(months=1))
+    #                book_inv = BookingInvoice.objects.create(booking=booking, invoice_reference=invoice.reference, payment_method=invoice.payment_method, deferred_payment_date=deferred_payment_date)
+    #
+    #                recipients = list(set([booking.proposal.applicant_email, user.email])) # unique list
+    #                send_monthly_invoice_tclass_email_notification(user, booking, invoice, recipients=recipients)
+    #                ProposalUserAction.log_action(booking.proposal,ProposalUserAction.ACTION_SEND_MONTHLY_INVOICE.format(invoice.reference, booking.proposal.id, ', '.join(recipients)), user)
+                except Exception, e:
+                    logger.error('Failed to create standalone invoice')
+                    logger.error('{}'.format(e))
+
+        return invoice
+
 
     def generate_compliances(self,approval, request):
         today = timezone.now().date()
@@ -2145,8 +2305,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         self.processing_status='with_district_assessor'
                         self.save()
                         self.log_user_action(ProposalUserAction.SEND_TO_DISTRICTS.format(self.id),request)
-                    
-                    #for Amendment Proposal, Find the Requirements copied from previous application and assign to district Proposal according to distrcit    
+
+                    #for Amendment Proposal, Find the Requirements copied from previous application and assign to district Proposal according to distrcit
                     if self.proposal_type=='amendment':
                         for district_proposal in self.district_proposals.all():
                             qs=self.requirements.filter(district=district_proposal.district, district_proposal__isnull=True)
@@ -2175,12 +2335,51 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 raise
 
 
+class ApplicationFeeDiscount(RevisionedMixin):
+    DISCOUNT_TYPE_APPLICATION = 0
+    DISCOUNT_TYPE_LICENCE = 1
+    DISCOUNT_TYPE_CHOICES = (
+        (DISCOUNT_TYPE_APPLICATION, 'Discount application'),
+        (DISCOUNT_TYPE_LICENCE, 'Discount licence'),
+    )
+
+    proposal = models.ForeignKey(Proposal, related_name='fee_discounts', null=True)
+    discount_type = models.CharField(max_length=40, choices=DISCOUNT_TYPE_CHOICES)
+    discount = models.FloatField(validators=[MinValueValidator(0.0)])
+    created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(EmailUser,on_delete=models.PROTECT, related_name='created_by_fee_discount')
+    reset_date = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return '{} - {}% - {}'.format(self.get_discount_type_display(), self.discount, self.proposal.fee_invoice_reference)
+
+    @property
+    def invoice(self):
+        try:
+            invoice = Invoice.objects.get(reference=self.proposal.fee_invoice_reference)
+            return invoice
+        except Invoice.DoesNotExist:
+            pass
+        return False
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+    @property
+    def payment_amount(self):
+        return self.invoice.amount
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+
 class ProposalLogDocument(Document):
     log_entry = models.ForeignKey('ProposalLogEntry',related_name='documents')
     _file = models.FileField(upload_to=update_proposal_comms_log_filename, max_length=512)
 
     class Meta:
         app_label = 'commercialoperator'
+
 
 class ProposalLogEntry(CommunicationsLogEntry):
     proposal = models.ForeignKey(Proposal, related_name='comms_logs')
@@ -2567,7 +2766,7 @@ class ProposalStandardRequirement(RevisionedMixin):
         verbose_name_plural = "Application Standard Requirements"
 
     # def clean(self):
-    #     if self.application_type: 
+    #     if self.application_type:
     #         try:
     #             default = ProposalStandardRequirement.objects.get(default=True, application_type=self.application_type)
     #         except ProposalStandardRequirement.DoesNotExist:
@@ -2601,6 +2800,7 @@ class ProposalUserAction(UserAction):
     ACTION_ENTER_CONDITIONS = "Enter requirement"
     ACTION_CREATE_CONDITION_ = "Create requirement {}"
     ACTION_ISSUE_APPROVAL_ = "Issue Licence for application {}"
+    ACTION_AWAITING_PAYMENT_APPROVAL_ = "Awaiting Payment for application {}"
     ACTION_UPDATE_APPROVAL_ = "Update Licence for application {}"
     ACTION_EXPIRED_APPROVAL_ = "Expire Approval for proposal {}"
     ACTION_DISCARD_PROPOSAL = "Discard application {}"
@@ -3737,7 +3937,7 @@ def duplicate_filming(p):
             park_document.id = None
             park_document._file.name = u'{}/proposals/{}/filming_park_documents/{}'.format(settings.MEDIA_APP_DIR, p.id, park_document.name)
             park_document.can_delete = True
-            park_document.save() 
+            park_document.save()
 
     try:
         other_details=ProposalFilmingOtherDetails.objects.get(proposal=original_proposal)
@@ -3763,7 +3963,7 @@ def duplicate_filming(p):
         filming_access.save()
     except ProposalFilmingAccess.DoesNotExist:
         filming_access=ProposalFilmingAccess.objects.create(proposal=p)
-    
+
     try:
         filming_equipment=ProposalFilmingEquipment.objects.get(proposal=original_proposal)
         filming_equipment.id=None
@@ -3818,7 +4018,7 @@ def duplicate_event(p):
             park_document.id = None
             park_document._file.name = u'{}/proposals/{}/events_park_documents/{}'.format(settings.MEDIA_APP_DIR, p.id, park_document.name)
             park_document.can_delete = True
-            park_document.save() 
+            park_document.save()
 
     for park in original_proposal.pre_event_parks.all():
 
@@ -3831,7 +4031,7 @@ def duplicate_event(p):
             park_document.id = None
             park_document._file.name = u'{}/proposals/{}/pre_event_park_documents/{}'.format(settings.MEDIA_APP_DIR, p.id, park_document.name)
             park_document.can_delete = True
-            park_document.save() 
+            park_document.save()
 
     try:
         other_details=ProposalEventOtherDetails.objects.get(proposal=original_proposal)
@@ -4044,6 +4244,7 @@ class ProposalFilmingActivity(models.Model):
 
     commencement_date=models.DateField('Commencement Date',blank=True, null=True)
     completion_date=models.DateField('Completion Date',blank=True, null=True)
+    half_day=models.BooleanField('Filming full day or half day',default=False)
     previous_contact_person=models.CharField('Previous Contact person', max_length=100, null=True)
     #film_type=models.CharField('Type of Film', max_length=40, choices=FILM_TYPE_CHOICES, null=True, blank=True)
     film_type=MultiSelectField('Type of Film', max_choices=2, max_length=40, choices=FILM_TYPE_CHOICES, null=True, blank=True)
@@ -4066,6 +4267,9 @@ class ProposalFilmingActivity(models.Model):
     class Meta:
         app_label = 'commercialoperator'
 
+    @property
+    def num_filming_days(self):
+        return (self.completion_date - self.commencement_date).days + 1
 
 class ProposalFilmingAccess(models.Model):
     proposal = models.OneToOneField(Proposal, related_name='filming_access', null=True)
@@ -4148,7 +4352,7 @@ class ProposalFilmingParks(models.Model):
                     assessor_group = DistrictProposalAssessorGroup.objects.get(default=True)
                 return assessor_group in user.districtproposalassessorgroup_set.all()
         elif self.proposal.processing_status == 'with_assessor':
-                return self.proposal.can_assess(user)        
+                return self.proposal.can_assess(user)
         else:
             return False
 
@@ -4202,7 +4406,7 @@ class DistrictProposalAssessorGroup(models.Model):
     def __str__(self):
         return self.name
 
-    def clean(self): 
+    def clean(self):
         try:
             default = DistrictProposalAssessorGroup.objects.get(default=True)
         except DistrictProposalAssessorGroup.DoesNotExist:
@@ -4211,7 +4415,7 @@ class DistrictProposalAssessorGroup(models.Model):
         if self.pk:
             if not self.default and not self.district:
                 raise ValidationError('Only default can have no district set for District assessor group. Please specifiy region')
-#            
+#
         else:
             if default and self.default:
                 raise ValidationError('There can only be one default District assessor group')
@@ -4304,14 +4508,14 @@ class DistrictProposal(models.Model):
 
     @property
     def applicant(self):
-        return self.proposal.applicant   
+        return self.proposal.applicant
 
     @property
     def permit(self):
-        return self.proposal.permit    
-    
+        return self.proposal.permit
 
-    @property    
+
+    @property
     def assessor_group(self):
         # TODO get list of assessor groups based on region and activity
         if self.district:
@@ -4392,7 +4596,7 @@ class DistrictProposal(models.Model):
         recipients = []
         approver_group=self.__approver_group()
         recipients = approver_group.members_email
-        
+
         return recipients
 
     def can_assess(self,user):
@@ -4622,6 +4826,7 @@ class DistrictProposal(models.Model):
                     # TODO if it is an ammendment proposal then check appropriately
                     checking_district_proposal = self
                     checking_proposal = self.proposal
+
                     district_approval,district_created = DistrictApproval.objects.update_or_create(
                         current_district_proposal = checking_district_proposal,
                         defaults = {
@@ -4690,30 +4895,7 @@ class DistrictProposal(models.Model):
                                 #'extracted_fields' = JSONField(blank=True, null=True)
                             }
                         )
-                    
-                    # district_approval,district_created = DistrictApproval.objects.update_or_create(
-                    #     current_district_proposal = checking_district_proposal,
-                    #     defaults = {
-                    #         'issue_date' : timezone.now(),
-                    #         'expiry_date' : details.get('expiry_date'),
-                    #         'start_date' : details.get('start_date'),
 
-                    #     }
-                    # )
-                    # approval,created = Approval.objects.update_or_create(
-                    #     current_proposal = checking_proposal,
-                    #     defaults = {
-                    #         'issue_date' : timezone.now(),
-                    #         'expiry_date' : details.get('expiry_date'),
-                    #         'start_date' : details.get('start_date'),
-                    #         'submitter': self.proposal.submitter,
-                    #         #'org_applicant' : self.applicant if isinstance(self.applicant, Organisation) else None,
-                    #         #'proxy_applicant' : self.applicant if isinstance(self.applicant, EmailUser) else None,
-                    #         'org_applicant' : self.proposal.org_applicant,
-                    #         'proxy_applicant' : self.proposal.proxy_applicant,
-                    #         #'extracted_fields' = JSONField(blank=True, null=True)
-                    #     }
-                    # )
                     print('district created', district_created, district_approval)
                     print('approval created',created, approval)
                     # Generate compliances
@@ -4816,7 +4998,7 @@ class DistrictProposal(models.Model):
                                 c.reminder_sent=True
                                 c.post_reminder_sent=True
                                 c.save()
-                        if r.is_deleted == False: 
+                        if r.is_deleted == False:
                             for c in cs:
                                 print('not deleted', c)
                                 c.district_proposal=self
@@ -4972,7 +5154,7 @@ class ProposalEventOtherDetails(models.Model):
     def __str__(self):
         return '{}'.format(self.training_date)
 
-    class Meta: 
+    class Meta:
         app_label = 'commercialoperator'
 
 class ProposalEventsParks(models.Model):
@@ -5092,9 +5274,9 @@ import reversion
 reversion.register(Referral, follow=['referral_documents', 'assessment'])
 reversion.register(ReferralDocument, follow=['referral_document'])
 
-#reversion.register(Proposal, follow=['documents', 'onhold_documents','required_documents','qaofficer_documents','comms_logs','other_details', 'parks', 'trails', 'vehicles', 'vessels', 'proposalrequest_set','proposaldeclineddetails', 'proposalonhold', 'requirements', 'referrals', 'qaofficer_referrals', 'compliances', 'referrals', 'approvals', 'park_entries', 'assessment', 'bookings', 'application_fees'])
-reversion.register(Proposal, follow=['documents', 'onhold_documents','required_documents','qaofficer_documents','comms_logs','other_details', 'parks', 'trails', 'vehicles', 'vessels', 'proposalrequest_set','proposaldeclineddetails', 'proposalonhold', 'requirements', 'referrals', 'qaofficer_referrals', 'compliances', 'referrals', 'approvals', 'park_entries', 'assessment', 'district_proposals', 'filming_parks', 'events_parks', 'pre_event_parks','filming_activity', 'filming_access', 'filming_equipment', 'filming_other_details', 'event_activity', 'event_management', 'event_vehicles_vessels', 'event_other_details','event_abseiling_climbing_activity' ])
+reversion.register(Proposal, follow=['documents', 'onhold_documents','required_documents','qaofficer_documents','comms_logs','other_details', 'parks', 'trails', 'vehicles', 'vessels', 'proposalrequest_set','proposaldeclineddetails', 'proposalonhold', 'requirements', 'referrals', 'qaofficer_referrals', 'compliances', 'referrals', 'approvals', 'park_entries', 'assessment', 'fee_discounts', 'district_proposals', 'filming_parks', 'events_parks', 'pre_event_parks','filming_activity', 'filming_access', 'filming_equipment', 'filming_other_details', 'event_activity', 'event_management', 'event_vehicles_vessels', 'event_other_details','event_abseiling_climbing_activity' ])
 reversion.register(ProposalDocument, follow=['onhold_documents'])
+reversion.register(ApplicationFeeDiscount)
 reversion.register(OnHoldDocument)
 reversion.register(ProposalRequest)
 reversion.register(ProposalRequiredDocument)

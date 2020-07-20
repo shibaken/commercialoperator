@@ -67,6 +67,7 @@ def send_amendment_email_notification(amendment_request, request, compliance, is
     }
 
     submitter = compliance.submitter.email if compliance.submitter and compliance.submitter.email else compliance.proposal.submitter.email
+    all_ccs = []
     if compliance.proposal.org_applicant and compliance.proposal.org_applicant.email:
         cc_list = compliance.proposal.org_applicant.email
         if cc_list:
@@ -99,6 +100,7 @@ def send_reminder_email_notification(compliance, is_test=False):
     }
 
     submitter = compliance.submitter.email if compliance.submitter and compliance.submitter.email else compliance.proposal.submitter.email
+    all_ccs = []
     if compliance.proposal.org_applicant and compliance.proposal.org_applicant.email:
         cc_list = compliance.proposal.org_applicant.email
         if cc_list:
@@ -159,6 +161,7 @@ def send_due_email_notification(compliance, is_test=False):
     }
 
     submitter = compliance.submitter.email if compliance.submitter and compliance.submitter.email else compliance.proposal.submitter.email
+    all_ccs = []
     if compliance.proposal.org_applicant and compliance.proposal.org_applicant.email:
         cc_list = compliance.proposal.org_applicant.email
         if cc_list:
@@ -216,6 +219,7 @@ def send_compliance_accept_email_notification(compliance,request, is_test=False)
         'compliance': compliance
     }
     submitter = compliance.submitter.email if compliance.submitter and compliance.submitter.email else compliance.proposal.submitter.email
+    all_ccs = []
     if compliance.proposal.org_applicant and compliance.proposal.org_applicant.email:
         cc_list = compliance.proposal.org_applicant.email
         if cc_list:
@@ -241,6 +245,7 @@ def send_external_submit_email_notification(request, compliance, is_test=False):
         'submitter': submitter.get_full_name(),
         'url': url
     }
+    all_ccs = []
     if compliance.proposal.org_applicant and compliance.proposal.org_applicant.email:
         cc_list = compliance.proposal.org_applicant.email
         if cc_list:

@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.shortcuts import render
 
 from datetime import datetime, timedelta, date
 from django.utils import timezone
@@ -10,19 +11,34 @@ from dateutil.relativedelta import relativedelta
 from commercialoperator.components.main.models import Park, ApplicationType
 from commercialoperator.components.proposals.models import Proposal, ProposalUserAction
 from commercialoperator.components.organisations.models import Organisation
-from commercialoperator.components.bookings.models import Booking, ParkBooking, BookingInvoice, ApplicationFee
+from commercialoperator.components.bookings.models import (
+    Booking,
+    ParkBooking,
+    BookingInvoice,
+    ApplicationFee,
+    ComplianceFee,
+    FilmingFee,
+    FilmingFeeInvoice,
+)
+
 from commercialoperator.components.bookings.email import (
     send_invoice_tclass_email_notification,
     send_monthly_confirmation_tclass_email_notification,
     send_confirmation_tclass_email_notification,
     send_monthly_invoice_tclass_email_notification,
 )
-from ledger.checkout.utils import create_basket_session, create_checkout_session, calculate_excl_gst
+from ledger.checkout.utils import create_basket_session, create_checkout_session, calculate_excl_gst, createCustomBasket
+from ledger.checkout.utils import create_basket_session, create_checkout_session, calculate_excl_gst, get_cookie_basket, createCustomBasket
+from ledger.payments.invoice.utils import CreateInvoiceBasket
+from ledger.accounts.models import EmailUser
 from ledger.payments.models import Invoice
 from ledger.payments.utils import oracle_parser
 import json
 import ast
 from decimal import Decimal
+
+
+from ledger.basket.middleware import BasketMiddleware
 
 import logging
 logger = logging.getLogger('payment_checkout')
@@ -133,6 +149,7 @@ TEST 2:
 
 
 """
+
 def create_monthly_invoice(user, offset_months=-1):
     bookings = Booking.objects.filter(
         invoices__isnull=True,
@@ -213,8 +230,8 @@ def create_bpay_invoice(user, booking):
     return failed_bookings
 
 def create_other_invoice(user, booking):
-    """ This method allows internal payments officer to pay via ledger directly i.e. over the phone credit card details or cheque by post or cash etc 
-    
+    """ This method allows internal payments officer to pay via ledger directly i.e. over the phone credit card details or cheque by post or cash etc
+
         Currently not USED in COLS (Only Payments by CC, BPAY and Monthly Invoicing is allowed), but implemented for use possibly in the future
     """
 
@@ -311,27 +328,153 @@ def delete_session_application_invoice(session):
         del session['cols_app_invoice']
         session.modified = True
 
+# Events - Compliance
+def get_session_compliance_invoice(session):
+    """ Compliance Fee session ID """
+    if 'cols_comp_invoice' in session:
+        compliance_fee_id = session['cols_comp_invoice']
+    else:
+        raise Exception('Compliance not in Session')
+
+    try:
+        return ComplianceFee.objects.get(id=compliance_fee_id)
+    except Invoice.DoesNotExist:
+        raise Exception('Compliance record not found for compliance {}'.format(compliance_fee_id))
+
+def set_session_compliance_invoice(session, compliance_fee):
+    """ Compliance Fee session ID """
+    session['cols_comp_invoice'] = compliance_fee.id
+    session.modified = True
+
+def delete_session_compliance_invoice(session):
+    """ Compliance Fee session ID """
+    if 'cols_comp_invoice' in session:
+        del session['cols_comp_invoice']
+        session.modified = True
+
+## Filming - Fee (Application and Licence)
+#def get_session_filming_invoice(session):
+#    """ Filming Fee session ID """
+#    if 'cols_filming_invoice' in session:
+#        filming_fee_id = session['cols_filming_invoice']
+#    else:
+#        raise Exception('Filming not in Session')
+#
+#    try:
+#        return ComplianceFee.objects.get(id=compliance_fee_id)
+#    except Invoice.DoesNotExist:
+#        raise Exception('Compliance record not found for compliance {}'.format(compliance_fee_id))
+#
+#def set_session_compliance_invoice(session, compliance_fee):
+#    """ Compliance Fee session ID """
+#    session['cols_comp_invoice'] = compliance_fee.id
+#    session.modified = True
+#
+#def delete_session_compliance_invoice(session):
+#    """ Compliance Fee session ID """
+#    if 'cols_comp_invoice' in session:
+#        del session['cols_comp_invoice']
+#        session.modified = True
+
+
+def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], internal=False):
+    """ Create the ledger lines - line item for compliance fee sent to payment system """
+
+    def add_line_item(park, price, no_persons):
+        price = round(float(price), 2)
+        if no_persons > 0:
+            return {
+                'ledger_description': '{}'.format(park.name),
+                'oracle_code': park.oracle_code,
+                #'oracle_code': 'NNP415 GST',
+                'price_incl_tax':  price,
+                'price_excl_tax':  price if park.is_gst_exempt else round(float(calculate_excl_gst(price)), 2),
+                'quantity': no_persons,
+            }
+        return None
+
+    now = datetime.now().strftime('%Y-%m-%d %H:%M')
+    events_park_price = compliance.proposal.application_type.events_park_fee
+    events_parks = compliance.proposal.events_parks.all().distinct('park__name')
+    #cost_per_park = (events_park_price * compliance.num_participants) / len(events_parks)
+    cost_per_park = events_park_price / len(events_parks)
+
+    lines = []
+    for events_park in events_parks:
+        park = events_park.park
+        lines.append(add_line_item(park, price=cost_per_park, no_persons=compliance.num_participants))
+
+    #logger.info('{}'.format(lines))
+    return lines
+
 def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
+    lines = []
+    if proposal.application_type.name==ApplicationType.TCLASS:
+        return create_tclass_fee_lines(proposal, invoice_text, vouchers, internal)
+    elif proposal.application_type.name==ApplicationType.EVENT:
+        return create_event_fee_lines(proposal, invoice_text, vouchers, internal)
+
+	return lines
+
+def create_tclass_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
     """ Create the ledger lines - line item for application fee sent to payment system """
 
     now = datetime.now().strftime('%Y-%m-%d %H:%M')
     application_price = proposal.application_type.application_fee
+    licence_price = proposal.licence_fee_amount
+
+
     if proposal.application_type.name==ApplicationType.TCLASS:
-        licence_price = proposal.licence_fee_amount
-        line_items = [
-            {   'ledger_description': 'Application Fee - {} - {}'.format(now, proposal.lodgement_number),
-                'oracle_code': proposal.application_type.oracle_code_application,
-                'price_incl_tax':  application_price,
-                'price_excl_tax':  application_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(application_price),
-                'quantity': 1,
-            },
-            {   'ledger_description': 'Licence Charge {} - {} - {}'.format(proposal.other_details.get_preferred_licence_period_display(), now, proposal.lodgement_number),
-                'oracle_code': proposal.application_type.oracle_code_licence,
-                'price_incl_tax':  licence_price,
-                'price_excl_tax':  licence_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(licence_price),
-                'quantity': 1,
-            }
-        ]
+        if proposal.org_applicant.apply_application_discount:
+            application_discount = min(proposal.org_applicant.application_discount, application_price)
+        if proposal.org_applicant.apply_licence_discount:
+            licence_discount = min(proposal.org_applicant.licence_discount, licence_price)
+
+
+    line_items = [
+        {   'ledger_description': 'Application Fee - {} - {}'.format(now, proposal.lodgement_number),
+            'oracle_code': proposal.application_type.oracle_code_application,
+            'price_incl_tax':  application_price,
+            'price_excl_tax':  application_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(application_price),
+            'quantity': 1,
+        },
+        {   'ledger_description': 'Licence Charge {} - {} - {}'.format(proposal.other_details.get_preferred_licence_period_display(), now, proposal.lodgement_number),
+            'oracle_code': proposal.application_type.oracle_code_licence,
+            'price_incl_tax':  licence_price,
+            'price_excl_tax':  licence_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(licence_price),
+            'quantity': 1,
+        }
+    ]
+
+    # Add fee Waiver To T Class, if any
+    if proposal.application_type.name=='T Class' and proposal.org_applicant:
+        if proposal.org_applicant.apply_application_discount:
+            line_items += [
+                {   'ledger_description': 'Application Fee Waiver - {} - {}'.format(now, proposal.lodgement_number),
+                    'oracle_code': proposal.application_type.oracle_code_application,
+                    'price_incl_tax':  -application_discount,
+                    'price_excl_tax':  -application_discount,
+                    'quantity': 1,
+                }
+            ]
+        if proposal.org_applicant.apply_licence_discount:
+            line_items += [
+                {   'ledger_description': 'Licence Charge Waiver - {} - {}'.format(now, proposal.lodgement_number),
+                    'oracle_code': proposal.application_type.oracle_code_application,
+                    'price_incl_tax':  -licence_discount,
+                    'price_excl_tax':  -licence_discount,
+                    'quantity': 1,
+                }
+            ]
+
+    logger.info('{}'.format(line_items))
+    return line_items
+
+def create_event_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
+    """ EVENT: Create the ledger lines - line item for application fee sent to payment system """
+
+    now = datetime.now().strftime('%Y-%m-%d %H:%M')
+    application_price = proposal.application_type.application_fee
     if proposal.application_type.name==ApplicationType.EVENT:
         #There is no Licence fee for Event application.
         line_items = [
@@ -341,7 +484,7 @@ def create_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
                 'price_excl_tax':  application_price if proposal.application_type.is_gst_exempt else calculate_excl_gst(application_price),
                 'quantity': 1,
             },
-        ]   
+        ]
     logger.info('{}'.format(line_items))
     return line_items
 
@@ -408,6 +551,45 @@ def create_lines(request, invoice_text=None, vouchers=[], internal=False):
 
     return lines
 
+#def create_filmingfee_lines(request, proposal, invoice_text=None, vouchers=[], internal=False):
+#
+#    if proposal.filming_activity.num_filming_days == 1:
+#        licence_fee = proposal.application_type.filming_fee_full_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_full_day
+#        licence_text =  'Full day'
+#    elif proposal.filming_activity.num_filming_days > 1 and proposal.filming_activity.num_filming_days < 4:
+#        full_day_fee = proposal.application_type.filming_fee_full_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_full_day
+#        subsequent_day_fee = proposal.application_type.filming_fee_subsequent_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_subsequent_day
+#        licence_fee = full_day_fee + (subsequent_day_fee * (proposal.filming_activity.num_filming_days-1))
+#        licence_text = '{} days'.format(proposal.filming_activity.num_filming_days)
+#    elif proposal.filming_activity.num_filming_days >= 4:
+#        licence_fee = proposal.application_type.filming_fee_4days if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_full_4days
+#        licence_text = '4 days or more'.format(proposal.filming_activity.num_filming_days)
+#
+#    application_fee = proposal.application_type.application_fee
+#    filming_period = '{} - {}'.format(proposal.filming_activity.commencement_date, proposal.filming_activity.completion_date)
+#
+#    lines = [
+#        {
+#            'ledger_description': 'Filming/Photography Application Fee - {}'.format(proposal.lodgement_number),
+#            'oracle_code': proposal.application_type.oracle_code_licence,
+#            'price_incl_tax':  application_fee,
+#            'price_excl_tax':  application_fee if proposal.application_type.is_gst_exempt else calculate_excl_gst(application_fee),
+#            'quantity': 1
+#        },
+#        {
+#            'ledger_description': 'Filming/Photography Licence Fee ({} - {}) - {}'.format(licence_text, filming_period, proposal.lodgement_number),
+#            'oracle_code': proposal.application_type.oracle_code_licence,
+#            'price_incl_tax':  licence_fee,
+#            'price_excl_tax':  licence_fee if proposal.application_type.is_gst_exempt else calculate_excl_gst(licence_fee),
+#            'quantity': 1
+#        },
+#    ]
+#
+#    return lines
+
+def get_basket(request):
+    return get_cookie_basket(settings.OSCAR_BASKET_COOKIE_OPEN,request)
+
 def checkout(request, proposal, lines, return_url_ns='public_booking_success', return_preload_url_ns='public_booking_success', invoice_text=None, vouchers=[], proxy=False):
     basket_params = {
         'products': lines,
@@ -429,6 +611,7 @@ def checkout(request, proposal, lines, return_url_ns='public_booking_success', r
         'force_redirect': True,
         #'proxy': proxy,
         'invoice_text': invoice_text,                                                         # 'Reservation for Jawaid Mushtaq from 2019-05-17 to 2019-05-19 at RIA 005'
+        #'invoice_reference': '05572565342',
     }
 #    if not internal:
 #        checkout_params['check_url'] = request.build_absolute_uri('/api/booking/{}/booking_checkout_status.json'.format(booking.id))
@@ -460,14 +643,54 @@ def checkout(request, proposal, lines, return_url_ns='public_booking_success', r
 #            secure=settings.OSCAR_BASKET_COOKIE_SECURE, httponly=True
 #        )
 #
-#    # Zero booking costs
-#    if booking.cost_total < 1 and booking.cost_total > -1:
-#        response = HttpResponseRedirect('/no-payment')
-#        response.set_cookie(
-#            settings.OSCAR_BASKET_COOKIE_OPEN, basket_hash,
-#            max_age=settings.OSCAR_BASKET_COOKIE_LIFETIME,
-#            secure=settings.OSCAR_BASKET_COOKIE_SECURE, httponly=True
-#        )
+    # Zero booking costs
+    #if booking.cost_total < 1 and booking.cost_total > -1:
+    #if invoice_text == 'Application Fee' and proposal.application_type.name=='T Class' and proposal.org_applicant and proposal.allow_full_discount:
+    if invoice_text == 'Application Fee' and proposal.allow_full_discount:
+        response = HttpResponseRedirect(reverse('zero_fee_success'))
+        response.set_cookie(
+            settings.OSCAR_BASKET_COOKIE_OPEN, basket_hash,
+            max_age=settings.OSCAR_BASKET_COOKIE_LIFETIME,
+            secure=settings.OSCAR_BASKET_COOKIE_SECURE, httponly=True
+        )
+
+    return response
+
+def checkout_existing_invoice(request, invoice, return_url_ns='public_booking_success', return_preload_url_ns='public_booking_success', invoice_text=None, vouchers=[], proxy=False):
+    basket_params = {
+        'products': invoice.order.basket.subset_lines(),
+        'existing_basket_id': invoice.order.basket.id,
+        'vouchers': vouchers,
+        'system': settings.PAYMENT_SYSTEM_ID,
+        'custom_basket': True,
+    }
+    basket, basket_hash = create_basket_session(request, basket_params)
+
+    checkout_params = {
+        'system': settings.PAYMENT_SYSTEM_ID,
+        'fallback_url': request.build_absolute_uri('/'),
+        'return_url': request.build_absolute_uri(reverse(return_url_ns)),
+        'return_preload_url': request.build_absolute_uri(reverse(return_url_ns)),
+        'force_redirect': True,
+        #'proxy': proxy,
+        'invoice_text': invoice.text,
+        'existing_invoice': invoice.reference,
+    }
+    if proxy or request.user.is_anonymous():
+        #checkout_params['basket_owner'] = proposal.submitter_id
+        checkout_params['basket_owner'] = request.user.id
+
+
+    create_checkout_session(request, checkout_params)
+
+    response = HttpResponseRedirect(reverse('checkout:index'))
+    # inject the current basket into the redirect response cookies
+    # or else, anonymous users will be directionless
+    response.set_cookie(
+            settings.OSCAR_BASKET_COOKIE_OPEN, basket_hash,
+            max_age=settings.OSCAR_BASKET_COOKIE_LIFETIME,
+            secure=settings.OSCAR_BASKET_COOKIE_SECURE, httponly=True
+    )
 
     return response
 
@@ -476,6 +699,24 @@ def oracle_integration(date,override):
     system = '0557'
     oracle_codes = oracle_parser(date, system, 'Commercial Operator Licensing', override=override)
 
+def redirect_to_zero_payment_view(request, proposal, lines):
+    """
+    redirect to Zero Payment preview, instead of Credit Card checkout view
+    """
+    template_name = 'commercialoperator/booking/preview.html'
+
+    if proposal.allow_full_discount:
+        logger.info('{} built payment line item {} for Application Fee and handing over to ZERO Payment preview'.format('User {} with id {}'.format(proposal.submitter.get_full_name(),proposal.submitter.id), proposal.id))
+        basket  = createCustomBasket(lines, request.user, settings.PAYMENT_SYSTEM_ID)
+        context = {
+            'basket': basket,
+            'lines': basket.lines.all(),
+            'line_details': basket.lines.all(), #request.POST['payment'],
+            'proposal_id': proposal.id,
+            'payment_method': 'ZERO',
+            'redirect_url': reverse('zero_fee_success'),
+        }
+        return render(request, template_name, context)
 
 def test_create_invoice(payment_method='bpay'):
     """
@@ -542,8 +783,13 @@ def create_invoice(booking, payment_method='bpay'):
     from ledger.accounts.models import EmailUser
     from decimal import Decimal
 
-    products = Booking.objects.last().as_line_items
-    user = EmailUser.objects.get(email=booking.proposal.applicant_email.lower())
+    #products = Booking.objects.last().as_line_items
+    products = booking.as_line_items
+    try:
+        user = EmailUser.objects.get(email=booking.proposal.applicant_email.lower())
+    except Exception:
+        user = EmailUser.objects.get(email=booking.proposal.submitter.email.lower())
+
 
     if payment_method=='monthly_invoicing':
         invoice_text = 'Monthly Payment Invoice'

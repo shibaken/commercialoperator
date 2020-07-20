@@ -71,6 +71,7 @@
 </template>
 <script>
 import datatable from '@/utils/vue/datatable.vue'
+import Vue from 'vue'
 import {
     api_endpoints,
     helpers
@@ -95,6 +96,7 @@ export default {
         let vm = this;
         return {
             pBody: 'pBody' + vm._uid,
+            is_payment_admin: false,
             datatable_id: 'proposal-datatable-'+vm._uid,
             // Filters for Proposals
             filterProposalRegion: 'All',
@@ -196,6 +198,11 @@ export default {
                                 else {
                                     links +=  `<a href='/internal/compliance/${full.id}'>View</a><br/>`;
                                 }
+                                if (full.fee_paid){
+                                    if(vm.is_payment_admin){
+                                        links +=  `<a href='/ledger/payments/invoice/payment?invoice=${full.fee_invoice_reference}' target='_blank'>View Payment</a><br/>`;
+                                    }
+                                }
                             }
                             else{
                                 if (full.can_user_view) {
@@ -206,6 +213,11 @@ export default {
                                     links +=  `<a href='/external/compliance/${full.id}'>Submit</a><br/>`;
                                 }
                             }
+
+                            if (full.fee_invoice_reference) {
+                                links +=  `<a href='/cols/payments/invoice-compliance-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i>&nbsp #${full.fee_invoice_reference}</a><br/>`;
+                            }
+
                             return links;
                         },
                         name: ''
@@ -214,6 +226,8 @@ export default {
                     {data: "customer_status", visible: false},
                     {data: "can_user_view", visible: false},
                     {data: "can_process", visible: false},
+                    {data: "fee_invoice_reference", visible: false},
+                    {data: "fee_paid", visible: false},
 
                 ],
                 processing: true,
@@ -354,10 +368,22 @@ export default {
                     }
                 }
             );
-        }
+        },
+        fetchProfile: function(){
+            let vm = this;
+            Vue.http.get(api_endpoints.profile).then((response) => {
+                vm.profile = response.body;
+                vm.is_payment_admin=response.body.is_payment_admin;
+            },(error) => {
+                
+            })
+        },
+
+
     },
     mounted: function(){
         let vm = this;
+        this.fetchProfile();
         vm.fetchFilterLists();
         $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];

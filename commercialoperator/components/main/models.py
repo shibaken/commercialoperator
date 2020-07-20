@@ -249,14 +249,30 @@ class ApplicationType(models.Model):
     order = models.PositiveSmallIntegerField(default=0)
     visible = models.BooleanField(default=True)
 
-    max_renewals = models.PositiveSmallIntegerField('Maximum number of times an Approval can be renewed', null=True, blank=True)
-    max_renewal_period = models.PositiveSmallIntegerField('Maximum period of each Approval renewal (Years)', null=True, blank=True)
-    application_fee = models.DecimalField(max_digits=6, decimal_places=2)
-    licence_fee_2mth = models.DecimalField('Licence Fee (2 Months)', max_digits=6, decimal_places=2)
-    licence_fee_1yr = models.DecimalField('Licence Fee (1 Year)', max_digits=6, decimal_places=2)
+    application_fee = models.DecimalField('Application Fee', max_digits=6, decimal_places=2, null=True)
     oracle_code_application = models.CharField(max_length=50)
     oracle_code_licence = models.CharField(max_length=50)
     is_gst_exempt = models.BooleanField(default=True)
+
+    # Events
+    events_park_fee = models.DecimalField('Events Park Fee (per participant, per park)', max_digits=6, decimal_places=2, default=0.0)
+
+    # filming
+    filming_fee_half_day = models.DecimalField('Filming half day fee', max_digits=6, decimal_places=2, default=0.0)
+    filming_fee_full_day = models.DecimalField('Filming full day fee', max_digits=6, decimal_places=2, default=0.0)
+    filming_fee_subsequent_day = models.DecimalField('Filming subsequent day fee', max_digits=6, decimal_places=2, default=0.0)
+    filming_fee_4days = models.DecimalField('Filming 4 days or more fee', max_digits=6, decimal_places=2, default=0.0)
+
+    photography_fee_half_day = models.DecimalField('Photography half day fee', max_digits=6, decimal_places=2, default=0.0)
+    photography_fee_full_day = models.DecimalField('Photoraphy full day fee', max_digits=6, decimal_places=2, default=0.0)
+    photography_fee_subsequent_day = models.DecimalField('Photography subsequent day fee', max_digits=6, decimal_places=2, default=0.0)
+    photography_fee_4days = models.DecimalField('Photography 4 days or more fee', max_digits=6, decimal_places=2, default=0.0)
+
+    # T Class
+    max_renewals = models.PositiveSmallIntegerField('Maximum number of times an Approval can be renewed', null=True, blank=True)
+    max_renewal_period = models.PositiveSmallIntegerField('Maximum period of each Approval renewal (Years)', null=True, blank=True)
+    licence_fee_2mth = models.DecimalField('T Class Licence Fee (2 Months)', max_digits=6, decimal_places=2, default=0.0)
+    licence_fee_1yr = models.DecimalField('T Class Licence Fee (1 Year)', max_digits=6, decimal_places=2, default=0.0)
 
     class Meta:
         ordering = ['order', 'name']

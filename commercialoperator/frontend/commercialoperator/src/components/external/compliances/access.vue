@@ -18,9 +18,9 @@
                         </h3>
                       </div>
                       <div class="panel-body collapse in" :id="oBody">
-                        <div v-for="a in amendment_request">                      
+                        <div v-for="a in amendment_request">
                           <p>Reason: {{a.reason}}</p>
-                          <p>Details: {{a.text}}</p>                        
+                          <p>Details: {{a.text}}</p>
                       </div>
                     </div>
                   </div>
@@ -115,42 +115,44 @@
                                 <div v-if="compliance.participant_number_required && !isFinalised && !compliance.fee_paid">
                                     <div class="row">
                                         <div class="form-group">
-                                            <label class="col-sm-3 control-label pull-left"  for="Name">Number of Adults:</label>
+                                            <label class="col-sm-3 control-label pull-left"  for="Name">Number of participants:</label>
                                             <div class="col-sm-6">
-                                                <input type="text" :disabled="isFinalised" class="form-control" name="detail" placeholder="">
+                                                <input type="text" :disabled="isFinalised" class="form-control" name="num_participants" placeholder="">
                                             </div>
-                                        </div>                                 
+                                        </div>
                                     </div>
+                                    <!--
                                     <div class="row">
                                         <div class="form-group">
                                             <label class="col-sm-3 control-label pull-left"  for="Name">Number of Children:</label>
                                             <div class="col-sm-6">
-                                                <input type="text" :disabled="isFinalised" class="form-control" name="detail" placeholder="">
+                                                <input type="text" :disabled="isFinalised" class="form-control" name="num_children" placeholder="">
                                             </div>
-                                        </div>                                 
+                                        </div>
                                     </div>
                                     <div class="row">
                                         <div class="form-group">
                                             <label class="col-sm-3 control-label pull-left"  for="Name">Number of Concession:</label>
                                             <div class="col-sm-6">
-                                                <input type="text" :disabled="isFinalised" class="form-control" name="detail" placeholder="">
+                                                <input type="text" :disabled="isFinalised" class="form-control" name="num_concession" placeholder="">
                                             </div>
-                                        </div>                                 
+                                        </div>
                                     </div>
                                     <div class="row">
                                         <div class="form-group">
                                             <label class="col-sm-3 control-label pull-left"  for="Name">Number of Free of charge:</label>
                                             <div class="col-sm-6">
-                                                <input type="text" :disabled="isFinalised" class="form-control" name="detail" placeholder="">
+                                                <input type="text" :disabled="isFinalised" class="form-control" name="num_free" placeholder="">
                                             </div>
-                                        </div>                                 
+                                        </div>
                                     </div>
+                                    -->
                                 </div>
 
                                 <div class="row">
                                     <div class="">
                                     <div class="pull-right">
-                                        <button v-if="compliance.participant_number_required && !isFinalised && !compliance.fee_paid" @click.prevent="submit()" class="btn btn-primary">Pay and Submit</button>
+                                        <button v-if="compliance.participant_number_required && !isFinalised && !compliance.fee_paid" @click.prevent="pay_and_submit()" class="btn btn-primary">Pay and Submit</button>
                                         <button v-else-if="!isFinalised" @click.prevent="submit()" class="btn btn-primary">Submit</button>
                                         <button v-if="!isFinalised" @click.prevent="close()" class="btn btn-primary">Close</button>
                                     </div>
@@ -237,6 +239,12 @@ export default {
     },
     isDiscarded: function(){         
         return this.compliance && (this.compliance.customer_status == "Discarded");
+    },
+    csrf_token: function() {
+      return helpers.getCookie('csrftoken')
+    },
+    compliance_fee_url: function() {
+      return (this.compliance) ? `/compliance_fee/${this.compliance.id}/` : '';
     },
     
   },
@@ -380,6 +388,130 @@ export default {
                     vm.addingCompliance = false;
                     vm.errorString = helpers.apiVueResourceError(error);
                 });     
+    },
+
+    pay_and_submit:function(){
+        let vm = this;
+        if($(vm.form).valid()){
+            vm.errors = false;
+            let data = new FormData(vm.form);
+            vm.addingComms = true;            
+
+            swal({
+                title: vm.submit_text() + " Compliance",
+                text: "Are you sure you want to " + vm.submit_text().toLowerCase()+ " this application?",
+                type: "question",
+                showCancelButton: true,
+                confirmButtonText: vm.submit_text()
+            }).then(() => {
+ 
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.compliances,vm.compliance.id+'/submit'),data,{
+                    emulateJSON:true
+                    }).then((response)=>{
+                        vm.addingCompliance = false;
+                        vm.refreshFromResponse(response);                   
+                        vm.compliance = response.body;
+
+                        /* after the above save, redirect to the Django post() method in ApplicationFeeView */
+                        vm.post_and_redirect(vm.compliance_fee_url, {'csrfmiddlewaretoken' : vm.csrf_token});
+                            
+                    },(error)=>{
+                        vm.errors = true;
+                        vm.addingCompliance = false;
+                        vm.errorString = helpers.apiVueResourceError(error);
+                    });     
+            })
+        }
+    },
+
+    post_and_redirect: function(url, postData) {
+        /* http.post and ajax do not allow redirect from Django View (post method), 
+           this function allows redirect by mimicking a form submit.
+
+           usage:  vm.post_and_redirect(vm.application_fee_url, {'csrfmiddlewaretoken' : vm.csrf_token});
+        */
+        var postFormStr = "<form method='POST' action='" + url + "'>";
+
+        for (var key in postData) {
+            if (postData.hasOwnProperty(key)) {
+                postFormStr += "<input type='hidden' name='" + key + "' value='" + postData[key] + "'>";
+            }
+        }
+        postFormStr += "</form>";
+        var formElement = $(postFormStr);
+        $('body').append(formElement);
+        $(formElement).submit();
+    },
+
+
+    _sendData: function(){
+        let vm = this;
+        //let formData = vm.set_formData()
+        vm.errors = false;
+        let data = new FormData(vm.form);
+        vm.addingComms = true;            
+
+        /*
+        var missing_data= vm.can_submit();
+        if(missing_data!=true){
+          swal({
+            title: "Please fix following errors before submitting",
+            text: missing_data,
+            type:'error'
+          })
+          //vm.paySubmitting=false;
+          return false;
+        }
+        */
+
+        // remove the confirm prompt when navigating away from window (on button 'Submit' click)
+        vm.submitting = true;
+        vm.paySubmitting=true;
+
+        swal({
+            title: vm.submit_text() + " Compliance",
+            text: "Are you sure you want to " + vm.submit_text().toLowerCase()+ " this application?",
+            type: "question",
+            showCancelButton: true,
+            confirmButtonText: vm.submit_text()
+        }).then(() => {
+           
+            vm.$http.post(vm.proposal_form_url,formData).then(res=>{
+                /* after the above save, redirect to the Django post() method in ApplicationFeeView */
+                vm.post_and_redirect(vm.application_fee_url, {'csrfmiddlewaretoken' : vm.csrf_token});
+            },err=>{
+            });
+
+            // Filming has deferred payment once assessor decides whether 'Licence' (fee) or 'Lawful Authority' (no fee) is to be issued
+            // if (!vm.proposal.fee_paid || vm.proposal.application_type!='Filming') {
+            if (!vm.proposal.fee_paid && vm.proposal.application_type!='Filming') {
+                vm.save_and_redirect();
+
+            } else {
+                /* just save and submit - no payment required (probably application was pushed back by assessor for amendment */
+                vm.save_wo_confirm()
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,vm.proposal.id+'/submit'),formData).then(res=>{
+                    vm.proposal = res.body;
+                    vm.$router.push({
+                        name: 'submit_proposal',
+                        params: { proposal: vm.proposal}
+                    });
+                },err=>{
+                    swal(
+                        'Submit Error',
+                        helpers.apiVueResourceError(err),
+                        'error'
+                    )
+                });
+            }
+        },(error) => {
+          vm.paySubmitting=false;
+        });
+        //vm.paySubmitting=false;
+    },
+
+    submit_text: function() {
+      return 'Pay and Submit';
     },
 
     refreshFromResponse:function(response){

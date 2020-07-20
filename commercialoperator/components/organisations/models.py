@@ -7,10 +7,11 @@ from django.db.models.signals import pre_delete
 from django.utils.encoding import python_2_unicode_compatible
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields.jsonb import JSONField
+from django.core.validators import MaxValueValidator, MinValueValidator
 from ledger.accounts.models import Organisation as ledger_organisation
 from ledger.accounts.models import EmailUser,RevisionedMixin #,Document
 from commercialoperator.components.main.models import UserAction,CommunicationsLogEntry, Document
-from commercialoperator.components.organisations.utils import random_generator
+from commercialoperator.components.organisations.utils import random_generator, can_admin_org
 from commercialoperator.components.organisations.emails import (
                         send_organisation_request_accept_email_notification,
                         send_organisation_request_decline_email_notification,
@@ -42,6 +43,12 @@ class Organisation(models.Model):
     monthly_invoicing_allowed = models.BooleanField(default=False)
     monthly_invoicing_period = models.SmallIntegerField('Monthly Invoicing Period (in #days from beginning of the following month)', default=0)
     monthly_payment_due_period = models.SmallIntegerField('Monthly Payment Due Period (in #days from Invoicing Date)', default=20)
+
+    apply_application_discount = models.BooleanField(default=False)
+    application_discount = models.FloatField(default=0.0, validators=[MinValueValidator(0.0)])
+
+    apply_licence_discount = models.BooleanField(default=False)
+    licence_discount = models.FloatField(default=0.0, validators=[MinValueValidator(0.0)])
 
     class Meta:
         app_label = 'commercialoperator'
@@ -456,7 +463,7 @@ class Organisation(models.Model):
 
     @property
     def first_five(self):
-        return ','.join([user.get_full_name() for user in self.delegates.all()[:5]])
+        return ','.join([user.get_full_name() for user in self.delegates.all()[:5] if can_admin_org(self, user)])
 
 @python_2_unicode_compatible
 class OrganisationContact(models.Model):

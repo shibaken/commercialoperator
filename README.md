@@ -13,6 +13,7 @@ It is a database-backed Django application, using REST API with Vue.js as the cl
 
 Python library requirements should be installed using `pip`:
 
+`pip install -U setuptools==44.0.0`
 `pip install -r requirements.txt`
 
 # Environment settings

@@ -4,8 +4,11 @@ from django.core.mail import EmailMultiAlternatives, EmailMessage
 from django.utils.encoding import smart_text
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 
 from commercialoperator.components.emails.emails import TemplateEmailBase
+from commercialoperator.components.bookings.invoice_filmingfee_pdf import create_invoice_filmingfee_pdf_bytes
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +43,11 @@ class ProposalApprovalSendNotificationEmail(TemplateEmailBase):
     subject = '{} - Commercial Operations Licence Approved.'.format(settings.DEP_NAME)
     html_template = 'commercialoperator/emails/proposals/send_approval_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_approval_notification.txt'
+
+class ProposalAwaitingPaymentApprovalSendNotificationEmail(TemplateEmailBase):
+    subject = '{} - Commercial Operations Licence Approved - Pending Payment.'.format(settings.DEP_NAME)
+    html_template = 'commercialoperator/emails/proposals/send_awaiting_payment_approval_notification.html'
+    txt_template = 'commercialoperator/emails/proposals/send_awaiting_payment_approval_notification.txt'
 
 class AmendmentRequestSendNotificationEmail(TemplateEmailBase):
     subject = '{} - Commercial Operations Incomplete application.'.format(settings.DEP_NAME)
@@ -385,7 +393,7 @@ def send_proposal_approval_email_notification(proposal,request):
         attachments.append(attachment)
 
         # add requirement documents
-        for requirement in proposal.requirements.all():
+        for requirement in proposal.requirements.exclude(is_deleted=True):
             for doc in requirement.requirement_documents.all():
                 file_name = doc._file.name
                 #attachment = (file_name, doc._file.file.read(), 'image/*')
@@ -406,11 +414,56 @@ def send_proposal_approval_email_notification(proposal,request):
 
     msg = email.send(proposal.submitter.email, bcc= all_ccs, attachments=attachments, context=context)
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
-    _log_proposal_email(msg, proposal, sender=sender)
+
+    email_entry =_log_proposal_email(msg, proposal, sender=sender)
+    path_to_file = '{}/proposals/{}/approvals/{}'.format(settings.MEDIA_APP_DIR, proposal.id, file_name)
+    email_entry.documents.get_or_create(_file=path_to_file, name=file_name)
+
     if proposal.org_applicant:
         _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
     else:
         _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
+
+def send_proposal_awaiting_payment_approval_email_notification(proposal, request, invoice):
+    """ Send External Email with attached invoice and URL link to pay by credit card """
+    email = ProposalAwaitingPaymentApprovalSendNotificationEmail()
+
+    cc_list = proposal.proposed_issuance_approval['cc_email']
+    all_ccs = []
+    if cc_list:
+        all_ccs = cc_list.split(',')
+
+    url = request.build_absolute_uri(reverse('external'))
+    payment_url = request.build_absolute_uri(reverse('existing_invoice_payment', kwargs={'invoice_ref':invoice.reference}))
+    if "-internal" in url:
+        # remove '-internal'. This email is for external submitters
+        url = ''.join(url.split('-internal'))
+
+    if "-internal" in payment_url:
+        # remove '-internal'. This email is for external submitters
+        payment_url = ''.join(payment_url.split('-internal'))
+
+    filename = 'invoice.pdf'
+    doc = create_invoice_filmingfee_pdf_bytes(filename, invoice, proposal)
+    attachment = (filename, doc, 'application/pdf')
+
+    context = {
+        'proposal': proposal,
+        'url': url,
+        'payment_url': payment_url, # TODO change to payment url
+    }
+
+    msg = email.send(proposal.submitter.email, bcc=all_ccs, attachments=[attachment], context=context)
+    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    
+    filename_appended = '{}_{}.{}'.format('invoice', invoice.created.strftime('%d%b%Y'), 'pdf')
+    log_proposal = _log_proposal_email(msg, proposal, sender=sender, file_bytes=doc, filename=filename_appended)
+
+    if proposal.org_applicant:
+        _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
+    else:
+        _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
+
 
 def send_district_proposal_submit_email_notification(district_proposal, request):
     proposal=district_proposal.proposal
@@ -540,7 +593,7 @@ def send_district_proposal_approval_email_notification(district_proposal,approva
     if "-internal" in url:
         # remove '-internal'. This email is for external submitters
         url = ''.join(url.split('-internal'))
-
+    print url  
     attachments = []
     licence_document= approval.licence_document._file
     if licence_document is not None:
@@ -560,10 +613,10 @@ def send_district_proposal_approval_email_notification(district_proposal,approva
         'num_requirement_docs': len(attachments)
     }
     
-    #import ipdb; ipdb.set_trace()
     msg = email.send(proposal.submitter.email, bcc= all_ccs, context=context, attachments=attachments)
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     _log_proposal_email(msg, proposal, sender=sender)
+
     if proposal.org_applicant:
         _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
     else:
@@ -665,11 +718,7 @@ def _log_proposal_referral_email(email_message, referral, sender=None):
 
     return email_entry
 
-
-
-
-
-def _log_proposal_email(email_message, proposal, sender=None):
+def _log_proposal_email(email_message, proposal, sender=None, file_bytes=None, filename=None):
     from commercialoperator.components.proposals.models import ProposalLogEntry
     if isinstance(email_message, (EmailMultiAlternatives, EmailMessage,)):
         # TODO this will log the plain text body, should we log the html instead
@@ -712,6 +761,12 @@ def _log_proposal_email(email_message, proposal, sender=None):
     }
 
     email_entry = ProposalLogEntry.objects.create(**kwargs)
+
+    if file_bytes and filename:
+        # attach the file to the comms_log also
+        path_to_file = '{}/proposals/{}/communications/{}'.format(settings.MEDIA_APP_DIR, proposal.id, filename)
+        path = default_storage.save(path_to_file, ContentFile(file_bytes))
+        email_entry.documents.get_or_create(_file=path_to_file, name=filename)
 
     return email_entry
 

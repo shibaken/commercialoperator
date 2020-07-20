@@ -15,7 +15,13 @@ SYSTEM_MAINTENANCE_WARNING = env('SYSTEM_MAINTENANCE_WARNING', 24) # hours
 DISABLE_EMAIL = env('DISABLE_EMAIL', False)
 SHOW_TESTS_URL = env('SHOW_TESTS_URL', False)
 
+INTERNAL_IPS = [
+    '127.0.0.1',
+    'localhost',
+]
+
 INSTALLED_APPS += [
+    'debug_toolbar',
     'reversion_compare',
     'bootstrap3',
     'commercialoperator',
@@ -67,9 +73,10 @@ REST_FRAMEWORK = {
 
 
 MIDDLEWARE_CLASSES += [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'commercialoperator.middleware.BookingTimerMiddleware',
     'commercialoperator.middleware.FirstTimeNagScreenMiddleware',
-    'commercialoperator.middleware.RevisionOverrideMiddleware'
+    'commercialoperator.middleware.RevisionOverrideMiddleware',
 ]
 
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'commercialoperator', 'templates'))
