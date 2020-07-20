@@ -4242,7 +4242,7 @@ class DistrictProposalApproverGroup(models.Model):
             default = None
 
         if self.pk:
-            if not self.default and not self.region:
+            if not self.default and not self.district:
                 raise ValidationError('Only default can have no district set for District assessor group. Please specifiy region')
         else:
             if default and self.default:
@@ -5151,7 +5151,7 @@ reversion.register(ProposalFilmingEquipment)
 reversion.register(ProposalFilmingOtherDetails)
 reversion.register(ProposalFilmingParks, follow=['filming_park_documents'])
 reversion.register(FilmingParkDocument)
-reversion.register(DistrictProposal, follow=['district_compliance', 'district_requirements', 'district_approvals'])
+reversion.register(DistrictProposal, follow=['district_compliance', 'district_proposal_requirements', 'district_approvals'])
 
 #Event
 reversion.register(ProposalEventActivities, follow=['abseiling_climbing_activity_data'])
