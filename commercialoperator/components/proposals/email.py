@@ -434,9 +434,14 @@ def send_proposal_awaiting_payment_approval_email_notification(proposal, request
         all_ccs = cc_list.split(',')
 
     url = request.build_absolute_uri(reverse('external'))
+    payment_url = request.build_absolute_uri(reverse('existing_invoice_payment', kwargs={'invoice_ref':invoice.reference}))
     if "-internal" in url:
         # remove '-internal'. This email is for external submitters
         url = ''.join(url.split('-internal'))
+
+    if "-internal" in payment_url:
+        # remove '-internal'. This email is for external submitters
+        payment_url = ''.join(payment_url.split('-internal'))
 
     filename = 'invoice.pdf'
     doc = create_invoice_filmingfee_pdf_bytes(filename, invoice, proposal)
@@ -445,7 +450,7 @@ def send_proposal_awaiting_payment_approval_email_notification(proposal, request
     context = {
         'proposal': proposal,
         'url': url,
-        'payment_url': url, # TODO change to payment url
+        'payment_url': payment_url, # TODO change to payment url
     }
 
     msg = email.send(proposal.submitter.email, bcc=all_ccs, attachments=[attachment], context=context)

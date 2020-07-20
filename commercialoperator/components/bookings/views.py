@@ -127,14 +127,12 @@ class ExistingPaymentView(TemplateView):
     template_name = 'commercialoperator/booking/success.html'
 
     def get_object(self):
-        #import ipdb; ipdb.set_trace()
         #return get_object_or_404(Proposal, fee_invoice_reference='05572566221')
         return get_object_or_404(Proposal, fee_invoice_reference=self.kwargs['invoice_ref'])
 
     def get(self, request, *args, **kwargs):
 
         try:
-            import ipdb; ipdb.set_trace()
             proposal = self.get_object()
             invoice = proposal.invoice
             application_fee = ApplicationFee.objects.create(proposal=proposal, created_by=request.user, payment_type=ApplicationFee.PAYMENT_TYPE_TEMPORARY)
@@ -535,7 +533,6 @@ class ApplicationFeeSuccessView(TemplateView):
                 recipient = proposal.submitter.email
                 submitter = proposal.submitter
 
-            import ipdb; ipdb.set_trace()
             if self.request.user.is_authenticated():
                 basket = Basket.objects.filter(status='Submitted', owner=request.user).order_by('-id')[:1]
             else:
@@ -565,15 +562,12 @@ class ApplicationFeeSuccessView(TemplateView):
                     application_fee.expiry_time = None
                     update_payments(invoice_ref)
 
-                    import ipdb; ipdb.set_trace()
                     if proposal.processing_status==Proposal.PROCESSING_STATUS_AWAITING_PAYMENT and proposal.application_type.name==ApplicationType.FILMING:
-                        details = proposal.data[0]['approval_details']
-                        details['start_date'] = datetime.strptime(details['start_date'], '%Y-%m-%d').date()
-                        details['expiry_date'] = datetime.strptime(details['expiry_date'], '%Y-%m-%d').date()
-                        proposal = proposal.final_approval(request, OrderedDict(details))
+                        proposal.final_approval(request, None)
                     else:
                         proposal = proposal_submit(proposal, request)
 
+                    #import ipdb; ipdb.set_trace()
                     if proposal and (invoice.payment_status == 'paid' or invoice.payment_status == 'over_paid'):
                         proposal.fee_invoice_reference = invoice_ref
                         proposal.save()
@@ -595,7 +589,6 @@ class ApplicationFeeSuccessView(TemplateView):
                         #'fee_invoice': invoice
                         'fee_invoice': fee_inv
                     }
-                    import ipdb; ipdb.set_trace()
                     return render(request, self.template_name, context)
 
         except Exception as e:
@@ -621,7 +614,6 @@ class ApplicationFeeSuccessView(TemplateView):
             'submitter': submitter,
             'fee_invoice': invoice
         }
-        import ipdb; ipdb.set_trace()
         return render(request, self.template_name, context)
 
 class BookingSuccessView(TemplateView):
@@ -738,7 +730,6 @@ class InvoicePDFView(View):
         else:
             proposal = Proposal.objects.get(fee_invoice_reference=invoice.reference)
 
-        #import ipdb; ipdb.set_trace()
         organisation = proposal.org_applicant.organisation.organisation_set.all()[0]
         if self.check_owner(organisation):
             response = HttpResponse(content_type='application/pdf')

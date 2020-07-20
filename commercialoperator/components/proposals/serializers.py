@@ -1048,6 +1048,7 @@ class ProposalRequirementSerializer(serializers.ModelSerializer):
             'referral_group',
             'can_referral_edit',
             'district_proposal',
+            'district',
             'requirement_documents',
             'can_district_assessor_edit'
         )

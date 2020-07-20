@@ -228,7 +228,6 @@ class ApprovalViewSet(viewsets.ModelViewSet):
 
                 _file = request.data.get('file-upload-0') if request.data.get('file-upload-0') else raiser('Licence File is required')
                 try:
-                    import ipdb; ipdb.set_trace()
                     if request.data.get('applicant_type') == 'org':
                         org_applicant = Organisation.objects.get(organisation_id=request.data.get('holder-selected'))
                         #org_applicant = ledger_org.objects.get(id=request.data.get('holder-selected'))

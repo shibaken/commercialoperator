@@ -291,14 +291,23 @@ export default {
                             if (!vm.is_external){
                                 //if(vm.check_assessor(full)){
                                 if(full.is_approver){
-                                    if(full.can_reissue){
-                                        links +=  `<a href='#${full.id}' data-reissue-approval='${full.current_proposal}'>Reissue</a><br/>`;
+                                    if(!full.is_lawful_authority)
+                                    {
+                                        if(full.can_reissue){
+                                            links +=  `<a href='#${full.id}' data-reissue-approval='${full.current_proposal}'>Reissue</a><br/>`;
+                                        }
                                     }
                                 }
                                 if(full.is_assessor){
                                     // if(full.can_reissue){
                                     //     links +=  `<a href='#${full.id}' data-reissue-approval='${full.current_proposal}'>Reissue</a><br/>`;
                                     // }
+                                    if(full.is_lawful_authority)
+                                    {
+                                        if(full.can_reissue_lawful_authority){
+                                            links +=  `<a href='#${full.id}' data-reissue-approval='${full.current_proposal}'>Reissue</a><br/>`;
+                                        }
+                                    }
                                     if(full.application_type=='E Class' && (full.status=='Current' || full.status=='Suspended')){
                                         if(full.can_extend){
                                             links +=  `<a href='#${full.id}' data-extend-approval='${full.id}'>Extend</a><br/>`;
@@ -448,7 +457,7 @@ export default {
             $(vm.$refs.proposalDateFromPicker).on('dp.change',function (e) {
                 if ($(vm.$refs.proposalDateFromPicker).data('DateTimePicker').date()) {
                     vm.filterProposalLodgedFrom = e.date.format('DD/MM/YYYY');
-                    $(vm.$refs.proposalDateToPicker).data("DateTimePicker").minDate(e.date);
+                    //$(vm.$refs.proposalDateToPicker).data("DateTimePicker").minDate(e.date);
                 }
                 else if ($(vm.$refs.proposalDateFromPicker).data('date') === "") {
                     vm.filterProposalLodgedFrom = "";

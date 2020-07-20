@@ -4,6 +4,7 @@ venv/
 venv2/
 node_modules/
 #cronjobs
+.ropeproject/
 mooring/cache/*
 .ropeproject/
 
