@@ -581,6 +581,33 @@ export default {
                 }
                 this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
             }
+            if(this.proposal.application_type=='Filming'){
+                if((this.proposal.proposed_issuance_approval==null || this.proposal.proposed_issuance_approval.expiry_date==null) && this.proposal.filming_activity.completion_date!=null && this.proposal.filming_activity.commencement_date!=null){
+                    // this.$refs.proposed_approval.expiry_date=this.proposal.other_details.proposed_end_date;
+                    var test_approval={
+                        'start_date': this.proposal.filming_activity.commencement_date,
+                        'expiry_date': this.proposal.filming_activity.completion_date
+                    };
+                    this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
+
+                }
+                //console.logt(test_approval)
+                //this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
+            }
+            if(this.proposal.application_type=='Event'){
+                if((this.proposal.proposed_issuance_approval==null || this.proposal.proposed_issuance_approval.expiry_date==null) && this.proposal.event_activity.completion_date!=null && this.proposal.event_activity.commencement_date!=null){
+                    // this.$refs.proposed_approval.expiry_date=this.proposal.other_details.proposed_end_date;
+                    var test_approval={
+                        'start_date': this.proposal.event_activity.commencement_date,
+                        'expiry_date': this.proposal.event_activity.completion_date
+                    };
+                    this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
+
+                }
+                //console.logt(test_approval)
+                //this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
+            }
+
             this.$refs.proposed_approval.isModalOpen = true;
         },
         issueProposal:function(){
