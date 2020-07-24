@@ -148,6 +148,7 @@ urlpatterns = [
     # payment related urls
     url(r'^application_fee/(?P<proposal_pk>\d+)/$', booking_views.ApplicationFeeView.as_view(), name='application_fee'),
     url(r'^compliance_fee/(?P<compliance_pk>\d+)/$', booking_views.ComplianceFeeView.as_view(), name='compliance_fee'),
+    url(r'^filming_fee/(?P<proposal_pk>\d+)/$', booking_views.FilmingFeeView.as_view(), name='filming_fee'),
     url(r'^payment/(?P<proposal_pk>\d+)/$', booking_views.MakePaymentView.as_view(), name='make_payment'),
     url(r'^existing_invoice_payment/(?P<invoice_ref>\d+)/$', booking_views.ExistingPaymentView.as_view(), name='existing_invoice_payment'),
     url(r'^zero_fee_success/', booking_views.ZeroApplicationFeeView.as_view(), name='zero_fee_success'),
@@ -156,6 +157,7 @@ urlpatterns = [
     url(r'^success/booking/$', booking_views.BookingSuccessView.as_view(), name='public_booking_success'),
     url(r'^success/fee/$', booking_views.ApplicationFeeSuccessView.as_view(), name='fee_success'),
     url(r'^success/compliance_fee/$', booking_views.ComplianceFeeSuccessView.as_view(), name='compliance_fee_success'),
+    url(r'^success/filming_fee/$', booking_views.FilmingFeeSuccessView.as_view(), name='filming_fee_success'),
     url(r'cols/payments/invoice-pdf/(?P<reference>\d+)',booking_views.InvoicePDFView.as_view(), name='cols-invoice-pdf'),
     url(r'cols/payments/invoice-filmingfee-pdf/(?P<reference>\d+)',booking_views.InvoiceFilmingFeePDFView.as_view(), name='cols-invoice-filmingfee-pdf'),
     url(r'cols/payments/invoice-compliance-pdf/(?P<reference>\d+)',booking_views.InvoiceCompliancePDFView.as_view(), name='cols-invoice-compliance-pdf'),

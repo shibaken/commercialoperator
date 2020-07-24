@@ -1861,16 +1861,17 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         #self.processing_status not in [Proposal.PROCESSING_STATUS_AWAITING_PAYMENT, Proposal.PROCESSING_STATUS_APPROVED]:
                     self.processing_status = self.PROCESSING_STATUS_AWAITING_PAYMENT
                     self.customer_status = self.CUSTOMER_STATUS_AWAITING_PAYMENT
-                    invoice = self.__create_filming_fee_invoice(request)
+                    #invoice = self.__create_filming_fee_invoice(request)
+                    confirmation = self.__create_filming_fee_confirmation(request)
                     # Log proposal action
-                    if invoice:
+                    if confirmation:
                         self.log_user_action(ProposalUserAction.ACTION_AWAITING_PAYMENT_APPROVAL_.format(self.id),request)
                         # Log entry for organisation
                         applicant_field=getattr(self, self.applicant_field)
                         applicant_field.log_user_action(ProposalUserAction.ACTION_AWAITING_PAYMENT_APPROVAL_.format(self.id),request)
 
                     else:
-                        logger.info('Cannot create Filming awaiting payment invoice: {}'.format(self.name))
+                        logger.info('Cannot create Filming awaiting payment confirmation: {}'.format(self.name))
                         raise
 
                 else:
@@ -1884,8 +1885,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
                 if self.processing_status == self.PROCESSING_STATUS_AWAITING_PAYMENT:
                     #send Proposal awaiting payment approval email
-                    send_proposal_awaiting_payment_approval_email_notification(self,request, invoice)
-                    self.fee_invoice_reference = invoice.reference
+                    #TODO - update this method --> change invoice to confirmation pdf
+#                    send_proposal_awaiting_payment_approval_email_notification(self,request, confirmation)
+                    #send_proposal_awaiting_payment_approval_email_notification(self,request, invoice)
+                    #self.fee_invoice_reference = invoice.reference
                     self.save(version_comment='Final Approval - Awaiting Payment, Proposal: {}'.format(self.lodgement_number))
 
                 elif self.processing_status == self.PROCESSING_STATUS_APPROVED:
@@ -1987,82 +1990,78 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             except:
                 raise
 
-    def __create_filming_fee_lines(self):
-        if self.filming_activity.num_filming_days == 1:
-            licence_fee = self.application_type.filming_fee_full_day if 'motion_film' in self.filming_activity.film_type else self.application_type.photography_fee_full_day
-            licence_text =  'Full day'
-        elif self.filming_activity.num_filming_days > 1 and self.filming_activity.num_filming_days < 4:
-            full_day_fee = self.application_type.filming_fee_full_day if 'motion_film' in self.filming_activity.film_type else self.application_type.photography_fee_full_day
-            subsequent_day_fee = self.application_type.filming_fee_subsequent_day if 'motion_film' in self.filming_activity.film_type else self.application_type.photography_fee_subsequent_day
-            licence_fee = full_day_fee + (subsequent_day_fee * (self.filming_activity.num_filming_days-1))
-            licence_text = '{} days'.format(self.filming_activity.num_filming_days)
-        elif self.filming_activity.num_filming_days >= 4:
-            licence_fee = self.application_type.filming_fee_4days if 'motion_film' in self.filming_activity.film_type else self.application_type.photography_fee_4days
-            licence_text = '4 days or more'.format(self.filming_activity.num_filming_days)
-
-        application_fee = self.application_type.application_fee
-        filming_period = '{} - {}'.format(self.filming_activity.commencement_date, self.filming_activity.completion_date)
-
-        lines = [
-            {
-                'ledger_description': 'Filming/Photography Application Fee - {}'.format(self.lodgement_number),
-                'oracle_code': self.application_type.oracle_code_licence,
-                'price_incl_tax':  application_fee,
-                'price_excl_tax':  application_fee if self.application_type.is_gst_exempt else calculate_excl_gst(application_fee),
-                'quantity': 1
-            },
-            {
-                'ledger_description': 'Filming/Photography Licence Fee ({} - {}) - {}'.format(licence_text, filming_period, self.lodgement_number),
-                'oracle_code': self.application_type.oracle_code_licence,
-                'price_incl_tax':  licence_fee,
-                'price_excl_tax':  licence_fee if self.application_type.is_gst_exempt else calculate_excl_gst(licence_fee),
-                'quantity': 1
-            },
-        ]
-
-        return lines
-
-    def __create_filming_fee_invoice(self, request):
+    def __create_filming_fee_confirmation(self, request):
 
         from dateutil.relativedelta import relativedelta
-        from ledger.checkout.utils import createCustomBasket
-        from ledger.payments.invoice.utils import CreateInvoiceBasket
+        from commercialoperator.components.bookings.models import FilmingFee
+        from commercialoperator.components.bookings.utils import create_filming_fee_lines
 
+        filming_fee = None
         if self.application_type.name == ApplicationType.FILMING and self.filming_approval_type==self.LICENCE \
             and not self.fee_invoice_reference and len(self.filming_activity.film_type)>0:
 
-            lines = self.__create_filming_fee_lines()
+            lines = create_filming_fee_lines(self)
 
-            invoice = None
             with transaction.atomic():
                 try:
-                    logger.info('Creating standalone invoice')
+                    logger.info('Creating filming fee confirmation')
 
                     payment_method = 'other'
-                    film_types = '/'.join([w.capitalize().replace('_',' ') for w in self.filming_activity.film_type])
-                    #invoice_text = 'Payment Invoice: {} - {}'.format(film_types, self.filming_activity.activity_title)
-                    invoice_text = 'Payment Invoice: {}'.format(film_types)
-                    basket  = createCustomBasket(lines, request.user, settings.PAYMENT_SYSTEM_ID)
-                    order = CreateInvoiceBasket(
-                        payment_method=payment_method, system=settings.PAYMENT_SYSTEM_PREFIX
-                    ).create_invoice_and_order(basket, 0, None, None, user=request.user, invoice_text=invoice_text, status='Awaiting Payment', basket_status='Saved')
-
-                    invoice = Invoice.objects.get(order_number=order.number)
-
-                    #deferred_payment_date = invoice.created + relativedelta(months=1)
-                    #filming_fee = FilmingFee.objects.create(proposal=self, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_BLACK, deferred_payment_date=deferred_payment_date)
+                    deferred_payment_date = timezone.now() + relativedelta(months=1)
+                    import ipdb; ipdb.set_trace()
+                    filming_fee = FilmingFee.objects.create(proposal=self, lines=lines, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_BLACK, deferred_payment_date=deferred_payment_date)
                     #filming_fee_inv = FilmingFeeInvoice.objects.create(filming_fee=filming_fee, invoice_reference=invoice.reference)
-    #                deferred_payment_date = calc_payment_due_date(booking, invoice.created + relativedelta(months=1))
-    #                book_inv = BookingInvoice.objects.create(booking=booking, invoice_reference=invoice.reference, payment_method=invoice.payment_method, deferred_payment_date=deferred_payment_date)
-    #
+    
     #                recipients = list(set([booking.proposal.applicant_email, user.email])) # unique list
     #                send_monthly_invoice_tclass_email_notification(user, booking, invoice, recipients=recipients)
     #                ProposalUserAction.log_action(booking.proposal,ProposalUserAction.ACTION_SEND_MONTHLY_INVOICE.format(invoice.reference, booking.proposal.id, ', '.join(recipients)), user)
                 except Exception, e:
-                    logger.error('Failed to create standalone invoice')
+                    logger.error('Failed to create filming fee confirmation')
                     logger.error('{}'.format(e))
 
-        return invoice
+        return filming_fee
+
+#    def __create_filming_fee_invoice(self, request):
+#
+#        from dateutil.relativedelta import relativedelta
+#        from ledger.checkout.utils import createCustomBasket
+#        from ledger.payments.invoice.utils import CreateInvoiceBasket
+#
+#        if self.application_type.name == ApplicationType.FILMING and self.filming_approval_type==self.LICENCE \
+#            and not self.fee_invoice_reference and len(self.filming_activity.film_type)>0:
+#
+#            lines = self.__create_filming_fee_lines()
+#
+#            invoice = None
+#            with transaction.atomic():
+#                try:
+#                    logger.info('Creating standalone invoice')
+#
+#                    payment_method = 'other'
+#                    film_types = '/'.join([w.capitalize().replace('_',' ') for w in self.filming_activity.film_type])
+#                    #invoice_text = 'Payment Invoice: {} - {}'.format(film_types, self.filming_activity.activity_title)
+#                    invoice_text = 'Payment Invoice: {}'.format(film_types)
+#                    basket  = createCustomBasket(lines, request.user, settings.PAYMENT_SYSTEM_ID)
+#                    order = CreateInvoiceBasket(
+#                        payment_method=payment_method, system=settings.PAYMENT_SYSTEM_PREFIX
+#                    ).create_invoice_and_order(basket, 0, None, None, user=request.user, invoice_text=invoice_text, status='Awaiting Payment', basket_status='Saved')
+#
+#                    invoice = Invoice.objects.get(order_number=order.number)
+#
+#                    #deferred_payment_date = invoice.created + relativedelta(months=1)
+#                    #filming_fee = FilmingFee.objects.create(proposal=self, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_BLACK, deferred_payment_date=deferred_payment_date)
+#                    #filming_fee_inv = FilmingFeeInvoice.objects.create(filming_fee=filming_fee, invoice_reference=invoice.reference)
+#    #                deferred_payment_date = calc_payment_due_date(booking, invoice.created + relativedelta(months=1))
+#    #                book_inv = BookingInvoice.objects.create(booking=booking, invoice_reference=invoice.reference, payment_method=invoice.payment_method, deferred_payment_date=deferred_payment_date)
+#    #
+#    #                recipients = list(set([booking.proposal.applicant_email, user.email])) # unique list
+#    #                send_monthly_invoice_tclass_email_notification(user, booking, invoice, recipients=recipients)
+#    #                ProposalUserAction.log_action(booking.proposal,ProposalUserAction.ACTION_SEND_MONTHLY_INVOICE.format(invoice.reference, booking.proposal.id, ', '.join(recipients)), user)
+#                except Exception, e:
+#                    logger.error('Failed to create standalone invoice')
+#                    logger.error('{}'.format(e))
+#
+#        return invoice
 
 
     def generate_compliances(self,approval, request):

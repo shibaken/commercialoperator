@@ -41,12 +41,17 @@ from commercialoperator.components.bookings.utils import (
     checkout_existing_invoice,
     create_fee_lines,
     create_compliance_fee_lines,
+
     get_session_application_invoice,
     set_session_application_invoice,
     delete_session_application_invoice,
     get_session_compliance_invoice,
     set_session_compliance_invoice,
     delete_session_compliance_invoice,
+    get_session_filming_invoice,
+    set_session_filming_invoice,
+    delete_session_filming_invoice,
+
     calc_payment_due_date,
     create_bpay_invoice,
     create_other_invoice,
@@ -188,6 +193,50 @@ class ComplianceFeeView(TemplateView):
             if compliance_fee:
                 compliance_fee.delete()
             raise
+
+class FilmingFeeView(TemplateView):
+    template_name = 'commercialoperator/booking/success.html'
+
+    def get_object(self):
+        return get_object_or_404(Proposal, id=self.kwargs['proposal_pk'])
+
+    def get(self, request, *args, **kwargs):
+
+        import ipdb; ipdb.set_trace()
+        proposal = self.get_object()
+        #filming_fee = FilmingFee.objects.create(proposal=proposal, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_TEMPORARY)
+        filming_fee = proposal.filming_fees.last()
+
+        try:
+            with transaction.atomic():
+                set_session_application_invoice(request.session, filming_fee)
+                #lines = create_filming_fee_lines(proposal)
+                lines = filming_fee.lines
+
+                film_types = '/'.join([w.capitalize().replace('_',' ') for w in proposal.filming_activity.film_type])
+                #invoice_text = 'Payment Invoice: {} - {}'.format(film_types, self.filming_activity.activity_title)
+                invoice_text = 'Payment Invoice: {}'.format(film_types)
+
+                checkout_response = checkout(
+                    request,
+                    proposal,
+                    lines,
+                    #return_url_ns='filming_fee_success',
+                    #return_preload_url_ns='filming_fee_success',
+                    return_url_ns='fee_success',
+                    return_preload_url_ns='fee_success',
+                    invoice_text=invoice_text,
+                )
+
+                logger.info('{} built payment line item {} for Proposal Fee and handing over to payment gateway'.format('User {} with id {}'.format(proposal.submitter.get_full_name(),proposal.submitter.id), proposal.id))
+                return checkout_response
+
+        except Exception, e:
+            logger.error('Error Creating Proposal Fee: {}'.format(e))
+            if filming_fee:
+                filming_fee.delete()
+            raise
+
 
 
 class DeferredInvoicingPreviewView(TemplateView):
@@ -437,6 +486,9 @@ class ComplianceFeeSuccessView(TemplateView):
         return render(request, self.template_name, context)
 
 
+class FilmingFeeSuccessView(TemplateView):
+    template_name = 'commercialoperator/booking/success_compliance_fee.html'
+
 
 class ZeroApplicationFeeView(TemplateView):
     template_name = 'commercialoperator/booking/success_fee.html'
@@ -520,6 +572,7 @@ class ApplicationFeeSuccessView(TemplateView):
         proposal = None
         submitter = None
         invoice = None
+        import ipdb; ipdb.set_trace()
         try:
             context = template_context(self.request)
             basket = None
@@ -567,7 +620,7 @@ class ApplicationFeeSuccessView(TemplateView):
                     else:
                         proposal = proposal_submit(proposal, request)
 
-                    #import ipdb; ipdb.set_trace()
+                    import ipdb; ipdb.set_trace()
                     if proposal and (invoice.payment_status == 'paid' or invoice.payment_status == 'over_paid'):
                         proposal.fee_invoice_reference = invoice_ref
                         proposal.save()
