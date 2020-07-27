@@ -918,42 +918,42 @@ class InternalProposalSerializer(BaseProposalSerializer):
         return []
 
 
-class ReferralProposalSerializer(InternalProposalSerializer):
-    def get_assessor_mode(self,obj):
-        # TODO check if the proposal has been accepted or declined
-        request = self.context['request']
-        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
-        try:
-            referral = Referral.objects.get(proposal=obj,referral=user)
-        except:
-            referral = None
-        return {
-            'assessor_mode': True,
-            'assessor_can_assess': referral.can_assess_referral(user) if referral else None,
-            'assessor_level': 'referral',
-            'assessor_box_view': obj.assessor_comments_view(user)
-        }
+# class ReferralProposalSerializer(InternalProposalSerializer):
+#     def get_assessor_mode(self,obj):
+#         # TODO check if the proposal has been accepted or declined
+#         request = self.context['request']
+#         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+#         try:
+#             referral = Referral.objects.get(proposal=obj,referral=user)
+#         except:
+#             referral = None
+#         return {
+#             'assessor_mode': True,
+#             'assessor_can_assess': referral.can_assess_referral(user) if referral else None,
+#             'assessor_level': 'referral',
+#             'assessor_box_view': obj.assessor_comments_view(user)
+#         }
 
-class ReferralSerializer(serializers.ModelSerializer):
-    processing_status = serializers.CharField(source='get_processing_status_display')
-    latest_referrals = ProposalReferralSerializer(many=True)
-    can_be_completed = serializers.BooleanField()
-    can_process=serializers.SerializerMethodField()
-    referral_assessment=ProposalAssessmentSerializer(read_only=True)
+# class ReferralSerializer(serializers.ModelSerializer):
+#     processing_status = serializers.CharField(source='get_processing_status_display')
+#     latest_referrals = ProposalReferralSerializer(many=True)
+#     can_be_completed = serializers.BooleanField()
+#     can_process=serializers.SerializerMethodField()
+#     referral_assessment=ProposalAssessmentSerializer(read_only=True)
 
 
-    class Meta:
-        model = Referral
-        fields = '__all__'
+#     class Meta:
+#         model = Referral
+#         fields = '__all__'
 
-    def __init__(self,*args,**kwargs):
-        super(ReferralSerializer, self).__init__(*args, **kwargs)
-        self.fields['proposal'] = ReferralProposalSerializer(context={'request':self.context['request']})
+#     def __init__(self,*args,**kwargs):
+#         super(ReferralSerializer, self).__init__(*args, **kwargs)
+#         self.fields['proposal'] = ReferralProposalSerializer(context={'request':self.context['request']})
 
-    def get_can_process(self,obj):
-        request = self.context['request']
-        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
-        return obj.can_process(user)
+#     def get_can_process(self,obj):
+#         request = self.context['request']
+#         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+#         return obj.can_process(user)
 
 class ProposalUserActionSerializer(serializers.ModelSerializer):
     who = serializers.CharField(source='who.get_full_name')
@@ -1718,3 +1718,88 @@ class ListDistrictProposalSerializer(serializers.ModelSerializer):
     def get_submitter(self,obj):
         return EmailUserSerializer(obj.proposal.submitter).data
 
+class ReferralProposalSerializer(InternalProposalSerializer):
+    def get_assessor_mode(self,obj):
+        # TODO check if the proposal has been accepted or declined
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        try:
+            referral = Referral.objects.get(proposal=obj,referral=user)
+        except:
+            referral = None
+        return {
+            'assessor_mode': True,
+            'assessor_can_assess': referral.can_assess_referral(user) if referral else None,
+            'assessor_level': 'referral',
+            'assessor_box_view': obj.assessor_comments_view(user)
+        }
+
+class FilmingReferralProposalSerializer(InternalFilmingProposalSerializer):
+    def get_assessor_mode(self,obj):
+        # TODO check if the proposal has been accepted or declined
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        try:
+            referral = Referral.objects.get(proposal=obj,referral=user)
+        except:
+            referral = None
+        return {
+            'assessor_mode': True,
+            'assessor_can_assess': referral.can_assess_referral(user) if referral else None,
+            'assessor_level': 'referral',
+            'assessor_box_view': obj.assessor_comments_view(user)
+        }
+
+class EventReferralProposalSerializer(InternalEventProposalSerializer):
+    def get_assessor_mode(self,obj):
+        # TODO check if the proposal has been accepted or declined
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        try:
+            referral = Referral.objects.get(proposal=obj,referral=user)
+        except:
+            referral = None
+        return {
+            'assessor_mode': True,
+            'assessor_can_assess': referral.can_assess_referral(user) if referral else None,
+            'assessor_level': 'referral',
+            'assessor_box_view': obj.assessor_comments_view(user)
+        }
+
+class ReferralSerializer(serializers.ModelSerializer):
+    processing_status = serializers.CharField(source='get_processing_status_display')
+    latest_referrals = ProposalReferralSerializer(many=True)
+    can_be_completed = serializers.BooleanField()
+    can_process=serializers.SerializerMethodField()
+    referral_assessment=ProposalAssessmentSerializer(read_only=True)
+    application_type=serializers.CharField(read_only=True)
+
+
+    class Meta:
+        model = Referral
+        fields = '__all__'
+
+    # def __init__(self,*args,**kwargs):
+    #     super(ReferralSerializer, self).__init__(*args, **kwargs)
+    #     self.fields['proposal'] = ReferralProposalSerializer(context={'request':self.context['request']})
+        
+
+    def __init__(self,*args,**kwargs):
+        super(ReferralSerializer, self).__init__(*args, **kwargs)
+        #application_type=self.data.get('application_type')
+        # if kwargs.get('context')['view'].get_object().proposal.application_type.name == 'Event':
+        #     self.fields['proposal'] = EventReferralProposalSerializer(context={'request':self.context['request']})
+        try:    
+            if kwargs.get('context')['view'].get_object().proposal.application_type.name == ApplicationType.TCLASS:
+                self.fields['proposal'] = ReferralProposalSerializer(context={'request':self.context['request']})
+            elif kwargs.get('context')['view'].get_object().proposal.application_type.name == ApplicationType.FILMING:
+                self.fields['proposal'] = FilmingReferralProposalSerializer(context={'request':self.context['request']})
+            elif kwargs.get('context')['view'].get_object().proposal.application_type.name == ApplicationType.EVENT:
+                self.fields['proposal'] = EventReferralProposalSerializer(context={'request':self.context['request']})
+        except:
+            raise
+
+    def get_can_process(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_process(user)

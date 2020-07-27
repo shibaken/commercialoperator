@@ -3036,6 +3036,10 @@ class Referral(RevisionedMixin):
 
     # Methods
     @property
+    def application_type(self):
+        return self.proposal.application_type.name
+    
+    @property
     def latest_referrals(self):
         return Referral.objects.filter(sent_by=self.referral, proposal=self.proposal)[:2]
 
