@@ -25,11 +25,14 @@ from commercialoperator.components.bookings.invoice_compliance_pdf import create
 from commercialoperator.components.bookings.invoice_filmingfee_pdf import create_invoice_filmingfee_pdf_bytes
 from commercialoperator.components.bookings.confirmation_pdf import create_confirmation_pdf_bytes
 from commercialoperator.components.bookings.monthly_confirmation_pdf import create_monthly_confirmation_pdf_bytes
+from commercialoperator.components.bookings.awaiting_payment_invoice_pdf import create_awaiting_payment_invoice_pdf_bytes
 from commercialoperator.components.bookings.email import (
     send_invoice_tclass_email_notification,
     send_confirmation_tclass_email_notification,
     send_application_fee_invoice_tclass_email_notification,
     send_application_fee_confirmation_tclass_email_notification,
+    send_compliance_fee_invoice_events_email_notification,
+    send_application_invoice_filming_email_notification,
 )
 from commercialoperator.components.bookings.utils import (
     create_booking,
@@ -204,7 +207,6 @@ class FilmingFeeView(TemplateView):
 
     def get(self, request, *args, **kwargs):
 
-        #import ipdb; ipdb.set_trace()
         proposal = self.get_object()
         #filming_fee = FilmingFee.objects.create(proposal=proposal, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_TEMPORARY)
         filming_fee = proposal.filming_fees.last()
@@ -488,9 +490,6 @@ class ComplianceFeeSuccessView(TemplateView):
         return render(request, self.template_name, context)
 
 
-#class FilmingFeeSuccessView(TemplateView):
-#    template_name = 'commercialoperator/booking/success_compliance_fee.html'
-
 class FilmingFeeSuccessView(TemplateView):
     template_name = 'commercialoperator/booking/success_fee.html'
 
@@ -500,7 +499,6 @@ class FilmingFeeSuccessView(TemplateView):
         proposal = None
         submitter = None
         invoice = None
-        import ipdb; ipdb.set_trace()
         try:
             context = template_context(self.request)
             basket = None
@@ -542,16 +540,10 @@ class FilmingFeeSuccessView(TemplateView):
                     filming_fee.expiry_time = None
                     update_payments(invoice_ref)
 
-                    proposal.final_approval(request, None)
-#                    if proposal.processing_status==Proposal.PROCESSING_STATUS_AWAITING_PAYMENT and proposal.application_type.name==ApplicationType.FILMING:
-#                        proposal.final_approval(request, None)
-#                    else:
-#                        proposal = proposal_submit(proposal, request)
-
-                    import ipdb; ipdb.set_trace()
                     if proposal and (invoice.payment_status == 'paid' or invoice.payment_status == 'over_paid'):
                         proposal.fee_invoice_reference = invoice_ref
                         proposal.save()
+                        proposal.final_approval(request, None)
                         proposal.reset_application_discount(request.user)
                     else:
                         logger.error('Invoice payment status is {}'.format(invoice.payment_status))
@@ -561,8 +553,7 @@ class FilmingFeeSuccessView(TemplateView):
                     request.session['cols_last_filming_invoice'] = filming_fee.id
                     delete_session_filming_invoice(request.session)
 
-                    # TODO create method below
-                    #send_filming_fee_invoice_filming_email_notification(request, proposal, invoice, recipients=[recipient])
+                    send_application_invoice_filming_email_notification(request, proposal, invoice, recipients=[recipient])
 
                     context = {
                         'proposal': proposal,
@@ -902,23 +893,23 @@ class InvoicePDFView(View):
     def check_owner(self, organisation):
         return is_in_organisation_contacts(self.request, organisation) or is_internal(self.request) or self.request.user.is_superuser
 
-class InvoiceFilmingFeePDFView(View):
-    def get(self, request, *args, **kwargs):
-        invoice = get_object_or_404(Invoice, reference=self.kwargs['reference'])
-        proposal = Proposal.objects.get(fee_invoice_reference=invoice.reference)
-
-        organisation = proposal.org_applicant.organisation.organisation_set.all()[0]
-        if self.check_owner(organisation):
-            response = HttpResponse(content_type='application/pdf')
-            response.write(create_invoice_filmingfee_pdf_bytes('invoice.pdf', invoice, proposal))
-            return response
-        raise PermissionDenied
-
-    def get_object(self):
-        return  get_object_or_404(Invoice, reference=self.kwargs['reference'])
-
-    def check_owner(self, organisation):
-        return is_in_organisation_contacts(self.request, organisation) or is_internal(self.request) or self.request.user.is_superuser
+#class InvoiceFilmingFeePDFView(View):
+#    def get(self, request, *args, **kwargs):
+#        invoice = get_object_or_404(Invoice, reference=self.kwargs['reference'])
+#        proposal = Proposal.objects.get(fee_invoice_reference=invoice.reference)
+#
+#        organisation = proposal.org_applicant.organisation.organisation_set.all()[0]
+#        if self.check_owner(organisation):
+#            response = HttpResponse(content_type='application/pdf')
+#            response.write(create_invoice_filmingfee_pdf_bytes('invoice.pdf', invoice, proposal))
+#            return response
+#        raise PermissionDenied
+#
+#    def get_object(self):
+#        return  get_object_or_404(Invoice, reference=self.kwargs['reference'])
+#
+#    def check_owner(self, organisation):
+#        return is_in_organisation_contacts(self.request, organisation) or is_internal(self.request) or self.request.user.is_superuser
 
 
 
@@ -981,6 +972,7 @@ class MonthlyConfirmationPDFBookingView(View):
     def check_owner(self, organisation):
         return is_in_organisation_contacts(self.request, organisation) or is_internal(self.request) or self.request.user.is_superuser
 
+
 class MonthlyConfirmationPDFParkBookingView(View):
     """ for the Visitor Admissions Payment Dashboard - View by ParkBooking (parkbookings_dashboard.vue) """
 
@@ -997,4 +989,22 @@ class MonthlyConfirmationPDFParkBookingView(View):
 
     def check_owner(self, organisation):
         return is_in_organisation_contacts(self.request, organisation) or is_internal(self.request) or self.request.user.is_superuser
+
+
+class AwaitingPaymentInvoicePDFView(View):
+    """  """
+
+    def get(self, request, *args, **kwargs):
+        proposal = get_object_or_404(Proposal, id=self.kwargs['id'])
+        organisation = proposal.org_applicant.organisation.organisation_set.all()[0]
+
+        if self.check_owner(organisation):
+            response = HttpResponse(content_type='application/pdf')
+            response.write(create_awaiting_payment_invoice_pdf_bytes('awaiting_payment_invoice.pdf', proposal))
+            return response
+        raise PermissionDenied
+
+    def check_owner(self, organisation):
+        return is_in_organisation_contacts(self.request, organisation) or is_internal(self.request) or self.request.user.is_superuser
+
 

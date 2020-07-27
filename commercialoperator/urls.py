@@ -159,11 +159,12 @@ urlpatterns = [
     url(r'^success/compliance_fee/$', booking_views.ComplianceFeeSuccessView.as_view(), name='compliance_fee_success'),
     url(r'^success/filming_fee/$', booking_views.FilmingFeeSuccessView.as_view(), name='filming_fee_success'),
     url(r'cols/payments/invoice-pdf/(?P<reference>\d+)',booking_views.InvoicePDFView.as_view(), name='cols-invoice-pdf'),
-    url(r'cols/payments/invoice-filmingfee-pdf/(?P<reference>\d+)',booking_views.InvoiceFilmingFeePDFView.as_view(), name='cols-invoice-filmingfee-pdf'),
+    #url(r'cols/payments/invoice-filmingfee-pdf/(?P<reference>\d+)',booking_views.InvoiceFilmingFeePDFView.as_view(), name='cols-invoice-filmingfee-pdf'),
     url(r'cols/payments/invoice-compliance-pdf/(?P<reference>\d+)',booking_views.InvoiceCompliancePDFView.as_view(), name='cols-invoice-compliance-pdf'),
     url(r'cols/payments/confirmation-pdf/(?P<reference>\d+)',booking_views.ConfirmationPDFView.as_view(), name='cols-confirmation-pdf'),
     url(r'cols/payments/monthly-confirmation-pdf/booking/(?P<id>\d+)',booking_views.MonthlyConfirmationPDFBookingView.as_view(), name='cols-monthly-confirmation-pdf'),
     url(r'cols/payments/monthly-confirmation-pdf/park-booking/(?P<id>\d+)',booking_views.MonthlyConfirmationPDFParkBookingView.as_view(), name='cols-monthly-confirmation-pdf-park'),
+    url(r'cols/payments/awaiting-payment-pdf/(?P<id>\d+)',booking_views.AwaitingPaymentInvoicePDFView.as_view(), name='cols-awaiting-payment-pdf'),
 
     #following url is defined so that to include url path when sending Proposal amendment request to user.
     url(r'^external/proposal/(?P<proposal_pk>\d+)/$', views.ExternalProposalView.as_view(), name='external-proposal-detail'),

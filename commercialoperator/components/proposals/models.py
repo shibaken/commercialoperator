@@ -1836,7 +1836,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         with transaction.atomic():
             try:
                 if self.processing_status==Proposal.PROCESSING_STATUS_AWAITING_PAYMENT and self.fee_paid:
-                    # for 'Awaiting Payment' approval. External user fires this method from external URL after full payment
+                    # for 'Awaiting Payment' approval. External/Internal user fires this method after full payment via Make/Record Payment
                     pass
                 else:
                     if not self.can_assess(request.user):
@@ -1994,6 +1994,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
         from dateutil.relativedelta import relativedelta
         from commercialoperator.components.bookings.models import FilmingFee
+        from commercialoperator.components.bookings.email import send_application_awaiting_payment_invoice_filming_email_notification
         from commercialoperator.components.bookings.utils import create_filming_fee_lines
 
         filming_fee = None
@@ -2008,8 +2009,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
                     payment_method = 'other'
                     deferred_payment_date = timezone.now() + relativedelta(months=1)
-                    import ipdb; ipdb.set_trace()
-                    filming_fee = FilmingFee.objects.create(proposal=self, lines=lines, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_BLACK, deferred_payment_date=deferred_payment_date)
+                    #import ipdb; ipdb.set_trace()
+                    filming_fee = FilmingFee.objects.create(proposal=self, lines=lines, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_TEMPORARY, deferred_payment_date=deferred_payment_date)
+                    send_application_awaiting_payment_invoice_filming_email_notification(request, proposal, recipients=[proposal.submitter.email])
+                    ProposalUserAction.log_action(proposal,ProposalUserAction.ACTION_AWAITING_PAYMENT_APPROVAL_.format(proposal.id), user)
                     #filming_fee_inv = FilmingFeeInvoice.objects.create(filming_fee=filming_fee, invoice_reference=invoice.reference)
     
     #                recipients = list(set([booking.proposal.applicant_email, user.email])) # unique list
