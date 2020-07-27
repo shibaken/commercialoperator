@@ -190,6 +190,7 @@ class ApprovalSerializer(serializers.ModelSerializer):
             'is_approver',
             'can_reissue_lawful_authority',
             'is_lawful_authority',
+            'is_lawful_authority_finalised',
         )
         # the serverSide functionality of datatables is such that only columns that have field 'data' defined are requested from the serializer. We
         # also require the following additional fields for some of the mRender functions
@@ -225,6 +226,7 @@ class ApprovalSerializer(serializers.ModelSerializer):
             'is_approver',
             'can_reissue_lawful_authority',
             'is_lawful_authority',
+            'is_lawful_authority_finalised',
         )
 
     def get_linked_applications(self,obj):

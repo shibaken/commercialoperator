@@ -1786,9 +1786,6 @@ class ReferralSerializer(serializers.ModelSerializer):
 
     def __init__(self,*args,**kwargs):
         super(ReferralSerializer, self).__init__(*args, **kwargs)
-        #application_type=self.data.get('application_type')
-        # if kwargs.get('context')['view'].get_object().proposal.application_type.name == 'Event':
-        #     self.fields['proposal'] = EventReferralProposalSerializer(context={'request':self.context['request']})
         try:    
             if kwargs.get('context')['view'].get_object().proposal.application_type.name == ApplicationType.TCLASS:
                 self.fields['proposal'] = ReferralProposalSerializer(context={'request':self.context['request']})

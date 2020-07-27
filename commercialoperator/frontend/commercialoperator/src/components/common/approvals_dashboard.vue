@@ -316,11 +316,32 @@ export default {
                                         }
                                     }
                                     if(full.can_reissue && full.can_action){
-                                        links +=  `<a href='#${full.id}' data-cancel-approval='${full.id}'>Cancel</a><br/>`;
-                                        links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
+                                        if(full.is_lawful_authority)
+                                        {
+                                            if(full.can_reissue_lawful_authority){
+                                                links +=  `<a href='#${full.id}' data-cancel-approval='${full.id}'>Cancel</a><br/>`;
+                                                links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
+                                            }
+                                        }
+                                        else{
+                                            links +=  `<a href='#${full.id}' data-cancel-approval='${full.id}'>Cancel</a><br/>`;
+                                            links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
+                                        }
+                                        // links +=  `<a href='#${full.id}' data-cancel-approval='${full.id}'>Cancel</a><br/>`;
+                                        // links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
                                     }
                                     if(full.status == 'Current' && full.can_action){
-                                        links +=  `<a href='#${full.id}' data-suspend-approval='${full.id}'>Suspend</a><br/>`;
+                                        if(full.is_lawful_authority)
+                                        {
+                                            if(full.is_lawful_authority_finalised){
+                                                links +=  `<a href='#${full.id}' data-suspend-approval='${full.id}'>Suspend</a><br/>`;
+                                            }
+                                        }
+                                        else{
+                                            links +=  `<a href='#${full.id}' data-suspend-approval='${full.id}'>Suspend</a><br/>`;
+                                        }
+
+                                        // links +=  `<a href='#${full.id}' data-suspend-approval='${full.id}'>Suspend</a><br/>`;
                                     }
                                     if(full.can_reinstate)
                                     {
@@ -340,7 +361,17 @@ export default {
                                 if (full.can_reissue) {
                                     links +=  `<a href='/external/approval/${full.id}'>View</a><br/>`;
                                     if(full.can_action){
-                                        links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
+                                        if(full.is_lawful_authority)
+                                        {
+                                            if(full.can_reissue_lawful_authority){
+                                                links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
+                                            }
+                                        }
+                                        else{
+                                            links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
+                                        }
+                                        // links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
+
                                         if(full.can_amend){
                                            links +=  `<a href='#${full.id}' data-amend-approval='${full.current_proposal}'>Amend</a><br/>`; 
                                        }                                        
