@@ -249,7 +249,8 @@ export default {
                                     links +=  `<a href='/external/proposal/${full.id}'>View</a><br/>`;
                                 }
                                 if (full.customer_status=='Awaiting Payment' && !full.fee_paid) {
-                                    links +=  `<a href='/existing_invoice_payment/${full.fee_invoice_reference}'>Make Payment</a><br/>`;
+                                    //links +=  `<a href='/existing_invoice_payment/${full.fee_invoice_reference}'>Make Payment</a><br/>`;
+                                    links +=  `<a href='/filming_fee/${full.id}'>Make Payment</a><br/>`;
                                 }
                             }
                             if (full.fee_invoice_reference && full.proposal_type!='Amendment'){

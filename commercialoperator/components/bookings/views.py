@@ -67,6 +67,8 @@ from commercialoperator.components.bookings.models import (
     ApplicationFeeInvoice,
     ComplianceFee,
     ComplianceFeeInvoice,
+    FilmingFee,
+    FilmingFeeInvoice,
 )
 
 from commercialoperator.components.proposals.serializers import ProposalSerializer
@@ -202,14 +204,14 @@ class FilmingFeeView(TemplateView):
 
     def get(self, request, *args, **kwargs):
 
-        import ipdb; ipdb.set_trace()
+        #import ipdb; ipdb.set_trace()
         proposal = self.get_object()
         #filming_fee = FilmingFee.objects.create(proposal=proposal, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_TEMPORARY)
         filming_fee = proposal.filming_fees.last()
 
         try:
             with transaction.atomic():
-                set_session_application_invoice(request.session, filming_fee)
+                set_session_filming_invoice(request.session, filming_fee)
                 #lines = create_filming_fee_lines(proposal)
                 lines = filming_fee.lines
 
@@ -221,10 +223,10 @@ class FilmingFeeView(TemplateView):
                     request,
                     proposal,
                     lines,
-                    #return_url_ns='filming_fee_success',
-                    #return_preload_url_ns='filming_fee_success',
-                    return_url_ns='fee_success',
-                    return_preload_url_ns='fee_success',
+                    return_url_ns='filming_fee_success',
+                    return_preload_url_ns='filming_fee_success',
+                    #return_url_ns='fee_success',
+                    #return_preload_url_ns='fee_success',
                     invoice_text=invoice_text,
                 )
 
@@ -486,8 +488,115 @@ class ComplianceFeeSuccessView(TemplateView):
         return render(request, self.template_name, context)
 
 
+#class FilmingFeeSuccessView(TemplateView):
+#    template_name = 'commercialoperator/booking/success_compliance_fee.html'
+
 class FilmingFeeSuccessView(TemplateView):
-    template_name = 'commercialoperator/booking/success_compliance_fee.html'
+    template_name = 'commercialoperator/booking/success_fee.html'
+
+    def get(self, request, *args, **kwargs):
+        print (" FILMING FEE SUCCESS ")
+
+        proposal = None
+        submitter = None
+        invoice = None
+        import ipdb; ipdb.set_trace()
+        try:
+            context = template_context(self.request)
+            basket = None
+            filming_fee = get_session_filming_invoice(request.session)
+            proposal = filming_fee.proposal
+
+            try:
+                recipient = proposal.applicant.email
+                submitter = proposal.applicant
+            except:
+                recipient = proposal.submitter.email
+                submitter = proposal.submitter
+
+            if self.request.user.is_authenticated():
+                basket = Basket.objects.filter(status='Submitted', owner=request.user).order_by('-id')[:1]
+            else:
+                basket = Basket.objects.filter(status='Submitted', owner=booking.proposal.submitter).order_by('-id')[:1]
+
+            order = Order.objects.get(basket=basket[0])
+            invoice = Invoice.objects.get(order_number=order.number)
+            invoice_ref = invoice.reference
+            fee_inv, created = FilmingFeeInvoice.objects.get_or_create(filming_fee=filming_fee, invoice_reference=invoice_ref)
+
+            if filming_fee.payment_type == FilmingFee.PAYMENT_TYPE_TEMPORARY:
+                try:
+                    inv = Invoice.objects.get(reference=invoice_ref)
+                    order = Order.objects.get(number=inv.order_number)
+                    order.user = submitter
+                    order.save()
+                except Invoice.DoesNotExist:
+                    logger.error('{} tried paying an filming fee with an incorrect invoice'.format('User {} with id {}'.format(proposal.submitter.get_full_name(), proposal.submitter.id) if proposal.submitter else 'An anonymous user'))
+                    return redirect('external-proposal-detail', args=(proposal.id,))
+                if inv.system not in ['0557']:
+                    logger.error('{} tried paying an filming fee with an invoice from another system with reference number {}'.format('User {} with id {}'.format(proposal.submitter.get_full_name(), proposal.submitter.id) if proposal.submitter else 'An anonymous user',inv.reference))
+                    return redirect('external-proposal-detail', args=(proposal.id,))
+
+                if fee_inv:
+                    filming_fee.payment_type = FilmingFee.PAYMENT_TYPE_INTERNET
+                    filming_fee.expiry_time = None
+                    update_payments(invoice_ref)
+
+                    proposal.final_approval(request, None)
+#                    if proposal.processing_status==Proposal.PROCESSING_STATUS_AWAITING_PAYMENT and proposal.application_type.name==ApplicationType.FILMING:
+#                        proposal.final_approval(request, None)
+#                    else:
+#                        proposal = proposal_submit(proposal, request)
+
+                    import ipdb; ipdb.set_trace()
+                    if proposal and (invoice.payment_status == 'paid' or invoice.payment_status == 'over_paid'):
+                        proposal.fee_invoice_reference = invoice_ref
+                        proposal.save()
+                        proposal.reset_application_discount(request.user)
+                    else:
+                        logger.error('Invoice payment status is {}'.format(invoice.payment_status))
+                        raise
+
+                    filming_fee.save()
+                    request.session['cols_last_filming_invoice'] = filming_fee.id
+                    delete_session_filming_invoice(request.session)
+
+                    # TODO create method below
+                    #send_filming_fee_invoice_filming_email_notification(request, proposal, invoice, recipients=[recipient])
+
+                    context = {
+                        'proposal': proposal,
+                        'submitter': submitter,
+                        #'fee_invoice': invoice
+                        'fee_invoice': fee_inv
+                    }
+                    return render(request, self.template_name, context)
+
+        except Exception as e:
+            if ('cols_last_filming_invoice' in request.session) and FilmingFee.objects.filter(id=request.session['cols_last_filming_invoice']).exists():
+                filming_fee = FilmingFee.objects.get(id=request.session['cols_last_filming_invoice'])
+                proposal = filming_fee.proposal
+
+                try:
+                    recipient = proposal.applicant.email
+                    submitter = proposal.applicant
+                except:
+                    recipient = proposal.submitter.email
+                    submitter = proposal.submitter
+
+                if FilmingFeeInvoice.objects.filter(filming_fee=filming_fee).count() > 0:
+                    ffi = FilmingFeeInvoice.objects.filter(filming_fee=filming_fee)
+                    invoice = ffi[0]
+            else:
+                return redirect('home')
+
+        context = {
+            'proposal': proposal,
+            'submitter': submitter,
+            'fee_invoice': invoice
+        }
+        return render(request, self.template_name, context)
+
 
 
 class ZeroApplicationFeeView(TemplateView):
@@ -572,7 +681,6 @@ class ApplicationFeeSuccessView(TemplateView):
         proposal = None
         submitter = None
         invoice = None
-        import ipdb; ipdb.set_trace()
         try:
             context = template_context(self.request)
             basket = None
@@ -601,7 +709,6 @@ class ApplicationFeeSuccessView(TemplateView):
                     inv = Invoice.objects.get(reference=invoice_ref)
                     order = Order.objects.get(number=inv.order_number)
                     order.user = submitter
-                    order.save()
                 except Invoice.DoesNotExist:
                     logger.error('{} tried paying an application fee with an incorrect invoice'.format('User {} with id {}'.format(proposal.submitter.get_full_name(), proposal.submitter.id) if proposal.submitter else 'An anonymous user'))
                     return redirect('external-proposal-detail', args=(proposal.id,))
@@ -620,7 +727,6 @@ class ApplicationFeeSuccessView(TemplateView):
                     else:
                         proposal = proposal_submit(proposal, request)
 
-                    import ipdb; ipdb.set_trace()
                     if proposal and (invoice.payment_status == 'paid' or invoice.payment_status == 'over_paid'):
                         proposal.fee_invoice_reference = invoice_ref
                         proposal.save()
