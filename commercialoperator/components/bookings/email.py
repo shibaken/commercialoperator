@@ -20,10 +20,10 @@ class ComplianceFeeInvoiceEventsSendNotificationEmail(TemplateEmailBase):
     html_template = 'commercialoperator/emails/bookings/events/send_compliance_fee_notification.html'
     txt_template = 'commercialoperator/emails/bookings/events/send_compliance_fee_notification.txt'
 
-class ApplicationAwaitingPaymentInvoiceFilmingSendNotificationEmail(TemplateEmailBase):
-    subject = 'Your filming fee awaiting payment invoice.'
-    html_template = 'commercialoperator/emails/bookings/filming/send_filming_fee_awaiting_payment_notification.html'
-    txt_template = 'commercialoperator/emails/bookings/filmig/send_filming_fee_awaiting_payment_notification.txt'
+#class ApplicationAwaitingPaymentInvoiceFilmingSendNotificationEmail(TemplateEmailBase):
+#    subject = 'Your filming fee awaiting payment invoice.'
+#    html_template = 'commercialoperator/emails/bookings/filming/send_filming_fee_awaiting_payment_notification.html'
+#    txt_template = 'commercialoperator/emails/bookings/filmig/send_filming_fee_awaiting_payment_notification.txt'
 
 class ApplicationInvoiceFilmingSendNotificationEmail(TemplateEmailBase):
     subject = 'Your filming fee invoice.'
@@ -77,29 +77,29 @@ class PaymentDueNotificationFailedTClassEmail(TemplateEmailBase):
     txt_template = 'commercialoperator/emails/bookings/tclass/send_external_payment_due_notification_failed.txt'
 
 
-def send_application_awaiting_payment_invoice_filming_email_notification(request, proposal, recipients, is_test=False):
-    email = ApplicationAwaitingPaymentInvoiceFilmingSendNotificationEmail()
-    #url = request.build_absolute_uri(reverse('external-proposal-detail',kwargs={'proposal_pk': proposal.id}))
-
-    context = {
-        'proposal_lodgement_number': proposal.lodgement_number,
-        #'url': url,
-    }
-
-    filename = 'awaiting_payment_invoice.pdf'
-    doc = create_awaiting_payment_invoice_pdf_bytes(filename, proposal)
-    attachment = (filename, doc, 'application/pdf')
-
-    msg = email.send(recipients, attachments=[attachment], context=context)
-    if is_test:
-        return
-
-    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
-    _log_proposal_email(msg, proposal, sender=sender)
-    if proposal.org_applicant:
-        _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
-    else:
-        _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
+#def send_application_awaiting_payment_invoice_filming_email_notification(request, proposal, recipients, is_test=False):
+#    email = ApplicationAwaitingPaymentInvoiceFilmingSendNotificationEmail()
+#    #url = request.build_absolute_uri(reverse('external-proposal-detail',kwargs={'proposal_pk': proposal.id}))
+#
+#    context = {
+#        'proposal_lodgement_number': proposal.lodgement_number,
+#        #'url': url,
+#    }
+#
+#    filename = 'awaiting_payment_invoice.pdf'
+#    doc = create_awaiting_payment_invoice_pdf_bytes(filename, proposal)
+#    attachment = (filename, doc, 'application/pdf')
+#
+#    msg = email.send(recipients, attachments=[attachment], context=context)
+#    if is_test:
+#        return
+#
+#    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+#    _log_proposal_email(msg, proposal, sender=sender)
+#    if proposal.org_applicant:
+#        _log_org_email(msg, proposal.org_applicant, proposal.submitter, sender=sender)
+#    else:
+#        _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
 
 def send_application_invoice_filming_email_notification(request, proposal, invoice, recipients, is_test=False):
     email = ApplicationInvoiceFilmingSendNotificationEmail()

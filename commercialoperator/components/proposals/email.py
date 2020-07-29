@@ -8,7 +8,8 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
 from commercialoperator.components.emails.emails import TemplateEmailBase
-from commercialoperator.components.bookings.invoice_filmingfee_pdf import create_invoice_filmingfee_pdf_bytes
+from commercialoperator.components.bookings.awaiting_payment_invoice_pdf import create_awaiting_payment_invoice_pdf_bytes
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -424,7 +425,7 @@ def send_proposal_approval_email_notification(proposal,request):
     else:
         _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
 
-def send_proposal_awaiting_payment_approval_email_notification(proposal, request, invoice):
+def send_proposal_awaiting_payment_approval_email_notification(proposal, request):
     """ Send External Email with attached invoice and URL link to pay by credit card """
     email = ProposalAwaitingPaymentApprovalSendNotificationEmail()
 
@@ -434,29 +435,24 @@ def send_proposal_awaiting_payment_approval_email_notification(proposal, request
         all_ccs = cc_list.split(',')
 
     url = request.build_absolute_uri(reverse('external'))
-    payment_url = request.build_absolute_uri(reverse('existing_invoice_payment', kwargs={'invoice_ref':invoice.reference}))
+    #payment_url = request.build_absolute_uri(reverse('existing_invoice_payment', kwargs={'invoice_ref':invoice.reference}))
     if "-internal" in url:
         # remove '-internal'. This email is for external submitters
         url = ''.join(url.split('-internal'))
 
-    if "-internal" in payment_url:
-        # remove '-internal'. This email is for external submitters
-        payment_url = ''.join(payment_url.split('-internal'))
-
-    filename = 'invoice.pdf'
-    doc = create_invoice_filmingfee_pdf_bytes(filename, invoice, proposal)
+    filename = 'confirmation.pdf'
+    doc = create_awaiting_payment_invoice_pdf_bytes(filename, proposal)
     attachment = (filename, doc, 'application/pdf')
 
     context = {
         'proposal': proposal,
         'url': url,
-        'payment_url': payment_url, # TODO change to payment url
     }
 
     msg = email.send(proposal.submitter.email, bcc=all_ccs, attachments=[attachment], context=context)
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     
-    filename_appended = '{}_{}.{}'.format('invoice', invoice.created.strftime('%d%b%Y'), 'pdf')
+    filename_appended = '{}_{}.{}'.format('confirmation', datetime.now().strftime('%d%b%Y'), 'pdf')
     log_proposal = _log_proposal_email(msg, proposal, sender=sender, file_bytes=doc, filename=filename_appended)
 
     if proposal.org_applicant:

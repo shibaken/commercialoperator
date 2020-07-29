@@ -553,7 +553,8 @@ class FilmingFeeSuccessView(TemplateView):
                     request.session['cols_last_filming_invoice'] = filming_fee.id
                     delete_session_filming_invoice(request.session)
 
-                    send_application_invoice_filming_email_notification(request, proposal, invoice, recipients=[recipient])
+                    # NOTE: the confirmation invoice is sent from ../proposal/models/final_approval()
+                    #send_application_invoice_filming_email_notification(request, proposal, invoice, recipients=[recipient])
 
                     context = {
                         'proposal': proposal,
