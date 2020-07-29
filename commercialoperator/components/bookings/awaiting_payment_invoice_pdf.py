@@ -237,7 +237,7 @@ def _create_header(canvas, doc, draw_page_number=True):
         canvas.drawRightString(current_x + 20, current_y - (SMALL_FONTSIZE + HEADER_SMALL_BUFFER) * 4, 'Payment Due Date')
         canvas.drawString(current_x + invoice_details_offset, current_y - (SMALL_FONTSIZE + HEADER_SMALL_BUFFER) * 4, proposal.filming_fees.last().deferred_payment_date.strftime(DATE_FORMAT))
     canvas.drawRightString(current_x + 20, current_y - (SMALL_FONTSIZE + HEADER_SMALL_BUFFER) * 5, 'Outstanding (AUD)')
-    canvas.drawString(current_x + invoice_details_offset, current_y - (SMALL_FONTSIZE + HEADER_SMALL_BUFFER) * 5, '{:.2f}'.format(total_amount))
+    canvas.drawString(current_x + invoice_details_offset, current_y - (SMALL_FONTSIZE + HEADER_SMALL_BUFFER) * 5, currency(total_amount))
 #    if hasattr(booking, 'booking_type'):
 #        canvas.drawRightString(current_x + 20, current_y - (SMALL_FONTSIZE + HEADER_SMALL_BUFFER) * 5, 'Booking No.')
 #        canvas.drawString(current_x + invoice_details_offset, current_y - (SMALL_FONTSIZE + HEADER_SMALL_BUFFER) * 5, booking.admission_number)
@@ -284,8 +284,8 @@ def _create_invoice(invoice_buffer, proposal):
     elements.append(Spacer(1, SECTION_BUFFER_HEIGHT * 2))
 
     data = [
-        #['Item','Product', 'Quantity','Unit Price', 'Total']
-        ['Item', 'Product', 'Status', 'Qty', 'Fees']
+        ['Item','Product', 'Qty','Unit Price', 'Total']
+        #['Item', 'Product', 'Status', 'Qty', 'Fees']
     ]
     val = 1
     s = styles["BodyText"]
@@ -298,11 +298,10 @@ def _create_invoice(invoice_buffer, proposal):
         data.append(
             [
                 val,
-                #(item['ledger_description'], s),
-                item['ledger_description'],
-                'Unpaid',
+                Paragraph(item['ledger_description'], s),
                 item['quantity'],
-                '{:.2f}'.format(amount),
+                currency(item['price_incl_tax']),
+                currency(amount),
             ]
         )
         total_amount += amount
@@ -313,7 +312,7 @@ def _create_invoice(invoice_buffer, proposal):
             'Total',
             '',
             '',
-            '{:.2f}'.format(total_amount)
+            currency(total_amount)
         ]
     )
 
@@ -322,10 +321,10 @@ def _create_invoice(invoice_buffer, proposal):
             style=invoice_table_style,
             hAlign='LEFT',
             colWidths=(
-            0.5 * inch,
+            0.7 * inch,
             None,
-            0.6 * inch,
-            0.5 * inch,
+            0.7 * inch,
+            1.0 * inch,
             1.0 * inch,
             )
         )
