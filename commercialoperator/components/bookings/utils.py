@@ -487,8 +487,12 @@ def create_event_fee_lines(proposal, invoice_text=None, vouchers=[], internal=Fa
 
 def create_filming_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
     if proposal.filming_activity.num_filming_days == 1:
-        licence_fee = proposal.application_type.filming_fee_full_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_full_day
-        licence_text =  'Full day'
+        if proposal.filming_activity.half_day:
+            licence_fee = proposal.application_type.filming_fee_half_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_half_day
+            licence_text =  'Half day'
+        else:
+            licence_fee = proposal.application_type.filming_fee_full_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_full_day
+            licence_text =  'Full day'
     elif proposal.filming_activity.num_filming_days > 1 and proposal.filming_activity.num_filming_days < 4:
         full_day_fee = proposal.application_type.filming_fee_full_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_full_day
         subsequent_day_fee = proposal.application_type.filming_fee_subsequent_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_subsequent_day
