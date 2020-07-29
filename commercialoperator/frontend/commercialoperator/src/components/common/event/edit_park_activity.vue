@@ -26,11 +26,17 @@
                                         
                                         <label class="control-label pull-left"  for="Name">Activity Types</label>
                                     </div>
-                                    <div class="col-sm-9" v-if="">
+                                    <!-- <div class="col-sm-9" v-if="">
                                         <select style="width:100%" class="form-control input-sm" multiple ref="activities_select" v-model="selected_activities">
                                             <option v-for="a in allowed_activities" :value="a.id">{{a.name}}</option>
                                         </select>
+                                    </div> -->
+
+                                    <div class="col-sm-9" v-if="">
+                                        
+                                        <input type="text" class="form-control" name="pre_event_name"  v-model="park.event_activities">
                                     </div>
+
                                 </div>
                             </div>
 
@@ -151,10 +157,11 @@ export default {
             this.errors = false;
             $('.has-error').removeClass('has-error');
             //this.$refs.activities_select=[];
-            $(this.$refs.activities_select).val(null).trigger('change');
+            //$(this.$refs.activities_select).val(null).trigger('change');
+            //this.events_park_id=null;
+            $(this.$refs.events_park).val(null).trigger('change');
             this.selected_activities=[];
             this.events_park_id=null;
-            this.$refs.events_park='';
             this.validation_form.resetForm();
         },
         fetchContact: function(id){
@@ -190,14 +197,16 @@ export default {
                       if(vm.park.park)
                       {
                         vm.events_park_id=vm.park.park.id
-                        //$(vm.$refs.events_park).val(vm.park.park.id).trigger('change');
-                        vm.fetchAllowedActivities();
+                        // $(vm.$refs.events_park).val(vm.events_park_id)
+                        // $(vm.$refs.events_park).trigger('change')
+                        $(vm.$refs.events_park).val(vm.park.park.id).trigger('change');
+                        //vm.fetchAllowedActivities();
                       }
-                      if(vm.park.activities)
-                      {
-                        vm.selected_activities=vm.park.activities;
-                        $(vm.$refs.activities_select).val(vm.park.activities).trigger('change');
-                      }
+                      // if(vm.park.activities)
+                      // {
+                      //   vm.selected_activities=vm.park.activities;
+                      //   $(vm.$refs.activities_select).val(vm.park.activities).trigger('change');
+                      // }
                       // if(vm.park.from_date){
                       //   vm.park.from_date=vm.park.from_date.format('DD/MM/YYYY')
                       //   }
@@ -208,6 +217,7 @@ export default {
         },
         fetchAllowedActivities: function(){
             /* Searches for dictionary in list */
+            console.log('here');
             let vm=this;
             for (var i = 0; i < vm.parks_list.length; i++) {
                 if (vm.parks_list[i].id == vm.events_park_id) {
@@ -312,20 +322,35 @@ export default {
        },
        eventListeners:function () {
             let vm = this;
+            $(vm.$refs.events_park).select2({
+                "theme": "bootstrap",
+                allowClear: true,
+                placeholder:"Select Park"
+            }).
+            on("select2:select",function (e) {
+                var selected = $(e.currentTarget);
+                vm.events_park_id = selected.val();
+                //vm.fetchAllowedActivities();
+            }).
+            on("select2:unselect",function (e) {
+                var selected = $(e.currentTarget);
+                vm.events_park_id = selected.val();
+                //vm.fetchAllowedActivities();
+            });
             // Initialise select2 for Activity types
-                $(vm.$refs.activities_select).select2({
-                    "theme": "bootstrap",
-                    allowClear: true,
-                    placeholder:"Select Activities"
-                }).
-                on("select2:select",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.selected_activities = selected.val();
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.selected_activities = selected.val();
-                });
+                // $(vm.$refs.activities_select).select2({
+                //     "theme": "bootstrap",
+                //     allowClear: true,
+                //     placeholder:"Select Activities"
+                // }).
+                // on("select2:select",function (e) {
+                //     var selected = $(e.currentTarget);
+                //     vm.selected_activities = selected.val();
+                // }).
+                // on("select2:unselect",function (e) {
+                //     var selected = $(e.currentTarget);
+                //     vm.selected_activities = selected.val();
+                // });
             
        }
    },

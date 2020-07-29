@@ -2984,6 +2984,10 @@ class Referral(RevisionedMixin):
 
     # Methods
     @property
+    def application_type(self):
+        return self.proposal.application_type.name
+    
+    @property
     def latest_referrals(self):
         return Referral.objects.filter(sent_by=self.referral, proposal=self.proposal)[:2]
 
@@ -4394,7 +4398,7 @@ class DistrictProposalApproverGroup(models.Model):
             default = None
 
         if self.pk:
-            if not self.default and not self.region:
+            if not self.default and not self.district:
                 raise ValidationError('Only default can have no district set for District assessor group. Please specifiy region')
         else:
             if default and self.default:
@@ -5109,7 +5113,8 @@ class ProposalEventsParks(models.Model):
     #proposal = models.OneToOneField(Proposal, related_name='filming_parks', null=True)
     proposal = models.ForeignKey(Proposal, related_name='events_parks', null=True)
     park= models.ForeignKey(Park, related_name='events_proposal')
-    activities=models.ManyToManyField(Activity)
+    #activities=models.ManyToManyField(Activity) #not used any more
+    event_activities=models.CharField(max_length=255,null=True,blank=True)
 
     def __str__(self):
         return '{}'.format(self.park)
@@ -5117,9 +5122,9 @@ class ProposalEventsParks(models.Model):
     class Meta:
         app_label = 'commercialoperator'
 
-    @property
-    def activities_names(self):
-        return [a.name for a in self.activities.all()]
+    # @property
+    # def activities_names(self):
+    #     return [a.name for a in self.activities.all()]
 
     def add_documents(self, request):
         with transaction.atomic():
@@ -5281,7 +5286,7 @@ reversion.register(ProposalFilmingEquipment)
 reversion.register(ProposalFilmingOtherDetails)
 reversion.register(ProposalFilmingParks, follow=['filming_park_documents'])
 reversion.register(FilmingParkDocument)
-reversion.register(DistrictProposal, follow=['district_compliance', 'district_requirements', 'district_approvals'])
+reversion.register(DistrictProposal, follow=['district_compliance', 'district_proposal_requirements', 'district_approvals'])
 
 #Event
 reversion.register(ProposalEventActivities, follow=['abseiling_climbing_activity_data'])

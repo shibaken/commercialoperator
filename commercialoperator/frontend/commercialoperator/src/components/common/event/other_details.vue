@@ -66,7 +66,7 @@
                             <div class="row">&nbsp;</div>
                             <div class="row">
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Number of officials</label>
+                                    <label class="control-label pull-left"  for="Name">Number of support vehicles/ vessels</label>
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="input-group date" ref="support_vehicle_number" style="width: 70%;">
