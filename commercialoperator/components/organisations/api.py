@@ -634,7 +634,7 @@ class OrganisationListFilterView(generics.ListAPIView):
     search_fields = ('name',)
 
     def get_queryset(self):
-        org_list = Organisation.objects.all().values_list('id', flat=True)
+        org_list = Organisation.objects.all().values_list('organisation_id', flat=True)
         return ledger_organisation.objects.filter(id__in=org_list)
 
 class OrganisationRequestsViewSet(viewsets.ModelViewSet):
