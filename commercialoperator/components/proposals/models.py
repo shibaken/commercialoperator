@@ -5165,7 +5165,8 @@ class ProposalEventsParks(models.Model):
     #proposal = models.OneToOneField(Proposal, related_name='filming_parks', null=True)
     proposal = models.ForeignKey(Proposal, related_name='events_parks', null=True)
     park= models.ForeignKey(Park, related_name='events_proposal')
-    activities=models.ManyToManyField(Activity)
+    #activities=models.ManyToManyField(Activity) #not used any more
+    event_activities=models.CharField(max_length=255,null=True,blank=True)
 
     def __str__(self):
         return '{}'.format(self.park)
@@ -5173,9 +5174,9 @@ class ProposalEventsParks(models.Model):
     class Meta:
         app_label = 'commercialoperator'
 
-    @property
-    def activities_names(self):
-        return [a.name for a in self.activities.all()]
+    # @property
+    # def activities_names(self):
+    #     return [a.name for a in self.activities.all()]
 
     def add_documents(self, request):
         with transaction.atomic():

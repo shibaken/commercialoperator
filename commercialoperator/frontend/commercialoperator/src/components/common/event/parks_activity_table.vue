@@ -14,7 +14,8 @@
                 </div>
             </div>
         </div>
-        <editPark ref="edit_park" :park_id="park_id" @refreshFromResponse="refreshFromResponse"></editPark>
+        <editPark ref="edit_park" :park_id="park_id" @refreshFromResponse="refreshFromResponse" ></editPark>
+        <!-- v-bind:key="editParkBindId" -->
     </div>
 </template> 
 <script>
@@ -54,6 +55,7 @@ export default {
             },
             pBody: 'pBody' + vm._uid,
             datatable_id: 'park-datatable-'+vm._uid,
+            uuid: 0,
             // Filters for Parks
             park_headers:["Park or Reserve","Activities","Itenary/ Maps","Action"],
             park_options:{
@@ -80,7 +82,8 @@ export default {
                         
                     },
                     {
-                        data: "activities_names",
+                        //data: "activities_names",
+                        data: "event_activities",
 
                         //name: "park__activity",
                     },
@@ -121,6 +124,11 @@ export default {
         is_external: function(){
             return this.level == 'external';
         },
+        editParkBindId: function(){
+            let edit_park_bind_id='';
+            edit_park_bind_id='editPark' + parseInt(this.uuid);
+            return edit_park_bind_id;
+        },
     },
     methods:{
         fetchFilterLists: function(){
@@ -128,22 +136,44 @@ export default {
         },
         newPark: function(){
             let vm=this;
-            this.$refs.edit_park.park_id = null;
+            this.uuid +=1;
+
+            this.$nextTick(() =>{
+                this.$refs.edit_park.park_id = null;
             //this.$refs.edit_park.fetchPark(id);
-            var new_park_another={
-                park: null,
-                activities:[],
-                proposal: vm.proposal.id
-            }
-            //this.$refs.edit_park.park=this.new_park;
-            this.$refs.edit_park.park=new_park_another;
-            this.$refs.edit_park.park_action='add'
-            this.$refs.edit_park.isModalOpen = true;
+                var new_park_another={
+                    park: null,
+                    activities:[],
+                    proposal: vm.proposal.id
+                }
+                //this.$refs.edit_park.park=this.new_park;
+                this.$refs.edit_park.park=new_park_another;
+                this.$refs.edit_park.park_action='add'
+
+                this.$refs.edit_park.isModalOpen = true;
+            });
+            // this.$refs.edit_park.park_id = null;
+            // //this.$refs.edit_park.fetchPark(id);
+            // var new_park_another={
+            //     park: null,
+            //     activities:[],
+            //     proposal: vm.proposal.id
+            // }
+            // //this.$refs.edit_park.park=this.new_park;
+            // this.$refs.edit_park.park=new_park_another;
+            // this.$refs.edit_park.park_action='add'
+
+            // this.$refs.edit_park.isModalOpen = true;
         },
         editPark: function(id){
-            this.$refs.edit_park.park_id = id;
-            this.$refs.edit_park.fetchPark(id);
-            this.$refs.edit_park.isModalOpen = true;
+            this.uuid +=1;
+            this.$nextTick(() =>{
+                this.$refs.edit_park.park_id = id;
+                // this.$refs.edit_park.events_park_id = id;
+                // $(this.$refs.events_park).val(id).trigger('change');
+                this.$refs.edit_park.fetchPark(id);
+                this.$refs.edit_park.isModalOpen = true;
+            });
         },
         discardPark:function (park_id) {
             let vm = this;
