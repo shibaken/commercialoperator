@@ -436,9 +436,12 @@ export default {
           }
 
       } else if (vm.proposal.application_type=='Filming') {
-          // if (vm.proposal.other_details.preferred_licence_period=='' || vm.proposal.other_details.preferred_licence_period==null ){
-          //   blank_fields.push(' Preferred Licence Period is required')
-          // }
+          if (vm.proposal.filming_activity.commencement_date =='' || vm.proposal.filming_activity.commencement_date ==null || vm.proposal.filming_activity.completion_date =='' || vm.proposal.filming_activity.completion_date ==''){
+            blank_fields.push(' Period of proposed filming/ photography is required')
+          }
+          if(vm.proposal.filming_activity.film_type=='' || vm.proposal.filming_activity.film_type==null){
+            blank_fields.push(' Type of film to be undertaken is missing')
+          }
 
       } else if (vm.proposal.application_type=='Event') {
           // if (vm.proposal.other_details.preferred_licence_period=='' || vm.proposal.other_details.preferred_licence_period==null ){

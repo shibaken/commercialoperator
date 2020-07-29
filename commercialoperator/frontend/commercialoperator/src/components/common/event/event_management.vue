@@ -73,7 +73,7 @@
                                     
                                 </div>
                                 <div class="col-sm-6">
-                                      <textarea :disabled="readonly" class="form-control" name="off_road_details" placeholder="" v-model="proposal.event_management.media_details"></textarea>    
+                                      <textarea class="form-control" name="off_road_details" placeholder="" v-model="proposal.event_management.media_details" :disabled="proposal.readonly"></textarea>    
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -100,7 +100,7 @@
                                     
                                 </div>
                                 <div class="col-sm-6">
-                                      <textarea :disabled="readonly" class="form-control" name="structure_change_details" placeholder="" v-model="proposal.event_management.structure_change_details"></textarea>    
+                                      <textarea class="form-control" name="structure_change_details" placeholder="" v-model="proposal.event_management.structure_change_details":disabled="proposal.readonly"></textarea>    
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -127,7 +127,7 @@
                                     
                                 </div>
                                 <div class="col-sm-6">
-                                      <textarea :disabled="readonly" class="form-control" name="vendor_hired_details" placeholder="" v-model="proposal.event_management.vendor_hired_details"></textarea>    
+                                      <textarea class="form-control" name="vendor_hired_details" placeholder="" v-model="proposal.event_management.vendor_hired_details" :disabled="proposal.readonly"></textarea>    
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -136,7 +136,7 @@
                                     <label class="control-label pull-left"  for="Name">List any special equipment, facilities or materials required to conduct the proposed activity or event</label>
                                 </div>
                                 <div class="col-sm-6">
-                                      <textarea :disabled="readonly" class="form-control" name="equipment_details" placeholder="" v-model="proposal.event_management.equipment_details"></textarea>    
+                                      <textarea class="form-control" name="equipment_details" placeholder="" v-model="proposal.event_management.equipment_details" :disabled="proposal.readonly"></textarea>    
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -163,7 +163,7 @@
                                     
                                 </div>
                                 <div class="col-sm-6">
-                                      <textarea :disabled="readonly" class="form-control" name="toilets_provided_details" placeholder="" v-model="proposal.event_management.toilets_provided_details"></textarea>    
+                                      <textarea class="form-control" name="toilets_provided_details" placeholder="" v-model="proposal.event_management.toilets_provided_details" :disabled="proposal.readonly"></textarea>    
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -190,7 +190,7 @@
                                     
                                 </div>
                                 <div class="col-sm-6">
-                                      <textarea :disabled="readonly" class="form-control" name="rubbish_removal_details" placeholder="" v-model="proposal.event_management.rubbish_removal_details"></textarea>    
+                                      <textarea class="form-control" name="rubbish_removal_details" placeholder="" v-model="proposal.event_management.rubbish_removal_details" :disabled="proposal.readonly"></textarea>    
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -217,7 +217,7 @@
                                     
                                 </div>
                                 <div class="col-sm-6">
-                                      <textarea :disabled="readonly" class="form-control" name="approvals_gained_details" placeholder="" v-model="proposal.event_management.approvals_gained_details"></textarea>    
+                                      <textarea class="form-control" name="approvals_gained_details" placeholder="" v-model="proposal.event_management.approvals_gained_details" :disabled="proposal.readonly"></textarea>    
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -318,7 +318,7 @@
                                     <label class="control-label pull-left"  for="Name">Provide any other information that will be relavant to your application.</label>
                                 </div>
                                 <div class="col-sm-6">
-                                      <textarea :disabled="readonly" class="form-control" name="other_info" placeholder="" v-model="proposal.event_management.other_info"></textarea>    
+                                      <textarea class="form-control" name="other_info" placeholder="" v-model="proposal.event_management.other_info" :disabled="proposal.readonly"></textarea>    
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>

@@ -250,6 +250,8 @@
                         <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
                                 
                                 <ProposalTClass v-if="proposal && proposal_parks && proposal.application_type=='T Class'" :proposal="proposal" id="proposalStart" :canEditActivities="false" :is_external="false" :is_referral="true" :referral="referral" :hasReferralMode="hasReferralMode" :proposal_parks="proposal_parks"></ProposalTClass>
+                                <ProposalFilming v-else-if="proposal && proposal.application_type=='Filming'" :proposal="proposal" id="proposalStart" :canEditActivities="false" :is_external="false" :proposal_parks="proposal_parks" ref="proposal_filming" :is_referral="true" :referral="referral" :hasReferralMode="hasReferralMode" ></ProposalFilming>
+                                <ProposalEvent v-else-if="proposal && proposal.application_type=='Event'" :proposal="proposal" id="proposalStart" :canEditActivities="false" :is_external="false" :proposal_parks="proposal_parks" ref="proposal_event" :is_referral="true" :referral="referral" :hasReferralMode="hasReferralMode"></ProposalEvent>
                                 <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                 <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
                                 <input type='hidden' name="proposal_id" :value="1" />
@@ -273,6 +275,8 @@
 <script>
 import Proposal from '../../form.vue'
 import ProposalTClass from '@/components/form_tclass.vue'
+import ProposalFilming from '@/components/form_filming.vue'
+import ProposalEvent from '@/components/form_event.vue'
 import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
@@ -362,6 +366,8 @@ export default {
         MoreReferrals,
         CompleteReferral,
         ProposalTClass,
+        ProposalFilming,
+        ProposalEvent,
         Requirements,
         Assessment
     },

@@ -168,7 +168,7 @@ def create_monthly_invoice(user, offset_months=-1):
                     #invoice.settlement_date = calc_payment_due_date(booking, invoice.created + relativedelta(months=1))
                     #invoice.save()
 
-                    deferred_payment_date = calc_payment_due_date(booking, invoice.created + relativedelta(months=1))
+                    deferred_payment_date = calc_payment_due_date(booking, invoice.created)
                     book_inv = BookingInvoice.objects.create(booking=booking, invoice_reference=invoice.reference, payment_method=invoice.payment_method, deferred_payment_date=deferred_payment_date)
 
                     recipients = list(set([booking.proposal.applicant_email, user.email])) # unique list
@@ -262,12 +262,9 @@ def create_other_invoice(user, booking):
 
 def calc_payment_due_date(booking, _date):
     org_applicant = booking.proposal.org_applicant
-    if isinstance(org_applicant, Organisation):
-        return calc_monthly_invoicing_date(_date, org_applicant.monthly_invoicing_period) + relativedelta(days=org_applicant.monthly_payment_due_period)
-    return None
-
-def calc_monthly_invoicing_date(_date, offset_days):
-    return _date + relativedelta(days=offset_days)
+    if isinstance(org_applicant, Organisation) and org_applicant.monthly_payment_due_period > 0:
+        return _date + relativedelta(days=org_applicant.monthly_payment_due_period)
+    return _date + relativedelta(days=30)
 
 def is_invoicing_period(booking):
     org_applicant = booking.proposal.org_applicant
@@ -352,29 +349,29 @@ def delete_session_compliance_invoice(session):
         del session['cols_comp_invoice']
         session.modified = True
 
-## Filming - Fee (Application and Licence)
-#def get_session_filming_invoice(session):
-#    """ Filming Fee session ID """
-#    if 'cols_filming_invoice' in session:
-#        filming_fee_id = session['cols_filming_invoice']
-#    else:
-#        raise Exception('Filming not in Session')
-#
-#    try:
-#        return ComplianceFee.objects.get(id=compliance_fee_id)
-#    except Invoice.DoesNotExist:
-#        raise Exception('Compliance record not found for compliance {}'.format(compliance_fee_id))
-#
-#def set_session_compliance_invoice(session, compliance_fee):
-#    """ Compliance Fee session ID """
-#    session['cols_comp_invoice'] = compliance_fee.id
-#    session.modified = True
-#
-#def delete_session_compliance_invoice(session):
-#    """ Compliance Fee session ID """
-#    if 'cols_comp_invoice' in session:
-#        del session['cols_comp_invoice']
-#        session.modified = True
+# Filming - Fee (Application and Licence)
+def get_session_filming_invoice(session):
+    """ Filming Fee session ID """
+    if 'cols_filming_invoice' in session:
+        filming_fee_id = session['cols_filming_invoice']
+    else:
+        raise Exception('Filming not in Session')
+
+    try:
+        return FilmingFee.objects.get(id=filming_fee_id)
+    except Invoice.DoesNotExist:
+        raise Exception('Filming record not found for filming_fee {}'.format(filming_fee_id))
+
+def set_session_filming_invoice(session, filming_fee):
+    """ Filming Fee session ID """
+    session['cols_filming_invoice'] = filming_fee.id
+    session.modified = True
+
+def delete_session_filming_invoice(session):
+    """ Filming Fee session ID """
+    if 'cols_filming_invoice' in session:
+        del session['cols_filming_invoice']
+        session.modified = True
 
 
 def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], internal=False):
@@ -487,6 +484,42 @@ def create_event_fee_lines(proposal, invoice_text=None, vouchers=[], internal=Fa
         ]
     logger.info('{}'.format(line_items))
     return line_items
+
+def create_filming_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
+    if proposal.filming_activity.num_filming_days == 1:
+        licence_fee = proposal.application_type.filming_fee_full_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_full_day
+        licence_text =  'Full day'
+    elif proposal.filming_activity.num_filming_days > 1 and proposal.filming_activity.num_filming_days < 4:
+        full_day_fee = proposal.application_type.filming_fee_full_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_full_day
+        subsequent_day_fee = proposal.application_type.filming_fee_subsequent_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_subsequent_day
+        licence_fee = full_day_fee + (subsequent_day_fee * (proposal.filming_activity.num_filming_days-1))
+        licence_text = '{} days'.format(proposal.filming_activity.num_filming_days)
+    elif proposal.filming_activity.num_filming_days >= 4:
+        licence_fee = proposal.application_type.filming_fee_4days if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_4days
+        licence_text = '4 days or more'.format(proposal.filming_activity.num_filming_days)
+
+    application_fee = proposal.application_type.application_fee
+    filming_period = '{} - {}'.format(proposal.filming_activity.commencement_date, proposal.filming_activity.completion_date)
+
+    lines = [
+        {
+            'ledger_description': 'Filming/Photography Application Fee - {}'.format(proposal.lodgement_number),
+            'oracle_code': proposal.application_type.oracle_code_licence,
+            'price_incl_tax':  str(application_fee),
+            'price_excl_tax':  str(application_fee) if proposal.application_type.is_gst_exempt else str(calculate_excl_gst(application_fee)),
+            'quantity': 1
+        },
+        {
+            'ledger_description': 'Filming/Photography Licence Fee ({} - {}) - {}'.format(licence_text, filming_period, proposal.lodgement_number),
+            'oracle_code': proposal.application_type.oracle_code_licence,
+            'price_incl_tax': str( licence_fee),
+            'price_excl_tax':  str(licence_fee) if proposal.application_type.is_gst_exempt else str(calculate_excl_gst(licence_fee)),
+            'quantity': 1
+        },
+    ]
+
+    return lines
+
 
 def create_lines(request, invoice_text=None, vouchers=[], internal=False):
     """ Create the ledger lines - line items for invoice sent to payment system """
@@ -789,7 +822,6 @@ def create_invoice(booking, payment_method='bpay'):
         user = EmailUser.objects.get(email=booking.proposal.applicant_email.lower())
     except Exception:
         user = EmailUser.objects.get(email=booking.proposal.submitter.email.lower())
-
 
     if payment_method=='monthly_invoicing':
         invoice_text = 'Monthly Payment Invoice'

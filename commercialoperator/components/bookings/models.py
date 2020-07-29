@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from django.db import models, transaction
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils import timezone
+from django.contrib.postgres.fields.jsonb import JSONField
 from ledger.accounts.models import EmailUser, RevisionedMixin
 from ledger.payments.models import Invoice
 from commercialoperator.components.proposals.models import Proposal
@@ -462,6 +463,7 @@ class FilmingFee(Payment):
     created_by = models.ForeignKey(EmailUser,on_delete=models.PROTECT, blank=True, null=True,related_name='created_by_filming_fee')
     deferred_payment_date = models.DateField(blank=True, null=True)
     payment_due_notification_sent = models.BooleanField(default=False)
+    lines = JSONField(default=[''])
 
     def __str__(self):
         return 'Proposal {} : Invoice {}'.format(self.proposal, self.filming_fee_invoices.last())

@@ -99,13 +99,13 @@ class ProposalEventsParksSerializer(serializers.ModelSerializer):
     events_park_documents = EventsParkDocumentSerializer(many=True, read_only=True)
     class Meta:
         model = ProposalEventsParks
-        fields = ('id', 'park', 'activities','activities_names', 'proposal', 'events_park_documents')
+        fields = ('id', 'park','event_activities',  'proposal', 'events_park_documents')
 
 class SaveProposalEventsParksSerializer(serializers.ModelSerializer):
     #park=ParkFilterSerializer()
     class Meta:
         model = ProposalEventsParks
-        fields = ('id', 'park','proposal', 'activities')
+        fields = ('id', 'park','proposal', 'event_activities')
 
 class AbseilingClimbingActivitySerializer(serializers.ModelSerializer):
     expiry_date = serializers.DateField(format="%d/%m/%Y",input_formats=['%d/%m/%Y'],required=False,allow_null=True)
