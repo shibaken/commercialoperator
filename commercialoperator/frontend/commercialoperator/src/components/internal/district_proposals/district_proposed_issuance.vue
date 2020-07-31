@@ -75,7 +75,7 @@
                 </div>
             </div>
 
-            <p v-if="can_preview">Click <a href="#" @click.prevent="preview">here</a> to preview the licence document.</p>
+            <!-- <p v-if="can_preview">Click <a href="#" @click.prevent="preview">here</a> to preview the licence document.</p> -->
 
             <div slot="footer">
                 <button type="button" v-if="issuingApproval" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
@@ -109,7 +109,11 @@ export default {
         district_proposal_type: {
             type: String,
             required: true
-        }
+        },
+        proposal_id: {
+            type: Number,
+            required: true
+        },
     },
     data:function () {
         let vm = this;
@@ -163,7 +167,7 @@ export default {
             return this.processing_status == 'With Approver' ? true : false;
         },
         preview_licence_url: function() {
-          return (this.district_proposal_id) ? `/preview/licence-pdf/${this.district_proposal_id}` : '';
+          return (this.district_proposal_id) ? `/preview/licence-pdf/${this.proposal_id}` : '';
         },
         
 

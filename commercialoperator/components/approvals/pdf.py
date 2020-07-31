@@ -15,6 +15,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from commercialoperator.components.approvals.models import ApprovalDocument
+from commercialoperator.components.main.models import ApplicationType
 
 #BW_DPAW_HEADER_LOGO = os.path.join(settings.BASE_DIR, 'wildlifelicensing', 'static', 'wl', 'img',
 #                                   'bw_dpaw_header_logo.png')
@@ -137,135 +138,8 @@ def _create_approval_header(canvas, doc, draw_page_number=True):
         canvas.drawString(current_x, current_y - (LARGE_FONTSIZE + HEADER_SMALL_BUFFER) * 2,
                           '{}'.format(doc.approval.lodgement_number))
 
-def _create_approval(approval_buffer, approval, proposal, copied_to_permit, user):
-    site_url = settings.SITE_URL
-    every_page_frame = Frame(PAGE_MARGIN, PAGE_MARGIN, PAGE_WIDTH - 2 * PAGE_MARGIN,
-                             PAGE_HEIGHT - 160, id='EveryPagesFrame')
-    every_page_template = PageTemplate(id='EveryPages', frames=[every_page_frame], onPage=_create_approval_header)
 
-    doc = BaseDocTemplate(approval_buffer, pageTemplates=[every_page_template], pagesize=A4)
-
-    # this is the only way to get data into the onPage callback function
-    doc.approval = approval
-    doc.site_url = site_url
-    region = approval.region if hasattr(approval, 'region') else ''
-    district = approval.district if hasattr(approval, 'district') else ''
-    region_district = '{} - {}'.format(region, district) if district else region
-
-    approval_table_style = TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP')])
-
-    elements = []
-
-
-    title = approval.title.encode('UTF-8') if approval.title else ''
-
-    #Organization details
-
-    address = proposal.applicant_address
-    # address = proposal.applicant_address
-    if proposal.org_applicant:
-        email = proposal.org_applicant.organisation.organisation_set.all().first().contacts.all().first().email
-    else:
-        email= proposal.submitter.email
-    elements.append(Paragraph(email,styles['BoldLeft']))
-    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-    elements.append(Paragraph(_format_name(approval.applicant),styles['BoldLeft']))
-    elements.append(Paragraph(address.line1, styles['BoldLeft']))
-    elements.append(Paragraph(address.line2, styles['BoldLeft']))
-    elements.append(Paragraph(address.line3, styles['BoldLeft']))
-    # if proposal.org_applicant:
-    #     elements.append(Paragraph('%s %s %s' % (address.locality, address.state, address.postcode), styles['BoldLeft']))
-    # else:
-    #     elements.append(Paragraph('%s %s' % (address.state, address.postcode), styles['BoldLeft']))
-    elements.append(Paragraph('%s %s %s' % (address.locality, address.state, address.postcode), styles['BoldLeft']))
-    elements.append(Paragraph(address.country.name, styles['BoldLeft']))
-    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-    elements.append(Paragraph(approval.issue_date.strftime(DATE_FORMAT), styles['BoldLeft']))
-    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-
-    #elements.append(Paragraph(title, styles['InfoTitleVeryLargeCenter']))
-    #elements.append(Paragraph(approval.activity, styles['InfoTitleLargeLeft']))
-    elements.append(Paragraph('APPROVAL OF PROPOSAL {} {} TO UNDERTAKE Commercial Operator Licensing ACTIVITY IN {}'.format(title, proposal.lodgement_number, region_district), styles['InfoTitleLargeLeft']))
-    #elements.append(Paragraph(approval.tenure if hasattr(approval, 'tenure') else '', styles['InfoTitleLargeRight']))
-
-    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-    elements.append(Paragraph('The submitted proposal {} {} has been assessed and approved. The approval is granted on the understanding that: '.format(title, proposal.lodgement_number), styles['BoldLeft']))
-    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-
-    list_of_bullets= []
-    list_of_bullets.append('The potential impacts of the proposal on values the department manages have been removed or minimised to a level \'As Low As Reasonably Practicable\' (ALARP) and the proposal is consistent with departmental objectives, associated management plans and the land use category/s in the activity area.')
-    list_of_bullets.append('Approval is granted for the period {} to {}.  This approval is not valid if {} makes changes to what has been proposed or the proposal has expired.  To change the proposal or seek an extension, the proponent must re-submit the proposal for assessment.'.format(approval.start_date.strftime(DATE_FORMAT), approval.expiry_date.strftime(DATE_FORMAT),_format_name(approval.applicant)))
-    list_of_bullets.append('The proponent accepts responsibility for advising {} of new information or unforeseen threats that may affect the risk of the proposed activity.'.format(settings.DEP_NAME_SHORT))
-    list_of_bullets.append('Information provided by {0} for the purposes of this proposal will not be provided to third parties without permission from {0}.'.format(settings.DEP_NAME_SHORT))
-    list_of_bullets.append('The proponent accepts responsibility for supervising and monitoring implementation of activity/ies to ensure compliance with this proposal. {} reserves the right to request documents and records demonstrating compliance for departmental monitoring and auditing.'.format(settings.DEP_NAME_SHORT))
-    list_of_bullets.append('Non-compliance with the conditions of the proposal may trigger a suspension or withdrawal of the approval for this activity.')
-    list_of_bullets.append('Management actions listed in Appendix 1 are implemented.')
-
-    understandingList = ListFlowable(
-            [ListItem(Paragraph(a, styles['Left']), bulletColour='black', value='circle') for a in list_of_bullets],
-            bulletFontName=BOLD_FONTNAME, bulletFontSize=SMALL_FONTSIZE, bulletType='bullet')
-            #bulletFontName=BOLD_FONTNAME
-    elements.append(understandingList)
-
-    # proposal requirements
-    requirements = proposal.requirements.all().exclude(is_deleted=True)
-    if requirements.exists():
-        elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-        elements.append(Paragraph('The following requirements must be satisfied for the approval of the proposal not to be withdrawn:', styles['BoldLeft']))
-        elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-
-        conditionList = ListFlowable(
-            [Paragraph(a.requirement, styles['Left']) for a in requirements.order_by('order')],
-            bulletFontName=BOLD_FONTNAME, bulletFontSize=MEDIUM_FONTSIZE)
-        elements.append(conditionList)
-
-    elements += _layout_extracted_fields(approval.extracted_fields)
-
-    # additional information
-    '''if approval.additional_information:
-        elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-        elements.append(Paragraph('Additional Information', styles['BoldLeft']))
-        elements += _layout_paragraphs(approval.additional_information)'''
-
-    # delegation holds the dates, approvale and issuer details.
-    delegation = []
-
-    delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-    delegation.append(Paragraph('Should you have any queries about this approval, please contact {} {}, '
-                                'on {} or by email at {}'.format(user.first_name, user.last_name, settings.DEP_PHONE, user.email), styles['Left']))
-    delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-    delegation.append(Paragraph('To provide feedback on the system used to submit the approval or update contact details, please '
-        'contact {} Works Coordinator - {}'.format(settings.SYSTEM_NAME_SHORT, settings.SUPPORT_EMAIL), styles['Left']))
-    delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-    delegation.append(Paragraph('Approved on behalf of the', styles['Left']))
-    delegation.append(Paragraph('{}'.format(settings.DEP_NAME), styles['BoldLeft']))
-    delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-    delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-
-    delegation.append(Paragraph('{} {}'.format(user.first_name, user.last_name), styles['Left']))
-    delegation.append(Paragraph('{}'.format(region_district), styles['Left']))
-    delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-    delegation.append(Paragraph(approval.issue_date.strftime(DATE_FORMAT), styles['Left']))
-
-    elements.append(KeepTogether(delegation))
-
-    # Appendix section
-    elements.append(PageBreak())
-    elements.append(Paragraph('Appendix 1 - Management Actions', styles['BoldLeft']))
-    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-    if copied_to_permit:
-        for item in copied_to_permit:
-            for key in item:
-               elements.append(Paragraph(key.encode('UTF-8'), styles['Left']))
-               elements.append(Paragraph(item[key].encode('UTF-8'), styles['Left']))
-    else:
-        elements.append(Paragraph('There are no management actions.', styles['Left']))
-
-
-    doc.build(elements)
-
-    return approval_buffer
-
+#For TClass type of Licence
 def _create_approval_cols(approval_buffer, approval, proposal, copied_to_permit, user):
     site_url = settings.SITE_URL
     every_page_frame = Frame(PAGE_MARGIN, PAGE_MARGIN, PAGE_WIDTH - 2 * PAGE_MARGIN,
@@ -421,6 +295,468 @@ def _create_approval_cols(approval_buffer, approval, proposal, copied_to_permit,
 
     return approval_buffer
 
+#For Event licence
+def _create_approval_event(approval_buffer, approval, proposal, copied_to_permit, user):
+    site_url = settings.SITE_URL
+    every_page_frame = Frame(PAGE_MARGIN, PAGE_MARGIN, PAGE_WIDTH - 2 * PAGE_MARGIN,
+                             PAGE_HEIGHT - 160, id='EveryPagesFrame')
+    every_page_template = PageTemplate(id='EveryPages', frames=[every_page_frame], onPage=_create_approval_header)
+
+    doc = BaseDocTemplate(approval_buffer, pageTemplates=[every_page_template], pagesize=A4)
+
+    # this is the only way to get data into the onPage callback function
+    doc.approval = approval
+    doc.site_url = site_url
+
+    approval_table_style = TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP')])
+    box_table_style = TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP'), ('BOX', (0,0), (-1,-1), 0.25, black), ('INNERGRID', (0,0), (-1,-1), 0.25, black), ('ALIGN', (0, 0), (-1, -1), 'RIGHT')])
+
+    elements = []
+
+    #Organization details
+
+    address = proposal.applicant_address
+    # address = proposal.applicant_address
+    if proposal.org_applicant:
+        try:
+            email = proposal.org_applicant.organisation.organisation_set.all().first().contacts.all().first().email
+        except:
+            raise ValidationError('There is no contact for Organisation. Please create an Organisation contact')
+    else:
+        email= proposal.submitter.email
+    #elements.append(Paragraph(email,styles['BoldLeft']))
+    elements.append(Paragraph('CONSERVATION AND LAND MANAGEMENT REGULATIONS 2002 (PART 7)', styles['ItalicCenter']))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Paragraph('COMMERCIAL OPERATIONS LICENCE', styles['InfoTitleVeryLargeCenter']))
+    elements.append(Paragraph('EVENT', styles['InfoTitleVeryLargeCenter']))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+    elements.append(Paragraph('The Chief Executive Officer (CEO) of the Department of Biodiversity, Conservation and Attractions hereby grants a commercial operations licence to enter upon and conduct activities within the parks/reserves listed in Schedule 1 of this licence to:', styles['BoldLeft']))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+    # delegation holds the Licence number and applicant name in table format.
+    delegation = []
+    delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    delegation.append(Table([[[Paragraph('Licensee:', styles['BoldLeft'])],
+                              [Paragraph(_format_name(approval.applicant),
+                                         styles['Left'])]]],
+                            colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                            style=approval_table_style))
+
+    if approval.current_proposal.org_applicant and approval.current_proposal.org_applicant.organisation.trading_name:
+        delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+        delegation.append(Table([[[Paragraph('Trading Name:', styles['BoldLeft'])],
+                                  [Paragraph(_format_name(approval.current_proposal.org_applicant.organisation.trading_name),
+                                             styles['Left'])]]],
+                                colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                                style=approval_table_style))
+
+
+    delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    delegation.append(Table([[[Paragraph('Licence Number:', styles['BoldLeft'])],
+                              [Paragraph(approval.lodgement_number,
+                                         styles['Left'])]]],
+                            colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                            style=approval_table_style))
+
+    delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+
+    elements.append(KeepTogether(delegation))
+
+    elements.append(Paragraph('Commencing on the {} and expiring on {}.'.format(approval.start_date.strftime(DATE_FORMAT2), approval.expiry_date.strftime(DATE_FORMAT2)),styles['BoldLeft']))
+    elements.append(Paragraph('To hold the {} commercial event.'.format(approval.current_proposal.event_activity.event_name), styles['BoldLeft']))
+
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Paragraph('CONDITIONS', styles['BoldLeft']))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+    list_of_bullets= []
+    list_of_bullets.append('This Commercial Operations Licence is subject to the provisions of the <i>Conservation and Land Management Act 1984</i> and all subsidiary legislation made under it.')
+    list_of_bullets.append('The Licensee must comply with and not contravene the conditions and restrictions set out in the Commercial Operator Handbook as varied from time to time by the CEO.')
+    list_of_bullets.append('The Licensee must comply with the conditions contained in any schedule of conditions attached to this Commercial Operations Licence.')
+
+    understandingList = ListFlowable(
+            [ListItem(Paragraph(a, styles['Left']), bulletColour='black') for a in list_of_bullets],
+            bulletFontName=BOLD_FONTNAME, bulletFontSize=MEDIUM_FONTSIZE)
+            #bulletFontName=BOLD_FONTNAME
+    elements.append(understandingList)
+
+    elements += _layout_extracted_fields(approval.extracted_fields)
+
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+    elements.append(Paragraph('{} {}'.format(user.first_name, user.last_name), styles['Left']))
+    if user.position_title:
+        elements.append(Paragraph('{}'.format(user.position_title), styles['Left']))
+    elements.append(Paragraph('As Delegate of CEO', styles['Left']))
+    elements.append(Paragraph('Under Section 133(2) of the CALM Act 1984', styles['Left']))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Paragraph(approval.issue_date.strftime(DATE_FORMAT), styles['Left']))
+
+    elements.append(PageBreak())
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    table_data=[[Paragraph('Licence Number', styles['BoldLeft']), Paragraph(_format_name(approval.lodgement_number), styles['Left'])],
+                [Paragraph('Commencement Date', styles['BoldLeft']), Paragraph(_format_name(approval.start_date).strftime(DATE_FORMAT), styles['Left'])],    
+                [Paragraph('Expiry Date', styles['BoldLeft']), Paragraph(_format_name(approval.expiry_date).strftime(DATE_FORMAT), styles['Left'])]]
+    t=Table(table_data, colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                            style=box_table_style)
+    elements.append(t)
+
+    # Schedule 1
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Paragraph('SCHEDULE 1', styles['BoldCenter']))
+    elements.append(Paragraph('COMMERCIAL OPERATIONS LICENCE EVENT ACTIVITIES', styles['BoldCenter']))
+
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    park_data=[]
+    for p in approval.current_proposal.events_parks.all():
+        activities_str=''
+        if p.event_activities:
+            activities_str = p.event_activities.encode('UTF-8')
+
+        park_data.append([Paragraph(_format_name(p.park.name), styles['BoldLeft']),
+                              Paragraph(activities_str, styles['Left']) # remove last trailing comma
+                        ])
+
+    if park_data:
+        park_table=Table(park_data, colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                            style=box_table_style)
+        elements.append(park_table)
+
+    # Schedule 2
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Paragraph('SCHEDULE 2', styles['BoldCenter']))
+    elements.append(Paragraph('COMMERCIAL OPERATIONS LICENCE EVENT CONDITIONS', styles['BoldCenter']))
+    requirements = proposal.requirements.all().exclude(is_deleted=True)
+    if requirements.exists():
+        elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+        #elements.append(Paragraph('The following requirements must be satisfied for the licence not to be withdrawn:', styles['BoldLeft']))
+        #elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+        conditionList = ListFlowable(
+            [Paragraph(a.requirement, styles['Left']) for a in requirements.order_by('order')],
+            bulletFontName=BOLD_FONTNAME, bulletFontSize=MEDIUM_FONTSIZE)
+        elements.append(conditionList)
+
+    doc.build(elements)
+
+    return approval_buffer
+
+#For Filming licence
+def _create_approval_filming(approval_buffer, approval, proposal, copied_to_permit, user):
+    site_url = settings.SITE_URL
+    every_page_frame = Frame(PAGE_MARGIN, PAGE_MARGIN, PAGE_WIDTH - 2 * PAGE_MARGIN,
+                             PAGE_HEIGHT - 160, id='EveryPagesFrame')
+    every_page_template = PageTemplate(id='EveryPages', frames=[every_page_frame], onPage=_create_approval_header)
+
+    doc = BaseDocTemplate(approval_buffer, pageTemplates=[every_page_template], pagesize=A4)
+
+    # this is the only way to get data into the onPage callback function
+    doc.approval = approval
+    doc.site_url = site_url
+
+    approval_table_style = TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP')])
+    box_table_style = TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP'), ('BOX', (0,0), (-1,-1), 0.25, black), ('INNERGRID', (0,0), (-1,-1), 0.25, black), ('ALIGN', (0, 0), (-1, -1), 'RIGHT')])
+
+    elements = []
+
+    #Organization details
+
+    address = proposal.applicant_address
+    # address = proposal.applicant_address
+    if proposal.org_applicant:
+        try:
+            email = proposal.org_applicant.organisation.organisation_set.all().first().contacts.all().first().email
+        except:
+            raise ValidationError('There is no contact for Organisation. Please create an Organisation contact')
+    else:
+        email= proposal.submitter.email
+    #elements.append(Paragraph(email,styles['BoldLeft']))
+    elements.append(Paragraph('CONSERVATION AND LAND MANAGEMENT REGULATIONS 2002 (PART 7)', styles['ItalicCenter']))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Paragraph('COMMERCIAL OPERATIONS LICENCE', styles['InfoTitleVeryLargeCenter']))
+    elements.append(Paragraph('FILMING AND PHOTOGRAPHY', styles['InfoTitleVeryLargeCenter']))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+    elements.append(Paragraph('The Chief Executive Officer (CEO) of the Department of Biodiversity, Conservation and Attractions hereby grants a commercial filming and photography licence to enter upon and conduct activities within the parks/reserves listed in Schedule 1 of this licence to:', styles['BoldLeft']))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+    # delegation holds the Licence number and applicant name in table format.
+    delegation = []
+    delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    delegation.append(Table([[[Paragraph('Licensee:', styles['BoldLeft'])],
+                              [Paragraph(_format_name(approval.applicant),
+                                         styles['Left'])]]],
+                            colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                            style=approval_table_style))
+
+    if approval.current_proposal.org_applicant and approval.current_proposal.org_applicant.organisation.trading_name:
+        delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+        delegation.append(Table([[[Paragraph('Trading Name:', styles['BoldLeft'])],
+                                  [Paragraph(_format_name(approval.current_proposal.org_applicant.organisation.trading_name),
+                                             styles['Left'])]]],
+                                colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                                style=approval_table_style))
+
+
+    delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    delegation.append(Table([[[Paragraph('Licence Number:', styles['BoldLeft'])],
+                              [Paragraph(approval.lodgement_number,
+                                         styles['Left'])]]],
+                            colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                            style=approval_table_style))
+
+    delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+
+    elements.append(KeepTogether(delegation))
+
+    elements.append(Paragraph('Commencing on the {} and expiring on {}.'.format(approval.start_date.strftime(DATE_FORMAT2), approval.expiry_date.strftime(DATE_FORMAT2)),styles['BoldLeft']))
+
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Paragraph('CONDITIONS', styles['BoldLeft']))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+    list_of_bullets= []
+    list_of_bullets.append('This Licence is subject to the provisions of the <i>Conservation and Land Management Act 1984</i> and all subsidiary legislation made under it.')
+    list_of_bullets.append('The Licensee shall comply with and not contravene the conditions and restrictions set out in the Commercial Filming and Photography Handbook as varied from time to time by the CEO.')
+    list_of_bullets.append('The Licensee must comply with the conditions contained in any schedule of conditions attached to this Licence.')
+
+    understandingList = ListFlowable(
+            [ListItem(Paragraph(a, styles['Left']), bulletColour='black') for a in list_of_bullets],
+            bulletFontName=BOLD_FONTNAME, bulletFontSize=MEDIUM_FONTSIZE)
+            #bulletFontName=BOLD_FONTNAME
+    elements.append(understandingList)
+
+    elements += _layout_extracted_fields(approval.extracted_fields)
+
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+    elements.append(Paragraph('{} {}'.format(user.first_name, user.last_name), styles['Left']))
+    if user.position_title:
+        elements.append(Paragraph('{}'.format(user.position_title), styles['Left']))
+    elements.append(Paragraph('As Delegate of CEO', styles['Left']))
+    elements.append(Paragraph('Under Section 133(2) of the CALM Act 1984', styles['Left']))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Paragraph(approval.issue_date.strftime(DATE_FORMAT), styles['Left']))
+
+    elements.append(PageBreak())
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    table_data=[[Paragraph('Licence Number', styles['BoldLeft']), Paragraph(_format_name(approval.lodgement_number), styles['Left'])],
+                [Paragraph('Commencement Date', styles['BoldLeft']), Paragraph(_format_name(approval.start_date).strftime(DATE_FORMAT), styles['Left'])],    
+                [Paragraph('Expiry Date', styles['BoldLeft']), Paragraph(_format_name(approval.expiry_date).strftime(DATE_FORMAT), styles['Left'])]]
+    t=Table(table_data, colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                            style=box_table_style)
+    elements.append(t)
+
+    # Schedule 1
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Paragraph('SCHEDULE 1', styles['BoldCenter']))
+    elements.append(Paragraph('COMMERCIAL FILMING AND PHOTOGRAPHY LICENCE ACTIVITIES', styles['BoldCenter']))
+
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    park_data=[]
+    film_type=''
+    if approval.current_proposal.filming_activity.film_type:
+        film_type=approval.current_proposal.filming_activity.get_film_type_display()
+        film_type = film_type.encode('UTF-8')
+    for p in approval.current_proposal.filming_parks.all():
+        # film_type=''
+        # if approval.current_proposal.filming_activity.film_type:
+        #     film_type=p.filming_activity.get_film_type_display()
+        #     film_type = film_type.encode('UTF-8')
+
+        park_data.append([Paragraph(_format_name(p.park.name), styles['BoldLeft']),
+                              Paragraph(film_type, styles['Left']) # remove last trailing comma
+                        ])
+
+    if park_data:
+        park_table=Table(park_data, colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                            style=box_table_style)
+        elements.append(park_table)
+
+    # Schedule 2
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Paragraph('SCHEDULE 2', styles['BoldCenter']))
+    elements.append(Paragraph('COMMERCIAL FILMING AND PHOTOGRAPHY LICENCE CONDITIONS', styles['BoldCenter']))
+    requirements = proposal.requirements.all().exclude(is_deleted=True)
+    if requirements.exists():
+        elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+        #elements.append(Paragraph('The following requirements must be satisfied for the licence not to be withdrawn:', styles['BoldLeft']))
+        #elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+        conditionList = ListFlowable(
+            [Paragraph(a.requirement, styles['Left']) for a in requirements.order_by('order')],
+            bulletFontName=BOLD_FONTNAME, bulletFontSize=MEDIUM_FONTSIZE)
+        elements.append(conditionList)
+
+    doc.build(elements)
+
+    return approval_buffer
+
+#For Filming lawful authority
+def _create_approval_lawful_authority(approval_buffer, approval, proposal, copied_to_permit, user):
+    site_url = settings.SITE_URL
+    every_page_frame = Frame(PAGE_MARGIN, PAGE_MARGIN, PAGE_WIDTH - 2 * PAGE_MARGIN,
+                             PAGE_HEIGHT - 160, id='EveryPagesFrame')
+    every_page_template = PageTemplate(id='EveryPages', frames=[every_page_frame], onPage=_create_approval_header)
+
+    doc = BaseDocTemplate(approval_buffer, pageTemplates=[every_page_template], pagesize=A4)
+
+    # this is the only way to get data into the onPage callback function
+    doc.approval = approval
+    doc.site_url = site_url
+
+    approval_table_style = TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP')])
+    box_table_style = TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP'), ('BOX', (0,0), (-1,-1), 0.25, black), ('INNERGRID', (0,0), (-1,-1), 0.25, black), ('ALIGN', (0, 0), (-1, -1), 'RIGHT')])
+
+    elements = []
+
+    #Organization details
+
+    address = proposal.applicant_address
+    # address = proposal.applicant_address
+    if proposal.org_applicant:
+        try:
+            email = proposal.org_applicant.organisation.organisation_set.all().first().contacts.all().first().email
+        except:
+            raise ValidationError('There is no contact for Organisation. Please create an Organisation contact')
+    else:
+        email= proposal.submitter.email
+    #elements.append(Paragraph(email,styles['BoldLeft']))
+    elements.append(Paragraph('CONSERVATION AND LAND MANAGEMENT REGULATIONS 2002 Regulation 4(1)', styles['ItalicCenter']))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Paragraph('LAWFUL AUTHORITY TO CONDUCT ', styles['InfoTitleVeryLargeCenter']))
+    elements.append(Paragraph('COMMERCIAL FILMING AND/OR ', styles['InfoTitleVeryLargeCenter']))
+    elements.append(Paragraph('PHOTOGRAPHY ACTIVITIES', styles['InfoTitleVeryLargeCenter']))    
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+    elements.append(Paragraph('This lawful authority is a written notice for the purposes of regulations 4(1) of the <i>Conservation and Land Management Regulations 2002</i> (the regulations) and it grants lawful authority to the person named herein as the Authority Holder to undertake commercial filming and/or photography activities in the areas specified in Schedule 1 of this lawful authority, an act that would otherwise be unlawful under the regulations.', styles['BoldLeft']))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+    elements.append(Paragraph('The Chief Executive Officer (CEO) of the Department of Biodiversity, Conservation and Attractions hereby grants a lawful authority to:', styles['BoldLeft']))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+    # delegation holds the Licence number and applicant name in table format.
+    delegation = []
+    delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    delegation.append(Table([[[Paragraph('Authority Holder:', styles['BoldLeft'])],
+                              [Paragraph(_format_name(approval.applicant),
+                                         styles['Left'])]]],
+                            colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                            style=approval_table_style))
+
+    if approval.current_proposal.org_applicant and approval.current_proposal.org_applicant.organisation.trading_name:
+        delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+        delegation.append(Table([[[Paragraph('Trading Name:', styles['BoldLeft'])],
+                                  [Paragraph(_format_name(approval.current_proposal.org_applicant.organisation.trading_name),
+                                             styles['Left'])]]],
+                                colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                                style=approval_table_style))
+
+
+    delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    delegation.append(Table([[[Paragraph('Lawful Authority Number:', styles['BoldLeft'])],
+                              [Paragraph(approval.lodgement_number,
+                                         styles['Left'])]]],
+                            colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                            style=approval_table_style))
+
+    delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+
+    elements.append(KeepTogether(delegation))
+
+    elements.append(Paragraph('Commencing on the {} and expiring on {}.'.format(approval.start_date.strftime(DATE_FORMAT2), approval.expiry_date.strftime(DATE_FORMAT2)),styles['BoldLeft']))
+
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Paragraph('CONDITIONS', styles['BoldLeft']))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+    list_of_bullets= []
+    list_of_bullets.append('This lawful authority is subject to the provisions of the <i>Conservation and Land Management Act 1984</i> and all subsidiary legislation made under it.')
+    list_of_bullets.append('The Authority Holder shall comply with and not contravene the conditions and restrictions set out in the Commercial Filming and Photography Handbook as varied from time to time by the CEO.')
+    list_of_bullets.append('The Authority Holder must comply with the conditions contained in any schedule of conditions attached to this lawful authority.')
+
+    understandingList = ListFlowable(
+            [ListItem(Paragraph(a, styles['Left']), bulletColour='black') for a in list_of_bullets],
+            bulletFontName=BOLD_FONTNAME, bulletFontSize=MEDIUM_FONTSIZE)
+            #bulletFontName=BOLD_FONTNAME
+    elements.append(understandingList)
+
+    elements += _layout_extracted_fields(approval.extracted_fields)
+
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+    elements.append(Paragraph('{} {}'.format(user.first_name, user.last_name), styles['Left']))
+    if user.position_title:
+        elements.append(Paragraph('{}'.format(user.position_title), styles['Left']))
+    elements.append(Paragraph('As Delegate of CEO', styles['Left']))
+    elements.append(Paragraph('Under Section 133(2) of the CALM Act 1984', styles['Left']))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Paragraph(approval.issue_date.strftime(DATE_FORMAT), styles['Left']))
+
+    elements.append(PageBreak())
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    table_data=[[Paragraph('Licence Number', styles['BoldLeft']), Paragraph(_format_name(approval.lodgement_number), styles['Left'])],
+                [Paragraph('Commencement Date', styles['BoldLeft']), Paragraph(_format_name(approval.start_date).strftime(DATE_FORMAT), styles['Left'])],    
+                [Paragraph('Expiry Date', styles['BoldLeft']), Paragraph(_format_name(approval.expiry_date).strftime(DATE_FORMAT), styles['Left'])]]
+    t=Table(table_data, colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                            style=box_table_style)
+    elements.append(t)
+
+    # Schedule 1
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Paragraph('SCHEDULE 1', styles['BoldCenter']))
+    elements.append(Paragraph('COMMERCIAL FILMING AND PHOTOGRAPHY LAWFUL AUTHORITY ACTIVITIES', styles['BoldCenter']))
+
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    park_data=[]
+    film_type=''
+    if approval.current_proposal.filming_activity.film_type:
+        film_type=approval.current_proposal.filming_activity.get_film_type_display()
+        film_type = film_type.encode('UTF-8')
+
+    approved_district_proposals= approval.current_proposal.district_proposals.filter(processing_status='approved')
+    approved_district_proposals_ids= approval.current_proposal.district_proposals.filter(processing_status='approved').values_list('id', flat=True)
+    for district_proposal in approved_district_proposals:   
+        for p in district_proposal.proposal_park.all():
+            park_data.append([Paragraph(_format_name(p.park.name), styles['BoldLeft']),
+                                  Paragraph(film_type, styles['Left']) # remove last trailing comma
+                            ])
+
+    if park_data:
+        park_table=Table(park_data, colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                            style=box_table_style)
+        elements.append(park_table)
+
+    # Schedule 2
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    elements.append(Paragraph('SCHEDULE 2', styles['BoldCenter']))
+    elements.append(Paragraph('COMMERCIAL FILMING AND PHOTOGRAPHY LAWFUL AUTHORITY CONDITIONS', styles['BoldCenter']))
+    requirements = approval.current_proposal.requirements.filter(district_proposal_id__in = approved_district_proposals_ids).exclude(is_deleted=True)
+    if requirements.exists():
+        elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+        #elements.append(Paragraph('The following requirements must be satisfied for the licence not to be withdrawn:', styles['BoldLeft']))
+        #elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+
+        conditionList = ListFlowable(
+            [Paragraph(a.requirement, styles['Left']) for a in requirements.order_by('order')],
+            bulletFontName=BOLD_FONTNAME, bulletFontSize=MEDIUM_FONTSIZE)
+        elements.append(conditionList)
+
+    doc.build(elements)
+
+    return approval_buffer
+
+
 def _format_name(applicant):
     #return org.name
     return applicant
@@ -516,7 +852,15 @@ def create_approval_doc(approval,proposal, copied_to_permit, user):
     approval_buffer = BytesIO()
 
     #_create_approval(approval_buffer, approval, proposal, copied_to_permit, user)
-    _create_approval_cols(approval_buffer, approval, proposal, copied_to_permit, user)
+    if proposal.application_type.name==ApplicationType.TCLASS:
+        _create_approval_cols(approval_buffer, approval, proposal, copied_to_permit, user)
+    if proposal.application_type.name==ApplicationType.EVENT:
+        _create_approval_event(approval_buffer, approval, proposal, copied_to_permit, user)
+    if proposal.application_type.name==ApplicationType.FILMING:
+        if proposal.is_lawful_authority:
+            _create_approval_lawful_authority(approval_buffer, approval, proposal, copied_to_permit, user)
+        else:
+            _create_approval_filming(approval_buffer, approval, proposal, copied_to_permit, user)
     filename = 'licence-{}.pdf'.format(approval.lodgement_number)
     document = ApprovalDocument.objects.create(approval=approval,name=filename)
     document._file.save(filename, File(approval_buffer), save=True)
@@ -527,8 +871,15 @@ def create_approval_doc(approval,proposal, copied_to_permit, user):
 def create_approval_pdf_bytes(approval,proposal, copied_to_permit, user):
     """ Essentially the same as create_approval_doc() - but used to preview the licence without creation """
     licence_buffer = BytesIO()
-    _create_approval_cols(licence_buffer, approval, proposal, copied_to_permit, user)
-
+    if proposal.application_type.name==ApplicationType.TCLASS:
+        _create_approval_cols(licence_buffer, approval, proposal, copied_to_permit, user)
+    if proposal.application_type.name==ApplicationType.EVENT:
+        _create_approval_event(licence_buffer, approval, proposal, copied_to_permit, user)
+    if proposal.application_type.name==ApplicationType.FILMING:
+        if proposal.is_lawful_authority:
+            _create_approval_lawful_authority(licence_buffer, approval, proposal, copied_to_permit, user)
+        else:
+            _create_approval_filming(licence_buffer, approval, proposal, copied_to_permit, user)
     # Get the value of the BytesIO buffer
     value = licence_buffer.getvalue()
     licence_buffer.close()

@@ -4767,6 +4767,7 @@ class DistrictProposal(models.Model):
                 }
                 self.proposed_decline_status = False
                 self.processing_status = 'approved'
+                self.save()
                 #self.customer_status = 'approved'
                 # Log proposal action
                 self.proposal.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_DISTRICT.format(self.id, self.proposal.id),request)
@@ -5297,7 +5298,7 @@ reversion.register(ProposalEventsParks, follow=['events_park_documents'])
 reversion.register(AbseilingClimbingActivity)
 reversion.register(EventsParkDocument)
 reversion.register(ProposalPreEventsParks, follow=['pre_event_park_documents'])
-
+reversion.register(PreEventsParkDocument)
 
 
 

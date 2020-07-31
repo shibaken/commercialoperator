@@ -206,7 +206,7 @@
         </div>
         </div>
         <ProposedDecline ref="proposed_decline" :processing_status="district_proposal.processing_status" :district_proposal_id="district_proposal.id" @refreshFromResponse="refreshFromResponse"></ProposedDecline>
-        <ProposedApproval ref="proposed_approval" :processing_status="district_proposal.processing_status" :district_proposal_id="district_proposal.id" :proposal_type='proposal.proposal_type' :isApprovalLevelDocument="isApprovalLevelDocument" @refreshFromResponse="refreshFromResponse"/>
+        <ProposedApproval ref="proposed_approval" :processing_status="district_proposal.processing_status" :district_proposal_id="district_proposal.id" :proposal_type='proposal.proposal_type' :proposal_id="district_proposal.proposal.id" :isApprovalLevelDocument="isApprovalLevelDocument" @refreshFromResponse="refreshFromResponse"/>
     </div>
 </template>
 <script>
