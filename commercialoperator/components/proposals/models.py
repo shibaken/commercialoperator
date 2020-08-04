@@ -989,8 +989,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         return search_data
 
 
-    @property
-    def search_data(self):
+    #@property
+    def search_data_tclass(self):
         search_data={}
         parks=[]
         trails=[]
@@ -1032,6 +1032,72 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             search_data.update({'accreditations':[]})
         return search_data
 
+
+    def search_data_event(self):
+        search_data={}
+        parks=[]
+        trails=[]
+        activities=[]
+        vehicles=[]
+        vessels=[]
+
+        parks=list(self.events_parks.all().values_list('park__name', flat=True))
+        park_activities_name=list(self.events_parks.filter(event_activities__isnull=False).values_list('event_activities', flat=True))
+        trails_name=list(self.trails.all().values_list('trail__name', flat=True))
+        trail_activities_name=list(self.trails.filter(sections__isnull=False, sections__trail_activities__isnull=False).values_list('sections__trail_activities__activity__name', flat=True))
+        vehicles=list(self.vehicles.all().values_list('rego', flat=True))
+        vessels=list(self.vessels.all().values_list('spv_no', flat=True))
+
+        activities = park_activities_name + trail_activities_name
+
+
+        search_data.update({'parks': parks})
+        search_data.update({'trails': trails_name})
+        search_data.update({'vehicles': vehicles})
+        search_data.update({'vessels': vessels})
+        search_data.update({'activities': activities})
+
+        return search_data
+        
+
+    def search_data_filming(self):
+        search_data={}
+        parks=[]
+        vehicles=[]
+        vessels=[]
+        title=[]
+        film_types=[]
+        film_purposes=[]
+
+        if self.title:
+            title=[self.title]
+        film_types=[self.filming_activity.get_film_type_display()]
+        film_purposes=[self.filming_activity.get_film_purpose_display()]
+        parks=list(self.filming_parks.all().values_list('park__name', flat=True))
+        vehicles=list(self.vehicles.all().values_list('rego', flat=True))
+        vessels=list(self.vessels.all().values_list('spv_no', flat=True))
+
+        search_data.update({'title': title})
+        search_data.update({'film_types': film_types})
+        search_data.update({'film_purposes': film_purposes})
+        search_data.update({'parks': parks})
+        search_data.update({'vehicles': vehicles})
+        search_data.update({'vessels': vessels})
+
+        return search_data
+        
+
+
+    @property
+    def search_data(self):
+        if self.application_type.name== ApplicationType.TCLASS:
+            return self.search_data_tclass()
+        if self.application_type.name== ApplicationType.EVENT:
+            return self.search_data_event() 
+        if self.application_type.name== ApplicationType.FILMING:
+            return self.search_data_filming()           
+        return {}
+    
 
     @property
     def selected_parks_activities(self):
@@ -4063,8 +4129,10 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
     from commercialoperator.components.approvals.models import Approval
     from commercialoperator.components.compliances.models import Compliance
     qs = []
+    application_types=[ApplicationType.TCLASS, ApplicationType.EVENT, ApplicationType.FILMING]
     if is_internal:
-        proposal_list = Proposal.objects.filter(application_type__name='T Class').exclude(processing_status__in=['discarded','draft'])
+        #proposal_list = Proposal.objects.filter(application_type__name='T Class').exclude(processing_status__in=['discarded','draft'])
+        proposal_list = Proposal.objects.filter(application_type__name__in=application_types).exclude(processing_status__in=['discarded','draft'])        
         approval_list = Approval.objects.all().order_by('lodgement_number', '-issue_date').distinct('lodgement_number')
         compliance_list = Compliance.objects.all()
     if searchWords:
