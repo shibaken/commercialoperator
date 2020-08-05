@@ -13,7 +13,7 @@
                                         <label class="control-label pull-left"  for="Name">Park or Reserve</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <select class="form-control" name="park" ref="access_type" v-model="selected_park_id">
+                                        <select class="form-control" name="park" ref="filming_park" v-model="selected_park_id">
                                             <option v-for="p in all_parks" :value="p.id">{{p.name}}</option>
                                         </select>
                                     </div>
@@ -180,6 +180,7 @@ export default {
             this.$refs.filefield.reset_files();
             this.errors = false;
             $('.has-error').removeClass('has-error');
+            $(this.$refs.filming_park).val(null).trigger('change');
             $(this.$refs.from_date).data('DateTimePicker').clear();
             $(this.$refs.to_date).data('DateTimePicker').clear();
             this.$refs.feature_of_interest='';
@@ -234,7 +235,8 @@ export default {
                       vm.park=res.body; 
                       if(vm.park.park)
                       {
-                        vm.selected_park_id=vm.park.park.id
+                        vm.selected_park_id=vm.park.park.id;
+                        $(vm.$refs.filming_park).val(vm.park.park.id).trigger('change');
                       }
                       // if(vm.park.from_date){
                       //   vm.park.from_date=vm.park.from_date.format('DD/MM/YYYY')
@@ -340,6 +342,22 @@ export default {
        },
        eventListeners:function () {
             let vm = this;
+            $(vm.$refs.filming_park).select2({
+                "theme": "bootstrap",
+                allowClear: true,
+                placeholder:"Select Park"
+            }).
+            on("select2:select",function (e) {
+                var selected = $(e.currentTarget);
+                vm.selected_park_id = selected.val();
+                //vm.fetchAllowedActivities();
+            }).
+            on("select2:unselect",function (e) {
+                var selected = $(e.currentTarget);
+                vm.selected_park_id = selected.val();
+                //vm.fetchAllowedActivities();
+            });
+
             $(vm.$refs.from_date).datetimepicker(vm.datepickerOptions);
             $(vm.$refs.from_date).on('dp.change', function(e){
                 if ($(vm.$refs.from_date).data('DateTimePicker').date()) {
