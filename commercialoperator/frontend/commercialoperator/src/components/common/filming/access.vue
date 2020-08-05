@@ -17,7 +17,7 @@
                             <div class="">
                                 
                                 <div class="col-sm-12">
-                                    <label class="control-label pull-left"  for="Name">List all parks, terrestrial and/or marine ...</label>
+                                    <label class="text-left"  for="Name">Please list which parks (terrestrial and/or marine) you wish to access. If accessing multiple areas of Western Australia, please list all parks. Visit <a :href="park_finder_link" target="_blank">here</a> for assistance with identifying your required parks.</label>
                                     <ParkTable :url="parks_url" :proposal="proposal"  ref="parks_table" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal= "district_proposal" :canEditActivities="canEditActivities" :is_external= "is_external"></ParkTable>
                                 </div>
                             </div>
@@ -31,7 +31,7 @@
                             <div class="">    
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
-                                    Do you intend to use the Munda Bidi or Bibbulmun Track?</label>
+                                    Do you intend to use the Munda Biddi or Bibbulmun Track?</label>
                                     
                                 </div>
                                 <div class="col-sm-6">
@@ -292,12 +292,40 @@ from '@/utils/hooks'
                 lBody: 'lBody'+vm._uid,
                 values:null,
                 parks_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/filming_parks'),
+                global_settings:[],
             }
         },
         components:{
             ParkTable
         },
+        computed: {
+            park_finder_link: function(){
+                let vm=this;
+                if(vm.global_settings){
+                    for(var i=0; i<vm.global_settings.length; i++){
+                        if(vm.global_settings[i].key=='park_finder_link'){
+                            return vm.global_settings[i].value;
+                        }
+                    }
+                }
+                return '';
+            },
+            
+        },
         methods:{
+            fetchGlobalSettings: function(){
+                let vm = this;
+                vm.$http.get('/api/global_settings.json').then((response) => {
+                    vm.global_settings = response.body;
+                    
+                },(error) => {
+                    console.log(error);
+                } );
+            },
+        },
+        mounted: function(){
+            let vm = this;
+            vm.fetchGlobalSettings();
         }
     }
 </script>

@@ -69,7 +69,7 @@
                                 <div class="row">
                                     <div class="col-sm-3">
                                         
-                                        <label class="control-label pull-left"  for="Name">Maps/ Documents</label>
+                                        <label class="text-left"  for="Name">Please attach a detailed itinerary and maps which outline specific locations and roads/tracks/trails to be used </label>
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="add_attachments" style="width: 70%;">
