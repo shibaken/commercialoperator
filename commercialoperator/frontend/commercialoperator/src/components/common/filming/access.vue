@@ -251,6 +251,17 @@
                                       <textarea :disabled="readonly" class="form-control" name="camp_location" placeholder="" v-model="proposal.filming_access.cultural_significance_details"></textarea>    
                                 </div>
                             </div>
+                            <div class="row" v-if="proposal.filming_access.cultural_significance">
+                                
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">
+                                    If applicable, please upload a copy of your written approval from the relevant Aboriginal traditional owner group for filming at Aboriginal cultural sites or filming of cultural material. Please see the Commercial Filming Handbook (Hyperlink) for information on required approvals and contact details </label>
+                                    
+                                </div>
+                                <div class="col-sm-6">
+                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="cultural_significance" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                </div>                                
+                            </div>
                             
                             <div class="row">&nbsp;</div>
                         </div>
@@ -268,6 +279,7 @@
 
 <script>
 import ParkTable from './parks_table.vue'
+import FileField from '@/components/forms/filefield.vue'
 import {
   api_endpoints,
   helpers
@@ -306,7 +318,8 @@ from '@/utils/hooks'
             }
         },
         components:{
-            ParkTable
+            ParkTable,
+            FileField
         },
         computed: {
             park_finder_link: function(){
