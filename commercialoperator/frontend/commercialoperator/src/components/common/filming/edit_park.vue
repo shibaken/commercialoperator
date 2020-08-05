@@ -13,8 +13,8 @@
                                         <label class="control-label pull-left"  for="Name">Park or Reserve</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <select class="form-control" name="park" ref="access_type" v-model="land_park_id">
-                                            <option v-for="p in land_parks" :value="p.id">{{p.name}}</option>
+                                        <select class="form-control" name="park" ref="access_type" v-model="selected_park_id">
+                                            <option v-for="p in all_parks" :value="p.id">{{p.name}}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -131,7 +131,7 @@ export default {
             //access_types: null,
             state: 'proposed_park',
             issuingPark: false,
-            land_parks:[],
+            all_parks:[],
             validation_form: null,
             errors: false,
             errorString: '',
@@ -210,6 +210,23 @@ export default {
                 console.log(error);
             } );
         },
+        fetchAllParks: function(id){
+            let vm = this;
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.parks,'filming_parks_list')).then((response) => {
+                vm.all_parks = response.body; 
+            },(error) => {
+                console.log(error);
+            } );
+        },
+
+        fetchDistrictParks: function(id){
+            let vm = this;
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.districts,id+'/parks')).then((response) => {
+                vm.all_parks = response.body; 
+            },(error) => {
+                console.log(error);
+            } );
+        },
         
         fetchPark: function(vid){
             let vm=this;
@@ -217,7 +234,7 @@ export default {
                       vm.park=res.body; 
                       if(vm.park.park)
                       {
-                        vm.land_park_id=vm.park.park.id
+                        vm.selected_park_id=vm.park.park.id
                       }
                       // if(vm.park.from_date){
                       //   vm.park.from_date=vm.park.from_date.format('DD/MM/YYYY')
@@ -231,8 +248,8 @@ export default {
         sendData:function(){
             let vm = this;
             vm.errors = false;
-            if(vm.land_park_id!=null){
-                vm.park.park=vm.land_park_id
+            if(vm.selected_park_id!=null){
+                vm.park.park=vm.selected_park_id
             }
             // if(vm.park.from_date){
             //     vm.park.from_date=vm.park.from_date.format('YYYY-MM-DD')
@@ -378,13 +395,18 @@ export default {
    mounted:function () {
         let vm =this;
         //vm.fetchAccessTypes();
+        // if(vm.district_proposal){
+        //     vm.fetchDistrictLandParks(vm.district_proposal.district);
+        // }
+        // else{
+        //     vm.fetchLandParks();
+        // }
         if(vm.district_proposal){
-            vm.fetchDistrictLandParks(vm.district_proposal.district);
+            vm.fetchDistrictParks(vm.district_proposal.district);
         }
         else{
-            vm.fetchLandParks();
+            vm.fetchAllParks();
         }
-        
         vm.form = document.forms.parkForm;
         vm.addFormValidations();
         this.$nextTick(()=>{

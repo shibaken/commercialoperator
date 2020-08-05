@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, B
 from rest_framework.pagination import PageNumberPagination
 from django.urls import reverse
 from commercialoperator.components.main.models import Region, District, Tenure, ApplicationType, ActivityMatrix, AccessType, Park, Trail, ActivityCategory, Activity, RequiredDocument, Question, GlobalSettings
-from commercialoperator.components.main.serializers import RegionSerializer, DistrictSerializer, TenureSerializer, ApplicationTypeSerializer, ActivityMatrixSerializer,  AccessTypeSerializer, ParkSerializer, ParkFilterSerializer, TrailSerializer, ActivitySerializer, ActivityCategorySerializer, RequiredDocumentSerializer, QuestionSerializer, GlobalSettingsSerializer, OracleSerializer, BookingSettlementReportSerializer, LandActivityTabSerializer, MarineActivityTabSerializer, EventsParkSerializer, TrailTabSerializer
+from commercialoperator.components.main.serializers import RegionSerializer, DistrictSerializer, TenureSerializer, ApplicationTypeSerializer, ActivityMatrixSerializer,  AccessTypeSerializer, ParkSerializer, ParkFilterSerializer, TrailSerializer, ActivitySerializer, ActivityCategorySerializer, RequiredDocumentSerializer, QuestionSerializer, GlobalSettingsSerializer, OracleSerializer, BookingSettlementReportSerializer, LandActivityTabSerializer, MarineActivityTabSerializer, EventsParkSerializer, TrailTabSerializer, FilmingParkSerializer
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from commercialoperator.components.proposals.models import Proposal
@@ -35,6 +35,14 @@ class DistrictViewSet(viewsets.ReadOnlyModelViewSet):
     def land_parks(self, request, *args, **kwargs):            
         instance = self.get_object()
         qs = instance.land_parks
+        qs.order_by('id')
+        serializer = ParkSerializer(qs,context={'request':request}, many=True)
+        return Response(serializer.data)
+
+    @detail_route(methods=['GET',])
+    def parks(self, request, *args, **kwargs):            
+        instance = self.get_object()
+        qs = instance.parks
         qs.order_by('id')
         serializer = ParkSerializer(qs,context={'request':request}, many=True)
         return Response(serializer.data)
@@ -135,6 +143,11 @@ class ParkViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(methods=['GET',])
     def events_parks_list(self, request, *args, **kwargs):
         serializer = EventsParkSerializer(self.get_queryset(),context={'request':request}, many=True)
+        return Response(serializer.data)
+
+    @list_route(methods=['GET',])
+    def filming_parks_list(self, request, *args, **kwargs):
+        serializer = FilmingParkSerializer(self.get_queryset(),context={'request':request}, many=True)
         return Response(serializer.data)
 
 
