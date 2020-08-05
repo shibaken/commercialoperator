@@ -990,7 +990,7 @@ def save_assessor_data_filming(instance,request,viewset):
         except:
             raise
 
-def save_assessor_data_tclass(insatance, request, viewset):
+def save_assessor_data_tclass(instance, request, viewset):
     with transaction.atomic():
         try:   
             data={}
