@@ -45,11 +45,11 @@
                         <div class="form-group">
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <label>Depending on the filming operation, fees and charges may apply. Please see commercial filming website for informaation on fees and charges.</label>
+                                    <label>Depending on the filming operation, fees and charges may apply. Please see commercial filming <a :href="fees_and_charges" target="_blank">website</a> for information on fees and charges.</label>
                                 </div>   
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div class="row">
+                            <!-- <div class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">Do you request that camping fees be waived?</label>
                                 </div>
@@ -65,7 +65,7 @@
                                         </li>
                                     </ul>
                                 </div>
-                            </div>
+                            </div> -->
                             <div class="row" v-if="proposal.filming_other_details.camping_fee_waived">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">For how many people </label>
@@ -233,6 +233,17 @@ export default {
                 if(vm.global_settings){
                     for(var i=0; i<vm.global_settings.length; i++){
                         if(vm.global_settings[i].key=='credit_facility_link'){
+                            return vm.global_settings[i].value;
+                        }
+                    }
+                }
+                return '';
+            },
+            fees_and_charges: function(){
+                let vm=this;
+                if(vm.global_settings){
+                    for(var i=0; i<vm.global_settings.length; i++){
+                        if(vm.global_settings[i].key=='fees_and_charges'){
                             return vm.global_settings[i].value;
                         }
                     }

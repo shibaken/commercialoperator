@@ -46,7 +46,7 @@
                         <div class="row">&nbsp;</div>
                         <div class="row">
                             <div class="col-sm-6">
-                                <label class="control-label pull-right"  for="Name">Are you using a Remotely Pilotaed Aircraft (RPS) for you filming and/ or photography activities?</label>
+                                <label class="control-label pull-right"  for="Name">Are you using a Remotely Pilotaed Aircraft (RPA) for you filming and/ or photography activities?</label>
                             </div>
                             <div class="col-sm-6" style="margin-bottom: 5px">
                                 <ul class="list-inline"  >
@@ -64,7 +64,7 @@
                         <div class="row">&nbsp;</div>
                         <div class="row" v-if="proposal.filming_equipment.rps_used">
                             <div class="col-sm-6">
-                                <label class="control-label pull-right"  for="Name">Is its weight over two kilogram?</label>
+                                <label class="control-label pull-right"  for="Name">Does the RPA weigh over two kilograms?</label>
                             </div>
                             <div class="col-sm-6" style="margin-bottom: 5px">
                                 <ul class="list-inline"  >
@@ -82,7 +82,7 @@
                         <div class="row">&nbsp;</div>
                         <div class="row" v-if="proposal.filming_equipment.rps_used">
                             <div class="col-sm-6">
-                                <label class="control-label pull-right"  for="Name">Attache CASA Remotely piloted aircraft operator's certificate (ReOC) or licence (RePL)</label>
+                                <label class="control-label pull-right"  for="Name">Attach CASA Remotely piloted aircraft operator's certificate (ReOC) or licence (RePL)</label>
                             </div>
                             <div class="col-sm-6" style="margin-bottom: 5px">
                                 <div class="col-sm-6" style="margin-bottom: 5px">
@@ -125,7 +125,7 @@
                         <div class="row">&nbsp;</div>
                         <div class="row">
                             <div class="col-sm-6">
-                                <label class="control-label pull-right"  for="Name">List any other equipment that may be used during this operations, for example, motors, generators/lights, dolly tracks, shade shelters, portable toilets, firearms/ weapons, animal traps/ snares or bait, cooking equipment <small>(Firearms, snare, traps and baits are not to be carrid on CALM land unless a licence is obtained. Licences are issued only for scientific purposes)</small>></label>
+                                <label class="control-label pull-right"  for="Name">List any other equipment that may be used during this operations, for example, motors, generators/lights, dolly tracks, shade shelters, portable toilets, firearms/ weapons, animal traps/ snares or bait, cooking equipment <small>(Firearms, snare, traps and baits are not to be carrid on CALM land unless a licence is obtained. Licences are issued only for scientific purposes)</small></label>
                             </div>
                             <div class="col-sm-6" style="margin-bottom: 5px">
                                 <div class="col-sm-6" style="margin-bottom: 5px">
