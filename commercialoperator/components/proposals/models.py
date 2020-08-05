@@ -4244,10 +4244,12 @@ class ProposalFilmingActivity(models.Model):
         (PHOTOGRAPHY, 'Photography'),
     )
     PURPOSE_CHOICES=(
-        (EDUCATION, 'Eductaion'),
+        (EDUCATION, 'Education'),
         (ADVERTISING, 'Advertising'),
         (FEATURE_FILM, 'Feature film'),
         (RECREATION, 'Recreation'),
+        (DOCUMENTARY, 'Documentary'),
+        (TOURISM, 'Tourism'),
         (OTHER, 'other'),
     )
     SPONSORSHIP_CHOICES=(
