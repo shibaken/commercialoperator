@@ -4296,6 +4296,7 @@ class ProposalFilmingActivity(models.Model):
 class ProposalFilmingAccess(models.Model):
     proposal = models.OneToOneField(Proposal, related_name='filming_access', null=True)
     track_use=models.BooleanField('Use of Tracks or trails',default=False)
+    track_use_details=models.TextField(blank=True)
     off_road=models.BooleanField('Conduct any off-road activity',default=False)
     off_road_details=models.TextField(blank=True)
     road_closure=models.BooleanField('roads to be closed during filming',default=False)

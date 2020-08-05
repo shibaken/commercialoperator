@@ -47,6 +47,16 @@
                                     </ul>      
                                 </div>
                             </div>
+                            <div v-if="proposal.filming_access.track_use" class="">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">
+                                    Please provide details </label>
+                                    
+                                </div>
+                                <div class="col-sm-6">
+                                      <textarea :disabled="readonly" class="form-control" name="track_use_details" placeholder="" v-model="proposal.filming_access.track_use_details"></textarea>    
+                                </div>
+                            </div>
                             <div class="row">&nbsp;</div>
                             <div class="">
                                 <div class="col-sm-6">
@@ -71,7 +81,7 @@
                             <div v-if="proposal.filming_access.off_road" class="">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
-                                    Details (when/ where/ how long)</label>
+                                    Please provide details </label>
                                     
                                 </div>
                                 <div class="col-sm-6">
@@ -99,13 +109,13 @@
                                 </div>
                             </div>
                             <!-- <div class="row">&nbsp;</div> -->
-                            <div v-if="proposal.filming_access.road_closure" class="">
+                            <div v-if="proposal.filming_access.road_closure" class="" >
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
-                                    Details</label>
+                                    Please provide details </label>
                                     
                                 </div>
-                                <div class="col-sm-6">
+                                <div class="col-sm-6" style="margin-bottom: 5px !important">
                                       <textarea :disabled="readonly" class="form-control" name="road_closure_details" placeholder="" v-model="proposal.filming_access.road_closure_details"></textarea>    
                                 </div>
                             </div>
@@ -234,7 +244,7 @@
                             <div v-if="proposal.filming_access.cultural_significance" class="">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
-                                    Where?</label>
+                                    Please advise how you propose to depict Aboriginal people or items/areas of cultural significance </label>
                                     
                                 </div>
                                 <div class="col-sm-6">
