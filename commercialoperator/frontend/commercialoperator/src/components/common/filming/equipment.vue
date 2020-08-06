@@ -100,7 +100,8 @@
                             </div>
                             <div class="col-sm-6" style="margin-bottom: 5px">
                                 <div class="col-sm-6" style="margin-bottom: 5px">
-                                      <input type="text" class="form-control" name="num_cameras" placeholder="" :disabled="proposal.readonly" v-model="proposal.filming_equipment.num_cameras">   
+                                      <!-- <input type="text" class="form-control" name="num_cameras" placeholder="" :disabled="proposal.readonly" v-model="proposal.filming_equipment.num_cameras"> -->
+                                      <textarea type="text" class="form-control" name="num_cameras" placeholder="" :disabled="proposal.readonly" v-model="proposal.filming_equipment.num_cameras"></textarea>   
                                 </div>
                             </div>
                         </div>
