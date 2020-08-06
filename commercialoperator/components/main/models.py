@@ -427,6 +427,7 @@ class GlobalSettings(models.Model):
         ('online_training_document', 'Online Training Document'),
         ('park_finder_link', 'Park Finder Link'),
         ('fees_and_charges', 'Fees and charges link'),
+        ('commercial_filming_handbook', 'Commercial Filming Handbook link'),
 
     )
     key = models.CharField(max_length=255, choices=keys, blank=False, null=False,)

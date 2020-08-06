@@ -255,7 +255,7 @@
                                 
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
-                                    If applicable, please upload a copy of your written approval from the relevant Aboriginal traditional owner group for filming at Aboriginal cultural sites or filming of cultural material. Please see the Commercial Filming Handbook (Hyperlink) for information on required approvals and contact details </label>
+                                    If applicable, please upload a copy of your written approval from the relevant Aboriginal traditional owner group for filming at Aboriginal cultural sites or filming of cultural material. Please see the Commercial Filming Handbook <a :href="commercial_filming_handbook" target="_blank">here</a> for information on required approvals and contact details </label>
                                     
                                 </div>
                                 <div class="col-sm-6">
@@ -327,6 +327,17 @@ from '@/utils/hooks'
                 if(vm.global_settings){
                     for(var i=0; i<vm.global_settings.length; i++){
                         if(vm.global_settings[i].key=='park_finder_link'){
+                            return vm.global_settings[i].value;
+                        }
+                    }
+                }
+                return '';
+            },
+            commercial_filming_handbook: function(){
+                let vm=this;
+                if(vm.global_settings){
+                    for(var i=0; i<vm.global_settings.length; i++){
+                        if(vm.global_settings[i].key=='commercial_filming_handbook'){
                             return vm.global_settings[i].value;
                         }
                     }
