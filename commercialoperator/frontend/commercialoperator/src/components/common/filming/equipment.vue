@@ -155,7 +155,7 @@
                         <div class="row">&nbsp;</div>
                         <div class="row">
                             <div class="col-sm-6">
-                                <label class="control-label pull-right"  for="Name">List any other equipment that may be used during this operations, for example, motors, generators/lights, dolly tracks, shade shelters, portable toilets, firearms/ weapons, animal traps/ snares or bait, cooking equipment <small>(Firearms, snare, traps and baits are not to be carrid on CALM land unless a licence is obtained. Licences are issued only for scientific purposes)</small></label>
+                                <label class="control-label pull-right"  for="Name">List any other significant equipment that may be used during the proposed operations</label>
                             </div>
                             <div class="col-sm-6" style="margin-bottom: 5px">
                                 <div class="col-sm-6" style="margin-bottom: 5px">
