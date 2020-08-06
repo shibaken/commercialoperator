@@ -4325,7 +4325,8 @@ class ProposalFilmingEquipment(models.Model):
     rps_overweight=models.BooleanField('Weight of RPS over two kg',default=False)
     num_cameras=models.TextField('Number and type of cameras to be used', blank=True, null=True)
     alteration_required=models.BooleanField('Any alteration required to the area',default=False)
-    other_equipments=models.TextField('Number and type of cameras to be used', blank=True, null=True)
+    alteration_required_details=models.TextField('Alteration required details', blank=True, null=True)
+    other_equipments=models.TextField('Other equipment', blank=True, null=True)
     proposal = models.OneToOneField(Proposal, related_name='filming_equipment', null=True)
 
     def __str__(self):
