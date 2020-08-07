@@ -25,10 +25,10 @@
                         </div> 
                     </div>
 
-                    <div class="form-horizontal col-sm-12 borderDecoration">
+                    <div class="col-sm-12 borderDecoration">
                         
                         <div class="form-group">
-                            <div class="">    
+                            <div class="row">    
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
                                     Do you intend to use the Munda Biddi or Bibbulmun Track?</label>
@@ -47,7 +47,7 @@
                                     </ul>      
                                 </div>
                             </div>
-                            <div v-if="proposal.filming_access.track_use" class="">
+                            <div v-if="proposal.filming_access.track_use" class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
                                     Please provide details </label>
@@ -58,7 +58,7 @@
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div class="">
+                            <div class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
                                     Do you intend to conduct any off-road/ track driving/ walking?</label>
@@ -78,7 +78,7 @@
                                 </div>
                             </div>
                             <!-- <div class="row">&nbsp;</div> -->
-                            <div v-if="proposal.filming_access.off_road" class="">
+                            <div v-if="proposal.filming_access.off_road" class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
                                     Please provide details </label>
@@ -89,7 +89,7 @@
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div class="">
+                            <div class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
                                     Do you require roads or car parks to be closed during filming?</label>
@@ -109,7 +109,7 @@
                                 </div>
                             </div>
                             <!-- <div class="row">&nbsp;</div> -->
-                            <div v-if="proposal.filming_access.road_closure" class="" >
+                            <div v-if="proposal.filming_access.road_closure" class="row" >
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
                                     Please provide details </label>
@@ -120,7 +120,7 @@
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div  class="">
+                            <div  class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
                                     Number of people in filming party</label>
@@ -131,7 +131,7 @@
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div class="">
+                            <div class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
                                     Do you intend to camp on CALM Land?</label>
@@ -151,7 +151,7 @@
                                 </div>
                             </div>
                             <!-- <div class="row">&nbsp;</div> -->
-                            <div v-if="proposal.filming_access.camp_on_land" class="">
+                            <div v-if="proposal.filming_access.camp_on_land" class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
                                     Where?</label>
@@ -162,7 +162,7 @@
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div class="">
+                            <div class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
                                     Will you need assistance from Department staff? <small> (Supervision fees may apply)</small> </label>
@@ -181,7 +181,7 @@
                                 </div>
                             </div>
                             <!-- <div class="row">&nbsp;</div> -->
-                            <div v-if="proposal.filming_access.staff_assistance" class="">
+                            <div v-if="proposal.filming_access.staff_assistance" class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
                                     In what capacity and for how long?</label>
@@ -192,7 +192,7 @@
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div class="">
+                            <div class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
                                     Will you need Department staff to Film? <small> (Supervision fees may apply)</small> </label>
@@ -211,7 +211,7 @@
                                 </div>
                             </div>
                             <!-- <div class="row">&nbsp;</div> -->
-                            <div v-if="proposal.filming_access.staff_to_film" class="">
+                            <div v-if="proposal.filming_access.staff_to_film" class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
                                     In what capacity and for how long?</label>
@@ -222,7 +222,7 @@
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div class="">
+                            <div class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">Will you be featuring Aboriginal people/ items/ area of cultural significance?</label>
                                     
@@ -241,7 +241,7 @@
                                 </div>
                             </div>
                             <!-- <div class="row">&nbsp;</div> -->
-                            <div v-if="proposal.filming_access.cultural_significance" class="">
+                            <div v-if="proposal.filming_access.cultural_significance" class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
                                     Please advise how you propose to depict Aboriginal people or items/areas of cultural significance </label>
