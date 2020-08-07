@@ -33,6 +33,42 @@
     <div class="col-sm-12">
         <div class="panel panel-default">
             <div class="panel-heading">
+                <h3 class="panel-title">Other <small></small>
+                <a class="panelClicker" :href="'#'+oBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="oBody">
+                <span class="glyphicon glyphicon-chevron-up pull-right "></span>
+                </a>
+                </h3>
+            </div>
+            <div class="panel-body collapse in" :id="oBody">
+                <div class="" >                        
+                    <div class="form-horizontal col-sm-12 borderDecoration">
+                       <div class="form-group">
+                           <div class="row">
+                                <div class="col-sm-12">
+                                    <label>Provide any additional information to support your application. If you would like to access a park that is not listed in the previous sections, please include here.</label>
+                                </div>   
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <textarea class="form-control" v-model="proposal.filming_other_details.other_comments" :disabled="proposal.readonly"></textarea>
+                                </div>                                
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="filming_other_details" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                </div>                                
+                            </div>
+                       </div> 
+                    </div>
+                </div>
+            </div>                
+        </div>
+    </div>
+
+
+    <div class="col-sm-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
                 <h3 class="panel-title">Payment of Fees and Charges<small></small>
                 <a class="panelClicker" :href="'#'+mBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="mBody">
                 <span class="glyphicon glyphicon-chevron-up pull-right "></span>

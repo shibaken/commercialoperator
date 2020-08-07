@@ -4341,6 +4341,7 @@ class ProposalFilmingOtherDetails(models.Model):
     camping_fee_waived = models.BooleanField(default=False)
     fee_waived_num_people = models.SmallIntegerField('For how many people', blank=True, null=True)
     insurance_expiry= models.DateField(blank=True, null=True)
+    other_comments=models.TextField('Other comments', blank=True, null=True)
     proposal = models.OneToOneField(Proposal, related_name='filming_other_details', null=True)
 
     def __str__(self):
