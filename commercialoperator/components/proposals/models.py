@@ -1349,7 +1349,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     assessor_assessment=ProposalAssessment.objects.get(proposal=self,referral_group=None, referral_assessment=False)
                 except ProposalAssessment.DoesNotExist:
                     assessor_assessment=ProposalAssessment.objects.create(proposal=self,referral_group=None, referral_assessment=False)
-                    checklist=ChecklistQuestion.objects.filter(list_type='assessor_list', obsolete=False)
+                    checklist=ChecklistQuestion.objects.filter(list_type='assessor_list', application_type=self.application_type, obsolete=False)
                     for chk in checklist:
                         try:
                             chk_instance=ProposalAssessmentAnswer.objects.get(question=chk, assessment=assessor_assessment)
@@ -1442,7 +1442,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             referral_assessment=ProposalAssessment.objects.get(proposal=self,referral_group=referral_group, referral_assessment=True, referral=referral)
                         except ProposalAssessment.DoesNotExist:
                             referral_assessment=ProposalAssessment.objects.create(proposal=self,referral_group=referral_group, referral_assessment=True, referral=referral)
-                            checklist=ChecklistQuestion.objects.filter(list_type='referral_list', obsolete=False)
+                            checklist=ChecklistQuestion.objects.filter(list_type='referral_list', application_type=self.application_type, obsolete=False)
                             for chk in checklist:
                                 try:
                                     chk_instance=ProposalAssessmentAnswer.objects.get(question=chk, assessment=referral_assessment)
@@ -3375,6 +3375,7 @@ class ChecklistQuestion(RevisionedMixin):
                                          default=ANSWER_TYPE_CHOICES[0][0])
 
     #correct_answer= models.BooleanField(default=False)
+    application_type = models.ForeignKey(ApplicationType,blank=True, null=True)
     obsolete = models.BooleanField(default=False)
     order = models.PositiveSmallIntegerField(default=1)
 

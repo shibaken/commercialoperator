@@ -936,7 +936,7 @@ def proposal_submit(proposal,request):
                     assessor_assessment=ProposalAssessment.objects.get(proposal=proposal,referral_group=None, referral_assessment=False)
                 except ProposalAssessment.DoesNotExist:
                     assessor_assessment=ProposalAssessment.objects.create(proposal=proposal,referral_group=None, referral_assessment=False)
-                    checklist=ChecklistQuestion.objects.filter(list_type='assessor_list', obsolete=False)
+                    checklist=ChecklistQuestion.objects.filter(list_type='assessor_list', application_type=proposal.application_type, obsolete=False)
                     for chk in checklist:
                         try:
                             chk_instance=ProposalAssessmentAnswer.objects.get(question=chk, assessment=assessor_assessment)
