@@ -14,15 +14,20 @@
                     <div class="form-horizontal col-sm-12 borderDecoration">
                         
                         <div class="form-group">
-                            <div class="row">
+                            <div class="row" style="margin-bottom: 5px">
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">What steps have been taken to ensure the well being of others in your party <small> (List, for example, aid kit, fire extinguisher, lif jackets, HF radio, etc)</small> </label>
+                                    <label class="control-label pull-left"  for="Name">What steps have been taken to ensure the safety of your filming party? <small> (Provide details of your safety and communication equipment and/or attach a copy of your safety and risk management plan)</small> </label>
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="input-group date" ref="safety_details" style="width: 70%;">
                                         <textarea type="text" class="form-control" v-model="proposal.filming_other_details.safety_details" name="safety_details" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal"></textarea>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="filming_safety_details" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                </div>                                
                             </div>
                         </div> 
                     </div>
@@ -49,7 +54,7 @@
                                 </div>   
                             </div>
                             <div class="row">
-                                <div class="col-sm-12">
+                                <div class="col-sm-12" style="margin-bottom: 5px">
                                     <textarea class="form-control" v-model="proposal.filming_other_details.other_comments" :disabled="proposal.readonly"></textarea>
                                 </div>                                
                             </div>
@@ -140,9 +145,8 @@
                                 <div class="col-sm-12">
                                     <label>
                                     <ol type="a">
-                                        <li>The operator shall at all times during the period of the Licence maintain a policy of public liability insurance, that covers the areas and operataions allowed under the Licence, in the name of the Operator to the extent of its rights and interests for a sum of not less than $10 million per event.</li>
-                                        <li>The operator shall provide the Dirctor General proof of the existence and currency of such insurance policy whenver requested by the Director General during the term of the Licence.</li>
-                                        <li>The Operator shall pay all premiums of the public liability insurance policy when they are due, coply with all the terms of that insurance policy and shall  make the insurer aware of the Licence, these Conditions and the indemnity given to the Director General.</li>
+                                        <li>Attach your policy for public liability insurance that covers the areas and operations allowed under the filming authority, and in the name of the applicant to the extent of its rights and interests, for a sum of not less than AU$10 million per event.</li>
+                                        <li>It is a requirement of all filming authority holders to maintain appropriate public liability insurance.</li>
                                     </ol></label>
                                 </div>
                             </div>
