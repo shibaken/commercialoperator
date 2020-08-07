@@ -2,9 +2,9 @@
     <div>
         <template v-if="isFinalised">
             <div class="col-md-12 alert alert-success" v-if="district_proposal.processing_status == 'Approved'">
-                <p>The licence has been issued and has been emailed to {{district_proposal.proposal.applicant}}</p>
+                <p>The Lawful Authority has been issued and has been emailed to {{district_proposal.proposal.applicant}}</p>
                 <p>Expiry date: {{district_proposal.proposed_issuance_approval.expiry_date}}
-                <p>Licence: <a target="_blank" :href="district_proposal.proposal.permit">licence.pdf</a></p>
+                <p>Lawful Authority: <a target="_blank" :href="district_proposal.proposal.permit">lawful_authority.pdf</a></p>
             </div>
             <div v-else class="col-md-12 alert alert-warning">
                 <p>The application was declined. The decision was emailed to {{district_proposal.proposal.applicant}}</p>

@@ -158,7 +158,7 @@ export default {
             return vm.startDateError;
         },
         title: function(){
-            return this.processing_status == 'With Approver' ? 'Issue Licence' : 'Propose to issue licence';
+            return this.processing_status == 'With Approver' ? 'Issue Lawful Authority' : 'Propose to issue Lawful Authority';
         },
         is_amendment: function(){
             return this.district_proposal_type == 'Amendment' ? true : false;
