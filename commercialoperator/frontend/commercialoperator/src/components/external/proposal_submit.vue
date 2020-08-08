@@ -4,8 +4,17 @@
             <div class="col-sm-12">
                 <div class="row">
                     <div v-if="isProposal" class="col-sm-offset-3 col-sm-6 borderDecoration">
+                      <div v-if="proposal.application_type=='Filming'">
+                        <strong>Your commercial filming application has been successfully submitted.</strong>
+                        <br/>
+                        
+                      </div>
+                      <div v-else>
                         <strong>Your application for a commercial operations licence has been successfully submitted.</strong>
                         <br/>
+                      </div>
+                        <!-- <strong>Your application for a commercial operations licence has been successfully submitted.</strong>
+                        <br/> -->
                         <table>
                             <tr>
                                 <td><strong>Application:</strong></td>

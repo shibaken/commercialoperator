@@ -392,6 +392,13 @@ class EventsParkSerializer(serializers.ModelSerializer):
         serializer = ActivityFilterSerializer(children, many=True, context=serializer_context)
         return serializer.data
 
+class FilmingParkSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Park
+        fields=('id', 'name',)
+
+
 class TrailTabSerializer(serializers.Serializer):
     land_activity_types = ActivitySerializer(many=True, read_only=True)
     trails = TrailSerializer(many=True, read_only=True)

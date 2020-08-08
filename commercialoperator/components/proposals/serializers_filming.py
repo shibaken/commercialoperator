@@ -93,6 +93,7 @@ class ProposalFilmingOtherDetailsSerializer(serializers.ModelSerializer):
                 'camping_fee_waived',
                 'fee_waived_num_people',
                 'insurance_expiry',
+                'other_comments',
                 'proposal',
                 )
 

@@ -46,7 +46,7 @@
                         <div class="row">&nbsp;</div>
                         <div class="row">
                             <div class="col-sm-6">
-                                <label class="control-label pull-right"  for="Name">Are you using a Remotely Pilotaed Aircraft (RPS) for you filming and/ or photography activities?</label>
+                                <label class="control-label pull-right"  for="Name">Are you using a Remotely Pilotaed Aircraft (RPA) for you filming and/ or photography activities?</label>
                             </div>
                             <div class="col-sm-6" style="margin-bottom: 5px">
                                 <ul class="list-inline"  >
@@ -64,7 +64,7 @@
                         <div class="row">&nbsp;</div>
                         <div class="row" v-if="proposal.filming_equipment.rps_used">
                             <div class="col-sm-6">
-                                <label class="control-label pull-right"  for="Name">Is its weight over two kilogram?</label>
+                                <label class="control-label pull-right"  for="Name">Does the RPA weigh over two kilograms?</label>
                             </div>
                             <div class="col-sm-6" style="margin-bottom: 5px">
                                 <ul class="list-inline"  >
@@ -82,7 +82,7 @@
                         <div class="row">&nbsp;</div>
                         <div class="row" v-if="proposal.filming_equipment.rps_used">
                             <div class="col-sm-6">
-                                <label class="control-label pull-right"  for="Name">Attache CASA Remotely piloted aircraft operator's certificate (ReOC) or licence (RePL)</label>
+                                <label class="control-label pull-right"  for="Name">Attach CASA Remotely piloted aircraft operator's certificate (ReOC) or licence (RePL)</label>
                             </div>
                             <div class="col-sm-6" style="margin-bottom: 5px">
                                 <div class="col-sm-6" style="margin-bottom: 5px">
@@ -100,7 +100,8 @@
                             </div>
                             <div class="col-sm-6" style="margin-bottom: 5px">
                                 <div class="col-sm-6" style="margin-bottom: 5px">
-                                      <input type="text" class="form-control" name="num_cameras" placeholder="" :disabled="proposal.readonly" v-model="proposal.filming_equipment.num_cameras">   
+                                      <!-- <input type="text" class="form-control" name="num_cameras" placeholder="" :disabled="proposal.readonly" v-model="proposal.filming_equipment.num_cameras"> -->
+                                      <textarea type="text" class="form-control" name="num_cameras" placeholder="" :disabled="proposal.readonly" v-model="proposal.filming_equipment.num_cameras"></textarea>   
                                 </div>
                             </div>
                         </div>
@@ -110,22 +111,51 @@
                                 <label class="control-label pull-right"  for="Name">Will any stuctures or facilities be erected or does the area require any alteration to occur to allow the filming?</label>
                             </div>
                             <div class="col-sm-6" style="margin-bottom: 5px">
-                                <ul class="list-inline"  >
-                                    <li class="form-check list-inline-item">
-                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.filming_equipment.alteration_required" :value="true" data-parsley-required :disabled="proposal.readonly" name="alteration_required"/>
-                                            Yes
-                                    </li>
-                                    <li class="form-check list-inline-item">
-                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.filming_equipment.alteration_required" :value="false" data-parsley-required :disabled="proposal.readonly" name="alteration_required"/>
-                                            No
-                                    </li>
-                                </ul>
+                                <div class="col-sm-6">
+                                    <ul class="list-inline"  >
+                                        <li class="form-check list-inline-item">
+                                                <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.filming_equipment.alteration_required" :value="true" data-parsley-required :disabled="proposal.readonly" name="alteration_required"/>
+                                                Yes
+                                        </li>
+                                        <li class="form-check list-inline-item">
+                                                <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.filming_equipment.alteration_required" :value="false" data-parsley-required :disabled="proposal.readonly" name="alteration_required"/>
+                                                No
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                         <div class="row">&nbsp;</div>
+                        <div v-if="proposal.filming_equipment.alteration_required" class="row">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-right"  for="Name">
+                                    Please provide details and/or attach a copy of the plans or specifications </label>
+                                    
+                                </div>
+                                <div class="col-sm-6" style="margin-bottom: 5px">
+                                    <div class="col-sm-6" style="margin-bottom: 5px">
+                                      <textarea :disabled="readonly" class="form-control" name="camp_location" placeholder="" v-model="proposal.filming_equipment.alteration_required_details"></textarea>
+                                    </div>    
+                                </div>
+                        </div>
+                        <div class="row" v-if="proposal.filming_equipment.alteration_required">
+                                
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-right"  for="Name">
+                                    Attach document</label>
+                                    
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="col-sm-6" style="margin-bottom: 5px">
+                                        <FileField :proposal_id="proposal.id" isRepeatable="true" name="alteration_required" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                    </div>
+                                </div>                                
+                        </div>
+                            
+                        <div class="row">&nbsp;</div>
                         <div class="row">
                             <div class="col-sm-6">
-                                <label class="control-label pull-right"  for="Name">List any other equipment that may be used during this operations, for example, motors, generators/lights, dolly tracks, shade shelters, portable toilets, firearms/ weapons, animal traps/ snares or bait, cooking equipment <small>(Firearms, snare, traps and baits are not to be carrid on CALM land unless a licence is obtained. Licences are issued only for scientific purposes)</small>></label>
+                                <label class="control-label pull-right"  for="Name">List any other significant equipment that may be used during the proposed operations</label>
                             </div>
                             <div class="col-sm-6" style="margin-bottom: 5px">
                                 <div class="col-sm-6" style="margin-bottom: 5px">

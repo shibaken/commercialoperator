@@ -13,8 +13,8 @@
                                         <label class="control-label pull-left"  for="Name">Park or Reserve</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <select class="form-control" name="park" ref="access_type" v-model="land_park_id">
-                                            <option v-for="p in land_parks" :value="p.id">{{p.name}}</option>
+                                        <select class="form-control" name="park" ref="filming_park" v-model="selected_park_id">
+                                            <option v-for="p in all_parks" :value="p.id">{{p.name}}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -69,7 +69,7 @@
                                 <div class="row">
                                     <div class="col-sm-3">
                                         
-                                        <label class="control-label pull-left"  for="Name">Maps/ Documents</label>
+                                        <label class="text-left"  for="Name">Please attach a detailed itinerary and maps which outline specific locations and roads/tracks/trails to be used </label>
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="add_attachments" style="width: 70%;">
@@ -131,7 +131,7 @@ export default {
             //access_types: null,
             state: 'proposed_park',
             issuingPark: false,
-            land_parks:[],
+            all_parks:[],
             validation_form: null,
             errors: false,
             errorString: '',
@@ -180,6 +180,7 @@ export default {
             this.$refs.filefield.reset_files();
             this.errors = false;
             $('.has-error').removeClass('has-error');
+            $(this.$refs.filming_park).val(null).trigger('change');
             $(this.$refs.from_date).data('DateTimePicker').clear();
             $(this.$refs.to_date).data('DateTimePicker').clear();
             this.$refs.feature_of_interest='';
@@ -210,6 +211,23 @@ export default {
                 console.log(error);
             } );
         },
+        fetchAllParks: function(id){
+            let vm = this;
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.parks,'filming_parks_list')).then((response) => {
+                vm.all_parks = response.body; 
+            },(error) => {
+                console.log(error);
+            } );
+        },
+
+        fetchDistrictParks: function(id){
+            let vm = this;
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.districts,id+'/parks')).then((response) => {
+                vm.all_parks = response.body; 
+            },(error) => {
+                console.log(error);
+            } );
+        },
         
         fetchPark: function(vid){
             let vm=this;
@@ -217,7 +235,8 @@ export default {
                       vm.park=res.body; 
                       if(vm.park.park)
                       {
-                        vm.land_park_id=vm.park.park.id
+                        vm.selected_park_id=vm.park.park.id;
+                        $(vm.$refs.filming_park).val(vm.park.park.id).trigger('change');
                       }
                       // if(vm.park.from_date){
                       //   vm.park.from_date=vm.park.from_date.format('DD/MM/YYYY')
@@ -231,8 +250,8 @@ export default {
         sendData:function(){
             let vm = this;
             vm.errors = false;
-            if(vm.land_park_id!=null){
-                vm.park.park=vm.land_park_id
+            if(vm.selected_park_id!=null){
+                vm.park.park=vm.selected_park_id
             }
             // if(vm.park.from_date){
             //     vm.park.from_date=vm.park.from_date.format('YYYY-MM-DD')
@@ -323,6 +342,22 @@ export default {
        },
        eventListeners:function () {
             let vm = this;
+            $(vm.$refs.filming_park).select2({
+                "theme": "bootstrap",
+                allowClear: true,
+                placeholder:"Select Park"
+            }).
+            on("select2:select",function (e) {
+                var selected = $(e.currentTarget);
+                vm.selected_park_id = selected.val();
+                //vm.fetchAllowedActivities();
+            }).
+            on("select2:unselect",function (e) {
+                var selected = $(e.currentTarget);
+                vm.selected_park_id = selected.val();
+                //vm.fetchAllowedActivities();
+            });
+
             $(vm.$refs.from_date).datetimepicker(vm.datepickerOptions);
             $(vm.$refs.from_date).on('dp.change', function(e){
                 if ($(vm.$refs.from_date).data('DateTimePicker').date()) {
@@ -378,13 +413,18 @@ export default {
    mounted:function () {
         let vm =this;
         //vm.fetchAccessTypes();
+        // if(vm.district_proposal){
+        //     vm.fetchDistrictLandParks(vm.district_proposal.district);
+        // }
+        // else{
+        //     vm.fetchLandParks();
+        // }
         if(vm.district_proposal){
-            vm.fetchDistrictLandParks(vm.district_proposal.district);
+            vm.fetchDistrictParks(vm.district_proposal.district);
         }
         else{
-            vm.fetchLandParks();
+            vm.fetchAllParks();
         }
-        
         vm.form = document.forms.parkForm;
         vm.addFormValidations();
         this.$nextTick(()=>{

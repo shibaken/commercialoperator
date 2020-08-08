@@ -14,7 +14,7 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="start_date" style="width: 70%;">
-                                            <input type="text" class="form-control" name="start_date" placeholder="DD/MM/YYYY" v-model="approval.start_date">
+                                            <input type="text" class="form-control" name="start_date" placeholder="DD/MM/YYYY" v-model="approval.start_date" disabled>
                                             <span class="input-group-addon">
                                                 <span class="glyphicon glyphicon-calendar"></span>
                                             </span>
@@ -35,7 +35,7 @@
                                     <div class="col-sm-9">
                                         <div class="input-group date" ref="due_date" style="width: 70%;">
                                             <!--<input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" ref="expiry_date" v-model="approval.expiry_date" :disabled="is_amendment">-->
-                                            <input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" ref="expiry_date" v-model="approval.expiry_date">
+                                            <input type="text" class="form-control" name="due_date" placeholder="DD/MM/YYYY" ref="expiry_date" v-model="approval.expiry_date" disabled>
                                             <span class="input-group-addon">
                                                 <span class="glyphicon glyphicon-calendar"></span>
                                             </span>
@@ -75,7 +75,7 @@
                 </div>
             </div>
 
-            <p v-if="can_preview">Click <a href="#" @click.prevent="preview">here</a> to preview the licence document.</p>
+            <!-- <p v-if="can_preview">Click <a href="#" @click.prevent="preview">here</a> to preview the licence document.</p> -->
 
             <div slot="footer">
                 <button type="button" v-if="issuingApproval" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
@@ -109,7 +109,11 @@ export default {
         district_proposal_type: {
             type: String,
             required: true
-        }
+        },
+        proposal_id: {
+            type: Number,
+            required: true
+        },
     },
     data:function () {
         let vm = this;
@@ -154,7 +158,7 @@ export default {
             return vm.startDateError;
         },
         title: function(){
-            return this.processing_status == 'With Approver' ? 'Issue Licence' : 'Propose to issue licence';
+            return this.processing_status == 'With Approver' ? 'Issue Lawful Authority' : 'Propose to issue Lawful Authority';
         },
         is_amendment: function(){
             return this.district_proposal_type == 'Amendment' ? true : false;
@@ -163,7 +167,7 @@ export default {
             return this.processing_status == 'With Approver' ? true : false;
         },
         preview_licence_url: function() {
-          return (this.district_proposal_id) ? `/preview/licence-pdf/${this.district_proposal_id}` : '';
+          return (this.district_proposal_id) ? `/preview/licence-pdf/${this.proposal_id}` : '';
         },
         
 

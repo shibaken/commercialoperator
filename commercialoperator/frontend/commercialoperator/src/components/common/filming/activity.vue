@@ -73,9 +73,17 @@
                                     </ul>
                                 </div>
                             </div>
+                            <div class="row" v-if="proposal.filming_activity.sponsorship=='other'">
+                                <div class="col-sm-3">
+                                    <label class="control-label pull-right"  for="Name">Details</label>
+                                </div>
+                                <div class="col-sm-9" style="margin-bottom: 5px">
+                                    <textarea class="form-control" v-model="proposal.filming_activity.sponsorship_details" :disabled="proposal.readonly" style="width: 80%"></textarea>
+                                </div>
+                            </div>
                             <div class="row">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-left"  for="Name">Description of production</label>
+                                    <label class="control-label pull-right"  for="Name">Description of production</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
                                     <textarea class="form-control" v-model="proposal.filming_activity.production_description" :disabled="proposal.readonly" style="width: 80%"></textarea>
@@ -84,7 +92,7 @@
                             <div class="row">&nbsp;</div>
                             <div class="row">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-left"  for="Name">Type of film to be undertaken</label>
+                                    <label class="control-label pull-right"  for="Name">Type of film to be undertaken</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
                                     <select style="width:100%;" class="form-control input-sm" multiple ref="film_type_select" v-model="proposal.filming_activity.film_type">
@@ -102,7 +110,7 @@
                             <div class="row">&nbsp;</div>
                             <div class="row">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-left"  for="Name">Purpose of still or motion film</label>
+                                    <label class="control-label pull-right"  for="Name">Purpose of still or motion film</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
                                     <select style="width:100%" class="form-control input-sm" multiple ref="filmPurposeSelect" v-model="proposal.filming_activity.film_purpose">
@@ -116,9 +124,10 @@
                                     </ul> -->
                                 </div>
                             </div>
-                            <div class="row" v-if="proposal.filming_activity.film_purpose=='other'">
+                            <!-- <div class="row" v-if="proposal.filming_activity.film_purpose=='other'"> -->
+                            <div class="row" v-if="showPurposeOtherDetails">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-left"  for="Name">Details</label>
+                                    <label class="control-label pull-right"  for="Name">Details</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
                                     <textarea class="form-control" v-model="proposal.filming_activity.film_purpose_details" :disabled="proposal.readonly" style="width: 80%"></textarea>
@@ -154,6 +163,14 @@
                                             {{ u.value }}
                                         </li>
                                     </ul> -->
+                                </div>
+                            </div>
+                            <div class="row" v-if="showUsageDetails">
+                                <div class="col-sm-3">
+                                    <label class="control-label pull-right"  for="Name">Please Specify </label>
+                                </div>
+                                <div class="col-sm-9" style="margin-bottom: 5px">
+                                    <textarea class="form-control" v-model="proposal.filming_activity.film_usage_details" :disabled="proposal.readonly" style="width: 80%"></textarea>
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -217,6 +234,28 @@ require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
                 if(vm.proposal && vm.proposal.filming_activity.commencement_date && vm.proposal.filming_activity.completion_date){
                     return vm.proposal.filming_activity.commencement_date == vm.proposal.filming_activity.completion_date
                 }
+            },
+            showUsageDetails:function(){
+                let vm=this;
+                if(vm.proposal && vm.proposal.filming_activity && vm.proposal.filming_activity.film_usage){
+                    if(vm.proposal.filming_activity.film_usage.length > 0)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            },
+            showPurposeOtherDetails:function(){
+                let vm=this;
+                if(vm.proposal && vm.proposal.filming_activity && vm.proposal.filming_activity.film_purpose){
+                    for (var i = vm.proposal.filming_activity.film_purpose.length - 1; i >= 0; i--) 
+                    {
+                        if(vm.proposal.filming_activity.film_purpose[i]=='other'){
+                            return true
+                        }
+                    }
+                }
+                return false;
             }
         },
         methods:{

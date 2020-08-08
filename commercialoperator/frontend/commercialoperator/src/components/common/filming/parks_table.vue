@@ -73,7 +73,7 @@ export default {
             pBody: 'pBody' + vm._uid,
             datatable_id: 'park-datatable-'+vm._uid,
             // Filters for Parks
-            park_headers:["Park or Reserve","Featur of Interest","From","To","Itenary/ Maps","Action"],
+            park_headers:["Park or Reserve","Feature of Interest","From","To","Itinerary/ Maps","Action"],
             park_options:{
                 language: {
                     processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"

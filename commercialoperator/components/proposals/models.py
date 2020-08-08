@@ -989,8 +989,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         return search_data
 
 
-    @property
-    def search_data(self):
+    #@property
+    def search_data_tclass(self):
         search_data={}
         parks=[]
         trails=[]
@@ -1032,6 +1032,72 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             search_data.update({'accreditations':[]})
         return search_data
 
+
+    def search_data_event(self):
+        search_data={}
+        parks=[]
+        trails=[]
+        activities=[]
+        vehicles=[]
+        vessels=[]
+
+        parks=list(self.events_parks.all().values_list('park__name', flat=True))
+        park_activities_name=list(self.events_parks.filter(event_activities__isnull=False).values_list('event_activities', flat=True))
+        trails_name=list(self.trails.all().values_list('trail__name', flat=True))
+        trail_activities_name=list(self.trails.filter(sections__isnull=False, sections__trail_activities__isnull=False).values_list('sections__trail_activities__activity__name', flat=True))
+        vehicles=list(self.vehicles.all().values_list('rego', flat=True))
+        vessels=list(self.vessels.all().values_list('spv_no', flat=True))
+
+        activities = park_activities_name + trail_activities_name
+
+
+        search_data.update({'parks': parks})
+        search_data.update({'trails': trails_name})
+        search_data.update({'vehicles': vehicles})
+        search_data.update({'vessels': vessels})
+        search_data.update({'activities': activities})
+
+        return search_data
+        
+
+    def search_data_filming(self):
+        search_data={}
+        parks=[]
+        vehicles=[]
+        vessels=[]
+        title=[]
+        film_types=[]
+        film_purposes=[]
+
+        if self.title:
+            title=[self.title]
+        film_types=[self.filming_activity.get_film_type_display()]
+        film_purposes=[self.filming_activity.get_film_purpose_display()]
+        parks=list(self.filming_parks.all().values_list('park__name', flat=True))
+        vehicles=list(self.vehicles.all().values_list('rego', flat=True))
+        vessels=list(self.vessels.all().values_list('spv_no', flat=True))
+
+        search_data.update({'title': title})
+        search_data.update({'film_types': film_types})
+        search_data.update({'film_purposes': film_purposes})
+        search_data.update({'parks': parks})
+        search_data.update({'vehicles': vehicles})
+        search_data.update({'vessels': vessels})
+
+        return search_data
+        
+
+
+    @property
+    def search_data(self):
+        if self.application_type.name== ApplicationType.TCLASS:
+            return self.search_data_tclass()
+        if self.application_type.name== ApplicationType.EVENT:
+            return self.search_data_event() 
+        if self.application_type.name== ApplicationType.FILMING:
+            return self.search_data_filming()           
+        return {}
+    
 
     @property
     def selected_parks_activities(self):
@@ -1283,7 +1349,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     assessor_assessment=ProposalAssessment.objects.get(proposal=self,referral_group=None, referral_assessment=False)
                 except ProposalAssessment.DoesNotExist:
                     assessor_assessment=ProposalAssessment.objects.create(proposal=self,referral_group=None, referral_assessment=False)
-                    checklist=ChecklistQuestion.objects.filter(list_type='assessor_list', obsolete=False)
+                    checklist=ChecklistQuestion.objects.filter(list_type='assessor_list', application_type=self.application_type, obsolete=False)
                     for chk in checklist:
                         try:
                             chk_instance=ProposalAssessmentAnswer.objects.get(question=chk, assessment=assessor_assessment)
@@ -1376,7 +1442,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             referral_assessment=ProposalAssessment.objects.get(proposal=self,referral_group=referral_group, referral_assessment=True, referral=referral)
                         except ProposalAssessment.DoesNotExist:
                             referral_assessment=ProposalAssessment.objects.create(proposal=self,referral_group=referral_group, referral_assessment=True, referral=referral)
-                            checklist=ChecklistQuestion.objects.filter(list_type='referral_list', obsolete=False)
+                            checklist=ChecklistQuestion.objects.filter(list_type='referral_list', application_type=self.application_type, obsolete=False)
                             for chk in checklist:
                                 try:
                                     chk_instance=ProposalAssessmentAnswer.objects.get(question=chk, assessment=referral_assessment)
@@ -3309,6 +3375,7 @@ class ChecklistQuestion(RevisionedMixin):
                                          default=ANSWER_TYPE_CHOICES[0][0])
 
     #correct_answer= models.BooleanField(default=False)
+    application_type = models.ForeignKey(ApplicationType,blank=True, null=True)
     obsolete = models.BooleanField(default=False)
     order = models.PositiveSmallIntegerField(default=1)
 
@@ -4063,8 +4130,10 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
     from commercialoperator.components.approvals.models import Approval
     from commercialoperator.components.compliances.models import Compliance
     qs = []
+    application_types=[ApplicationType.TCLASS, ApplicationType.EVENT, ApplicationType.FILMING]
     if is_internal:
-        proposal_list = Proposal.objects.filter(application_type__name='T Class').exclude(processing_status__in=['discarded','draft'])
+        #proposal_list = Proposal.objects.filter(application_type__name='T Class').exclude(processing_status__in=['discarded','draft'])
+        proposal_list = Proposal.objects.filter(application_type__name__in=application_types).exclude(processing_status__in=['discarded','draft'])        
         approval_list = Approval.objects.all().order_by('lodgement_number', '-issue_date').distinct('lodgement_number')
         compliance_list = Compliance.objects.all()
     if searchWords:
@@ -4176,10 +4245,12 @@ class ProposalFilmingActivity(models.Model):
         (PHOTOGRAPHY, 'Photography'),
     )
     PURPOSE_CHOICES=(
-        (EDUCATION, 'Eductaion'),
+        (EDUCATION, 'Education'),
         (ADVERTISING, 'Advertising'),
         (FEATURE_FILM, 'Feature film'),
         (RECREATION, 'Recreation'),
+        (DOCUMENTARY, 'Documentary'),
+        (TOURISM, 'Tourism'),
         (OTHER, 'other'),
     )
     SPONSORSHIP_CHOICES=(
@@ -4226,6 +4297,7 @@ class ProposalFilmingActivity(models.Model):
 class ProposalFilmingAccess(models.Model):
     proposal = models.OneToOneField(Proposal, related_name='filming_access', null=True)
     track_use=models.BooleanField('Use of Tracks or trails',default=False)
+    track_use_details=models.TextField(blank=True)
     off_road=models.BooleanField('Conduct any off-road activity',default=False)
     off_road_details=models.TextField(blank=True)
     road_closure=models.BooleanField('roads to be closed during filming',default=False)
@@ -4254,7 +4326,8 @@ class ProposalFilmingEquipment(models.Model):
     rps_overweight=models.BooleanField('Weight of RPS over two kg',default=False)
     num_cameras=models.TextField('Number and type of cameras to be used', blank=True, null=True)
     alteration_required=models.BooleanField('Any alteration required to the area',default=False)
-    other_equipments=models.TextField('Number and type of cameras to be used', blank=True, null=True)
+    alteration_required_details=models.TextField('Alteration required details', blank=True, null=True)
+    other_equipments=models.TextField('Other equipment', blank=True, null=True)
     proposal = models.OneToOneField(Proposal, related_name='filming_equipment', null=True)
 
     def __str__(self):
@@ -4269,6 +4342,7 @@ class ProposalFilmingOtherDetails(models.Model):
     camping_fee_waived = models.BooleanField(default=False)
     fee_waived_num_people = models.SmallIntegerField('For how many people', blank=True, null=True)
     insurance_expiry= models.DateField(blank=True, null=True)
+    other_comments=models.TextField('Other comments', blank=True, null=True)
     proposal = models.OneToOneField(Proposal, related_name='filming_other_details', null=True)
 
     def __str__(self):
@@ -4767,6 +4841,7 @@ class DistrictProposal(models.Model):
                 }
                 self.proposed_decline_status = False
                 self.processing_status = 'approved'
+                self.save()
                 #self.customer_status = 'approved'
                 # Log proposal action
                 self.proposal.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_DISTRICT.format(self.id, self.proposal.id),request)
@@ -5297,7 +5372,7 @@ reversion.register(ProposalEventsParks, follow=['events_park_documents'])
 reversion.register(AbseilingClimbingActivity)
 reversion.register(EventsParkDocument)
 reversion.register(ProposalPreEventsParks, follow=['pre_event_park_documents'])
-
+reversion.register(PreEventsParkDocument)
 
 
 

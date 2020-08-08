@@ -14,9 +14,9 @@
                     <div class="form-horizontal col-sm-12 borderDecoration">
                         
                         <div class="form-group">
-                            <div class="row">
+                            <div class="row" style="margin-bottom: 5px">
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">What steps have been taken to ensure the well being of others in your party <small> (List, for example, aid kit, fire extinguisher, lif jackets, HF radio, etc)</small> </label>
+                                    <label class="control-label pull-left"  for="Name">What steps have been taken to ensure the safety of your filming party? <small> (Provide details of your safety and communication equipment and/or attach a copy of your safety and risk management plan)</small> </label>
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="input-group date" ref="safety_details" style="width: 70%;">
@@ -24,12 +24,53 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="filming_safety_details" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                </div>                                
+                            </div>
                         </div> 
                     </div>
                 </div>
             </div>                
         </div>
     </div>
+    <div class="col-sm-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Other <small></small>
+                <a class="panelClicker" :href="'#'+oBody" data-toggle="collapse"  data-parent="#userInfo" expanded="true" :aria-controls="oBody">
+                <span class="glyphicon glyphicon-chevron-up pull-right "></span>
+                </a>
+                </h3>
+            </div>
+            <div class="panel-body collapse in" :id="oBody">
+                <div class="" >                        
+                    <div class="form-horizontal col-sm-12 borderDecoration">
+                       <div class="form-group">
+                           <div class="row">
+                                <div class="col-sm-12">
+                                    <label>Provide any additional information to support your application. If you would like to access a park that is not listed in the previous sections, please include here.</label>
+                                </div>   
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12" style="margin-bottom: 5px">
+                                    <textarea class="form-control" v-model="proposal.filming_other_details.other_comments" :disabled="proposal.readonly"></textarea>
+                                </div>                                
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="filming_other_details" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                </div>                                
+                            </div>
+                       </div> 
+                    </div>
+                </div>
+            </div>                
+        </div>
+    </div>
+
+
     <div class="col-sm-12">
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -45,11 +86,11 @@
                         <div class="form-group">
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <label>Depending on the filming operation, fees and charges may apply. Please see commercial filming website for informaation on fees and charges.</label>
+                                    <label>Depending on the filming operation, fees and charges may apply. Please see commercial filming <a :href="fees_and_charges" target="_blank">website</a> for information on fees and charges.</label>
                                 </div>   
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div class="row">
+                            <!-- <div class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">Do you request that camping fees be waived?</label>
                                 </div>
@@ -65,7 +106,7 @@
                                         </li>
                                     </ul>
                                 </div>
-                            </div>
+                            </div> -->
                             <div class="row" v-if="proposal.filming_other_details.camping_fee_waived">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">For how many people </label>
@@ -104,9 +145,8 @@
                                 <div class="col-sm-12">
                                     <label>
                                     <ol type="a">
-                                        <li>The operator shall at all times during the period of the Licence maintain a policy of public liability insurance, that covers the areas and operataions allowed under the Licence, in the name of the Operator to the extent of its rights and interests for a sum of not less than $10 million per event.</li>
-                                        <li>The operator shall provide the Dirctor General proof of the existence and currency of such insurance policy whenver requested by the Director General during the term of the Licence.</li>
-                                        <li>The Operator shall pay all premiums of the public liability insurance policy when they are due, coply with all the terms of that insurance policy and shall  make the insurer aware of the Licence, these Conditions and the indemnity given to the Director General.</li>
+                                        <li>Attach your policy for public liability insurance that covers the areas and operations allowed under the filming authority, and in the name of the applicant to the extent of its rights and interests, for a sum of not less than AU$10 million per event.</li>
+                                        <li>It is a requirement of all filming authority holders to maintain appropriate public liability insurance.</li>
                                     </ol></label>
                                 </div>
                             </div>
@@ -233,6 +273,17 @@ export default {
                 if(vm.global_settings){
                     for(var i=0; i<vm.global_settings.length; i++){
                         if(vm.global_settings[i].key=='credit_facility_link'){
+                            return vm.global_settings[i].value;
+                        }
+                    }
+                }
+                return '';
+            },
+            fees_and_charges: function(){
+                let vm=this;
+                if(vm.global_settings){
+                    for(var i=0; i<vm.global_settings.length; i++){
+                        if(vm.global_settings[i].key=='fees_and_charges'){
                             return vm.global_settings[i].value;
                         }
                     }
