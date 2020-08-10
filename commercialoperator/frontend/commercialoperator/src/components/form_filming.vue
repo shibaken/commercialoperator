@@ -173,10 +173,18 @@
           },
         },
         methods:{
+          set_tabs:function(){
+                let vm = this;
+
+                /* Confirmation tab - Always Disabled */
+                $('#pills-confirm-tab').attr('style', 'background-color:#E5E8E8 !important; color: #99A3A4;');
+                $('#li-confirm').attr('class', 'nav-item disabled');
+            },
         },
         mounted: function() {
             let vm = this;
             $('#pills-tab a[href="#pills-applicant"]').tab('show');
+            vm.set_tabs();
             vm.form = document.forms.new_proposal;
             //window.addEventListener('beforeunload', vm.leaving);
             //indow.addEventListener('onblur', vm.leaving);
