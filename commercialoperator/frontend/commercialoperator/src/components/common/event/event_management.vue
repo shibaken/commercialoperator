@@ -79,7 +79,7 @@
                             <div class="row">&nbsp;</div>
                             <div class="row">    
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Will any structures, facilities, signs or markders be erected on CALM land or water for the purpose of the event?</label>                                   
+                                    <label class="control-label pull-left"  for="Name">Will any structures, facilities, signs or markers be erected on CALM land or water for the purpose of the event?</label>                                   
                                 </div>
                                 <div class="col-sm-6">
                                     <ul class="list-inline"  >
@@ -142,7 +142,7 @@
                             <div class="row">&nbsp;</div>
                             <div class="row">    
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Will porable toilets and/ or showers be provided?</label>                                   
+                                    <label class="control-label pull-left"  for="Name">Will portable toilets and/ or showers be provided?</label>                                   
                                 </div>
                                 <div class="col-sm-6">
                                     <ul class="list-inline"  >
@@ -167,7 +167,7 @@
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div class="row">    
+                            <!-- <div class="row">    
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">Provide the proposed strategy for rubish removal</label>                                   
                                 </div>
@@ -183,10 +183,10 @@
                                         </li>
                                     </ul>      
                                 </div>
-                            </div>
-                            <div v-if="proposal.event_management.rubbish_removal" class="row">
+                            </div> -->
+                            <div class="row">
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Provide details</label>
+                                    <label class="control-label pull-left"  for="Name">Please explain how you will manage waste to avoid impacts on the park/ reserve and remove waste from the park/ reserve following the event</label>
                                     
                                 </div>
                                 <div class="col-sm-6">
@@ -196,7 +196,7 @@
                             <div class="row">&nbsp;</div>
                             <div class="row">    
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Have any other agencies, local government representatives, community groups or local committes been consulted and all necessary approvals gained regarding this event?</label>                                   
+                                    <label class="control-label pull-left"  for="Name">Have any other agencies, local government representatives, community groups or local committees been consulted and all necessary approvals gained regarding this event?</label>                                   
                                 </div>
                                 <div class="col-sm-6">
                                     <ul class="list-inline"  >
@@ -246,7 +246,7 @@
                             <div class="row">&nbsp;</div>
                             <div class="row">    
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Have you developed a Event Management Plan? </label>                               
+                                    <label class="control-label pull-left"  for="Name">Have you developed an Event Management Plan? </label>                               
                                 </div>
                                 <div class="col-sm-6">
                                     <ul class="list-inline"  >

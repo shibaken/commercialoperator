@@ -3,7 +3,7 @@
     <div class="col-sm-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">Activity Details <small></small>
+                <h3 class="panel-title">Event Details <small></small>
                 <a class="panelClicker" :href="'#'+lBody" data-toggle="collapse"  data-parent="#activityInfo" expanded="true" :aria-controls="lBody">
                 <span class="glyphicon glyphicon-chevron-up pull-right "></span>
                 </a>
@@ -52,6 +52,7 @@
                     <div class="form-horizontal col-sm-12 borderDecoration">                        
                         <div class="">
                             <div class="row">
+                                <label class="col-sm-12"  for="Name">List the parks (terrestrial and/or marine) where this event is proposed to occur. Please attach a detailed itinerary.</label>
                                 <ParksActivityTable :url="parks_url" :proposal="proposal"  ref="parks_table"></ParksActivityTable>
                             </div>
                             <div class="row">&nbsp;</div>

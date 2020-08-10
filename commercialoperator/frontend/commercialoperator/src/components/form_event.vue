@@ -47,12 +47,12 @@
                 </a>
               </li>
               <li v-if="is_external" class="nav-item" id="li-payment">
-                <a class="nav-link" id="pills-payment-tab" data-toggle="pill" href="#pills-payment" role="tab" aria-controls="pills-payment" aria-selected="false">
+                <a class="nav-link disabled" id="pills-payment-tab" data-toggle="pill" href="" role="tab" aria-controls="pills-payment" aria-selected="false">
                   7. Payment
                 </a>
               </li>
               <li v-if="is_external" class="nav-item" id="li-confirm">
-                <a class="nav-link" id="pills-confirm-tab" data-toggle="pill" href="" role="tab" aria-controls="pills-confirm" aria-selected="false">
+                <a class="nav-link disabled" id="pills-confirm-tab" data-toggle="pill" href="" role="tab" aria-controls="pills-confirm" aria-selected="false">
                   8. Confirmation
                 </a>
               </li>
@@ -101,7 +101,7 @@
                 <OnlineTraining :proposal="proposal" id="proposalStartOnlineTraining"></OnlineTraining>
               </div>
               <div class="tab-pane fade" id="pills-payment" role="tabpanel" aria-labelledby="pills-payment-tab">
-                <Payment :proposal="proposal" id="proposalStartPayment"></Payment>
+                <!-- <Payment :proposal="proposal" id="proposalStartPayment"></Payment> -->
               </div>
               <div class="tab-pane fade" id="pills-confirm" role="tabpanel" aria-labelledby="pills-confirm-tab">
                 <Confirmation :proposal="proposal" id="proposalStartConfirmation"></Confirmation>
@@ -188,10 +188,34 @@
           },
         },
         methods:{
+          set_tabs:function(){
+                let vm = this;
+
+                /* set Applicant tab Active */
+                $('#pills-tab a[href="#pills-applicant"]').tab('show');
+
+                if (vm.proposal.fee_paid) {
+                    /* Online Training tab */
+                    $('#pills-online-training-tab').attr('style', 'background-color:#E5E8E8 !important; color: #99A3A4;');
+                    $('#li-training').attr('class', 'nav-item disabled');
+                    $('#pills-online-training-tab').attr("href", "")
+                }
+
+                if (!vm.proposal.training_completed) {
+                    /* Payment tab  (this is enabled after online_training is completed - in online_training.vue)*/
+                    $('#pills-payment-tab').attr('style', 'background-color:#E5E8E8 !important; color: #99A3A4;');
+                    $('#li-payment').attr('class', 'nav-item disabled');
+                }
+
+                /* Confirmation tab - Always Disabled */
+                $('#pills-confirm-tab').attr('style', 'background-color:#E5E8E8 !important; color: #99A3A4;');
+                $('#li-confirm').attr('class', 'nav-item disabled');
+            },
         },
         mounted: function() {
             let vm = this;
             $('#pills-tab a[href="#pills-applicant"]').tab('show');
+            vm.set_tabs();
             vm.form = document.forms.new_proposal;
             //window.addEventListener('beforeunload', vm.leaving);
             //indow.addEventListener('onblur', vm.leaving);

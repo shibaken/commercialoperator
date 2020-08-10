@@ -33,7 +33,7 @@
                             </div>
                             <div class="row">&nbsp;</div>
                             <div class="" v-if="proposal.event_vehicles_vessels.hired_or_owned">
-                                <!-- <label class="control-label">Provide details of every vehicle you plan to use when accessing the parks</label> -->
+                                <label class="control-label">Provide details of every vehicle you plan to use when accessing the parks for the event</label>
                                 <VehicleTable :url="vehicles_url" :proposal="proposal" :access_types="access_types" ref="vehicles_table"></VehicleTable>
                             </div>
                             <div class="row">&nbsp;</div>
@@ -41,6 +41,7 @@
                     </div>
 
                     <div class="form-horizontal col-sm-12 borderDecoration">
+                        <label class="control-label">Provide details of every vessel you plan to use when accessing the parks for the event</label>
                         <VesselTable :url="vessels_url" :proposal="proposal" ref="vessel_table"></VesselTable>
                     </div>
 

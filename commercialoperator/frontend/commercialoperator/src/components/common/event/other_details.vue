@@ -33,6 +33,7 @@
                     <div class="form-horizontal col-sm-12 borderDecoration">                        
                         <div class="">
                             <div class="row">
+                                <label class="col-sm-12"  for="Name">List the parks (terrestrial and/or marine) where this Pre-event training is proposed to occur. Please attach a detailed itinerary</label>
                                 <PreEventParksTable :url="pre_event_parks_url" :proposal="proposal"  ref="pre_event_parks_table"></PreEventParksTable>
                             </div>
                             <div class="row">&nbsp;</div>
