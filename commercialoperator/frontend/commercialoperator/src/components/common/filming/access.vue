@@ -307,6 +307,10 @@ from '@/utils/hooks'
               type: Boolean,
               default: false
             },
+            canEditPeriod:{
+              type: Boolean,
+              default: false
+            },
         },
         data:function () {
             let vm = this;

@@ -69,10 +69,10 @@
               </div>
 
               <div class="tab-pane fade" id="pills-activity" role="tabpanel" aria-labelledby="pills-activity-tab">
-                <Activity :proposal="proposal" id="proposalStartActivity"></Activity>
+                <Activity :proposal="proposal" id="proposalStartActivity" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal= "district_proposal" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_external= "is_external"></Activity>
               </div>
               <div class="tab-pane fade" id="pills-access" role="tabpanel" aria-labelledby="pills-access-tab">
-                <Access :proposal="proposal" id="proposalStartAccess" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal= "district_proposal" :canEditActivities="canEditActivities" :is_external= "is_external" ></Access>
+                <Access :proposal="proposal" id="proposalStartAccess" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal= "district_proposal" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_external= "is_external" ></Access>
               </div>
               <div class="tab-pane fade" id="pills-equipment" role="tabpanel" aria-labelledby="pills-equipment-tab">
                 <Equipment :proposal="proposal" id="proposalStartEquipment"></Equipment>
@@ -112,6 +112,10 @@
             canEditActivities:{
               type: Boolean,
               default: true
+            },
+            canEditPeriod:{
+              type: Boolean,
+              default: false
             },
             is_external:{
               type: Boolean,

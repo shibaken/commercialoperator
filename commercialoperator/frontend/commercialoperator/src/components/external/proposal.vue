@@ -37,8 +37,8 @@
             </div>
 
             <ProposalTClass v-if="proposal && proposal_parks && proposal.application_type=='T Class'" :proposal="proposal" id="proposalStart"  :canEditActivities="canEditActivities" :is_external="true" :proposal_parks="proposal_parks" ref="proposal_tclass"></ProposalTClass>
-            <ProposalFilming v-else-if="proposal && proposal.application_type=='Filming'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :is_external="true" :proposal_parks="proposal_parks" ref="proposal_filming"></ProposalFilming>
-            <ProposalEvent v-else-if="proposal && proposal.application_type=='Event'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :is_external="true" :proposal_parks="proposal_parks" ref="proposal_event"></ProposalEvent>
+            <ProposalFilming v-else-if="proposal && proposal.application_type=='Filming'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_external="true" :proposal_parks="proposal_parks" ref="proposal_filming"></ProposalFilming>
+            <ProposalEvent v-else-if="proposal && proposal.application_type=='Event'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_external="true" :proposal_parks="proposal_parks" ref="proposal_event"></ProposalEvent>
 
             <div>
                 <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
@@ -136,6 +136,9 @@ export default {
       //return this.submit();
     },
     canEditActivities: function(){
+      return this.proposal ? this.proposal.can_user_edit: 'false';
+    },
+    canEditPeriod: function(){
       return this.proposal ? this.proposal.can_user_edit: 'false';
     }
 

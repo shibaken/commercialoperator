@@ -771,6 +771,7 @@ class InternalProposalSerializer(BaseProposalSerializer):
     #
     assessor_mode = serializers.SerializerMethodField()
     can_edit_activities = serializers.SerializerMethodField()
+    can_edit_period = serializers.SerializerMethodField()
     current_assessor = serializers.SerializerMethodField()
     assessor_data = serializers.SerializerMethodField()
     latest_referrals = ProposalReferralSerializer(many=True)
@@ -854,6 +855,7 @@ class InternalProposalSerializer(BaseProposalSerializer):
                 # 'trails',
                 'training_completed',
                 'can_edit_activities',
+                'can_edit_period',
                 #Following 3 are variable to store selected parks and activities at frontend
                 #'selected_parks_activities',
                 #'selected_trails_activities',
@@ -888,6 +890,11 @@ class InternalProposalSerializer(BaseProposalSerializer):
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         return obj.can_edit_activities(user)
+
+    def get_can_edit_period(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_edit_period(user)
 
     def get_readonly(self,obj):
         return True
@@ -1215,6 +1222,7 @@ class InternalFilmingProposalSerializer(BaseProposalSerializer):
     proposaldeclineddetails = ProposalDeclinedDetailsSerializer()
     assessor_mode = serializers.SerializerMethodField()
     can_edit_activities = serializers.SerializerMethodField()
+    can_edit_period = serializers.SerializerMethodField()
     current_assessor = serializers.SerializerMethodField()
     assessor_data = serializers.SerializerMethodField()
     latest_referrals = ProposalReferralSerializer(many=True)
@@ -1290,6 +1298,7 @@ class InternalFilmingProposalSerializer(BaseProposalSerializer):
                 'applicant_details',
                 'training_completed',
                 'can_edit_activities',
+                'can_edit_period',
                 'reversion_ids',
                 'assessor_assessment',
                 'referral_assessments',
@@ -1326,6 +1335,11 @@ class InternalFilmingProposalSerializer(BaseProposalSerializer):
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         return obj.can_edit_activities(user)
+
+    def get_can_edit_period(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_edit_period(user)
 
     def get_readonly(self,obj):
         return True
@@ -1425,6 +1439,7 @@ class InternalEventProposalSerializer(BaseProposalSerializer):
     proposaldeclineddetails = ProposalDeclinedDetailsSerializer()
     assessor_mode = serializers.SerializerMethodField()
     can_edit_activities = serializers.SerializerMethodField()
+    can_edit_period = serializers.SerializerMethodField()
     current_assessor = serializers.SerializerMethodField()
     assessor_data = serializers.SerializerMethodField()
     latest_referrals = ProposalReferralSerializer(many=True)
@@ -1502,6 +1517,7 @@ class InternalEventProposalSerializer(BaseProposalSerializer):
                 'applicant_details',
                 'training_completed',
                 'can_edit_activities',
+                'can_edit_period',
                 'reversion_ids',
                 'assessor_assessment',
                 'referral_assessments',
@@ -1537,6 +1553,11 @@ class InternalEventProposalSerializer(BaseProposalSerializer):
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         return obj.can_edit_activities(user)
+
+    def get_can_edit_period(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_edit_period(user)
 
     def get_readonly(self,obj):
         return True

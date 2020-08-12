@@ -163,6 +163,10 @@
                 type:Object,
                 default:null
             },
+            canEditPeriod:{
+              type: Boolean,
+              default: false
+            },
         },
         data:function () {
             return{

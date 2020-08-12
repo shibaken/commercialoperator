@@ -971,10 +971,36 @@ def save_assessor_data_filming(instance,request,viewset):
             import json
             sc=json.loads(schema)
 
+            sc=json.loads(schema)
+            filming_activity_data=sc['filming_activity']
+            filming_access_data=sc['filming_access']
+            filming_equipment_data=sc['filming_equipment']
+            filming_other_details_data=sc['filming_other_details']
+
+            #save Filming activity data
+            serializer = ProposalFilmingActivitySerializer(instance.filming_activity, data=filming_activity_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            #save Filming access data
+            serializer = ProposalFilmingAccessSerializer(instance.filming_access, data=filming_access_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            #save Filming equipment data
+            serializer = ProposalFilmingEquipmentSerializer(instance.filming_equipment, data=filming_equipment_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            #save Filming other details data
+            serializer = ProposalFilmingOtherDetailsSerializer(instance.filming_other_details, data=filming_other_details_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
             serializer = SaveInternalFilmingProposalSerializer(instance, sc, partial=True)
             serializer.is_valid(raise_exception=True)
             viewset.perform_update(serializer)
-            
+                           
             for f in request.FILES:
                 try:
                     #document = instance.documents.get(name=str(request.FILES[f]))

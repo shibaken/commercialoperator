@@ -1270,6 +1270,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         else:
             return False
 
+    def can_edit_period(self,user):
+        if self.processing_status == 'with_assessor' or self.processing_status == 'with_assessor_requirements':
+            return self.__assessor_group() in user.proposalassessorgroup_set.all()
+        else:
+            return False
+
     def assessor_comments_view(self,user):
 
         if self.processing_status == 'with_assessor' or self.processing_status == 'with_referral' or self.processing_status == 'with_assessor_requirements' or self.processing_status == 'with_approver':

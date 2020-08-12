@@ -335,8 +335,8 @@
                         <div class="row">
                             <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
                                 <ProposalTClass ref="tclass" v-if="proposal && proposal_parks && proposal.application_type=='T Class'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalTClass>
-                                <ProposalFilming ref="filming" v-else-if="proposal && proposal.application_type=='Filming'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalFilming>
-                                <ProposalEvent ref="filming" v-else-if="proposal && proposal.application_type=='Event'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalEvent>
+                                <ProposalFilming ref="filming" v-else-if="proposal && proposal.application_type=='Filming'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalFilming>
+                                <ProposalEvent ref="filming" v-else-if="proposal && proposal.application_type=='Event'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalEvent>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                     <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
                                     <input type='hidden' name="proposal_id" :value="1" />
@@ -519,6 +519,9 @@ export default {
         },
         canEditActivities: function(){
             return this.proposal && this.proposal.assessor_mode && this.proposal.assessor_mode.assessor_mode && this.proposal.can_edit_activities;
+        },
+        canEditPeriod: function(){
+            return this.proposal && this.proposal.assessor_mode && this.proposal.assessor_mode.assessor_mode && this.proposal.can_edit_period;
         },
         canAction: function(){
             if (this.proposal.processing_status == 'With Approver'){
