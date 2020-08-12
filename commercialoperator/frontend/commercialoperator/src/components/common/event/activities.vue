@@ -30,7 +30,7 @@
                                 </div>
                                 <div class="col-sm-4">
                                     <div class="input-group date" ref="event_activity_commencement_date" style="width: 70%;">
-                                        <input type="text" class="form-control" v-model="proposal.event_activity.commencement_date" name="event_activity_commencement_date" placeholder="Commencement date" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                        <input type="text" class="form-control" v-model="proposal.event_activity.commencement_date" name="event_activity_commencement_date" placeholder="Commencement date" :disabled="!canEditPeriod || proposal.pending_amendment_request || proposal.is_amendment_proposal">
                                         <span class="input-group-addon">
                                             <span class="glyphicon glyphicon-calendar"></span>
                                         </span>
@@ -38,7 +38,7 @@
                                 </div>
                                 <div class="col-sm-4">
                                     <div class="input-group date" ref="event_activity_completion_date" style="width: 70%;">
-                                        <input type="text" class="form-control" v-model="proposal.event_activity.completion_date" name="event_activity_completion_date" placeholder="Completion date" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                        <input type="text" class="form-control" v-model="proposal.event_activity.completion_date" name="event_activity_completion_date" placeholder="Completion date" :disabled="!canEditPeriod || proposal.pending_amendment_request || proposal.is_amendment_proposal">
                                         <span class="input-group-addon">
                                             <span class="glyphicon glyphicon-calendar"></span>
                                         </span>
@@ -139,6 +139,18 @@ import {
             canEditActivities:{
               type: Boolean,
               default: true
+            },
+            hasDistrictAssessorMode:{
+                type:Boolean,
+                default: false
+            },
+            is_external:{
+              type: Boolean,
+              default: false
+            },
+            canEditPeriod:{
+              type: Boolean,
+              default: false
             },
         },
         data:function () {

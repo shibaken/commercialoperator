@@ -1628,6 +1628,56 @@ class SaveInternalFilmingProposalSerializer(BaseProposalSerializer):
                 )
         read_only_fields=('documents','requirements',)
 
+class SaveInternalEventProposalSerializer(BaseProposalSerializer):
+    #assessor_data = serializers.JSONField(required=False)
+    #applicant_details = ProposalApplicantDetailsSerializer(required=False)
+    #other_details= SaveProposalOtherDetailsSerializer()
+
+    class Meta:
+        model = Proposal
+        fields = (
+                'id',
+                #'application_type',
+                'activity',
+                'approval_level',
+                'title',
+                'region',
+                'district',
+                'tenure',
+                'data',
+                #'assessor_data',
+                #'comment_data',
+                #'schema',
+                #'customer_status',
+                #'processing_status',
+                #'review_status',
+                #'hard_copy',
+                'applicant_type',
+                #'applicant',
+                #'org_applicant',
+                #'proxy_applicant',
+                #'submitter',
+                'assigned_officer',
+                'previous_application',
+                'lodgement_date',
+                'documents',
+                'requirements',
+                'readonly',
+                'can_user_edit',
+                'can_user_view',
+                'reference',
+                'lodgement_number',
+                'lodgement_sequence',
+                'can_officer_process',
+                'can_view_district_table',
+                'applicant_details',
+                'filming_approval_type',
+                #'activities_land',
+                #'activities_marine',
+                #'other_details',
+                )
+        read_only_fields=('documents','requirements',)
+
 class FilmingDistrictProposalSerializer(InternalFilmingProposalSerializer):
     def get_assessor_mode(self,obj):
         # TODO check if the proposal has been accepted or declined

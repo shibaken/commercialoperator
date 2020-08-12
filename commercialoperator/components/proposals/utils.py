@@ -8,7 +8,7 @@ from ledger.accounts.models import EmailUser #, Document
 from commercialoperator.components.proposals.models import ProposalDocument, ProposalPark, ProposalParkActivity, ProposalParkAccess, ProposalTrail, ProposalTrailSectionActivity, ProposalTrailSection, ProposalParkZone, ProposalParkZoneActivity, ProposalOtherDetails, ProposalAccreditation, ProposalUserAction, ProposalAssessment, ProposalAssessmentAnswer, ChecklistQuestion,ProposalStandardRequirement
 from commercialoperator.components.approvals.models import Approval
 from commercialoperator.components.proposals.email import send_submit_email_notification, send_external_submit_email_notification
-from commercialoperator.components.proposals.serializers import SaveProposalSerializer, SaveProposalParkSerializer, SaveProposalTrailSerializer, ProposalAccreditationSerializer, ProposalOtherDetailsSerializer, SaveInternalFilmingProposalSerializer
+from commercialoperator.components.proposals.serializers import SaveProposalSerializer, SaveProposalParkSerializer, SaveProposalTrailSerializer, ProposalAccreditationSerializer, ProposalOtherDetailsSerializer, SaveInternalFilmingProposalSerializer, SaveInternalEventProposalSerializer
 from commercialoperator.components.main.models import Activity, Park, AccessType, Trail, Section, Zone
 import traceback
 import os
@@ -881,7 +881,7 @@ def save_assessor_data(instance,request,viewset):
             if instance.application_type.name==ApplicationType.TCLASS:
                 save_assessor_data_tclass(instance,request,viewset)
             if instance.application_type.name==ApplicationType.EVENT:
-                save_assessor_data_filming(instance,request,viewset)            
+                save_assessor_data_event(instance,request,viewset)            
         except:
             raise
 
@@ -969,7 +969,6 @@ def save_assessor_data_filming(instance,request,viewset):
             except:
                 schema=request.POST.get('schema')
             import json
-            sc=json.loads(schema)
 
             sc=json.loads(schema)
             filming_activity_data=sc['filming_activity']
@@ -998,6 +997,72 @@ def save_assessor_data_filming(instance,request,viewset):
             serializer.save()
 
             serializer = SaveInternalFilmingProposalSerializer(instance, sc, partial=True)
+            serializer.is_valid(raise_exception=True)
+            viewset.perform_update(serializer)
+                           
+            for f in request.FILES:
+                try:
+                    #document = instance.documents.get(name=str(request.FILES[f]))
+                    document = instance.documents.get(input_name=f)
+                except ProposalDocument.DoesNotExist:
+                    document = instance.documents.get_or_create(input_name=f)[0]
+                document.name = str(request.FILES[f])
+                if document._file and os.path.isfile(document._file.path):
+                    os.remove(document._file.path)
+                document._file = request.FILES[f]
+                document.save()
+            # End Save Documents
+        except:
+            raise
+
+def save_assessor_data_event(instance,request,viewset):
+    with transaction.atomic():
+        try:
+            #data={}
+            try:
+                schema=request.data.get('schema')
+            except:
+                schema=request.POST.get('schema')
+            import json
+
+            sc=json.loads(schema)
+            event_activity_data=sc['event_activity']
+            event_vehicles_vessels_data=sc['event_vehicles_vessels']
+            # filming_access_data=sc['filming_access']
+            event_management_data=sc['event_management']
+            events_other_details_data=sc['event_other_details']
+            try:
+                select_trails_activities=json.loads(request.data.get('selected_trails_activities'))
+            except:
+                select_trails_activities=json.loads(request.POST.get('selected_trails_activities', None))
+
+            #print select_trails_activities
+            #save Event Activity tab data
+            serializer = ProposalEventActivitiesSerializer(instance.event_activity, data=event_activity_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            #save Event Vehicle Vessels data
+            serializer = ProposalEventVehiclesVesselsSerializer(instance.event_vehicles_vessels, data=event_vehicles_vessels_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            #save Event Management data
+            serializer = ProposalEventManagementSerializer(instance.event_management, data=event_management_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            #save Event other details data
+            serializer = ProposalEventOtherDetailsSerializer(instance.event_other_details, data=events_other_details_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            if select_trails_activities or len(select_trails_activities)==0:
+                try:
+
+                    save_trail_section_activity_data(instance, select_trails_activities, request)
+
+                except:
+                    raise
+
+            serializer = SaveInternalEventProposalSerializer(instance, sc, partial=True)
             serializer.is_valid(raise_exception=True)
             viewset.perform_update(serializer)
                            
