@@ -24,7 +24,7 @@
                                 <div class="row">
                                     <div class="col-sm-3">
                                         
-                                        <label class="control-label pull-left"  for="Name">Feature of Interest</label>
+                                        <label class="control-label pull-left"  for="Name">Feature or site of Interest</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <input class="form-control" name="feature_of_interest" ref="feature_of_interest" v-model="park.feature_of_interest" type="text">

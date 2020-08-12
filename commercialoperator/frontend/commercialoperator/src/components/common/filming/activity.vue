@@ -3,7 +3,7 @@
     <div class="col-sm-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">Activity Details <small></small>
+                <h3 class="panel-title">Filming Details <small></small>
                 <a class="panelClicker" :href="'#'+lBody" data-toggle="collapse"  data-parent="#activityInfo" expanded="true" :aria-controls="lBody">
                 <span class="glyphicon glyphicon-chevron-up pull-right "></span>
                 </a>

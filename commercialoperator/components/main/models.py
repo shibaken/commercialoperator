@@ -428,6 +428,7 @@ class GlobalSettings(models.Model):
         ('park_finder_link', 'Park Finder Link'),
         ('fees_and_charges', 'Fees and charges link'),
         ('commercial_filming_handbook', 'Commercial Filming Handbook link'),
+        ('park_stay_link', 'Park Stay Link'),
 
     )
     key = models.CharField(max_length=255, choices=keys, blank=False, null=False,)

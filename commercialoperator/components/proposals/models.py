@@ -4233,6 +4233,7 @@ class ProposalFilmingActivity(models.Model):
     ADVERTISING='advertising'
     FEATURE_FILM='feature_film'
     TOURISM='tourism'
+    SOCIAL_MEDIA='social_media'
     DOCUMENTARY='documentary'
     RECREATION='recreation'
     OTHER='other'
@@ -4252,6 +4253,7 @@ class ProposalFilmingActivity(models.Model):
         (DOCUMENTARY, 'Documentary'),
         (TOURISM, 'Tourism'),
         (OTHER, 'other'),
+        (SOCIAL_MEDIA, 'Social media/ online content'),
     )
     SPONSORSHIP_CHOICES=(
         (YES, 'Yes'),
