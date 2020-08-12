@@ -80,7 +80,7 @@
                             </div>
                         </div>
                         <div class="row">&nbsp;</div>
-                        <div class="row" v-if="proposal.filming_equipment.rps_used">
+                        <div class="row" v-if="proposal.filming_equipment.rps_used && proposal.filming_equipment.rps_overweight">
                             <div class="col-sm-6">
                                 <label class="control-label pull-right"  for="Name">Attach CASA Remotely piloted aircraft operator's certificate (ReOC) or licence (RePL)</label>
                             </div>

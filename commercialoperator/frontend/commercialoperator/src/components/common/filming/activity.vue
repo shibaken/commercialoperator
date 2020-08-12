@@ -127,7 +127,7 @@
                             <!-- <div class="row" v-if="proposal.filming_activity.film_purpose=='other'"> -->
                             <div class="row" v-if="showPurposeOtherDetails">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-right"  for="Name">Details</label>
+                                    <label class="control-label pull-right"  for="Name">Please provide details</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
                                     <textarea class="form-control" v-model="proposal.filming_activity.film_purpose_details" :disabled="proposal.readonly" style="width: 80%"></textarea>
@@ -167,7 +167,7 @@
                             </div>
                             <div class="row" v-if="showUsageDetails">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-right"  for="Name">Please Specify </label>
+                                    <label class="control-label pull-right"  for="Name">Please specify </label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
                                     <textarea class="form-control" v-model="proposal.filming_activity.film_usage_details" :disabled="proposal.readonly" style="width: 80%"></textarea>

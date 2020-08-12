@@ -4252,7 +4252,7 @@ class ProposalFilmingActivity(models.Model):
         (RECREATION, 'Recreation'),
         (DOCUMENTARY, 'Documentary'),
         (TOURISM, 'Tourism'),
-        (OTHER, 'other'),
+        (OTHER, 'Other'),
         (SOCIAL_MEDIA, 'Social media/ online content'),
     )
     SPONSORSHIP_CHOICES=(
