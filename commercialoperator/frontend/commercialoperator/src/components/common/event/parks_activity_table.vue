@@ -2,7 +2,7 @@
     <div class="">
         <div class="col-sm-12"> 
             <div class="row" >
-                <div class="col-md-3" v-if="!proposal.readonly">
+                <div class="col-md-3" v-if="canEditActivities">
                             <!-- <button style="margin-top:25px;" class="btn btn-primary pull-right">New Application</button> -->
                             <input type="button" style="margin-top:25px;" @click.prevent="newPark" class="btn btn-primary" value="Add" />
                 </div>
@@ -43,6 +43,10 @@ export default {
         url:{
             type: String,
             required: true
+        },
+        canEditActivities:{
+              type: Boolean,
+              default: true
         },
     },
     data() {

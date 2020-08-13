@@ -15,18 +15,18 @@
                         <div class="">
                             <div class="row">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-left"  for="Name">Event name</label>
+                                    <label class="control-label pull-right"  for="Name">Event name</label>
                                 </div>
                                 <div class="col-sm-9">
                                     <!-- <input type="text" class="form-control" v-model="proposal.activities_event.event_name" name="event_name" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal"> -->
-                                    <input type="text" class="form-control" name="event_name" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal" v-model="proposal.event_activity.event_name">
+                                    <input type="text" class="form-control" name="event_name" :disabled="!canEditPeriod || proposal.pending_amendment_request || proposal.is_amendment_proposal" v-model="proposal.event_activity.event_name">
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
 
                             <div class="row">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-left"  for="Name">Period of proposed event</label>
+                                    <label class="control-label pull-right"  for="Name">Period of proposed event</label>
                                 </div>
                                 <div class="col-sm-4">
                                     <div class="input-group date" ref="event_activity_commencement_date" style="width: 70%;">
@@ -53,7 +53,7 @@
                         <div class="">
                             <div class="row">
                                 <label class="col-sm-12"  for="Name">List the parks (terrestrial and/or marine) where this event is proposed to occur. Please attach a detailed itinerary.</label>
-                                <ParksActivityTable :url="parks_url" :proposal="proposal"  ref="parks_table"></ParksActivityTable>
+                                <ParksActivityTable :url="parks_url" :proposal="proposal"  ref="parks_table":canEditActivities="canEditActivities"></ParksActivityTable>
                             </div>
                             <div class="row">&nbsp;</div>
                         </div> 
