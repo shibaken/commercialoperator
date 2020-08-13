@@ -49,6 +49,7 @@ RUN touch /app/.env
 COPY .git ./.git
 #COPY ledger ./ledger
 COPY commercialoperator ./commercialoperator
+#RUN rm -rf ./commercialoperator/frontend/commercialoperator/node_modules
 RUN python manage_co.py collectstatic --noinput
 
 RUN mkdir /app/tmp/

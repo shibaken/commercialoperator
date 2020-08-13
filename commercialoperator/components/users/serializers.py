@@ -99,7 +99,7 @@ class UserSerializer(serializers.ModelSerializer):
     address_details = serializers.SerializerMethodField()
     contact_details = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
-    identification = DocumentSerializer()
+    #identification = DocumentSerializer()
     is_department_user = serializers.SerializerMethodField()
     is_payment_admin = serializers.SerializerMethodField()
     system_settings= serializers.SerializerMethodField()
@@ -111,7 +111,7 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name',
             'first_name',
             'email',
-            'identification',
+            #'identification',
             'residential_address',
             'phone_number',
             'mobile_number',
