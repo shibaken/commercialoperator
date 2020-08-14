@@ -68,7 +68,8 @@ export default {
                 'With Assessor',
                 'Approved',
             ],
-            abseiling_climbing_headers:["Leader","NOLRS registration no.","Expiry Date","Action"],
+            // abseiling_climbing_headers:["Leader","NOLRS registration no.","Expiry Date","Action"],
+            abseiling_climbing_headers:["Leader","Expiry Date","Action"],
             abseiling_climbing_options:{
                 language: {
                     processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
@@ -101,11 +102,11 @@ export default {
                         },
                         //name: "abseiling_climbing__region__name" // will be use like: Approval.objects.filter(abseiling_climbing__region__name='Kimberley')
                     },
-                    {
-                        data: "rego_number",
+                    // {
+                    //     data: "rego_number",
 
-                        //name: "abseiling_climbing__activity",
-                    },
+                    //     //name: "abseiling_climbing__activity",
+                    // },
                     {
                         data: "expiry_date",
                         //name: "abseiling_climbing__title",

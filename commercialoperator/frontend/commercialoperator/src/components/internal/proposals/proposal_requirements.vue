@@ -7,6 +7,7 @@
                         <a class="panelClicker" :href="'#'+panelBody" data-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="panelBody">
                             <span class="glyphicon glyphicon-chevron-down pull-right "></span>
                         </a>
+                        <small v-if="proposal.application_type=='Filming'"><br>Only add requirements that are additional to the general conditions in the Commercial Filming Handbook <a :href="commercial_filming_handbook" target="_blank">here</a>. Please ensure each condition added references a specific park or district and is written in a format consistent with the handbook.</small>
                     </h3>
                 </div>
                 <div class="panel-body panel-collapse collapse in" :id="panelBody">
@@ -60,6 +61,7 @@ export default {
     data: function() {
         let vm = this;
         return {
+            global_settings:[],
             panelBody: "proposal-requirements-"+vm._uid,
             requirements: [],
             requirement_headers:["Requirement","Due Date","Recurrence","Action","Order","Documents"],
@@ -255,9 +257,29 @@ export default {
         hasAssessorMode(){
             return this.proposal.assessor_mode.has_assessor_mode;
         },
+        commercial_filming_handbook: function(){
+                let vm=this;
+                if(vm.global_settings){
+                    for(var i=0; i<vm.global_settings.length; i++){
+                        if(vm.global_settings[i].key=='commercial_filming_handbook'){
+                            return vm.global_settings[i].value;
+                        }
+                    }
+                }
+                return '';
+        },
 
     },
     methods:{
+        fetchGlobalSettings: function(){
+                let vm = this;
+                vm.$http.get('/api/global_settings.json').then((response) => {
+                    vm.global_settings = response.body;
+                    
+                },(error) => {
+                    console.log(error);
+                } );
+            },
         addRequirement(){
             this.$refs.requirement_detail.requirement.referral_group=this.referral_group;
             this.$refs.requirement_detail.requirement.district_proposal=this.district_proposal;
@@ -380,6 +402,7 @@ export default {
     mounted: function(){
         let vm = this;
         this.fetchRequirements();
+        vm.fetchGlobalSettings();
         vm.$nextTick(() => {
             this.eventListeners();
         });

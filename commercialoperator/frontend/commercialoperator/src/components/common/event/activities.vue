@@ -106,9 +106,9 @@
                 </form>
             </div>
             
-            <div>Trail_actvities: {{trail_activities}}</div><br>
+            <!-- <div>Trail_actvities: {{trail_activities}}</div><br>
             <div>Selected_Trail: {{selected_trail_ids}}</div><br>
-            <div>Selected_Trailss_Activities: {{selected_trails_activities}}</div>
+            <div>Selected_Trailss_Activities: {{selected_trails_activities}}</div> -->
             
           </div>
         </div>
