@@ -85,6 +85,7 @@ class ProposalEventOtherDetailsSerializer(serializers.ModelSerializer):
                 'participants_number',
                 'officials_number',
                 'support_vehicle_number',
+                'other_comments',
                 'proposal',
                 )
 

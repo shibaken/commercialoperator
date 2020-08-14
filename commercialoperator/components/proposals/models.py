@@ -5185,6 +5185,7 @@ class ProposalEventOtherDetails(models.Model):
     participants_number = models.CharField(max_length=24,null=True,blank=True)
     officials_number = models.CharField(max_length=24,null=True,blank=True)
     support_vehicle_number = models.CharField(max_length=24,null=True,blank=True)
+    other_comments=models.TextField('Other comments', blank=True, null=True)
 
     def __str__(self):
         return '{}'.format(self.training_date)
