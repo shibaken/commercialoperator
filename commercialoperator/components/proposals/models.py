@@ -5154,7 +5154,7 @@ class ProposalEventManagement(models.Model):
     approvals_gained_details=models.TextField(blank=True)
     emergency_plan = models.BooleanField(default=False)
     event_management_plan = models.BooleanField(default=False)
-    #risk_managment_plan = models.BooleanField(default=False)
+    emergency_response_plan = models.BooleanField(default=False)
     risk_management_plan = models.BooleanField(default=False)
     traffic_management_plan = models.BooleanField(default=False)
     other_info= models.TextField(blank=True)
