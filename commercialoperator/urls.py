@@ -192,6 +192,7 @@ urlpatterns = [
 if settings.DEBUG:  # Serve media locally in development.
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+if settings.SHOW_DEBUG_TOOLBAR:
     import debug_toolbar
     urlpatterns = [
         url('__debug__/', include(debug_toolbar.urls)),

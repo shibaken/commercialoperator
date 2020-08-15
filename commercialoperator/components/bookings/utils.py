@@ -378,28 +378,38 @@ def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], inte
     """ Create the ledger lines - line item for compliance fee sent to payment system """
 
     def add_line_item(park, price, no_persons):
-        price = round(float(price), 2)
         if no_persons > 0:
             return {
-                'ledger_description': '{}'.format(park.name),
+                'ledger_description': '{}, participants: {}'.format(park.name, no_persons),
                 'oracle_code': park.oracle_code,
                 #'oracle_code': 'NNP415 GST',
                 'price_incl_tax':  price,
                 'price_excl_tax':  price if park.is_gst_exempt else round(float(calculate_excl_gst(price)), 2),
-                'quantity': no_persons,
+                'quantity': 1 # no_persons,
             }
         return None
+
 
     now = datetime.now().strftime('%Y-%m-%d %H:%M')
     events_park_price = compliance.proposal.application_type.events_park_fee
     events_parks = compliance.proposal.events_parks.all().distinct('park__name')
     #cost_per_park = (events_park_price * compliance.num_participants) / len(events_parks)
-    cost_per_park = events_park_price / len(events_parks)
+    invoice_total = events_park_price * compliance.num_participants
+    if settings.DEBUG:
+        # since Ledger UAT only handles whole integer total
+        invoice_total = round(invoice_total, 0)
+
+    alloc_per_park = round(invoice_total / len(events_parks), 2)
+    rounding_error = round(invoice_total - (alloc_per_park * len(events_parks)), 2)
 
     lines = []
-    for events_park in events_parks:
+    for idx, events_park in enumerate(events_parks, 1):
         park = events_park.park
-        lines.append(add_line_item(park, price=cost_per_park, no_persons=compliance.num_participants))
+        if idx==len(events_parks):
+            # add rounding error to last line/product
+            lines.append(add_line_item(park, price=alloc_per_park+rounding_error, no_persons=compliance.num_participants))
+        else:
+            lines.append(add_line_item(park, price=alloc_per_park, no_persons=compliance.num_participants))
 
     #logger.info('{}'.format(lines))
     return lines
