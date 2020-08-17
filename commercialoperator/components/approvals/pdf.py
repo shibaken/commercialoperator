@@ -636,7 +636,7 @@ def _create_approval_lawful_authority(approval_buffer, approval, proposal, copie
     elements.append(Paragraph('PHOTOGRAPHY ACTIVITIES', styles['InfoTitleVeryLargeCenter']))    
     elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
 
-    elements.append(Paragraph('This lawful authority is a written notice for the purposes of regulations 4(1) of the <i>Conservation and Land Management Regulations 2002</i> (the regulations) and it grants lawful authority to the person named herein as the Authority Holder to undertake commercial filming and/or photography activities in the areas specified in Schedule 1 of this lawful authority, an act that would otherwise be unlawful under the regulations.', styles['BoldLeft']))
+    elements.append(Paragraph('This lawful authority is a written notice for the purposes of regulation 4(1) of the <i>Conservation and Land Management Regulations 2002</i> (the regulations) and it grants lawful authority to the person named herein as the Authority Holder to undertake commercial filming and/or photography activities in the areas specified in Schedule 1 of this lawful authority, an act that would otherwise be unlawful under the regulations.', styles['BoldLeft']))
     elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
 
     elements.append(Paragraph('The Chief Executive Officer (CEO) of the Department of Biodiversity, Conservation and Attractions hereby grants a lawful authority to:', styles['BoldLeft']))
@@ -704,7 +704,7 @@ def _create_approval_lawful_authority(approval_buffer, approval, proposal, copie
 
     elements.append(PageBreak())
     elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-    table_data=[[Paragraph('Licence Number', styles['BoldLeft']), Paragraph(_format_name(approval.lodgement_number), styles['Left'])],
+    table_data=[[Paragraph('Lawful Authority Number', styles['BoldLeft']), Paragraph(_format_name(approval.lodgement_number), styles['Left'])],
                 [Paragraph('Commencement Date', styles['BoldLeft']), Paragraph(_format_name(approval.start_date).strftime(DATE_FORMAT), styles['Left'])],    
                 [Paragraph('Expiry Date', styles['BoldLeft']), Paragraph(_format_name(approval.expiry_date).strftime(DATE_FORMAT), styles['Left'])]]
     t=Table(table_data, colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
