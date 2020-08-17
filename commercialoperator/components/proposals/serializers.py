@@ -63,7 +63,7 @@ class EmailUserSerializer(serializers.ModelSerializer):
 
 class EmailUserAppViewSerializer(serializers.ModelSerializer):
     residential_address = UserAddressSerializer()
-    identification = DocumentSerializer()
+    #identification = DocumentSerializer()
 
     class Meta:
         model = EmailUser
@@ -75,7 +75,7 @@ class EmailUserAppViewSerializer(serializers.ModelSerializer):
                   'title',
                   'organisation',
                   'residential_address',
-                  'identification',
+                  #'identification',
                   'email',
                   'phone_number',
                   'mobile_number',)
