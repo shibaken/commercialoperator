@@ -2273,6 +2273,19 @@ class AmendmentRequestReasonChoicesView(views.APIView):
                 choices_list.append({'key': c.id,'value': c.reason})
         return Response(choices_list)
 
+class FilmingLicenceChargeView(views.APIView):
+
+    renderer_classes = [JSONRenderer,]
+    def get(self,request, format=None):
+        choices_list = []
+        choices = Proposal.FILMING_LICENCE_CHARGE_CHOICES
+        if choices:
+            for c in choices:
+                choices_list.append({'key': c[0],'value': c[1]})
+        return Response(choices_list)
+
+
+
 class SearchKeywordsView(views.APIView):
     renderer_classes = [JSONRenderer,]
     def post(self,request, format=None):

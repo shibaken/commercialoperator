@@ -676,6 +676,8 @@ class SaveProposalSerializer(BaseProposalSerializer):
                 'can_officer_process',
                 'applicant_details',
                 'filming_approval_type',
+                'filming_licence_charge_type',
+                'filming_non_standard_charge',
                 #'activities_land',
                 #'activities_marine',
                 #'other_details',
@@ -1200,7 +1202,9 @@ class ProposalFilmingSerializer(BaseProposalSerializer):
                 'filming_access',
                 'filming_equipment',
                 'filming_other_details',
-                'filming_approval_type'
+                'filming_approval_type',
+                'filming_licence_charge_type',
+                'filming_non_standard_charge',
                 )
         read_only_fields=('documents','requirements',)
 
@@ -1309,6 +1313,8 @@ class InternalFilmingProposalSerializer(BaseProposalSerializer):
                 'filming_equipment',
                 'filming_other_details',
                 'filming_approval_type',
+                'filming_licence_charge_type',
+                'filming_non_standard_charge',
                 'district_proposals'
                 )
         read_only_fields=('documents','requirements')
@@ -1622,6 +1628,8 @@ class SaveInternalFilmingProposalSerializer(BaseProposalSerializer):
                 'can_view_district_table',
                 'applicant_details',
                 'filming_approval_type',
+                'filming_licence_charge_type',
+                'filming_non_standard_charge',
                 #'activities_land',
                 #'activities_marine',
                 #'other_details',
@@ -1672,6 +1680,8 @@ class SaveInternalEventProposalSerializer(BaseProposalSerializer):
                 'can_view_district_table',
                 'applicant_details',
                 'filming_approval_type',
+                'filming_licence_charge_type',
+                'filming_non_standard_charge',
                 #'activities_land',
                 #'activities_marine',
                 #'other_details',

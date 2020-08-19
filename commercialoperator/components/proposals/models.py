@@ -513,6 +513,19 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                (LICENCE, 'Licence'),
                                )
 
+    HALF_DAY_CHARGE='half_day_charge'
+    FULL_DAY_CHARGE='full_day_charge'
+    TWO_DAYS_CHARGE = '2_days_charge'
+    THREE_OR_MORE_DAYS_CHARGE='3_or_more_days_charge'
+    NON_STANDARD_CHARGE='non_standard_charge'
+
+    FILMING_LICENCE_CHARGE_CHOICES=((HALF_DAY_CHARGE, 'Half day charge'),
+                                    (FULL_DAY_CHARGE, 'Full day charge'),
+                                    (TWO_DAYS_CHARGE, '2 days charge'),
+                                    (THREE_OR_MORE_DAYS_CHARGE, '3 or more days charge'),
+                                    (NON_STANDARD_CHARGE, 'Non standard charge'),
+                                )
+
     proposal_type = models.CharField('Application Status Type', max_length=40, choices=APPLICATION_TYPE_CHOICES,
                                         default=APPLICATION_TYPE_CHOICES[0][0])
     #proposal_state = models.PositiveSmallIntegerField('Proposal state', choices=PROPOSAL_STATE_CHOICES, default=1)
@@ -595,6 +608,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     #Following field is only used to approval type for Filming application otherwise ignore
     filming_approval_type = models.CharField('Filming Approval Type', max_length=30, choices=FILMING_APPROVAL_TYPE_CHOICES,
                                      default=FILMING_APPROVAL_TYPE_CHOICES[1][0])
+    #Following field is only used to licence type for Filming application otherwise ignore
+    filming_licence_charge_type = models.CharField('Filming Licence charge Type', max_length=30, choices=FILMING_LICENCE_CHARGE_CHOICES,
+                                     default=FILMING_LICENCE_CHARGE_CHOICES[1][0])
+    filming_non_standard_charge = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
 
     # Event
 
