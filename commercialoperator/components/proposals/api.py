@@ -666,11 +666,13 @@ class ProposalViewSet(viewsets.ModelViewSet):
         activity_qs =  self.get_queryset().filter(activity__isnull=False).values_list('activity', flat=True).distinct()
         submitter_qs = self.get_queryset().filter(submitter__isnull=False).distinct('submitter__email').values_list('submitter__first_name','submitter__last_name','submitter__email')
         submitters = [dict(email=i[2], search_term='{} {} ({})'.format(i[0], i[1], i[2])) for i in submitter_qs]
+        application_types=ApplicationType.objects.filter(visible=True).values_list('name', flat=True)
         data = dict(
             regions=region_qs,
             #districts=district_qs,
             activities=activity_qs,
             submitters=submitters,
+            application_types=application_types,
             #processing_status_choices = [i[1] for i in Proposal.PROCESSING_STATUS_CHOICES],
             #processing_status_id_choices = [i[0] for i in Proposal.PROCESSING_STATUS_CHOICES],
             #customer_status_choices = [i[1] for i in Proposal.CUSTOMER_STATUS_CHOICES],

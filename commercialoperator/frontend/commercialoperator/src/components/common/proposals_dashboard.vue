@@ -71,6 +71,15 @@
                                 </span>
                             </div>
                         </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="">Licence Type</label>
+                                <select class="form-control" v-model="filterApplicationType">
+                                    <option value="All">All</option>
+                                    <option v-for="s in application_types" :value="s">{{s}}</option>
+                                </select>
+                            </div>
+                        </div>
                         <!-- <div class="col-md-3">
                             <div class="form-group">
                                 <label for="">Submitter</label>
@@ -128,6 +137,7 @@ export default {
             profile: {},
             is_payment_admin: false,
             // Filters for Proposals
+            filterApplicationType: 'All',
             filterProposalStatus: 'All',
             filterProposalLodgedFrom: '',
             filterProposalLodgedTo: '',
@@ -140,6 +150,11 @@ export default {
                 keepInvalid:true,
                 allowInputToggle:true
             },
+            // application_types:[
+            //     {value:'T Class', name:'T Class'},
+            //     {value:'Filming', name:'Filming'},
+            //     {value:'Event', name:'Event'},
+            // ],
             external_status:[
                 {value: 'draft', name: 'Draft'},
                 {value: 'with_assessor', name: 'Under Review'},
@@ -461,6 +476,14 @@ export default {
                 vm.$refs.proposal_datatable.vmDataTable.columns(4).search('').draw();
             }
         },
+        filterApplicationType: function() {
+            let vm = this;
+            if (vm.filterApplicationType!= 'All') {
+                vm.$refs.proposal_datatable.vmDataTable.columns(1).search(vm.filterApplicationType).draw();
+            } else {
+                vm.$refs.proposal_datatable.vmDataTable.columns(1).search('').draw();
+            }
+        },
         filterProposalLodgedFrom: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
         },
@@ -503,6 +526,7 @@ export default {
             //vm.$http.get('/api/list_proposal/filter_list/').then((response) => {
             vm.$http.get(api_endpoints.filter_list).then((response) => {
                 vm.proposal_submitters = response.body.submitters;
+                vm.application_types= response.body.application_types;
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {
