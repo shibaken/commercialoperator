@@ -669,7 +669,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     def reset_licence_discount(self, user):
         """ reset when licence is issued"""
         org = self.org_applicant
-        if self.application_type.name=='T Class' and org and org.licence_discount > 0:
+        # if self.application_type.name=='T Class' and org and org.licence_discount > 0:
+        if self.application_type.name==ApplicationType.TCLASS and org and org.licence_discount > 0:
             if org.licence_discount > 0:
                 lic_disc = self.fee_discounts.get(discount_type=ApplicationFeeDiscount.DISCOUNT_TYPE_LICENCE)
                 lic_disc.reset_date = timezone.now()
@@ -681,7 +682,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     def reset_application_discount(self, user):
         """ reset when application is submitted"""
         org = self.org_applicant
-        if self.application_type.name=='T Class' and org:
+        #if self.application_type.name=='T Class' and org:
+        if self.application_type.name==ApplicationType.TCLASS and org:        
             if org.application_discount > 0 or org.licence_discount > 0:
                 app_disc = ApplicationFeeDiscount.objects.create(proposal=self, discount_type=ApplicationFeeDiscount.DISCOUNT_TYPE_APPLICATION, discount=org.application_discount, reset_date=timezone.now(), user=user)
                 lic_disc = ApplicationFeeDiscount.objects.create(proposal=self, discount_type=ApplicationFeeDiscount.DISCOUNT_TYPE_LICENCE, discount=org.licence_discount, user=user)
@@ -694,7 +696,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     def allow_full_discount(self):
         """ checks if a fee is payable after discount is applied """
         org = self.org_applicant
-        if self.application_type.name=='T Class' and self.other_details.preferred_licence_period and org:
+        if self.application_type.name==ApplicationType.TCLASS and self.other_details.preferred_licence_period and org:
             application_fee = max( round(float(self.application_type.application_fee) - org.application_discount, 2), 0)
             licence_fee = max( round(float(self.licence_fee_amount) - org.licence_discount, 2), 0)
             if licence_fee == 0 and application_fee == 0:

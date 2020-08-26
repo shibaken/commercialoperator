@@ -444,7 +444,7 @@ def create_tclass_fee_lines(proposal, invoice_text=None, vouchers=[], internal=F
     ]
 
     # Add fee Waiver To T Class, if any
-    if proposal.application_type.name=='T Class' and proposal.org_applicant:
+    if proposal.application_type.name==ApplicationType.TCLASS and proposal.org_applicant:
         if proposal.org_applicant.apply_application_discount:
             line_items += [
                 {   'ledger_description': 'Application Fee Waiver - {} - {}'.format(now, proposal.lodgement_number),
