@@ -171,7 +171,7 @@
                                             <strong>Action</strong><br/>
                                         </div>
                                     </div>
-                                    <div class="row" v-if="proposal.application_type=='Filming' && proposal.filming_approval_type=='lawful_authority'">
+                                    <div class="row" v-if="proposal.application_type==application_type_filming && proposal.filming_approval_type=='lawful_authority'">
                                         <div class="col-sm-12"  >
                                             <!-- <button  v-if="proposal.application_type=='Filming' && proposal.filming_approval_type=='lawful_authority'" style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="sendToDistricts()">Send to Districts</button><br/> -->
                                             <button v-if="sendingToDistrict" style="width:80%;" class="btn btn-primary top-buffer-s" disabled>Send to Districts&nbsp;
@@ -334,9 +334,9 @@
                     <div class="">
                         <div class="row">
                             <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
-                                <ProposalTClass ref="tclass" v-if="proposal && proposal_parks && proposal.application_type=='T Class'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalTClass>
-                                <ProposalFilming ref="filming" v-else-if="proposal && proposal.application_type=='Filming'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalFilming>
-                                <ProposalEvent ref="filming" v-else-if="proposal && proposal.application_type=='Event'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalEvent>
+                                <ProposalTClass ref="tclass" v-if="proposal && proposal_parks && proposal.application_type==application_type_tclass" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalTClass>
+                                <ProposalFilming ref="filming" v-else-if="proposal && proposal.application_type==application_type_filming" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalFilming>
+                                <ProposalEvent ref="filming" v-else-if="proposal && proposal.application_type==application_type_event" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalEvent>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                     <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
                                     <input type='hidden' name="proposal_id" :value="1" />
@@ -554,6 +554,15 @@ export default {
         class_ncols: function(){
             return this.comparing ? 'col-md-12' : 'col-md-8';
         },
+        application_type_tclass: function(){
+          return api_endpoints.t_class;
+        },
+        application_type_filming: function(){
+          return api_endpoints.filming;
+        },
+        application_type_event: function(){
+          return api_endpoints.event;
+        }
     },
     methods: {
         initialiseOrgContactTable: function(){
@@ -574,7 +583,7 @@ export default {
         },
         proposedApproval: function(){
             this.$refs.proposed_approval.approval = this.proposal.proposed_issuance_approval != null ? helpers.copyObject(this.proposal.proposed_issuance_approval) : {};
-            if(this.proposal.application_type=='T Class'){
+            if(this.proposal.application_type==vm.application_type_tclass){
                 if((this.proposal.proposed_issuance_approval==null || this.proposal.proposed_issuance_approval.expiry_date==null) && this.proposal.other_details.proposed_end_date!=null){
                     // this.$refs.proposed_approval.expiry_date=this.proposal.other_details.proposed_end_date;
                     var test_approval={
@@ -584,7 +593,7 @@ export default {
                 }
                 this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
             }
-            if(this.proposal.application_type=='Filming'){
+            if(this.proposal.application_type==vm.application_type_filming){
                 if((this.proposal.proposed_issuance_approval==null || this.proposal.proposed_issuance_approval.expiry_date==null) && this.proposal.filming_activity.completion_date!=null && this.proposal.filming_activity.commencement_date!=null){
                     // this.$refs.proposed_approval.expiry_date=this.proposal.other_details.proposed_end_date;
                     var test_approval={
@@ -597,7 +606,7 @@ export default {
                 //console.logt(test_approval)
                 //this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
             }
-            if(this.proposal.application_type=='Event'){
+            if(this.proposal.application_type==vm.application_type_event){
                 if((this.proposal.proposed_issuance_approval==null || this.proposal.proposed_issuance_approval.expiry_date==null) && this.proposal.event_activity.completion_date!=null && this.proposal.event_activity.commencement_date!=null){
                     // this.$refs.proposed_approval.expiry_date=this.proposal.other_details.proposed_end_date;
                     var test_approval={

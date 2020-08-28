@@ -249,9 +249,9 @@
                     <div class="row">
                         <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
                                 
-                                <ProposalTClass v-if="proposal && proposal_parks && proposal.application_type=='T Class'" :proposal="proposal" id="proposalStart" :canEditActivities="false" :is_external="false" :is_referral="true" :referral="referral" :hasReferralMode="hasReferralMode" :proposal_parks="proposal_parks"></ProposalTClass>
-                                <ProposalFilming v-else-if="proposal && proposal.application_type=='Filming'" :proposal="proposal" id="proposalStart" :canEditActivities="false" :is_external="false" :proposal_parks="proposal_parks" ref="proposal_filming" :is_referral="true" :referral="referral" :hasReferralMode="hasReferralMode" ></ProposalFilming>
-                                <ProposalEvent v-else-if="proposal && proposal.application_type=='Event'" :proposal="proposal" id="proposalStart" :canEditActivities="false" :is_external="false" :proposal_parks="proposal_parks" ref="proposal_event" :is_referral="true" :referral="referral" :hasReferralMode="hasReferralMode"></ProposalEvent>
+                                <ProposalTClass v-if="proposal && proposal_parks && proposal.application_type==application_type_tclass" :proposal="proposal" id="proposalStart" :canEditActivities="false" :is_external="false" :is_referral="true" :referral="referral" :hasReferralMode="hasReferralMode" :proposal_parks="proposal_parks"></ProposalTClass>
+                                <ProposalFilming v-else-if="proposal && proposal.application_type==application_type_filming" :proposal="proposal" id="proposalStart" :canEditActivities="false" :is_external="false" :proposal_parks="proposal_parks" ref="proposal_filming" :is_referral="true" :referral="referral" :hasReferralMode="hasReferralMode" ></ProposalFilming>
+                                <ProposalEvent v-else-if="proposal && proposal.application_type==application_type_event" :proposal="proposal" id="proposalStart" :canEditActivities="false" :is_external="false" :proposal_parks="proposal_parks" ref="proposal_event" :is_referral="true" :referral="referral" :hasReferralMode="hasReferralMode"></ProposalEvent>
                                 <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                 <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
                                 <input type='hidden' name="proposal_id" :value="1" />
@@ -405,6 +405,15 @@ export default {
         },
         referral_form_url: function() {
           return (this.referral) ? `/api/referrals/${this.referral.id}/complete_referral.json` : '';
+        },
+        application_type_tclass: function(){
+          return api_endpoints.t_class;
+        },
+        application_type_filming: function(){
+          return api_endpoints.filming;
+        },
+        application_type_event: function(){
+          return api_endpoints.event;
         },
     },
     methods: {

@@ -7,7 +7,7 @@
                         <a class="panelClicker" :href="'#'+panelBody" data-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="panelBody">
                             <span class="glyphicon glyphicon-chevron-down pull-right "></span>
                         </a>
-                        <small v-if="proposal.application_type=='Filming'"><br>Only add requirements that are additional to the general conditions in the Commercial Filming Handbook <a :href="commercial_filming_handbook" target="_blank">here</a>. Please ensure each condition added references a specific park or district and is written in a format consistent with the handbook.</small>
+                        <small v-if="proposal.application_type==application_type_filming"><br>Only add requirements that are additional to the general conditions in the Commercial Filming Handbook <a :href="commercial_filming_handbook" target="_blank">here</a>. Please ensure each condition added references a specific park or district and is written in a format consistent with the handbook.</small>
                     </h3>
                 </div>
                 <div class="panel-body panel-collapse collapse in" :id="panelBody">
@@ -268,6 +268,15 @@ export default {
                 }
                 return '';
         },
+        application_type_tclass: function(){
+          return api_endpoints.t_class;
+        },
+        application_type_filming: function(){
+          return api_endpoints.filming;
+        },
+        application_type_event: function(){
+          return api_endpoints.event;
+        }
 
     },
     methods:{
