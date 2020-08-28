@@ -1,5 +1,5 @@
 var site_url = location.origin
-var t_class='T Class'
+var t_class='Commercial operations'
 var filming='Filming'
 var event='Event'
 
