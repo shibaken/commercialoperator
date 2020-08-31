@@ -502,7 +502,7 @@ class OrganisationViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
+        except Exception as e:                                                                                                                                
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
@@ -511,7 +511,8 @@ class OrganisationViewSet(viewsets.ModelViewSet):
         try:
             org = self.get_object()
             instance = org.organisation
-            serializer = DetailsSerializer(instance,data=request.data)
+            data=request.data
+            serializer = DetailsSerializer(instance,data=data, context={'request':request})
             serializer.is_valid(raise_exception=True)
             instance = serializer.save()
             #serializer = self.get_serializer(org)
@@ -536,10 +537,13 @@ class OrganisationViewSet(viewsets.ModelViewSet):
             return Response(serializer.data);
         except serializers.ValidationError as e:
             print(e.get_full_details())
-            raise serializers.ValidationError(str( e.get_full_details() ))
+            #raise serializers.ValidationError(str( e.get_full_details() ))
+            raise
         except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

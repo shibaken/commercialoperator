@@ -6,6 +6,7 @@ from commercialoperator.components.organisations.models import (
 from commercialoperator.components.main.models import UserSystemSettings, Document, ApplicationType
 from commercialoperator.components.proposals.models import Proposal
 from commercialoperator.components.organisations.utils import can_admin_org, is_consultant
+from commercialoperator.helpers import is_commercialoperator_admin 
 from rest_framework import serializers
 from ledger.accounts.utils import in_dbca_domain
 from ledger.payments.helpers import is_payment_admin
@@ -104,6 +105,8 @@ class UserSerializer(serializers.ModelSerializer):
     is_department_user = serializers.SerializerMethodField()
     is_payment_admin = serializers.SerializerMethodField()
     system_settings= serializers.SerializerMethodField()
+    is_payment_admin = serializers.SerializerMethodField()
+    is_commercialoperator_admin = serializers.SerializerMethodField()    
 
     class Meta:
         model = EmailUser
@@ -125,6 +128,7 @@ class UserSerializer(serializers.ModelSerializer):
             'is_payment_admin',
             'is_staff',
             'system_settings',
+            'is_commercialoperator_admin',
         )
 
     def get_personal_details(self,obj):
@@ -170,6 +174,12 @@ class UserSerializer(serializers.ModelSerializer):
             return serialized_settings
         except:
             return None
+
+    def get_is_commercialoperator_admin(self, obj):
+        request = self.context['request'] if self.context else None
+        if request:
+            return is_commercialoperator_admin(request)
+        return False
 
 
 class PersonalSerializer(serializers.ModelSerializer):

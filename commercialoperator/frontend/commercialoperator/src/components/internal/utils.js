@@ -64,4 +64,15 @@ export default {
             });
         });
     },
+    fetchProfile: function (){
+        return new Promise ((resolve,reject) => {
+            Vue.http.get(api.profile).then((response) => {
+                resolve(response.body);
+            },
+            (error) => {
+                reject(error);
+            });
+        });
+
+    },
 }
