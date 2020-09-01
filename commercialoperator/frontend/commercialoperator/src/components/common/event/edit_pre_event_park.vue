@@ -10,7 +10,7 @@
                                 <div class="row">
                                     <div class="col-sm-3">
                                         
-                                        <label class="control-label pull-left"  for="Name">Park or Reserver</label>
+                                        <label class="control-label pull-left"  for="Name">Park or Reserve</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <select class="form-control" name="park" ref="pre_event_park" @change="fetchAllowedActivities" v-model="pre_event_park_id">
@@ -151,10 +151,11 @@ export default {
             this.errors = false;
             $('.has-error').removeClass('has-error');
             //this.$refs.activities_select=[];
-            $(this.$refs.activities_select).val(null).trigger('change');
+            //$(this.$refs.activities_select).val(null).trigger('change');
+            $(this.$refs.pre_event_park).val(null).trigger('change');
             this.selected_activities=[];
             this.pre_event_park_id=null;
-            this.$refs.pre_event_park='';
+            //this.$refs.pre_event_park='';
             this.validation_form.resetForm();
         },
         fetchContact: function(id){
@@ -189,7 +190,8 @@ export default {
                       vm.park=res.body; 
                       if(vm.park.park)
                       {
-                        vm.pre_event_park_id=vm.park.park.id
+                        vm.pre_event_park_id=vm.park.park.id;
+                        $(vm.$refs.pre_event_park).val(vm.park.park.id).trigger('change');
                       }
                       // if(vm.park.from_date){
                       //   vm.park.from_date=vm.park.from_date.format('DD/MM/YYYY')
@@ -305,20 +307,35 @@ export default {
        },
        eventListeners:function () {
             let vm = this;
-            // Initialise select2 for Activity types
-                $(vm.$refs.activities_select).select2({
-                    "theme": "bootstrap",
-                    allowClear: true,
-                    placeholder:"Select Activities"
-                }).
-                on("select2:select",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.selected_activities = selected.val();
-                }).
-                on("select2:unselect",function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.selected_activities = selected.val();
-                });
+            $(vm.$refs.pre_event_park).select2({
+                "theme": "bootstrap",
+                allowClear: true,
+                placeholder:"Select Park"
+            }).
+            on("select2:select",function (e) {
+                var selected = $(e.currentTarget);
+                vm.pre_event_park_id = selected.val();
+                //vm.fetchAllowedActivities();
+            }).
+            on("select2:unselect",function (e) {
+                var selected = $(e.currentTarget);
+                vm.pre_event_park_id = selected.val();
+                //vm.fetchAllowedActivities();
+            });
+            // // Initialise select2 for Activity types
+            //     $(vm.$refs.activities_select).select2({
+            //         "theme": "bootstrap",
+            //         allowClear: true,
+            //         placeholder:"Select Activities"
+            //     }).
+            //     on("select2:select",function (e) {
+            //         var selected = $(e.currentTarget);
+            //         vm.selected_activities = selected.val();
+            //     }).
+            //     on("select2:unselect",function (e) {
+            //         var selected = $(e.currentTarget);
+            //         vm.selected_activities = selected.val();
+            //     });
             
        }
    },

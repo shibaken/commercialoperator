@@ -36,9 +36,9 @@
                 <h4>Commercial Operator - {{proposal.application_type}} application: {{proposal.lodgement_number}}</h4>
             </div>
 
-            <ProposalTClass v-if="proposal && proposal_parks && proposal.application_type=='T Class'" :proposal="proposal" id="proposalStart"  :canEditActivities="canEditActivities" :is_external="true" :proposal_parks="proposal_parks" ref="proposal_tclass"></ProposalTClass>
-            <ProposalFilming v-else-if="proposal && proposal.application_type=='Filming'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :is_external="true" :proposal_parks="proposal_parks" ref="proposal_filming"></ProposalFilming>
-            <ProposalEvent v-else-if="proposal && proposal.application_type=='Event'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :is_external="true" :proposal_parks="proposal_parks" ref="proposal_event"></ProposalEvent>
+            <ProposalTClass v-if="proposal && proposal_parks && proposal.application_type==application_type_tclass" :proposal="proposal" id="proposalStart"  :canEditActivities="canEditActivities" :is_external="true" :proposal_parks="proposal_parks" ref="proposal_tclass"></ProposalTClass>
+            <ProposalFilming v-else-if="proposal && proposal.application_type==application_type_filming" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_external="true" :proposal_parks="proposal_parks" ref="proposal_filming"></ProposalFilming>
+            <ProposalEvent v-else-if="proposal && proposal.application_type==application_type_event" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_external="true" :proposal_parks="proposal_parks" ref="proposal_event"></ProposalEvent>
 
             <div>
                 <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
@@ -137,17 +137,29 @@ export default {
     },
     canEditActivities: function(){
       return this.proposal ? this.proposal.can_user_edit: 'false';
+    },
+    canEditPeriod: function(){
+      return this.proposal ? this.proposal.can_user_edit: 'false';
+    },
+    application_type_tclass: function(){
+      return api_endpoints.t_class;
+    },
+    application_type_filming: function(){
+      return api_endpoints.filming;
+    },
+    application_type_event: function(){
+      return api_endpoints.event;
     }
 
   },
   methods: {
     proposal_refs:function(){
       let vm=this;
-      if(vm.proposal.application_type == 'T Class') {
+      if(vm.proposal.application_type == vm.application_type_tclass) {
           return vm.$refs.proposal_tclass;
-      } else if(vm.proposal.application_type == 'Filming') {
+      } else if(vm.proposal.application_type == vm.application_type_filming) {
           return vm.$refs.proposal_filming;
-      } else if(vm.proposal.application_type == 'Event') {
+      } else if(vm.proposal.application_type == vm.application_type_event) {
           return vm.$refs.proposal_event;
       }
     },
@@ -155,7 +167,7 @@ export default {
     submit_text: function() {
       let vm = this;
       //return vm.proposal.fee_paid ? 'Resubmit' : 'Pay and Submit';
-      if (vm.proposal.application_type=='Filming') {
+      if (vm.proposal.application_type==vm.application_type_filming) {
           // Filming has deferred payment once assessor decides whether 'Licence' (has a fee) or 'Lawful Authority' (has no fee) is to be issued
           return 'Submit';
       } else if (vm.proposal.fee_paid) {
@@ -396,7 +408,7 @@ export default {
       let vm=this;
       let blank_fields=[]
 
-      if (vm.proposal.application_type=='T Class') {
+      if (vm.proposal.application_type==vm.application_type_tclass) {
           if (vm.$refs.proposal_tclass.$refs.other_details.selected_accreditations.length==0 ){
             blank_fields.push(' Level of Accreditation is required')
           }
@@ -435,7 +447,7 @@ export default {
             blank_fields.push(' Certificate of currency expiry date is missing')
           }
 
-      } else if (vm.proposal.application_type=='Filming') {
+      } else if (vm.proposal.application_type==vm.application_type_filming) {
           if (vm.proposal.filming_activity.commencement_date =='' || vm.proposal.filming_activity.commencement_date ==null || vm.proposal.filming_activity.completion_date =='' || vm.proposal.filming_activity.completion_date ==''){
             blank_fields.push(' Period of proposed filming/ photography is required')
           }
@@ -443,7 +455,7 @@ export default {
             blank_fields.push(' Type of film to be undertaken is missing')
           }
 
-      } else if (vm.proposal.application_type=='Event') {
+      } else if (vm.proposal.application_type==vm.application_type_event) {
           // if (vm.proposal.other_details.preferred_licence_period=='' || vm.proposal.other_details.preferred_licence_period==null ){
           //   blank_fields.push(' Preferred Licence Period is required')
           // }
@@ -487,7 +499,7 @@ export default {
           
             // Filming has deferred payment once assessor decides whether 'Licence' (fee) or 'Lawful Authority' (no fee) is to be issued
             // if (!vm.proposal.fee_paid || vm.proposal.application_type!='Filming') {
-            if (!vm.proposal.fee_paid && vm.proposal.application_type!='Filming') {
+            if (!vm.proposal.fee_paid && vm.proposal.application_type!=vm.application_type_filming) {
                 vm.save_and_redirect();
 
             } else {

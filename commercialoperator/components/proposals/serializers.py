@@ -471,7 +471,7 @@ class BaseProposalSerializer(serializers.ModelSerializer):
         return obj.trails.all().values_list('trail_id', flat=True)
 
     def get_allow_full_discount(self,obj):
-        return True if obj.application_type.name=='T Class' and obj.allow_full_discount else False
+        return True if obj.application_type.name==ApplicationType.TCLASS and obj.allow_full_discount else False
 
 #Not used anymore
 class DTProposalSerializer(BaseProposalSerializer):
@@ -676,6 +676,8 @@ class SaveProposalSerializer(BaseProposalSerializer):
                 'can_officer_process',
                 'applicant_details',
                 'filming_approval_type',
+                'filming_licence_charge_type',
+                'filming_non_standard_charge',
                 #'activities_land',
                 #'activities_marine',
                 #'other_details',
@@ -771,6 +773,7 @@ class InternalProposalSerializer(BaseProposalSerializer):
     #
     assessor_mode = serializers.SerializerMethodField()
     can_edit_activities = serializers.SerializerMethodField()
+    can_edit_period = serializers.SerializerMethodField()
     current_assessor = serializers.SerializerMethodField()
     assessor_data = serializers.SerializerMethodField()
     latest_referrals = ProposalReferralSerializer(many=True)
@@ -854,6 +857,7 @@ class InternalProposalSerializer(BaseProposalSerializer):
                 # 'trails',
                 'training_completed',
                 'can_edit_activities',
+                'can_edit_period',
                 #Following 3 are variable to store selected parks and activities at frontend
                 #'selected_parks_activities',
                 #'selected_trails_activities',
@@ -888,6 +892,11 @@ class InternalProposalSerializer(BaseProposalSerializer):
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         return obj.can_edit_activities(user)
+
+    def get_can_edit_period(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_edit_period(user)
 
     def get_readonly(self,obj):
         return True
@@ -1193,7 +1202,9 @@ class ProposalFilmingSerializer(BaseProposalSerializer):
                 'filming_access',
                 'filming_equipment',
                 'filming_other_details',
-                'filming_approval_type'
+                'filming_approval_type',
+                'filming_licence_charge_type',
+                'filming_non_standard_charge',
                 )
         read_only_fields=('documents','requirements',)
 
@@ -1215,6 +1226,7 @@ class InternalFilmingProposalSerializer(BaseProposalSerializer):
     proposaldeclineddetails = ProposalDeclinedDetailsSerializer()
     assessor_mode = serializers.SerializerMethodField()
     can_edit_activities = serializers.SerializerMethodField()
+    can_edit_period = serializers.SerializerMethodField()
     current_assessor = serializers.SerializerMethodField()
     assessor_data = serializers.SerializerMethodField()
     latest_referrals = ProposalReferralSerializer(many=True)
@@ -1290,6 +1302,7 @@ class InternalFilmingProposalSerializer(BaseProposalSerializer):
                 'applicant_details',
                 'training_completed',
                 'can_edit_activities',
+                'can_edit_period',
                 'reversion_ids',
                 'assessor_assessment',
                 'referral_assessments',
@@ -1300,6 +1313,8 @@ class InternalFilmingProposalSerializer(BaseProposalSerializer):
                 'filming_equipment',
                 'filming_other_details',
                 'filming_approval_type',
+                'filming_licence_charge_type',
+                'filming_non_standard_charge',
                 'district_proposals'
                 )
         read_only_fields=('documents','requirements')
@@ -1326,6 +1341,11 @@ class InternalFilmingProposalSerializer(BaseProposalSerializer):
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         return obj.can_edit_activities(user)
+
+    def get_can_edit_period(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_edit_period(user)
 
     def get_readonly(self,obj):
         return True
@@ -1425,6 +1445,7 @@ class InternalEventProposalSerializer(BaseProposalSerializer):
     proposaldeclineddetails = ProposalDeclinedDetailsSerializer()
     assessor_mode = serializers.SerializerMethodField()
     can_edit_activities = serializers.SerializerMethodField()
+    can_edit_period = serializers.SerializerMethodField()
     current_assessor = serializers.SerializerMethodField()
     assessor_data = serializers.SerializerMethodField()
     latest_referrals = ProposalReferralSerializer(many=True)
@@ -1502,6 +1523,7 @@ class InternalEventProposalSerializer(BaseProposalSerializer):
                 'applicant_details',
                 'training_completed',
                 'can_edit_activities',
+                'can_edit_period',
                 'reversion_ids',
                 'assessor_assessment',
                 'referral_assessments',
@@ -1537,6 +1559,11 @@ class InternalEventProposalSerializer(BaseProposalSerializer):
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         return obj.can_edit_activities(user)
+
+    def get_can_edit_period(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_edit_period(user)
 
     def get_readonly(self,obj):
         return True
@@ -1601,6 +1628,60 @@ class SaveInternalFilmingProposalSerializer(BaseProposalSerializer):
                 'can_view_district_table',
                 'applicant_details',
                 'filming_approval_type',
+                'filming_licence_charge_type',
+                'filming_non_standard_charge',
+                #'activities_land',
+                #'activities_marine',
+                #'other_details',
+                )
+        read_only_fields=('documents','requirements',)
+
+class SaveInternalEventProposalSerializer(BaseProposalSerializer):
+    #assessor_data = serializers.JSONField(required=False)
+    #applicant_details = ProposalApplicantDetailsSerializer(required=False)
+    #other_details= SaveProposalOtherDetailsSerializer()
+
+    class Meta:
+        model = Proposal
+        fields = (
+                'id',
+                #'application_type',
+                'activity',
+                'approval_level',
+                'title',
+                'region',
+                'district',
+                'tenure',
+                'data',
+                #'assessor_data',
+                #'comment_data',
+                #'schema',
+                #'customer_status',
+                #'processing_status',
+                #'review_status',
+                #'hard_copy',
+                'applicant_type',
+                #'applicant',
+                #'org_applicant',
+                #'proxy_applicant',
+                #'submitter',
+                'assigned_officer',
+                'previous_application',
+                'lodgement_date',
+                'documents',
+                'requirements',
+                'readonly',
+                'can_user_edit',
+                'can_user_view',
+                'reference',
+                'lodgement_number',
+                'lodgement_sequence',
+                'can_officer_process',
+                'can_view_district_table',
+                'applicant_details',
+                'filming_approval_type',
+                'filming_licence_charge_type',
+                'filming_non_standard_charge',
                 #'activities_land',
                 #'activities_marine',
                 #'other_details',

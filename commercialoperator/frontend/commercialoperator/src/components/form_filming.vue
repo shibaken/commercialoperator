@@ -57,8 +57,10 @@
                   </div>
                   <div v-else>
                     <Applicant :proposal="proposal" id="proposalStartApplicant"></Applicant>
-                    <div v-if="is_internal">
+                    <div v-if="is_internal || is_referral">
                       <ApprovalType :proposal="proposal" :hasAssessorMode="hasAssessorMode"></ApprovalType>
+                    </div>
+                    <div v-if="is_internal">
                       <Assessment :proposal="proposal" :assessment="proposal.assessor_assessment" :hasAssessorMode="hasAssessorMode" :is_internal="is_internal" :is_referral="is_referral"></Assessment>
                       <div v-for="assess in proposal.referral_assessments">
                         <Assessment :proposal="proposal" :assessment="assess"></Assessment>
@@ -69,10 +71,10 @@
               </div>
 
               <div class="tab-pane fade" id="pills-activity" role="tabpanel" aria-labelledby="pills-activity-tab">
-                <Activity :proposal="proposal" id="proposalStartActivity"></Activity>
+                <Activity :proposal="proposal" id="proposalStartActivity" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal= "district_proposal" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_external= "is_external"></Activity>
               </div>
               <div class="tab-pane fade" id="pills-access" role="tabpanel" aria-labelledby="pills-access-tab">
-                <Access :proposal="proposal" id="proposalStartAccess" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal= "district_proposal" :canEditActivities="canEditActivities" :is_external= "is_external" ></Access>
+                <Access :proposal="proposal" id="proposalStartAccess" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal= "district_proposal" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_external= "is_external" ></Access>
               </div>
               <div class="tab-pane fade" id="pills-equipment" role="tabpanel" aria-labelledby="pills-equipment-tab">
                 <Equipment :proposal="proposal" id="proposalStartEquipment"></Equipment>
@@ -112,6 +114,10 @@
             canEditActivities:{
               type: Boolean,
               default: true
+            },
+            canEditPeriod:{
+              type: Boolean,
+              default: false
             },
             is_external:{
               type: Boolean,
@@ -173,10 +179,18 @@
           },
         },
         methods:{
+          set_tabs:function(){
+                let vm = this;
+
+                /* Confirmation tab - Always Disabled */
+                $('#pills-confirm-tab').attr('style', 'background-color:#E5E8E8 !important; color: #99A3A4;');
+                $('#li-confirm').attr('class', 'nav-item disabled');
+            },
         },
         mounted: function() {
             let vm = this;
             $('#pills-tab a[href="#pills-applicant"]').tab('show');
+            vm.set_tabs();
             vm.form = document.forms.new_proposal;
             //window.addEventListener('beforeunload', vm.leaving);
             //indow.addEventListener('onblur', vm.leaving);

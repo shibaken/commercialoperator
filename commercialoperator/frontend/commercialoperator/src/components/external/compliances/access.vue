@@ -246,7 +246,15 @@ export default {
     compliance_fee_url: function() {
       return (this.compliance) ? `/compliance_fee/${this.compliance.id}/` : '';
     },
-    
+    application_type_tclass: function(){
+      return api_endpoints.t_class;
+    },
+    application_type_filming: function(){
+      return api_endpoints.filming;
+    },
+    application_type_event: function(){
+      return api_endpoints.event;
+    }
   },
   methods: {
     uploadFile(target,file_obj){
@@ -484,7 +492,7 @@ export default {
 
             // Filming has deferred payment once assessor decides whether 'Licence' (fee) or 'Lawful Authority' (no fee) is to be issued
             // if (!vm.proposal.fee_paid || vm.proposal.application_type!='Filming') {
-            if (!vm.proposal.fee_paid && vm.proposal.application_type!='Filming') {
+            if (!vm.proposal.fee_paid && vm.proposal.application_type!=vm.application_type_filming) {
                 vm.save_and_redirect();
 
             } else {

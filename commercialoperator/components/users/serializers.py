@@ -3,9 +3,10 @@ from ledger.accounts.models import EmailUser,Address, Profile,EmailIdentity, Ema
 from commercialoperator.components.organisations.models import (
                                     Organisation,
                                 )
-from commercialoperator.components.main.models import UserSystemSettings, Document
+from commercialoperator.components.main.models import UserSystemSettings, Document, ApplicationType
 from commercialoperator.components.proposals.models import Proposal
 from commercialoperator.components.organisations.utils import can_admin_org, is_consultant
+from commercialoperator.helpers import is_commercialoperator_admin 
 from rest_framework import serializers
 from ledger.accounts.utils import in_dbca_domain
 from ledger.payments.helpers import is_payment_admin
@@ -69,7 +70,8 @@ class UserOrganisationSerializer(serializers.ModelSerializer):
 
     def get_active_proposals(self, obj):
         _list = []
-        for application_type in ['T Class', 'Filming', 'Event']:
+        #for application_type in ['T Class', 'Filming', 'Event']:
+        for application_type in [ApplicationType.TCLASS, ApplicationType.FILMING, ApplicationType.EVENT ]:
             qs = Proposal.objects.filter(application_type__name=application_type, org_applicant=obj).exclude(processing_status__in=['approved', 'declined', 'discarded']).values_list('lodgement_number', flat=True)
             _list.append( dict(application_type=application_type, proposals=list(qs)) )
         return _list
@@ -103,6 +105,8 @@ class UserSerializer(serializers.ModelSerializer):
     is_department_user = serializers.SerializerMethodField()
     is_payment_admin = serializers.SerializerMethodField()
     system_settings= serializers.SerializerMethodField()
+    is_payment_admin = serializers.SerializerMethodField()
+    is_commercialoperator_admin = serializers.SerializerMethodField()    
 
     class Meta:
         model = EmailUser
@@ -124,6 +128,7 @@ class UserSerializer(serializers.ModelSerializer):
             'is_payment_admin',
             'is_staff',
             'system_settings',
+            'is_commercialoperator_admin',
         )
 
     def get_personal_details(self,obj):
@@ -169,6 +174,12 @@ class UserSerializer(serializers.ModelSerializer):
             return serialized_settings
         except:
             return None
+
+    def get_is_commercialoperator_admin(self, obj):
+        request = self.context['request'] if self.context else None
+        if request:
+            return is_commercialoperator_admin(request)
+        return False
 
 
 class PersonalSerializer(serializers.ModelSerializer):

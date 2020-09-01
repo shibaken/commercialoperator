@@ -1,4 +1,7 @@
 var site_url = location.origin
+var t_class='Commercial operations'
+var filming='Filming'
+var event='Event'
 
 module.exports = {
     organisations: '/api/organisations.json',
@@ -97,5 +100,7 @@ module.exports = {
     //system_name_short: 'DAS',
     payment_help_url: 'https://parks.dpaw.wa.gov.au/for-business/training-accreditation-insurance-fees',
     proposal_type_help_url: ' https://parks.dbca.wa.gov.au/for-business/commercial-operations-licensing',
-
+    t_class: t_class,
+    filming: filming,
+    event: event,
 }

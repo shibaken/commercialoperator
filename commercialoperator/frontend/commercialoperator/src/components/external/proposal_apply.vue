@@ -296,7 +296,16 @@ export default {
     },
     category_help_url: function() {
       return this.site_url + "help/commercialoperator/user/#apply_category"
-    }
+    },
+    application_type_tclass: function(){
+        return api_endpoints.t_class;
+    },
+    application_type_filming: function(){
+        return api_endpoints.filming;
+    },
+    application_type_event: function(){
+        return api_endpoints.event;
+    },
 
   },
   methods: {
@@ -308,8 +317,8 @@ export default {
         let vm = this;
         var proposals = [];
         var org = vm.profile.commercialoperator_organisations.find(el => el.name === vm.org)
-        if (org && vm.selected_application_name == 'T Class') {
-            proposals = org.active_proposals.find(el => el.application_type === "T Class").proposals
+        if (org && vm.selected_application_name == vm.application_type_tclass) {
+            proposals = org.active_proposals.find(el => el.application_type === vm.application_type_tclass).proposals
         }
         return proposals;
     },
@@ -331,12 +340,15 @@ export default {
     },
     alertText: function() {
         let vm = this;
-		if (vm.selected_application_name == 'T Class') {
-        	return "a T Class";
-		} else if (vm.selected_application_name == 'Filming') {
-        	return "a Filming";
-		} else if (vm.selected_application_name == 'Event') {
-        	return "an Event";
+		if (vm.selected_application_name == vm.application_type_tclass) {
+        	//return "a T Class";
+            return "a "+vm.application_type_tclass;
+		} else if (vm.selected_application_name == vm.application_type_filming) {
+        	//return "a Filming";
+            return "a "+vm.application_type_filming;
+		} else if (vm.selected_application_name == vm.application_type_event) {
+        	//return "an Event";
+            return "an "+vm.application_type_event;
 		}
 	},
     createProposal:function () {

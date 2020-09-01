@@ -134,7 +134,7 @@
                             <div class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">
-                                    Do you intend to camp on CALM Land?</label>
+                                     Do you intend to camp on CALM Act Land? (Camping fees apply as per normal public charges. Campgrounds may be bookable on the <a :href="park_stay_link" target="_blank">Park Stay WA</a> website)</label>
                                     
                                 </div>
                                 <div class="col-sm-6">
@@ -307,6 +307,10 @@ from '@/utils/hooks'
               type: Boolean,
               default: false
             },
+            canEditPeriod:{
+              type: Boolean,
+              default: false
+            },
         },
         data:function () {
             let vm = this;
@@ -338,6 +342,17 @@ from '@/utils/hooks'
                 if(vm.global_settings){
                     for(var i=0; i<vm.global_settings.length; i++){
                         if(vm.global_settings[i].key=='commercial_filming_handbook'){
+                            return vm.global_settings[i].value;
+                        }
+                    }
+                }
+                return '';
+            },
+            park_stay_link: function(){
+                let vm=this;
+                if(vm.global_settings){
+                    for(var i=0; i<vm.global_settings.length; i++){
+                        if(vm.global_settings[i].key=='park_stay_link'){
                             return vm.global_settings[i].value;
                         }
                     }

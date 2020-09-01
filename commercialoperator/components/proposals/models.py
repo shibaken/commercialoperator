@@ -513,6 +513,19 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                (LICENCE, 'Licence'),
                                )
 
+    HALF_DAY_CHARGE='half_day_charge'
+    FULL_DAY_CHARGE='full_day_charge'
+    TWO_DAYS_CHARGE = '2_days_charge'
+    THREE_OR_MORE_DAYS_CHARGE='3_or_more_days_charge'
+    NON_STANDARD_CHARGE='non_standard_charge'
+
+    FILMING_LICENCE_CHARGE_CHOICES=((HALF_DAY_CHARGE, 'Half day charge'),
+                                    (FULL_DAY_CHARGE, 'Full day charge'),
+                                    (TWO_DAYS_CHARGE, '2 days charge'),
+                                    (THREE_OR_MORE_DAYS_CHARGE, '3 or more days charge'),
+                                    (NON_STANDARD_CHARGE, 'Non standard charge'),
+                                )
+
     proposal_type = models.CharField('Application Status Type', max_length=40, choices=APPLICATION_TYPE_CHOICES,
                                         default=APPLICATION_TYPE_CHOICES[0][0])
     #proposal_state = models.PositiveSmallIntegerField('Proposal state', choices=PROPOSAL_STATE_CHOICES, default=1)
@@ -595,6 +608,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     #Following field is only used to approval type for Filming application otherwise ignore
     filming_approval_type = models.CharField('Filming Approval Type', max_length=30, choices=FILMING_APPROVAL_TYPE_CHOICES,
                                      default=FILMING_APPROVAL_TYPE_CHOICES[1][0])
+    #Following field is only used to licence type for Filming application otherwise ignore
+    filming_licence_charge_type = models.CharField('Filming Licence charge Type', max_length=30, choices=FILMING_LICENCE_CHARGE_CHOICES,
+                                     default=FILMING_LICENCE_CHARGE_CHOICES[1][0])
+    filming_non_standard_charge = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
 
     # Event
 
@@ -652,7 +669,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     def reset_licence_discount(self, user):
         """ reset when licence is issued"""
         org = self.org_applicant
-        if self.application_type.name=='T Class' and org and org.licence_discount > 0:
+        # if self.application_type.name=='T Class' and org and org.licence_discount > 0:
+        if self.application_type.name==ApplicationType.TCLASS and org and org.licence_discount > 0:
             if org.licence_discount > 0:
                 lic_disc = self.fee_discounts.get(discount_type=ApplicationFeeDiscount.DISCOUNT_TYPE_LICENCE)
                 lic_disc.reset_date = timezone.now()
@@ -664,7 +682,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     def reset_application_discount(self, user):
         """ reset when application is submitted"""
         org = self.org_applicant
-        if self.application_type.name=='T Class' and org:
+        #if self.application_type.name=='T Class' and org:
+        if self.application_type.name==ApplicationType.TCLASS and org:        
             if org.application_discount > 0 or org.licence_discount > 0:
                 app_disc = ApplicationFeeDiscount.objects.create(proposal=self, discount_type=ApplicationFeeDiscount.DISCOUNT_TYPE_APPLICATION, discount=org.application_discount, reset_date=timezone.now(), user=user)
                 lic_disc = ApplicationFeeDiscount.objects.create(proposal=self, discount_type=ApplicationFeeDiscount.DISCOUNT_TYPE_LICENCE, discount=org.licence_discount, user=user)
@@ -677,7 +696,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     def allow_full_discount(self):
         """ checks if a fee is payable after discount is applied """
         org = self.org_applicant
-        if self.application_type.name=='T Class' and self.other_details.preferred_licence_period and org:
+        if self.application_type.name==ApplicationType.TCLASS and self.other_details.preferred_licence_period and org:
             application_fee = max( round(float(self.application_type.application_fee) - org.application_discount, 2), 0)
             licence_fee = max( round(float(self.licence_fee_amount) - org.licence_discount, 2), 0)
             if licence_fee == 0 and application_fee == 0:
@@ -1267,6 +1286,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             return self.__assessor_group() in user.proposalassessorgroup_set.all()
         elif self.processing_status == 'with_approver':
             return self.__approver_group() in user.proposalapprovergroup_set.all()
+        else:
+            return False
+
+    def can_edit_period(self,user):
+        if self.processing_status == 'with_assessor' or self.processing_status == 'with_assessor_requirements':
+            return self.__assessor_group() in user.proposalassessorgroup_set.all()
         else:
             return False
 
@@ -4233,6 +4258,7 @@ class ProposalFilmingActivity(models.Model):
     ADVERTISING='advertising'
     FEATURE_FILM='feature_film'
     TOURISM='tourism'
+    SOCIAL_MEDIA='social_media'
     DOCUMENTARY='documentary'
     RECREATION='recreation'
     OTHER='other'
@@ -4251,7 +4277,8 @@ class ProposalFilmingActivity(models.Model):
         (RECREATION, 'Recreation'),
         (DOCUMENTARY, 'Documentary'),
         (TOURISM, 'Tourism'),
-        (OTHER, 'other'),
+        (OTHER, 'Other'),
+        (SOCIAL_MEDIA, 'Social media/ online content'),
     )
     SPONSORSHIP_CHOICES=(
         (YES, 'Yes'),
@@ -5146,7 +5173,7 @@ class ProposalEventManagement(models.Model):
     approvals_gained_details=models.TextField(blank=True)
     emergency_plan = models.BooleanField(default=False)
     event_management_plan = models.BooleanField(default=False)
-    #risk_managment_plan = models.BooleanField(default=False)
+    emergency_response_plan = models.BooleanField(default=False)
     risk_management_plan = models.BooleanField(default=False)
     traffic_management_plan = models.BooleanField(default=False)
     other_info= models.TextField(blank=True)
@@ -5177,6 +5204,7 @@ class ProposalEventOtherDetails(models.Model):
     participants_number = models.CharField(max_length=24,null=True,blank=True)
     officials_number = models.CharField(max_length=24,null=True,blank=True)
     support_vehicle_number = models.CharField(max_length=24,null=True,blank=True)
+    other_comments=models.TextField('Other comments', blank=True, null=True)
 
     def __str__(self):
         return '{}'.format(self.training_date)

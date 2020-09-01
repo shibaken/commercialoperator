@@ -11,6 +11,26 @@
                 </div>
                 <div class="panel-body collapse in" :id="pBody">
                     <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="">Status</label>
+                                <select class="form-control" v-model="filterProposalStatus">
+                                    <option value="All">All</option>
+                                    <option v-for="s in approval_status" :value="s">{{s}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="">Licence Type</label>
+                                <select class="form-control" v-model="filterApplicationType">
+                                    <option value="All">All</option>
+                                    <option v-for="s in application_types" :value="s">{{s}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
                         <!--
                         <div class="col-md-3">
                             <div class="form-group">
@@ -31,7 +51,8 @@
                             </div>
                         </div>
                         -->
-                        <div class="col-md-3">
+
+                        <!-- <div class="col-md-3">
                             <div class="form-group">
                                 <label for="">Status</label>
                                 <select class="form-control" v-model="filterProposalStatus">
@@ -40,6 +61,17 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="">Application Type</label>
+                                <select class="form-control" v-model="filterApplicationType">
+                                    <option value="All">All</option>
+                                    <option v-for="s in application_types" :value="s">{{s}}</option>
+                                </select>
+                            </div>
+                        </div> -->
+
+
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="">Expiry From</label>
@@ -62,6 +94,7 @@
                                 </div>
                             </div>
                         </div>
+                        
                         <div v-if="is_internal" class="col-md-3">
                             <div class="form-group">
                                 <label/>
@@ -71,6 +104,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="row">
                         <div class="col-lg-12" style="margin-top:25px;">
                             <datatable ref="proposal_datatable" :id="datatable_id" :dtOptions="proposal_options" :dtHeaders="proposal_headers"/>
@@ -134,6 +168,7 @@ export default {
             //Profile to check if user has access to process Proposal
             profile: {},
             // Filters for Proposals
+            filterApplicationType: 'All',
             filterProposalStatus: 'All',
             filterProposalLodgedFrom: '',
             filterProposalLodgedTo: '',
@@ -437,7 +472,15 @@ export default {
         },
         filterProposalLodgedTo: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
-        }
+        },
+        filterApplicationType: function() {
+            let vm = this;
+            if (vm.filterApplicationType!= 'All') {
+                vm.$refs.proposal_datatable.vmDataTable.columns(2).search(vm.filterApplicationType).draw();
+            } else {
+                vm.$refs.proposal_datatable.vmDataTable.columns(2).search('').draw();
+            }
+        },
     },
     computed: {
         status: function(){
@@ -466,6 +509,7 @@ export default {
             vm.$http.get(api_endpoints.filter_list_approvals).then((response) => {
                 vm.proposal_submitters = response.body.submitters;
                 vm.approval_status = response.body.approval_status_choices;
+                vm.application_types= response.body.application_types;
             },(error) => {
                 console.log(error);
             })

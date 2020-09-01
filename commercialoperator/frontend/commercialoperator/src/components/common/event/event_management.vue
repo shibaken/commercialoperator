@@ -79,7 +79,7 @@
                             <div class="row">&nbsp;</div>
                             <div class="row">    
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Will any structures, facilities, signs or markders be erected on CALM land or water for the purpose of the event?</label>                                   
+                                    <label class="control-label pull-left"  for="Name">Will any structures, facilities, signs or markers be erected on CALM land or water for the purpose of the event?</label>                                   
                                 </div>
                                 <div class="col-sm-6">
                                     <ul class="list-inline"  >
@@ -142,7 +142,7 @@
                             <div class="row">&nbsp;</div>
                             <div class="row">    
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Will porable toilets and/ or showers be provided?</label>                                   
+                                    <label class="control-label pull-left"  for="Name">Will portable toilets and/ or showers be provided?</label>                                   
                                 </div>
                                 <div class="col-sm-6">
                                     <ul class="list-inline"  >
@@ -167,7 +167,7 @@
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div class="row">    
+                            <!-- <div class="row">    
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">Provide the proposed strategy for rubish removal</label>                                   
                                 </div>
@@ -183,10 +183,10 @@
                                         </li>
                                     </ul>      
                                 </div>
-                            </div>
-                            <div v-if="proposal.event_management.rubbish_removal" class="row">
+                            </div> -->
+                            <div class="row">
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Provide details</label>
+                                    <label class="control-label pull-left"  for="Name">Please explain how you will manage waste to avoid impacts on the park/ reserve and remove waste from the park/ reserve following the event</label>
                                     
                                 </div>
                                 <div class="col-sm-6">
@@ -196,7 +196,7 @@
                             <div class="row">&nbsp;</div>
                             <div class="row">    
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Have any other agencies, local government representatives, community groups or local committes been consulted and all necessary approvals gained regarding this event?</label>                                   
+                                    <label class="control-label pull-left"  for="Name">Have any other agencies, local government representatives, community groups or local committees been consulted and all necessary approvals gained regarding this event?</label>                                   
                                 </div>
                                 <div class="col-sm-6">
                                     <ul class="list-inline"  >
@@ -239,14 +239,17 @@
                                 </div>
                             </div>
                             <div class="row" v-if="proposal.event_management.emergency_plan">
-                                <div class="col-sm-12">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Please attach </label>                               
+                                </div>
+                                <div class="col-sm-6">
                                     <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_management_emergency_plan" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
                                 </div>                                
                             </div>
                             <div class="row">&nbsp;</div>
                             <div class="row">    
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Have you developed a Event Management Plan? </label>                               
+                                    <label class="control-label pull-left"  for="Name">Have you developed an Event Management Plan? </label>                               
                                 </div>
                                 <div class="col-sm-6">
                                     <ul class="list-inline"  >
@@ -262,10 +265,52 @@
                                 </div>
                             </div>
                             <div class="row" v-if="proposal.event_management.event_management_plan">
-                                <div class="col-sm-12">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Please attach </label>                               
+                                </div>
+                                <div class="col-sm-6">
                                     <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_management_event_management_plan" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
                                 </div>                                
                             </div>
+                            <div class="row" v-if="!proposal.event_management.event_management_plan">
+                                <div class="col-sm-12">
+                                    <label class="control-label pull-left"  for="Name">Please note it will be a condition of any licence approval to provide a copy of your event management plan 30 days prior to conducting your event. </label>                               
+                                </div>                               
+                            </div>
+                            <div class="row">&nbsp;</div>
+                            <div class="row">    
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Have you developed an Emergency Response Plan? </label>                               
+                                </div>
+                                <div class="col-sm-6">
+                                    <ul class="list-inline"  >
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.emergency_response_plan" :value="true" data-parsley-required :disabled="proposal.readonly" name="emergency_response_plan"/>
+                                            Yes
+                                        </li>
+                                        <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_management.emergency_response_plan" :value="false" data-parsley-required :disabled="proposal.readonly" name="emergency_response_plan"/>
+                                            No
+                                        </li>
+                                    </ul>      
+                                </div>
+                            </div>
+                            <div class="row" v-if="proposal.event_management.emergency_response_plan">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Please attach </label>                               
+                                </div>
+                                <div class="col-sm-6">
+                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_management_emergency_response_plan" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                </div>                                
+                            </div>
+                            <div class="row" v-if="!proposal.event_management.emergency_response_plan">
+                                <div class="col-sm-12">
+                                    <label class="control-label pull-left"  for="Name">Please note it will be a condition of any licence approval to provide a copy of your emergency response plan 30 days prior to conducting your event. </label>                               
+                                </div>                               
+                            </div>
+
+
+
                             <div class="row">&nbsp;</div>
                             <div class="row">    
                                 <div class="col-sm-6">
@@ -285,14 +330,23 @@
                                 </div>
                             </div>
                             <div class="row" v-if="proposal.event_management.risk_management_plan">
-                                <div class="col-sm-12">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Please attach </label>                               
+                                </div>
+                                <div class="col-sm-6">
                                     <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_management_risk_management_plan" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
                                 </div>                                
                             </div>
+                            <div class="row" v-if="!proposal.event_management.risk_management_plan">
+                                <div class="col-sm-12">
+                                    <label class="control-label pull-left"  for="Name">Please note it will be a condition of any licence approval to provide a copy of your risk management plan 30 days prior to conducting your event. </label>                               
+                                </div>                              
+                            </div>
+
                             <div class="row">&nbsp;</div>
                             <div class="row">    
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Have you developed a Traffic Management Plan? </label>                                   
+                                    <label class="control-label pull-left"  for="Name">Have you developed a Traffic Management Plan that has been prepared and approved by an accredited body in line with Mainroads WA -  <a :href="event_traffic_code_of_practice" target="_blank">Traffic Management for Events Code of Practice</a>? </label>                                   
                                 </div>
                                 <div class="col-sm-6">
                                     <ul class="list-inline"  >
@@ -308,14 +362,23 @@
                                 </div>
                             </div>
                             <div class="row" v-if="proposal.event_management.traffic_management_plan">
-                                <div class="col-sm-12">
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Please attach </label>                               
+                                </div>
+                                <div class="col-sm-6">
                                     <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_management_traffic_management_plan" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
                                 </div>                                
+                            </div>
+                            <div class="row" v-if="!proposal.event_management.traffic_management_plan">
+                                <div class="col-sm-12">
+                                    <label class="control-label pull-left"  for="Name">Please note it will be a condition of any licence approval to provide an approved Traffic Management Plan 30 days prior to conducting your event, where the event impacts on public roads.</label>                               
+                                </div>
+                                                                
                             </div>
                             <div class="row">&nbsp;</div>
                             <div class="row">
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Provide any other information that will be relavant to your application.</label>
+                                    <label class="control-label pull-left"  for="Name">Provide any other information that will be relevant to your application.</label>
                                 </div>
                                 <div class="col-sm-6">
                                       <textarea class="form-control" name="other_info" placeholder="" v-model="proposal.event_management.other_info" :disabled="proposal.readonly"></textarea>    
@@ -346,13 +409,45 @@ import FileField from '@/components/forms/filefield.vue'
             let vm = this;
             return{
                 lBody: 'lBody'+vm._uid,
-                values:null
+                values:null,
+                global_settings:[],
             }
         },
         components:{
             FileField,
-        }, 
+        },
+        computed:{
+            event_traffic_code_of_practice: function(){
+                let vm=this;
+                if(vm.global_settings){
+                    for(var i=0; i<vm.global_settings.length; i++){
+                        if(vm.global_settings[i].key=='event_traffic_code_of_practice'){
+                            return vm.global_settings[i].value;
+                        }
+                    }
+                }
+                return '';
+            },
+        },
         methods:{
+            fetchGlobalSettings: function(){
+                let vm = this;
+                vm.$http.get('/api/global_settings.json').then((response) => {
+                    vm.global_settings = response.body;
+                    
+                },(error) => {
+                    console.log(error);
+                } );
+            },
+            
+        },
+        mounted: function(){
+            let vm = this;
+            
+            vm.fetchGlobalSettings();
+            this.$nextTick(()=>{
+                vm.eventListeners();
+            });
         }
     }
 </script>

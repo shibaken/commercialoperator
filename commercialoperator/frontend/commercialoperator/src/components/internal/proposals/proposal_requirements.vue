@@ -7,6 +7,7 @@
                         <a class="panelClicker" :href="'#'+panelBody" data-toggle="collapse"  data-parent="#userInfo" expanded="false" :aria-controls="panelBody">
                             <span class="glyphicon glyphicon-chevron-down pull-right "></span>
                         </a>
+                        <small v-if="proposal.application_type==application_type_filming"><br>Only add requirements that are additional to the general conditions in the Commercial Filming Handbook <a :href="commercial_filming_handbook" target="_blank">here</a>. Please ensure each condition added references a specific park or district and is written in a format consistent with the handbook.</small>
                     </h3>
                 </div>
                 <div class="panel-body panel-collapse collapse in" :id="panelBody">
@@ -60,6 +61,7 @@ export default {
     data: function() {
         let vm = this;
         return {
+            global_settings:[],
             panelBody: "proposal-requirements-"+vm._uid,
             requirements: [],
             requirement_headers:["Requirement","Due Date","Recurrence","Action","Order","Documents"],
@@ -203,6 +205,10 @@ export default {
                                     links +=  `<a class="dtMoveUp" data-id="${full.id}" href='#'><i class="fa fa-angle-up fa-2x"></i></a><br/>`;
                                     links +=  `<a class="dtMoveDown" data-id="${full.id}" href='#'><i class="fa fa-angle-down fa-2x"></i></a><br/>`;
                                 }
+                                else if(vm.hasDistrictAssessorMode && full.can_district_assessor_edit){
+                                    links +=  `<a class="dtMoveUp" data-id="${full.id}" href='#'><i class="fa fa-angle-up fa-2x"></i></a><br/>`;
+                                    links +=  `<a class="dtMoveDown" data-id="${full.id}" href='#'><i class="fa fa-angle-down fa-2x"></i></a><br/>`;
+                                }
                             }
                             return links;
                         },
@@ -251,9 +257,38 @@ export default {
         hasAssessorMode(){
             return this.proposal.assessor_mode.has_assessor_mode;
         },
+        commercial_filming_handbook: function(){
+                let vm=this;
+                if(vm.global_settings){
+                    for(var i=0; i<vm.global_settings.length; i++){
+                        if(vm.global_settings[i].key=='commercial_filming_handbook'){
+                            return vm.global_settings[i].value;
+                        }
+                    }
+                }
+                return '';
+        },
+        application_type_tclass: function(){
+          return api_endpoints.t_class;
+        },
+        application_type_filming: function(){
+          return api_endpoints.filming;
+        },
+        application_type_event: function(){
+          return api_endpoints.event;
+        }
 
     },
     methods:{
+        fetchGlobalSettings: function(){
+                let vm = this;
+                vm.$http.get('/api/global_settings.json').then((response) => {
+                    vm.global_settings = response.body;
+                    
+                },(error) => {
+                    console.log(error);
+                } );
+            },
         addRequirement(){
             this.$refs.requirement_detail.requirement.referral_group=this.referral_group;
             this.$refs.requirement_detail.requirement.district_proposal=this.district_proposal;
@@ -376,6 +411,7 @@ export default {
     mounted: function(){
         let vm = this;
         this.fetchRequirements();
+        vm.fetchGlobalSettings();
         vm.$nextTick(() => {
             this.eventListeners();
         });

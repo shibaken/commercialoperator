@@ -10,7 +10,7 @@
                                 <div class="row">
                                     <div class="col-sm-3">
                                         
-                                        <label class="control-label pull-left"  for="Name">Park or Reserver</label>
+                                        <label class="control-label pull-left"  for="Name">Park or Reserve</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <select class="form-control" name="park" ref="events_park" @change="fetchAllowedActivities" v-model="events_park_id">

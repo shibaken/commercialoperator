@@ -3,7 +3,7 @@
     <div class="col-sm-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">Activity Details <small></small>
+                <h3 class="panel-title">Event Details <small></small>
                 <a class="panelClicker" :href="'#'+lBody" data-toggle="collapse"  data-parent="#activityInfo" expanded="true" :aria-controls="lBody">
                 <span class="glyphicon glyphicon-chevron-up pull-right "></span>
                 </a>
@@ -15,22 +15,22 @@
                         <div class="">
                             <div class="row">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-left"  for="Name">Event name</label>
+                                    <label class="control-label pull-right"  for="Name">Event name</label>
                                 </div>
                                 <div class="col-sm-9">
                                     <!-- <input type="text" class="form-control" v-model="proposal.activities_event.event_name" name="event_name" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal"> -->
-                                    <input type="text" class="form-control" name="event_name" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal" v-model="proposal.event_activity.event_name">
+                                    <input type="text" class="form-control" name="event_name" :disabled="!canEditPeriod || proposal.pending_amendment_request || proposal.is_amendment_proposal" v-model="proposal.event_activity.event_name">
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
 
                             <div class="row">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-left"  for="Name">Period of proposed event</label>
+                                    <label class="control-label pull-right"  for="Name">Period of proposed event</label>
                                 </div>
                                 <div class="col-sm-4">
                                     <div class="input-group date" ref="event_activity_commencement_date" style="width: 70%;">
-                                        <input type="text" class="form-control" v-model="proposal.event_activity.commencement_date" name="event_activity_commencement_date" placeholder="Commencement date" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                        <input type="text" class="form-control" v-model="proposal.event_activity.commencement_date" name="event_activity_commencement_date" placeholder="Commencement date" :disabled="!canEditPeriod || proposal.pending_amendment_request || proposal.is_amendment_proposal">
                                         <span class="input-group-addon">
                                             <span class="glyphicon glyphicon-calendar"></span>
                                         </span>
@@ -38,7 +38,7 @@
                                 </div>
                                 <div class="col-sm-4">
                                     <div class="input-group date" ref="event_activity_completion_date" style="width: 70%;">
-                                        <input type="text" class="form-control" v-model="proposal.event_activity.completion_date" name="event_activity_completion_date" placeholder="Completion date" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                        <input type="text" class="form-control" v-model="proposal.event_activity.completion_date" name="event_activity_completion_date" placeholder="Completion date" :disabled="!canEditPeriod || proposal.pending_amendment_request || proposal.is_amendment_proposal">
                                         <span class="input-group-addon">
                                             <span class="glyphicon glyphicon-calendar"></span>
                                         </span>
@@ -52,7 +52,8 @@
                     <div class="form-horizontal col-sm-12 borderDecoration">                        
                         <div class="">
                             <div class="row">
-                                <ParksActivityTable :url="parks_url" :proposal="proposal"  ref="parks_table"></ParksActivityTable>
+                                <label class="col-sm-12"  for="Name">List the parks (terrestrial and/or marine) where this event is proposed to occur. Please attach a detailed itinerary.</label>
+                                <ParksActivityTable :url="parks_url" :proposal="proposal"  ref="parks_table":canEditActivities="canEditActivities"></ParksActivityTable>
                             </div>
                             <div class="row">&nbsp;</div>
                         </div> 
@@ -105,9 +106,9 @@
                 </form>
             </div>
             
-            <div>Trail_actvities: {{trail_activities}}</div><br>
+            <!-- <div>Trail_actvities: {{trail_activities}}</div><br>
             <div>Selected_Trail: {{selected_trail_ids}}</div><br>
-            <div>Selected_Trailss_Activities: {{selected_trails_activities}}</div>
+            <div>Selected_Trailss_Activities: {{selected_trails_activities}}</div> -->
             
           </div>
         </div>
@@ -138,6 +139,18 @@ import {
             canEditActivities:{
               type: Boolean,
               default: true
+            },
+            hasDistrictAssessorMode:{
+                type:Boolean,
+                default: false
+            },
+            is_external:{
+              type: Boolean,
+              default: false
+            },
+            canEditPeriod:{
+              type: Boolean,
+              default: false
             },
         },
         data:function () {

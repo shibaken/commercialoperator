@@ -19,7 +19,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <!-- <div class="form-group">
                                 <div class="row">
                                     <div class="col-sm-3">
                                         
@@ -29,7 +29,7 @@
                                         <input class="form-control" name="rego" ref="rego" v-model="abseiling_climbing.rego_number" type="text">
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
 
                             
                             <div class="form-group">

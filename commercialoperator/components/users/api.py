@@ -60,7 +60,7 @@ class DepartmentUserList(views.APIView):
 class GetProfile(views.APIView):
     renderer_classes = [JSONRenderer,]
     def get(self, request, format=None):
-        serializer  = UserSerializer(request.user)
+        serializer  = UserSerializer(request.user, context={'request':request})
         return Response(serializer.data)
 
 from rest_framework import filters

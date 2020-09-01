@@ -241,7 +241,8 @@ class ApplicationType(models.Model):
     for park in Park.objects.all().order_by('id'):
         ParkPrice.objects.create(park=park, adult=10.0, child=7.50, senior=5.00)
     """
-    TCLASS = 'T Class'
+    #TCLASS = 'T Class'
+    TCLASS = 'Commercial operations'
     ECLASS = 'E Class'
     FILMING = 'Filming'
     EVENT = 'Event'
@@ -428,6 +429,8 @@ class GlobalSettings(models.Model):
         ('park_finder_link', 'Park Finder Link'),
         ('fees_and_charges', 'Fees and charges link'),
         ('commercial_filming_handbook', 'Commercial Filming Handbook link'),
+        ('park_stay_link', 'Park Stay Link'),
+        ('event_traffic_code_of_practice', 'Event traffic code of practice'),
 
     )
     key = models.CharField(max_length=255, choices=keys, blank=False, null=False,)

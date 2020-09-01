@@ -3,7 +3,7 @@
     <div class="col-sm-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">Activity Details <small></small>
+                <h3 class="panel-title">Filming Details <small></small>
                 <a class="panelClicker" :href="'#'+lBody" data-toggle="collapse"  data-parent="#activityInfo" expanded="true" :aria-controls="lBody">
                 <span class="glyphicon glyphicon-chevron-up pull-right "></span>
                 </a>
@@ -20,7 +20,7 @@
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="input-group date" ref="commencement_date" style="width: 70%;">
-                                        <input type="text" class="form-control" v-model="proposal.filming_activity.commencement_date" name="commencement_date" placeholder="Commencement date" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                        <input type="text" class="form-control" v-model="proposal.filming_activity.commencement_date" name="commencement_date" placeholder="Commencement date" :disabled="!canEditPeriod || proposal.pending_amendment_request || proposal.is_amendment_proposal">
                                         <span class="input-group-addon">
                                             <span class="glyphicon glyphicon-calendar"></span>
                                         </span>
@@ -28,7 +28,7 @@
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="input-group date" ref="completion_date" style="width: 70%;">
-                                        <input type="text" class="form-control" v-model="proposal.filming_activity.completion_date" name="completion_date" placeholder="Completion date" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal">
+                                        <input type="text" class="form-control" v-model="proposal.filming_activity.completion_date" name="completion_date" placeholder="Completion date" :disabled="!canEditPeriod || proposal.pending_amendment_request || proposal.is_amendment_proposal">
                                         <span class="input-group-addon">
                                             <span class="glyphicon glyphicon-calendar"></span>
                                         </span>
@@ -95,7 +95,7 @@
                                     <label class="control-label pull-right"  for="Name">Type of film to be undertaken</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
-                                    <select style="width:100%;" class="form-control input-sm" multiple ref="film_type_select" v-model="proposal.filming_activity.film_type">
+                                    <select style="width:100%;" class="form-control input-sm" multiple ref="film_type_select" v-model="proposal.filming_activity.film_type" :disabled="proposal.readonly">
                                         <option v-for="f in film_type_choices" :value="f.key">{{f.value}}</option>
                                     </select>
                                     <!--
@@ -113,7 +113,7 @@
                                     <label class="control-label pull-right"  for="Name">Purpose of still or motion film</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
-                                    <select style="width:100%" class="form-control input-sm" multiple ref="filmPurposeSelect" v-model="proposal.filming_activity.film_purpose">
+                                    <select style="width:100%" class="form-control input-sm" multiple ref="filmPurposeSelect" v-model="proposal.filming_activity.film_purpose" :disabled="proposal.readonly">
                                         <option v-for="p in purpose_choices" :value="p.key">{{p.value}}</option>
                                     </select>
                                     <!-- <ul class="list-inline"  >
@@ -127,7 +127,7 @@
                             <!-- <div class="row" v-if="proposal.filming_activity.film_purpose=='other'"> -->
                             <div class="row" v-if="showPurposeOtherDetails">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-right"  for="Name">Details</label>
+                                    <label class="control-label pull-right"  for="Name">Please provide details</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
                                     <textarea class="form-control" v-model="proposal.filming_activity.film_purpose_details" :disabled="proposal.readonly" style="width: 80%"></textarea>
@@ -154,7 +154,7 @@
                                     <label class="control-label pull-left"  for="Name">How will the still or motion film be used or shown</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
-                                    <select style="width:100%" class="form-control input-sm" multiple ref="filmUsageSelect" v-model="proposal.filming_activity.film_usage">
+                                    <select style="width:100%" class="form-control input-sm" multiple ref="filmUsageSelect" v-model="proposal.filming_activity.film_usage" :disabled="proposal.readonly">
                                         <option v-for="u in film_usage_choices" :value="u.key">{{u.value}}</option>
                                     </select>
                                     <!-- <ul class="list-inline"  >
@@ -167,7 +167,7 @@
                             </div>
                             <div class="row" v-if="showUsageDetails">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-right"  for="Name">Please Specify </label>
+                                    <label class="control-label pull-right"  for="Name">Please specify </label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
                                     <textarea class="form-control" v-model="proposal.filming_activity.film_usage_details" :disabled="proposal.readonly" style="width: 80%"></textarea>
@@ -205,7 +205,27 @@ require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
             proposal:{
                 type: Object,
                 required:true
-            }
+            },
+            hasDistrictAssessorMode:{
+                type:Boolean,
+                default: false
+            },
+            district_proposal:{
+                type:Object,
+                default:null
+            },
+            canEditActivities:{
+              type: Boolean,
+              default: true
+            },
+            is_external:{
+              type: Boolean,
+              default: false
+            },
+            canEditPeriod:{
+              type: Boolean,
+              default: false
+            },
         },
         data:function () {
             let vm = this;
