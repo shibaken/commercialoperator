@@ -496,35 +496,60 @@ def create_event_fee_lines(proposal, invoice_text=None, vouchers=[], internal=Fa
     return line_items
 
 def create_filming_fee_lines(proposal, invoice_text=None, vouchers=[], internal=False):
-    if proposal.filming_activity.num_filming_days == 1:
-        if proposal.filming_activity.half_day:
-            licence_fee = proposal.application_type.filming_fee_half_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_half_day
+    if 'motion_film' in proposal.filming_activity.film_type:
+        # Filming (and perhaps Photography)
+        desc = 'Filming/Photography'
+        if proposal.filming_licence_charge_type == proposal.HALF_DAY_CHARGE:
+            licence_fee = proposal.application_type.filming_fee_half_day
             licence_text =  'Half day'
-        else:
-            licence_fee = proposal.application_type.filming_fee_full_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_full_day
+        elif proposal.filming_licence_charge_type == proposal.FULL_DAY_CHARGE:
+            licence_fee = proposal.application_type.filming_fee_full_day
             licence_text =  'Full day'
-    elif proposal.filming_activity.num_filming_days > 1 and proposal.filming_activity.num_filming_days < 4:
-        full_day_fee = proposal.application_type.filming_fee_full_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_full_day
-        subsequent_day_fee = proposal.application_type.filming_fee_subsequent_day if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_subsequent_day
-        licence_fee = full_day_fee + (subsequent_day_fee * (proposal.filming_activity.num_filming_days-1))
-        licence_text = '{} days'.format(proposal.filming_activity.num_filming_days)
-    elif proposal.filming_activity.num_filming_days >= 4:
-        licence_fee = proposal.application_type.filming_fee_4days if 'motion_film' in proposal.filming_activity.film_type else proposal.application_type.photography_fee_4days
-        licence_text = '4 days or more'.format(proposal.filming_activity.num_filming_days)
+        elif proposal.filming_licence_charge_type == proposal.TWO_DAYS_CHARGE:
+            licence_fee = proposal.application_type.filming_fee_2days
+            licence_text =  'Two days'
+        elif proposal.filming_licence_charge_type == proposal.THREE_OR_MORE_DAYS_CHARGE:
+            licence_fee = proposal.application_type.filming_fee_3days
+            licence_text =  'Three days or more'
+        elif proposal.filming_licence_charge_type == proposal.NON_STANDARD_CHARGE:
+            licence_fee = proposal.filming_non_standard_charge
+            licence_text =  'Non-standard charge'
+        else:
+            raise Exception('Unknown filming charge type')
+    else:
+        # Photography
+        desc = 'Photography'
+        if proposal.filming_licence_charge_type == proposal.HALF_DAY_CHARGE:
+            licence_fee = proposal.application_type.photography_fee_half_day
+            licence_text =  'Half day'
+        elif proposal.filming_licence_charge_type == proposal.FULL_DAY_CHARGE:
+            licence_fee = proposal.application_type.photography_fee_full_day
+            licence_text =  'Full day'
+        elif proposal.filming_licence_charge_type == proposal.TWO_DAYS_CHARGE:
+            licence_fee = proposal.application_type.photography_fee_2days
+            licence_text =  'Two days'
+        elif proposal.filming_licence_charge_type == proposal.THREE_OR_MORE_DAYS_CHARGE:
+            licence_fee = proposal.application_type.photography_fee_3days
+            licence_text =  'Three days or more'
+        elif proposal.filming_licence_charge_type == proposal.NON_STANDARD_CHARGE:
+            licence_fee = proposal.filming_non_standard_charge
+            licence_text =  'Non-standard charge'
+        else:
+            raise Exception('Unknown filming charge type')
 
     application_fee = proposal.application_type.application_fee
     filming_period = '{} - {}'.format(proposal.filming_activity.commencement_date, proposal.filming_activity.completion_date)
 
     lines = [
         {
-            'ledger_description': 'Filming/Photography Application Fee - {}'.format(proposal.lodgement_number),
+            'ledger_description': '{} Application Fee - {}'.format(desc, proposal.lodgement_number),
             'oracle_code': proposal.application_type.oracle_code_licence,
             'price_incl_tax':  str(application_fee),
             'price_excl_tax':  str(application_fee) if proposal.application_type.is_gst_exempt else str(calculate_excl_gst(application_fee)),
             'quantity': 1
         },
         {
-            'ledger_description': 'Filming/Photography Licence Fee ({} - {}) - {}'.format(licence_text, filming_period, proposal.lodgement_number),
+            'ledger_description': '{} Licence Fee ({} - {}) - {}'.format(desc, licence_text, filming_period, proposal.lodgement_number),
             'oracle_code': proposal.application_type.oracle_code_licence,
             'price_incl_tax': str( licence_fee),
             'price_excl_tax':  str(licence_fee) if proposal.application_type.is_gst_exempt else str(calculate_excl_gst(licence_fee)),
