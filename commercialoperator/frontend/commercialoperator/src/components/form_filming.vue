@@ -57,8 +57,10 @@
                   </div>
                   <div v-else>
                     <Applicant :proposal="proposal" id="proposalStartApplicant"></Applicant>
-                    <div v-if="is_internal">
+                    <div v-if="is_internal || is_referral">
                       <ApprovalType :proposal="proposal" :hasAssessorMode="hasAssessorMode"></ApprovalType>
+                    </div>
+                    <div v-if="is_internal">
                       <Assessment :proposal="proposal" :assessment="proposal.assessor_assessment" :hasAssessorMode="hasAssessorMode" :is_internal="is_internal" :is_referral="is_referral"></Assessment>
                       <div v-for="assess in proposal.referral_assessments">
                         <Assessment :proposal="proposal" :assessment="assess"></Assessment>
