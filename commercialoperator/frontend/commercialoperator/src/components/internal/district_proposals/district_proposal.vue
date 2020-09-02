@@ -137,12 +137,12 @@
                                         </div>
                                     </div>
 
-                                    <!-- <div class="row">
+                                    <div class="row">
                                         <div class="col-sm-12">
                                             <label class="control-label pull-left"  for="Name">Approver Comments</label>
                                             <textarea class="form-control" name="name" v-model="approver_comment"></textarea><br>
                                         </div>
-                                    </div> -->
+                                    </div>
 
                                     <div class="row">
                                         <div class="col-sm-12" v-if="proposal.proposed_decline_status">
@@ -244,6 +244,7 @@ export default {
             selected_referral: '',
             referral_text: '',
             referral_comment: '',
+            approver_comment: '',
             proposal_parks:null,
             sendingReferral: false,
             showingProposal:false,
@@ -607,13 +608,14 @@ export default {
         // }
         //if approver is pushing back district_proposal to Assessor then navigate the approver back to dashboard page
         if(vm.district_proposal.processing_status == 'With Approver' && (status == 'with_assessor_requirements' || status=='with_assessor')) {
-            let data = {'status': status}
+            let data = {'status': status, 'approver_comment': vm.approver_comment}
             vm.$http.post(helpers.add_endpoint_json(api_endpoints.district_proposals,(vm.district_proposal.id+'/switch_status')),JSON.stringify(data),{
                 emulateJSON:true,
             })
             .then((response) => {
                 vm.district_proposal = response.body;
                 vm.original_district_proposal = helpers.copyObject(response.body);
+                vm.approver_comment='';
                 vm.$nextTick(() => {
                     vm.initialiseAssignedOfficerSelect(true);
                     vm.updateAssignedOfficerSelect();
@@ -630,7 +632,7 @@ export default {
 
         }
         else{
-         let data = {'status': status}
+         let data = {'status': status, 'approver_comment': vm.approver_comment}
          vm.changingStatus=true;
             vm.$http.post(helpers.add_endpoint_json(api_endpoints.district_proposals,(vm.district_proposal.id+'/switch_status')),JSON.stringify(data),{
                 emulateJSON:true,
@@ -638,6 +640,7 @@ export default {
             .then((response) => {
                 vm.district_proposal = response.body;
                 vm.original_district_proposal = helpers.copyObject(response.body);
+                vm.approver_comment='';
                 vm.$nextTick(() => {
                     vm.initialiseAssignedOfficerSelect(true);
                     vm.updateAssignedOfficerSelect();

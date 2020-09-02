@@ -489,17 +489,17 @@ def send_district_proposal_approver_sendback_email_notification(request, distric
     email = DistrictApproverSendBackNotificationEmail()
     url = request.build_absolute_uri(reverse('internal-district-proposal-detail',kwargs={'proposal_pk': proposal.id, 'district_proposal_pk': district_proposal.id}))
 
-    # if 'test-emails' in request.path_info:
-    #     approver_comment = 'This is my test comment'
-    # else:
-    #     approver_comment = proposal.approver_comment
+    if 'test-emails' in request.path_info:
+        approver_comment = 'This is my test comment'
+    else:
+        approver_comment = district_proposal.approver_comment
 
 
     context = {
         'proposal': proposal,
         'district_proposal': district_proposal,        
         'url': url,
-        # 'approver_comment': approver_comment
+        'approver_comment': approver_comment
     }
 
     msg = email.send(district_proposal.assessor_recipients, context=context)

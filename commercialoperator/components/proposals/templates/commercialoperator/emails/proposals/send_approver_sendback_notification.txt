@@ -7,7 +7,7 @@
 
     You can access this Application using the following link:
 
-    <a href="{{url}}">Access Application</a>
+    {{url}}
 
 
 {%  endblock %}
