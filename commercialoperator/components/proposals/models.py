@@ -1594,7 +1594,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             if self.processing_status == 'with_referral' or self.can_user_edit:
                 raise ValidationError('You cannot change the current status at this time')
             if self.processing_status != status:
-                import ipdb; ipdb.set_trace()
+                #import ipdb; ipdb.set_trace()
                 if self.processing_status =='with_approver':
                     if approver_comment:
                         self.approver_comment = approver_comment
