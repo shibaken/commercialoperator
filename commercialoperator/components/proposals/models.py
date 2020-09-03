@@ -683,7 +683,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         """ reset when application is submitted"""
         org = self.org_applicant
         #if self.application_type.name=='T Class' and org:
-        if self.application_type.name==ApplicationType.TCLASS and org:        
+        if self.application_type.name==ApplicationType.TCLASS and org:
             if org.application_discount > 0 or org.licence_discount > 0:
                 app_disc = ApplicationFeeDiscount.objects.create(proposal=self, discount_type=ApplicationFeeDiscount.DISCOUNT_TYPE_APPLICATION, discount=org.application_discount, reset_date=timezone.now(), user=user)
                 lic_disc = ApplicationFeeDiscount.objects.create(proposal=self, discount_type=ApplicationFeeDiscount.DISCOUNT_TYPE_LICENCE, discount=org.licence_discount, user=user)
@@ -1077,7 +1077,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         search_data.update({'activities': activities})
 
         return search_data
-        
+
 
     def search_data_filming(self):
         search_data={}
@@ -1104,7 +1104,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         search_data.update({'vessels': vessels})
 
         return search_data
-        
+
 
 
     @property
@@ -1112,11 +1112,11 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         if self.application_type.name== ApplicationType.TCLASS:
             return self.search_data_tclass()
         if self.application_type.name== ApplicationType.EVENT:
-            return self.search_data_event() 
+            return self.search_data_event()
         if self.application_type.name== ApplicationType.FILMING:
-            return self.search_data_filming()           
+            return self.search_data_filming()
         return {}
-    
+
 
     @property
     def selected_parks_activities(self):
@@ -1956,7 +1956,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     self.customer_status = self.CUSTOMER_STATUS_AWAITING_PAYMENT
                     #invoice = self.__create_filming_fee_invoice(request)
                     confirmation = self.__create_filming_fee_confirmation(request)
-                    # 
+                    #
                     if confirmation:
                         # send Proposal awaiting payment approval email & Log proposal action
                         send_proposal_awaiting_payment_approval_email_notification(self, request)
@@ -3078,7 +3078,7 @@ class Referral(RevisionedMixin):
     @property
     def application_type(self):
         return self.proposal.application_type.name
-    
+
     @property
     def latest_referrals(self):
         return Referral.objects.filter(sent_by=self.referral, proposal=self.proposal)[:2]
@@ -4159,7 +4159,7 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
     application_types=[ApplicationType.TCLASS, ApplicationType.EVENT, ApplicationType.FILMING]
     if is_internal:
         #proposal_list = Proposal.objects.filter(application_type__name='T Class').exclude(processing_status__in=['discarded','draft'])
-        proposal_list = Proposal.objects.filter(application_type__name__in=application_types).exclude(processing_status__in=['discarded','draft'])        
+        proposal_list = Proposal.objects.filter(application_type__name__in=application_types).exclude(processing_status__in=['discarded','draft'])
         approval_list = Approval.objects.all().order_by('lodgement_number', '-issue_date').distinct('lodgement_number')
         compliance_list = Compliance.objects.all()
     if searchWords:
@@ -4295,7 +4295,6 @@ class ProposalFilmingActivity(models.Model):
 
     commencement_date=models.DateField('Commencement Date',blank=True, null=True)
     completion_date=models.DateField('Completion Date',blank=True, null=True)
-    half_day=models.BooleanField('Filming full day or half day',default=False)
     previous_contact_person=models.CharField('Previous Contact person', max_length=100, null=True)
     #film_type=models.CharField('Type of Film', max_length=40, choices=FILM_TYPE_CHOICES, null=True, blank=True)
     film_type=MultiSelectField('Type of Film', max_choices=2, max_length=40, choices=FILM_TYPE_CHOICES, null=True, blank=True)

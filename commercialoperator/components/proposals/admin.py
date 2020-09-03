@@ -145,28 +145,28 @@ class ApplicationTypeAdmin(admin.ModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         self.exclude = ()
-        if obj.name == "Event":
+        if obj.name == ApplicationType.EVENT:
             self.exclude = (
                 "max_renewals", "max_renewal_period", "licence_fee_2mth", "licence_fee_1yr",
-                "filming_fee_half_day", "filming_fee_full_day", "filming_fee_subsequent_day", "filming_fee_4days",
-                "photography_fee_half_day", "photography_fee_full_day", "photography_fee_subsequent_day", "photography_fee_4days",
+                "filming_fee_half_day", "filming_fee_full_day", "filming_fee_2days", "filming_fee_3days",
+                "photography_fee_half_day", "photography_fee_full_day", "photography_fee_2days", "photography_fee_3days",
             )
-        elif obj.name == "Filming":
+        elif obj.name == ApplicationType.FILMING:
             self.exclude = (
                 "max_renewals", "max_renewal_period", "licence_fee_2mth", "licence_fee_1yr",
                 "events_park_fee",
             )
-        elif obj.name == "T Class":
+        elif obj.name == ApplicationType.TCLASS:
             self.exclude = (
-                "filming_fee_half_day", "filming_fee_full_day", "filming_fee_subsequent_day", "filming_fee_4days",
-                "photography_fee_half_day", "photography_fee_full_day", "photography_fee_subsequent_day", "photography_fee_4days",
+                "filming_fee_half_day", "filming_fee_full_day", "filming_fee_2days", "filming_fee_3days",
+                "photography_fee_half_day", "photography_fee_full_day", "photography_fee_2days", "photography_fee_3days",
                 "events_park_fee",
             )
-        elif obj.name == "E Class":
+        elif obj.name == ApplicationType.ECLASS:
             self.exclude = (
                 "max_renewals", "max_renewal_period", "licence_fee_2mth", "licence_fee_1yr",
-                "filming_fee_half_day", "filming_fee_full_day", "filming_fee_subsequent_day", "filming_fee_4days",
-                "photography_fee_half_day", "photography_fee_full_day", "photography_fee_subsequent_day", "photography_fee_4days",
+                "filming_fee_half_day", "filming_fee_full_day", "filming_fee_2days", "filming_fee_3days",
+                "photography_fee_half_day", "photography_fee_full_day", "photography_fee_2days", "photography_fee_3days",
                 "events_park_fee",
             )
 

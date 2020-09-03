@@ -295,6 +295,15 @@ def _create_invoice(invoice_buffer, invoice, compliance):
     if invoice.text:
         elements.append(Paragraph(invoice.text, styles['Left']))
         elements.append(Spacer(1, SECTION_BUFFER_HEIGHT * 2))
+
+#    parks = ', '.join(compliance.proposal.events_parks.all().distinct('park__name').values_list('park__name', flat=True))
+#    if parks:
+#        elements.append(Paragraph('', styles['Left']))
+#        elements.append(Paragraph('Parks', styles['Left']))
+#        elements.append(Paragraph(parks, styles['Left']))
+#        elements.append(Paragraph('', styles['Left']))
+#        elements.append(Paragraph('', styles['Left']))
+
     data = [
         ['Item','Product', 'Quantity','Unit Price', 'Total']
     ]
@@ -302,17 +311,31 @@ def _create_invoice(invoice_buffer, invoice, compliance):
     s = styles["BodyText"]
     s.wordWrap = 'CJK'
 
-    for item in items:
-        data.append(
-            [
-                val,
-                Paragraph(item.description, s),
-                item.quantity,
-                currency(item.unit_price_incl_tax),
-                currency(item.line_price_before_discounts_incl_tax)
-            ]
-        )
-        val += 1
+#    for item in items:
+#        data.append(
+#            [
+#                val,
+#                Paragraph(item.description, s),
+#                item.quantity,
+#                currency(item.unit_price_incl_tax),
+#                currency(item.line_price_before_discounts_incl_tax)
+#            ]
+#        )
+#        val += 1
+
+    # replaced above for loop because we need to aggregate lines/products to one line
+    desc = 'Compliance Fee - #participants {}'.format(compliance.num_participants)
+    qty = 1
+    data.append(
+        [
+            val,
+            Paragraph(desc, s),
+            qty,
+            currency(invoice.payment_amount),
+            currency(invoice.payment_amount)
+        ]
+    )
+
     # Discounts
     data.append(
         [

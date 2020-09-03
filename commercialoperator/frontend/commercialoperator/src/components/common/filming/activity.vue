@@ -34,10 +34,12 @@
                                         </span>
                                     </div>
                                 </div>
+                                <!--
                                 <div class="col-sm-3" v-show="showHalfDay">
                                     <input  class="form-check-input" ref="Checkbox" type="checkbox"  data-parsley-required :disabled="proposal.readonly" v-model="proposal.filming_activity.half_day" />
                                     Half Day?
                                 </div>
+                                -->
                             </div>
                             <div class="row">&nbsp;</div>
                             <div class="row">
@@ -249,12 +251,12 @@ require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
             }
         },
         computed: {
-            showHalfDay: function(){
-                let vm=this;
-                if(vm.proposal && vm.proposal.filming_activity.commencement_date && vm.proposal.filming_activity.completion_date){
-                    return vm.proposal.filming_activity.commencement_date == vm.proposal.filming_activity.completion_date
-                }
-            },
+            //showHalfDay: function(){
+            //    let vm=this;
+            //    if(vm.proposal && vm.proposal.filming_activity.commencement_date && vm.proposal.filming_activity.completion_date){
+            //        return vm.proposal.filming_activity.commencement_date == vm.proposal.filming_activity.completion_date
+            //    }
+            //},
             showUsageDetails:function(){
                 let vm=this;
                 if(vm.proposal && vm.proposal.filming_activity && vm.proposal.filming_activity.film_usage){

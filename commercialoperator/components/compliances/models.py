@@ -32,6 +32,7 @@ from commercialoperator.components.compliances.email import (
                         send_due_email_notification,
                         send_internal_due_email_notification
                         )
+from ledger.payments.invoice.models import Invoice
 
 import logging
 logger = logging.getLogger(__name__)

@@ -49,6 +49,7 @@
                                 </div>
                             </div>
                         </div>
+                        <!--
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="panel panel-default">
@@ -69,7 +70,6 @@
                                           </div>
                                           <div class="form-group">
                                             <div class="col-sm-12">
-                                                <!-- output order in reverse due to pull-right at runtime -->
                                                 <button v-if="!uploadingID" class="pull-right btn btn-primary" @click.prevent="uploadID()">Upload</button>
                                                 <button v-else disabled class="pull-right btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Uploading</button>
                                                 <span class="pull-right" style="margin-left:10px;margin-top:10px;margin-right:10px">{{uploadedIDFileName}}</span>
@@ -83,6 +83,7 @@
                                 </div>
                             </div>
                         </div>
+                        -->
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="panel panel-default">

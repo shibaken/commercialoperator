@@ -261,13 +261,13 @@ class ApplicationType(models.Model):
     # filming
     filming_fee_half_day = models.DecimalField('Filming half day fee', max_digits=6, decimal_places=2, default=0.0)
     filming_fee_full_day = models.DecimalField('Filming full day fee', max_digits=6, decimal_places=2, default=0.0)
-    filming_fee_subsequent_day = models.DecimalField('Filming subsequent day fee', max_digits=6, decimal_places=2, default=0.0)
-    filming_fee_4days = models.DecimalField('Filming 4 days or more fee', max_digits=6, decimal_places=2, default=0.0)
+    filming_fee_2days = models.DecimalField('Filming two days fee', max_digits=6, decimal_places=2, default=0.0)
+    filming_fee_3days = models.DecimalField('Filming 3 days or more fee', max_digits=6, decimal_places=2, default=0.0)
 
     photography_fee_half_day = models.DecimalField('Photography half day fee', max_digits=6, decimal_places=2, default=0.0)
-    photography_fee_full_day = models.DecimalField('Photoraphy full day fee', max_digits=6, decimal_places=2, default=0.0)
-    photography_fee_subsequent_day = models.DecimalField('Photography subsequent day fee', max_digits=6, decimal_places=2, default=0.0)
-    photography_fee_4days = models.DecimalField('Photography 4 days or more fee', max_digits=6, decimal_places=2, default=0.0)
+    photography_fee_full_day = models.DecimalField('Photography full day fee', max_digits=6, decimal_places=2, default=0.0)
+    photography_fee_2days = models.DecimalField('Photography two days fee', max_digits=6, decimal_places=2, default=0.0)
+    photography_fee_3days = models.DecimalField('Photography 3 days or more fee', max_digits=6, decimal_places=2, default=0.0)
 
     # T Class
     max_renewals = models.PositiveSmallIntegerField('Maximum number of times an Approval can be renewed', null=True, blank=True)
