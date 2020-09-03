@@ -1594,6 +1594,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             if self.processing_status == 'with_referral' or self.can_user_edit:
                 raise ValidationError('You cannot change the current status at this time')
             if self.processing_status != status:
+                #import ipdb; ipdb.set_trace()
                 if self.processing_status =='with_approver':
                     if approver_comment:
                         self.approver_comment = approver_comment
@@ -4730,7 +4731,7 @@ class DistrictProposal(models.Model):
             except:
                 raise
 
-    def move_to_status(self,request,status):
+    def move_to_status(self,request,status, approver_comment=''):
         if not self.can_assess(request.user):
             raise exceptions.ProposalNotAuthorized()
         if status in ['with_assessor','with_assessor_requirements','with_approver']:
@@ -4739,9 +4740,9 @@ class DistrictProposal(models.Model):
             if self.processing_status != status:
                 #TODO send email to District Approver group when District proposal is pushed to status with approver
                 if self.processing_status =='with_approver':
-                    # # if approver_comment:
-                    # #     self.approver_comment = approver_comment
-                    #     self.save()
+                    if approver_comment:
+                        self.approver_comment = approver_comment
+                        self.save()
                     send_district_proposal_approver_sendback_email_notification(request, self)
                 self.processing_status = status
                 self.save()
@@ -4770,7 +4771,8 @@ class DistrictProposal(models.Model):
                     defaults={'officer': request.user, 'reason': reason, 'cc_email': details.get('cc_email',None)}
                 )
                 self.proposed_decline_status = True
-                self.move_to_status(request,'with_approver')
+                approver_comment= ''
+                self.move_to_status(request,'with_approver', approver_comment)
                 # Log proposal action
                 self.proposal.log_user_action(ProposalUserAction.ACTION_DISTRICT_PROPOSED_DECLINE.format(self.id, self.proposal.id),request)
                 # Log entry for organisation
@@ -4834,8 +4836,8 @@ class DistrictProposal(models.Model):
                     'cc_email':details.get('cc_email')
                 }
                 self.proposed_decline_status = False
-                #approver_comment = ''
-                self.move_to_status(request,'with_approver')
+                approver_comment = ''
+                self.move_to_status(request,'with_approver', approver_comment)
                 self.assigned_officer = None
                 self.save()
                 # Log proposal action

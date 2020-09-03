@@ -2544,13 +2544,13 @@ class DistrictProposalViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             status = request.data.get('status')
-            #approver_comment = request.data.get('approver_comment')
+            approver_comment = request.data.get('approver_comment')
             if not status:
                 raise serializers.ValidationError('Status is required')
             else:
                 if not status in ['with_assessor','with_assessor_requirements','with_approver']:
                     raise serializers.ValidationError('The status provided is not allowed')
-            instance.move_to_status(request,status)
+            instance.move_to_status(request,status, approver_comment)
             serializer_class = DistrictProposalSerializer
             serializer = serializer_class(instance,context={'request':request})
             return Response(serializer.data)

@@ -446,7 +446,7 @@ import FileField from '@/components/forms/filefield.vue'
             
             vm.fetchGlobalSettings();
             this.$nextTick(()=>{
-                vm.eventListeners();
+                //vm.eventListeners();
             });
         }
     }
