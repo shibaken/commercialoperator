@@ -2332,7 +2332,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         for district in districts_list:
                             district_instance=District.objects.get(id=district)
                             #Get the list of all the Filming Parks in each district
-                            parks_list=list(ProposalFilmingParks.objects.filter(park__district=district, proposal=self).values_list('id',flat=True))
+                            #parks_list=list(ProposalFilmingParks.objects.filter(park__district=district, proposal=self).values_list('id',flat=True))
                             #create a District proposal for each district
                             district_proposal, created=DistrictProposal.objects.update_or_create(district=district_instance,proposal= self)
                             district_proposal.proposal_park= parks_list
@@ -4393,7 +4393,7 @@ class ProposalFilmingParks(models.Model):
     class Meta:
         app_label = 'commercialoperator'
 
-    def can_assessor_edit(self,user):
+    def can_assessor_edit_orig(self,user):
         assessor_group=None
         if self.proposal.processing_status == 'with_district_assessor':
             if self.park.district:
@@ -4405,6 +4405,33 @@ class ProposalFilmingParks(models.Model):
                 else:
                     assessor_group = DistrictProposalAssessorGroup.objects.get(default=True)
                 return assessor_group in user.districtproposalassessorgroup_set.all()
+        elif self.proposal.processing_status == 'with_assessor':
+                return self.proposal.can_assess(user)
+        else:
+            return False
+
+    def can_assessor_edit(self,user):
+        assessor_group=None
+        allowed_status=['with_district_assessor', 'partially_declined', 'partially_approved']
+        if self.proposal.processing_status in allowed_status:
+            if self.park.district:
+                check_group = DistrictProposalAssessorGroup.objects.filter(
+                        district__name=self.park.district.name
+                    ).distinct()
+                if check_group:
+                    assessor_group = check_group[0]
+                else:
+                    assessor_group = DistrictProposalAssessorGroup.objects.get(default=True)
+
+                district_proposal=self.proposal.district_proposals.filter(district=self.park.district)
+                if district_proposal:
+                    district_proposal=district_proposal[0]
+                    if district_proposal.processing_status=='with_assessor':
+                        return assessor_group in user.districtproposalassessorgroup_set.all()
+                    else:
+                        return False
+                else:
+                    return False
         elif self.proposal.processing_status == 'with_assessor':
                 return self.proposal.can_assess(user)
         else:
@@ -4550,6 +4577,11 @@ class DistrictProposal(models.Model):
     def districts_list(self):
         #return self.region.split(',') if self.region else []
         return [self.district.name] if self.district else []
+
+    @property
+    def parks_list(self):
+        #return self.region.split(',') if self.region else []
+        return ProposalFilmingParks.objects.filter(park__district=self.district, proposal=self.proposal) if self.district else None
 
     @property
     def district_name(self):

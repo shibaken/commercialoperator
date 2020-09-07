@@ -726,8 +726,10 @@ def _create_approval_lawful_authority(approval_buffer, approval, proposal, copie
     approved_district_proposals= approval.current_proposal.district_proposals.filter(processing_status='approved')
     approved_district_proposals_ids= approval.current_proposal.district_proposals.filter(processing_status='approved').values_list('id', flat=True)
     for district_proposal in approved_district_proposals:   
-        for p in district_proposal.proposal_park.all():
-            park_data.append([Paragraph(_format_name(p.park.name), styles['BoldLeft']),
+        #for p in district_proposal.proposal_park.all():
+        if district_proposal.parks_list:
+            for p in district_proposal.parks_list:
+                park_data.append([Paragraph(_format_name(p.park.name), styles['BoldLeft']),
                                   Paragraph(film_type, styles['Left']) # remove last trailing comma
                             ])
 
