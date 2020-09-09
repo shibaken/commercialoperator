@@ -1908,7 +1908,8 @@ class ReferralViewSet(viewsets.ModelViewSet):
     @list_route(methods=['GET',])
     def filter_list(self, request, *args, **kwargs):
         """ Used by the external dashboard filters """
-        qs =  self.get_queryset().filter(referral=request.user)
+        #qs =  self.get_queryset().filter(referral=request.user)
+        qs =  self.get_queryset()
         region_qs =  qs.filter(proposal__region__isnull=False).values_list('proposal__region__name', flat=True).distinct()
         #district_qs =  qs.filter(proposal__district__isnull=False).values_list('proposal__district__name', flat=True).distinct()
         activity_qs =  qs.filter(proposal__activity__isnull=False).order_by('proposal__activity').distinct('proposal__activity').values_list('proposal__activity', flat=True).distinct()
@@ -1916,12 +1917,14 @@ class ReferralViewSet(viewsets.ModelViewSet):
         submitters = [dict(email=i[2], search_term='{} {} ({})'.format(i[0], i[1], i[2])) for i in submitter_qs]
         processing_status_qs =  qs.filter(proposal__processing_status__isnull=False).order_by('proposal__processing_status').distinct('proposal__processing_status').values_list('proposal__processing_status', flat=True)
         processing_status = [dict(value=i, name='{}'.format(' '.join(i.split('_')).capitalize())) for i in processing_status_qs]
+        application_types=ApplicationType.objects.filter(visible=True).values_list('name', flat=True)
         data = dict(
             regions=region_qs,
             #districts=district_qs,
             activities=activity_qs,
             submitters=submitters,
             processing_status_choices=processing_status,
+            application_types=application_types,
         )
         return Response(data)
 

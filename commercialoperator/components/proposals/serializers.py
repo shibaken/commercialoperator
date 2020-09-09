@@ -989,6 +989,7 @@ class SendReferralSerializer(serializers.Serializer):
 
 class DTReferralSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source='proposal.get_processing_status_display')
+    application_type = serializers.CharField(source='proposal.application_type.name')
     referral_status = serializers.CharField(source='get_processing_status_display')
     proposal_lodgement_date = serializers.CharField(source='proposal.lodgement_date')
     proposal_lodgement_number = serializers.CharField(source='proposal.lodgement_number')
@@ -1007,6 +1008,7 @@ class DTReferralSerializer(serializers.ModelSerializer):
             'applicant',
             'submitter',
             'processing_status',
+            'application_type',
             'referral_status',
             'lodged_on',
             'proposal',

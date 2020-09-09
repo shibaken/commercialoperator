@@ -39,6 +39,15 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="">Licence Type</label>
+                                <select class="form-control" v-model="filterApplicationType">
+                                    <option value="All">All</option>
+                                    <option v-for="s in application_types" :value="s">{{s}}</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-md-3">
@@ -100,6 +109,7 @@ export default {
             pBody: 'pBody' + vm._uid,
             datatable_id: 'proposal-datatable-'+vm._uid,
             // Filters for Proposals
+            filterApplicationType: 'All',
             filterProposalRegion: [],
             filterProposalActivity: 'All',
             filterProposalStatus: 'All',
@@ -116,7 +126,7 @@ export default {
             },
             proposal_status:[],
             proposal_submitters: [],
-            proposal_headers:["Number","Submitter","Applicant","Status","Lodged on","Action"],
+            proposal_headers:["Number","Licence Type","Submitter","Applicant","Status","Lodged on","Action"],
             proposal_options:{
                 customProposalSearch: true,
                 tableID: 'proposal-datatable-'+vm._uid,
@@ -152,6 +162,10 @@ export default {
                             return full.proposal_lodgement_number+tick;
                         },
                         name: "proposal__id, proposal__lodgement_number",
+                    },
+                    {
+                        data: "application_type",
+                        name: "proposal__application_type__name"
                     },
                     {
                         data: "submitter",
@@ -232,9 +246,17 @@ export default {
         filterProposalStatus: function() {
             let vm = this;
             if (vm.filterProposalStatus!= 'All') {
-                vm.$refs.proposal_datatable.vmDataTable.columns(3).search(vm.filterProposalStatus).draw();
+                vm.$refs.proposal_datatable.vmDataTable.columns(4).search(vm.filterProposalStatus).draw();
             } else {
-                vm.$refs.proposal_datatable.vmDataTable.columns(3).search('').draw();
+                vm.$refs.proposal_datatable.vmDataTable.columns(4).search('').draw();
+            }
+        },
+        filterApplicationType: function() {
+            let vm = this;
+            if (vm.filterApplicationType!= 'All') {
+                vm.$refs.proposal_datatable.vmDataTable.columns(1).search(vm.filterApplicationType).draw();
+            } else {
+                vm.$refs.proposal_datatable.vmDataTable.columns(1).search('').draw();
             }
         },
 
@@ -245,9 +267,9 @@ export default {
             //this.$refs.proposal_datatable.vmDataTable.draw();
             let vm = this;
             if (vm.filterProposalSubmitter!= 'All') {
-                vm.$refs.proposal_datatable.vmDataTable.columns(1).search(vm.filterProposalSubmitter).draw();
+                vm.$refs.proposal_datatable.vmDataTable.columns(2).search(vm.filterProposalSubmitter).draw();
             } else {
-                vm.$refs.proposal_datatable.vmDataTable.columns(1).search('').draw();
+                vm.$refs.proposal_datatable.vmDataTable.columns(2).search('').draw();
             }
 
 
@@ -268,6 +290,7 @@ export default {
             vm.$http.get(api_endpoints.filter_list_referrals).then((response) => {
                 vm.proposal_submitters = response.body.submitters;
                 vm.proposal_status = response.body.processing_status_choices;
+                vm.application_types= response.body.application_types;
             },(error) => {
                 console.log(error);
             })

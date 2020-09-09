@@ -261,7 +261,7 @@ export default {
                 let vm=this;
                 if(vm.global_settings){
                     for(var i=0; i<vm.global_settings.length; i++){
-                        if(vm.global_settings[i].key=='deed_poll'){
+                        if(vm.global_settings[i].key=='deed_poll_filming'){
                             return vm.global_settings[i].value;
                         }
                     }

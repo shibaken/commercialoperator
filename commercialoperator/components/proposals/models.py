@@ -2335,7 +2335,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             #parks_list=list(ProposalFilmingParks.objects.filter(park__district=district, proposal=self).values_list('id',flat=True))
                             #create a District proposal for each district
                             district_proposal, created=DistrictProposal.objects.update_or_create(district=district_instance,proposal= self)
-                            district_proposal.proposal_park= parks_list
+                            #district_proposal.proposal_park= parks_list
                             status=district_proposal.processing_status #for reissue
                             district_proposal.processing_status='with_assessor'
                             district_proposal.save()
