@@ -106,7 +106,7 @@
                             <div class="row">&nbsp;</div>
                             <div class="row">    
                                 <div class="col-sm-6">
-                                    <label class="control-label pull-left"  for="Name">Will food or other supply vendors be hired or contracted to operator on CALM land during the event?</label>                                   
+                                    <label class="control-label pull-left"  for="Name">Will food or other supply vendors be hired or contracted to operate on CALM Act land during the event?</label>                                   
                                 </div>
                                 <div class="col-sm-6">
                                     <ul class="list-inline"  >
