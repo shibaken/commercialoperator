@@ -955,6 +955,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         return False
 
     @property
+    def is_filming_application(self):
+        if self.application_type.name==ApplicationType.FILMING:
+            return True
+        return False
+
+    @property
     def is_lawful_authority_finalised(self):
         if self.application_type.name==ApplicationType.FILMING and self.filming_approval_type=='lawful_authority':
             final_status=['declined', 'approved', 'discarded']
@@ -1596,6 +1602,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             if self.processing_status != status:
                 #import ipdb; ipdb.set_trace()
                 if self.processing_status =='with_approver':
+                    self.approver_comment=''
                     if approver_comment:
                         self.approver_comment = approver_comment
                         self.save()
@@ -4772,6 +4779,7 @@ class DistrictProposal(models.Model):
             if self.processing_status != status:
                 #TODO send email to District Approver group when District proposal is pushed to status with approver
                 if self.processing_status =='with_approver':
+                    self.approver_comment=''
                     if approver_comment:
                         self.approver_comment = approver_comment
                         self.save()
