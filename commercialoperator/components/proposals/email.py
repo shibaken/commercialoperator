@@ -50,6 +50,11 @@ class ProposalApprovalSendNotificationEmail(TemplateEmailBase):
     html_template = 'commercialoperator/emails/proposals/send_approval_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_approval_notification.txt'
 
+class ProposalFilmingApprovalSendNotificationEmail(TemplateEmailBase):
+    subject = '{} - Commercial Operations Licence Approved.'.format(settings.DEP_NAME)
+    html_template = 'commercialoperator/emails/proposals/send_filming_approval_notification.html'
+    txt_template = 'commercialoperator/emails/proposals/send_filming_approval_notification.txt'
+
 class ProposalAwaitingPaymentApprovalSendNotificationEmail(TemplateEmailBase):
     subject = '{} - Commercial Filming Application - Pending Payment.'.format(settings.DEP_NAME)
     html_template = 'commercialoperator/emails/proposals/send_awaiting_payment_approval_notification.html'
@@ -392,7 +397,10 @@ def send_proposal_approver_sendback_email_notification(request, proposal):
 
 
 def send_proposal_approval_email_notification(proposal,request):
-    email = ProposalApprovalSendNotificationEmail()
+    if proposal.is_filming_licence:
+        email = ProposalFilmingApprovalSendNotificationEmail()
+    else:
+        email = ProposalApprovalSendNotificationEmail()
 
     cc_list = proposal.proposed_issuance_approval['cc_email']
     all_ccs = []
@@ -418,7 +426,10 @@ def send_proposal_approval_email_notification(proposal,request):
     if "-internal" in url:
         # remove '-internal'. This email is for external submitters
         url = ''.join(url.split('-internal'))
-    handbook_url= settings.COLS_HANDBOOK_URL
+    if proposal.is_filming_licence:
+        handbook_url= settings.COLS_FILMING_HANDBOOK_URL
+    else:
+        handbook_url= settings.COLS_HANDBOOK_URL
     context = {
         'proposal': proposal,
         'num_requirement_docs': len(attachments) - 1,
