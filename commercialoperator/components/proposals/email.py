@@ -51,7 +51,7 @@ class ProposalApprovalSendNotificationEmail(TemplateEmailBase):
     txt_template = 'commercialoperator/emails/proposals/send_approval_notification.txt'
 
 class ProposalAwaitingPaymentApprovalSendNotificationEmail(TemplateEmailBase):
-    subject = '{} - Commercial Operations Licence Approved - Pending Payment.'.format(settings.DEP_NAME)
+    subject = '{} - Commercial Filming Application - Pending Payment.'.format(settings.DEP_NAME)
     html_template = 'commercialoperator/emails/proposals/send_awaiting_payment_approval_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_awaiting_payment_approval_notification.txt'
 

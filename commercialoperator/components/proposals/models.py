@@ -1962,6 +1962,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     self.processing_status = self.PROCESSING_STATUS_AWAITING_PAYMENT
                     self.customer_status = self.CUSTOMER_STATUS_AWAITING_PAYMENT
                     #invoice = self.__create_filming_fee_invoice(request)
+                    #import ipdb; ipdb.set_trace()
                     confirmation = self.__create_filming_fee_confirmation(request)
                     # 
                     if confirmation:
