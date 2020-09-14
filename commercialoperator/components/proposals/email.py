@@ -116,7 +116,7 @@ class DistrictProposalDeclineSendNotificationEmail(TemplateEmailBase):
     txt_template = 'commercialoperator/emails/proposals/send_district_decline_notification.txt'
 
 class DistrictProposalApprovalSendNotificationEmail(TemplateEmailBase):
-    subject = '{} - Commercial Operations Licence Approved.'.format(settings.DEP_NAME)
+    subject = '{} - Commercial Filming Lawful Authoriy Approved.'.format(settings.DEP_NAME)
     html_template = 'commercialoperator/emails/proposals/send_district_approval_notification.html'
     #html_template = 'commercialoperator/emails/proposals/send_district_decline_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_district_approval_notification.txt'
