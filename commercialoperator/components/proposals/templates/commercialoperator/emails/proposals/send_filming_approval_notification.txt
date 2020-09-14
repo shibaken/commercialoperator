@@ -2,7 +2,7 @@
 
 {%  block content %}
    
-       Your licence to conduct commercial fiming on Conservation and Land Management Act 1984 land and waters has been approved and expires on {{proposal.approval.expiry_date}}. A copy of your licence is attached to this email and can be accessed in the Commercial Operator Licensing System (COLS) under your account, click <a href="{{url}}">here</a> to login.
+       Your licence to conduct commercial fiming on Conservation and Land Management Act 1984 land and waters has been approved and expires on {{proposal.approval.expiry_date}}. A copy of your licence is attached to this email and can be accessed in the Commercial Operator Licensing System (COLS) under your account, click {{url}} to login.
 
         Parks and Activities
         The activities and parks you are permitted to operate within are listed in Schedule 1 of your licence.
