@@ -65,6 +65,11 @@ class AmendmentRequestSendNotificationEmail(TemplateEmailBase):
     html_template = 'commercialoperator/emails/proposals/send_amendment_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_amendment_notification.txt'
 
+class FilmingAmendmentRequestSendNotificationEmail(TemplateEmailBase):
+    subject = '{} - Commercial Filming Incomplete application.'.format(settings.DEP_NAME)
+    html_template = 'commercialoperator/emails/proposals/send_amendment_notification.html'
+    txt_template = 'commercialoperator/emails/proposals/send_amendment_notification.txt'
+
 class SubmitSendNotificationEmail(TemplateEmailBase):
     subject = 'A new Application has been submitted.'
     html_template = 'commercialoperator/emails/proposals/send_submit_notification.html'
@@ -231,7 +236,10 @@ def send_referral_complete_email_notification(referral,request):
         _log_user_email(msg, referral.proposal.submitter, referral.referral, sender=sender)
 
 def send_amendment_email_notification(amendment_request, request, proposal):
-    email = AmendmentRequestSendNotificationEmail()
+    if proposal.is_filming_application:
+        email = FilmingAmendmentRequestSendNotificationEmail()
+    else:
+        email = AmendmentRequestSendNotificationEmail()
     #reason = amendment_request.get_reason_display()
     reason = amendment_request.reason.reason
     url = request.build_absolute_uri(reverse('external-proposal-detail',kwargs={'proposal_pk': proposal.id}))
