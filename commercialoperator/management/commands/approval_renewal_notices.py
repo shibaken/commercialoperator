@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.conf import settings
 from commercialoperator.components.approvals.models import Approval
+from commercialoperator.components.main.models import ApplicationType
 from ledger.accounts.models import EmailUser
 from datetime import date, timedelta
 from commercialoperator.components.approvals.email import (
@@ -32,7 +33,9 @@ class Command(BaseCommand):
         logger.info('Running command {}'.format(__name__))
 
         # 2 month licences cannot be renewed
-        qs=Approval.objects.filter(**renewal_conditions).exclude(current_proposal__other_details__preferred_licence_period='2_months').exclude(current_proposal__application_type__name='E Class')
+        exclude_application_types=[ApplicationType.FILMING, ApplicationType.EVENT,ApplicationType.ECLASS ]
+        #qs=Approval.objects.filter(**renewal_conditions).exclude(current_proposal__other_details__preferred_licence_period='2_months').exclude(current_proposal__application_type__name='E Class')
+        qs=Approval.objects.filter(**renewal_conditions).exclude(current_proposal__other_details__preferred_licence_period='2_months').exclude(current_proposal__application_type__name__in=exclude_application_types)
         logger.info('{}'.format(qs))
         for a in qs:
             if a.status == 'current' or a.status == 'suspended':
