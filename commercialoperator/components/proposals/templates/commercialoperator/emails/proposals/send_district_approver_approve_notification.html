@@ -1,14 +1,16 @@
 {%  extends 'commercialoperator/emails/base_email.html' %}
 
 {%  block content %}
-	The Application {{ proposal.lodgement_number }} for district {{ district_proposal.district_name }} has been assessed and has been recommended for approval.
+	<p>The commercial filming lawful authority application {{ proposal.lodgement_number }} for the {{ district_proposal.district_name }} district has been assessed and recommended for your approval.</p>
+
+	<p>If the application includes parks and reserves across multiple districts or regions, please note as each district or region provides their approval, an amended lawful authority will be granted to the applicant adding the newly approved parks and reserves which supersedes their previous lawful authority.</p>
 
     <p>Start date: {{ start_date }}</p>
     <p>Expiry date: {{ expiry_date }}</p>
     <p>Details: {{ details }}</p>
 
     <p>
-    You can access this Application using the following link:
+    You can access and approve this application using the following link:
     </p>
     <a href="{{url}}">Access Application</a>
 

@@ -91,3 +91,18 @@ def is_consultant(organisation,user):
 
 def random_generator(size=12, chars=string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
+
+def has_atleast_one_admin(organisation):
+    from commercialoperator.components.organisations.models import OrganisationContact
+    ''' A check for whether Organisation has atlease one admin user '''
+    _atleast_one_admin = False
+    try:
+        _admin_contacts = OrganisationContact.objects.filter(organisation_id=organisation,
+                                                             user_status='active',
+                                                             user_role='organisation_admin',
+                                                             is_admin=True)
+        if _admin_contacts.count() > 0:
+            _atleast_one_admin = True
+    except OrganisationContact.DoesNotExist:
+        _atleast_one_admin = False
+    return _atleast_one_admin

@@ -136,7 +136,7 @@ class OrganisationSerializer(serializers.ModelSerializer):
         """
         delegates = []
         for user in obj.delegates.all():
-            admin_qs = obj.contacts.filter(organisation__organisation_id=obj.organisation_id, email=user.email, is_admin=True) #.values_list('is_admin',flat=True)
+            admin_qs = obj.contacts.filter(organisation__organisation_id=obj.organisation_id, email=user.email, is_admin=True, user_role='organisation_admin') #.values_list('is_admin',flat=True)
             if admin_qs.count() > 0:
                 delegates.append(dict(id=user.id, name=user.get_full_name(), email=user.email, is_admin=True))
             else:

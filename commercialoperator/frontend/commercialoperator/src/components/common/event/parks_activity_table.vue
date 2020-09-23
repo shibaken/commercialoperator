@@ -61,7 +61,7 @@ export default {
             datatable_id: 'park-datatable-'+vm._uid,
             uuid: 0,
             // Filters for Parks
-            park_headers:["Park or Reserve","Activities","Itenary/ Maps","Action"],
+            park_headers:["Park or Reserve","Activities","Itinerary/ Maps","Action"],
             park_options:{
                 language: {
                     processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"

@@ -955,6 +955,18 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         return False
 
     @property
+    def is_filming_application(self):
+        if self.application_type.name==ApplicationType.FILMING:
+            return True
+        return False
+
+    @property
+    def is_filming_licence(self):
+        if self.application_type.name==ApplicationType.FILMING and self.filming_approval_type=='licence':
+            return True
+        return False
+
+    @property
     def is_lawful_authority_finalised(self):
         if self.application_type.name==ApplicationType.FILMING and self.filming_approval_type=='lawful_authority':
             final_status=['declined', 'approved', 'discarded']
@@ -1151,30 +1163,41 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             which was not previously displayed correctly. This function is called by pdf.py only. """
         #list of selected parks and activities (to print on licence pdf)
         selected_parks_activities=[]
-        for p in self.parks.all():
-            park_activities=[]
-            park_access_types=[]
-            #parks.append(p.park.name)
-            if p.park.park_type=='land':
-                for a in p.access_types.all():
-                    park_access_types.append(a.access_type.name)
-                for a in p.activities.all():
-                    park_activities.append(a.activity_name)
-                selected_parks_activities.append({'park': p.park.name, 'activities': park_activities, 'access_types': park_access_types })
-            if p.park.park_type=='marine':
-                for z in p.zones.all():
-                    zone_activities = []
-                    for a in z.park_activities.all():
-                        zone_activities.append(a.activity_name)
-                    selected_parks_activities.append({'park': '{} - {}'.format(p.park.name, z.zone.name), 'activities': zone_activities})
-        for t in self.trails.all():
-            #trails.append(t.trail.name)
-            #trail_activities=[]
-            for s in t.sections.all():
-                trail_activities=[]
-                for ts in s.trail_activities.all():
-                  trail_activities.append(ts.activity_name)
-                selected_parks_activities.append({'park': '{} - {}'.format(t.trail.name, s.section.name), 'activities': trail_activities})
+        if self.application_type.name==ApplicationType.TCLASS:
+            for p in self.parks.all():
+                park_activities=[]
+                park_access_types=[]
+                #parks.append(p.park.name)
+                if p.park.park_type=='land':
+                    for a in p.access_types.all():
+                        park_access_types.append(a.access_type.name)
+                    for a in p.activities.all():
+                        park_activities.append(a.activity_name)
+                    selected_parks_activities.append({'park': p.park.name, 'activities': park_activities, 'access_types': park_access_types })
+                if p.park.park_type=='marine':
+                    for z in p.zones.all():
+                        zone_activities = []
+                        for a in z.park_activities.all():
+                            zone_activities.append(a.activity_name)
+                        selected_parks_activities.append({'park': '{} - {}'.format(p.park.name, z.zone.name), 'activities': zone_activities})
+            for t in self.trails.all():
+                #trails.append(t.trail.name)
+                #trail_activities=[]
+                for s in t.sections.all():
+                    trail_activities=[]
+                    for ts in s.trail_activities.all():
+                      trail_activities.append(ts.activity_name)
+                    selected_parks_activities.append({'park': '{} - {}'.format(t.trail.name, s.section.name), 'activities': trail_activities})
+        if self.application_type.name==ApplicationType.EVENT:
+            # for p in self.events_parks.all():
+            #     selected_parks_activities.append({'park': p.park.name, 'activities': p.event_activities})   
+            for t in self.trails.all():               
+                for s in t.sections.all():
+                    trail_activities=[]
+                    for ts in s.trail_activities.all():
+                      trail_activities.append(ts.activity_name)
+                    selected_parks_activities.append({'park': '{} - {}'.format(t.trail.name, s.section.name), 'activities': trail_activities})
+
         return selected_parks_activities
 
 #    @property
@@ -1596,6 +1619,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             if self.processing_status != status:
                 #import ipdb; ipdb.set_trace()
                 if self.processing_status =='with_approver':
+                    self.approver_comment=''
                     if approver_comment:
                         self.approver_comment = approver_comment
                         self.save()
@@ -1955,6 +1979,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     self.processing_status = self.PROCESSING_STATUS_AWAITING_PAYMENT
                     self.customer_status = self.CUSTOMER_STATUS_AWAITING_PAYMENT
                     #invoice = self.__create_filming_fee_invoice(request)
+                    #import ipdb; ipdb.set_trace()
                     confirmation = self.__create_filming_fee_confirmation(request)
                     #
                     if confirmation:
@@ -2332,10 +2357,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         for district in districts_list:
                             district_instance=District.objects.get(id=district)
                             #Get the list of all the Filming Parks in each district
-                            parks_list=list(ProposalFilmingParks.objects.filter(park__district=district, proposal=self).values_list('id',flat=True))
+                            #parks_list=list(ProposalFilmingParks.objects.filter(park__district=district, proposal=self).values_list('id',flat=True))
                             #create a District proposal for each district
                             district_proposal, created=DistrictProposal.objects.update_or_create(district=district_instance,proposal= self)
-                            district_proposal.proposal_park= parks_list
+                            #district_proposal.proposal_park= parks_list
                             status=district_proposal.processing_status #for reissue
                             district_proposal.processing_status='with_assessor'
                             district_proposal.save()
@@ -4392,7 +4417,7 @@ class ProposalFilmingParks(models.Model):
     class Meta:
         app_label = 'commercialoperator'
 
-    def can_assessor_edit(self,user):
+    def can_assessor_edit_orig(self,user):
         assessor_group=None
         if self.proposal.processing_status == 'with_district_assessor':
             if self.park.district:
@@ -4404,6 +4429,33 @@ class ProposalFilmingParks(models.Model):
                 else:
                     assessor_group = DistrictProposalAssessorGroup.objects.get(default=True)
                 return assessor_group in user.districtproposalassessorgroup_set.all()
+        elif self.proposal.processing_status == 'with_assessor':
+                return self.proposal.can_assess(user)
+        else:
+            return False
+
+    def can_assessor_edit(self,user):
+        assessor_group=None
+        allowed_status=['with_district_assessor', 'partially_declined', 'partially_approved']
+        if self.proposal.processing_status in allowed_status:
+            if self.park.district:
+                check_group = DistrictProposalAssessorGroup.objects.filter(
+                        district__name=self.park.district.name
+                    ).distinct()
+                if check_group:
+                    assessor_group = check_group[0]
+                else:
+                    assessor_group = DistrictProposalAssessorGroup.objects.get(default=True)
+
+                district_proposal=self.proposal.district_proposals.filter(district=self.park.district)
+                if district_proposal:
+                    district_proposal=district_proposal[0]
+                    if district_proposal.processing_status=='with_assessor':
+                        return assessor_group in user.districtproposalassessorgroup_set.all()
+                    else:
+                        return False
+                else:
+                    return False
         elif self.proposal.processing_status == 'with_assessor':
                 return self.proposal.can_assess(user)
         else:
@@ -4549,6 +4601,11 @@ class DistrictProposal(models.Model):
     def districts_list(self):
         #return self.region.split(',') if self.region else []
         return [self.district.name] if self.district else []
+
+    @property
+    def parks_list(self):
+        #return self.region.split(',') if self.region else []
+        return ProposalFilmingParks.objects.filter(park__district=self.district, proposal=self.proposal) if self.district else None
 
     @property
     def district_name(self):
@@ -4739,6 +4796,7 @@ class DistrictProposal(models.Model):
             if self.processing_status != status:
                 #TODO send email to District Approver group when District proposal is pushed to status with approver
                 if self.processing_status =='with_approver':
+                    self.approver_comment=''
                     if approver_comment:
                         self.approver_comment = approver_comment
                         self.save()

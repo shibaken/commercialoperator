@@ -407,7 +407,7 @@ export default {
 
             swal({
                 title: vm.submit_text() + " Compliance",
-                text: "Are you sure you want to " + vm.submit_text().toLowerCase()+ " this application?",
+                text: "Are you sure you want to " + vm.submit_text().toLowerCase()+ " this requirement?",
                 type: "question",
                 showCancelButton: true,
                 confirmButtonText: vm.submit_text()

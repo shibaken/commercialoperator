@@ -1,7 +1,7 @@
 {%  extends 'commercialoperator/emails/base_email.txt' %}
 
 {%  block content %}
-    The Application {{ proposal.lodgement_number }} for district {{  distict_proposal.district_name }} has been sent back by approver.
+    The commercial filming lawful authority application {{ proposal.lodgement_number }} for {{  district_proposal.district_name }} district has been sent back by approver.
 	
 	Approver comments: {{ approver_comment }}
 
