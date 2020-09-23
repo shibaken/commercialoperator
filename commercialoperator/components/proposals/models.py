@@ -1190,8 +1190,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     selected_parks_activities.append({'park': '{} - {}'.format(t.trail.name, s.section.name), 'activities': trail_activities})
         if self.application_type.name==ApplicationType.EVENT:
             # for p in self.events_parks.all():
-            #     selected_parks_activities.append({'park': p.park.name, 'activities': p.event_activities})   
-            for t in self.trails.all():               
+            #     selected_parks_activities.append({'park': p.park.name, 'activities': p.event_activities})
+            for t in self.trails.all():
                 for s in t.sections.all():
                     trail_activities=[]
                     for ts in s.trail_activities.all():
@@ -1953,7 +1953,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             try:
                 self.proposed_decline_status = False
 
-                if self.processing_status==Proposal.PROCESSING_STATUS_AWAITING_PAYMENT and self.fee_paid:
+                if (self.processing_status==Proposal.PROCESSING_STATUS_AWAITING_PAYMENT and self.fee_paid) or (self.proposal_type=='amendment'):
                     # for 'Awaiting Payment' approval. External/Internal user fires this method after full payment via Make/Record Payment
                     pass
                 else:
@@ -1973,9 +1973,10 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     }
 
 
-                if self.application_type.name == ApplicationType.FILMING and self.filming_approval_type == self.LICENCE and \
-                        self.processing_status in [Proposal.PROCESSING_STATUS_WITH_APPROVER]:
-                        #self.processing_status not in [Proposal.PROCESSING_STATUS_AWAITING_PAYMENT, Proposal.PROCESSING_STATUS_APPROVED]:
+                if (self.application_type.name == ApplicationType.FILMING and self.filming_approval_type == self.LICENCE and \
+                        self.processing_status in [Proposal.PROCESSING_STATUS_WITH_APPROVER]) and \
+                        not self.proposal_type=='amendment':
+
                     self.processing_status = self.PROCESSING_STATUS_AWAITING_PAYMENT
                     self.customer_status = self.CUSTOMER_STATUS_AWAITING_PAYMENT
                     #invoice = self.__create_filming_fee_invoice(request)
