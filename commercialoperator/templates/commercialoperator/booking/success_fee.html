@@ -10,26 +10,48 @@
             <br/>
 
             {% if proposal and proposal.id %}
-                <div>
-                    <strong>Your application {{proposal.lodgement_number}} has been successfully submitted.</strong>
-                    <br/><br/>
-                    <table>
-                        <tr>
-                            <td><strong>Application:</strong></td>
-                            <td><strong>{{proposal.lodgement_number}}</strong></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Date/Time:</strong></td>
-                            <td><strong> {{proposal.lodgement_date}}</strong></td>
-                        </tr>
-                    </table>
-                    <br/>
-                    {% if proposal and proposal.application_type.name == 'Event' %}
-                        <label>Please note that it may take up to 6 weeks to process your application.<br/><br/>If there is any missing information, the Department may assign this application back to you to complete. In that case you will be notified by email.</label>
-                    {% else %}
-                        <label>Please note that it may take up to 21 business days to process your application.<br/><br/>If there is any missing information, the Department may assign this application back to you to complete. In that case you will be notified by email.</label>
-                    {% endif %}
-                  </div>
+                {% if proposal and proposal.application_type.name == 'Filming' %}
+                    <div>
+                        <strong>Payment for you commercial filming application has been successfully completed.</strong>
+                        <br/><br/>
+                        <!-- <table>
+                            <tr>
+                                <td><strong>Application:</strong></td>
+                                <td><strong>{{proposal.lodgement_number}}</strong></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Date/Time:</strong></td>
+                                <td><strong> {{proposal.lodgement_date}}</strong></td>
+                            </tr>
+                        </table> -->
+                        <!-- <br/> -->
+                        <label>Your commercial operations licence has been granted via an email sent to {{ proposal.submitter.email }}<br/><br/></label>
+                    </div>
+
+                {% else %}
+
+                    <div>
+                        <strong>Your application {{proposal.lodgement_number}} has been successfully submitted.</strong>
+                        <br/><br/>
+                        <table>
+                            <tr>
+                                <td><strong>Application:</strong></td>
+                                <td><strong>{{proposal.lodgement_number}}</strong></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Date/Time:</strong></td>
+                                <td><strong> {{proposal.lodgement_date}}</strong></td>
+                            </tr>
+                        </table>
+                        <br/>
+                        {% if proposal and proposal.application_type.name == 'Event' %}
+                            <label>Please note that it may take up to 6 weeks to process your application.<br/><br/>If there is any missing information, the Department may assign this application back to you to complete. In that case you will be notified by email.</label>
+                        {% else %}
+                            <label>Please note that it may take up to 21 business days to process your application.<br/><br/>If there is any missing information, the Department may assign this application back to you to complete. In that case you will be notified by email.</label>
+                        {% endif %}
+                      </div>
+                {% endif %}    
+
             {% else %}
                 <div class="col-sm-offset-3 col-sm-6 borderDecoration">
                     <strong>Sorry it looks like there isn't any proposal currently in your session.</strong>

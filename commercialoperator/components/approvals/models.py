@@ -317,6 +317,10 @@ class Approval(RevisionedMixin):
         return self.current_proposal.is_lawful_authority_finalised
 
     @property
+    def is_filming_licence(self):
+        return self.current_proposal.is_filming_licence
+
+    @property
     def can_reissue_lawful_authority(self):
         if self.current_proposal.is_lawful_authority and self.current_proposal.is_lawful_authority_finalised:
             return self.can_reissue

@@ -30,6 +30,11 @@ class ReferralSendNotificationEmail(TemplateEmailBase):
     html_template = 'commercialoperator/emails/proposals/send_referral_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_referral_notification.txt'
 
+class ReferralFilmingSendNotificationEmail(TemplateEmailBase):
+    subject = 'A referral for a commercial filming licence application has been sent to you.'
+    html_template = 'commercialoperator/emails/proposals/send_filming_referral_notification.html'
+    txt_template = 'commercialoperator/emails/proposals/send_filming_referral_notification.txt'
+
 class ReferralCompleteNotificationEmail(TemplateEmailBase):
     subject = 'A referral for an application has been completed.'
     html_template = 'commercialoperator/emails/proposals/send_referral_complete_notification.html'
@@ -45,13 +50,23 @@ class ProposalApprovalSendNotificationEmail(TemplateEmailBase):
     html_template = 'commercialoperator/emails/proposals/send_approval_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_approval_notification.txt'
 
+class ProposalFilmingApprovalSendNotificationEmail(TemplateEmailBase):
+    subject = '{} - Commercial Operations Licence Approved.'.format(settings.DEP_NAME)
+    html_template = 'commercialoperator/emails/proposals/send_filming_approval_notification.html'
+    txt_template = 'commercialoperator/emails/proposals/send_filming_approval_notification.txt'
+
 class ProposalAwaitingPaymentApprovalSendNotificationEmail(TemplateEmailBase):
-    subject = '{} - Commercial Operations Licence Approved - Pending Payment.'.format(settings.DEP_NAME)
+    subject = '{} - Commercial Filming Application - Pending Payment.'.format(settings.DEP_NAME)
     html_template = 'commercialoperator/emails/proposals/send_awaiting_payment_approval_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_awaiting_payment_approval_notification.txt'
 
 class AmendmentRequestSendNotificationEmail(TemplateEmailBase):
     subject = '{} - Commercial Operations Incomplete application.'.format(settings.DEP_NAME)
+    html_template = 'commercialoperator/emails/proposals/send_amendment_notification.html'
+    txt_template = 'commercialoperator/emails/proposals/send_amendment_notification.txt'
+
+class FilmingAmendmentRequestSendNotificationEmail(TemplateEmailBase):
+    subject = '{} - Commercial Filming Incomplete application.'.format(settings.DEP_NAME)
     html_template = 'commercialoperator/emails/proposals/send_amendment_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_amendment_notification.txt'
 
@@ -81,12 +96,12 @@ class ApproverSendBackNotificationEmail(TemplateEmailBase):
     txt_template = 'commercialoperator/emails/proposals/send_approver_sendback_notification.txt'
 
 class DistrictProposalSubmitSendNotificationEmail(TemplateEmailBase):
-    subject = 'An application has been referred for District assessment.'
+    subject = 'A commercial filming lawful authority application has been referred for assessment.'
     html_template = 'commercialoperator/emails/proposals/send_district_proposal_submit_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_district_proposal_submit_notification.txt'
 
 class DistrictApproverSendBackNotificationEmail(TemplateEmailBase):
-    subject = 'A District Application has been sent back by approver.'
+    subject = 'A commercial filming lawful authority application has been sent back by approver.'
     html_template = 'commercialoperator/emails/proposals/send_district_approver_sendback_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_district_approver_sendback_notification.txt'
 
@@ -96,7 +111,7 @@ class DistrictApproverDeclineSendNotificationEmail(TemplateEmailBase):
     txt_template = 'commercialoperator/emails/proposals/send_district_approver_decline_notification.txt'
 
 class DistrictApproverApproveSendNotificationEmail(TemplateEmailBase):
-    subject = 'A District Application has been recommended for approval.'
+    subject = 'A commercial filming lawful authority application has been recommended for approval.'
     html_template = 'commercialoperator/emails/proposals/send_district_approver_approve_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_district_approver_approve_notification.txt'
 
@@ -106,7 +121,7 @@ class DistrictProposalDeclineSendNotificationEmail(TemplateEmailBase):
     txt_template = 'commercialoperator/emails/proposals/send_district_decline_notification.txt'
 
 class DistrictProposalApprovalSendNotificationEmail(TemplateEmailBase):
-    subject = '{} - Commercial Operations Licence Approved.'.format(settings.DEP_NAME)
+    subject = '{} - Commercial Filming Lawful Authoriy Approved.'.format(settings.DEP_NAME)
     html_template = 'commercialoperator/emails/proposals/send_district_approval_notification.html'
     #html_template = 'commercialoperator/emails/proposals/send_district_decline_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_district_approval_notification.txt'
@@ -165,14 +180,22 @@ def send_qaofficer_complete_email_notification(proposal, recipients, request, re
 
 
 def send_referral_email_notification(referral,recipients,request,reminder=False):
-    email = ReferralSendNotificationEmail()
+    proposed_start_date= None
+    if referral.proposal.is_filming_application:
+        email = ReferralFilmingSendNotificationEmail()
+        proposed_start_date= referral.proposal.filming_activity.commencement_date
+    else:
+        email = ReferralSendNotificationEmail()
     url = request.build_absolute_uri(reverse('internal-referral-detail',kwargs={'proposal_pk':referral.proposal.id,'referral_pk':referral.id}))
 
+    filming_handbook_url= settings.COLS_FILMING_HANDBOOK_URL
     context = {
         'proposal': referral.proposal,
         'url': url,
         'reminder':reminder,
-        'comments': referral.text
+        'comments': referral.text,
+        'filming_handbook_url': filming_handbook_url,
+        'proposed_start_date': proposed_start_date,
     }
 
     #msg = email.send(referral.referral.email, context=context)
@@ -213,7 +236,10 @@ def send_referral_complete_email_notification(referral,request):
         _log_user_email(msg, referral.proposal.submitter, referral.referral, sender=sender)
 
 def send_amendment_email_notification(amendment_request, request, proposal):
-    email = AmendmentRequestSendNotificationEmail()
+    if proposal.is_filming_application:
+        email = FilmingAmendmentRequestSendNotificationEmail()
+    else:
+        email = AmendmentRequestSendNotificationEmail()
     #reason = amendment_request.get_reason_display()
     reason = amendment_request.reason.reason
     url = request.build_absolute_uri(reverse('external-proposal-detail',kwargs={'proposal_pk': proposal.id}))
@@ -379,7 +405,10 @@ def send_proposal_approver_sendback_email_notification(request, proposal):
 
 
 def send_proposal_approval_email_notification(proposal,request):
-    email = ProposalApprovalSendNotificationEmail()
+    if proposal.is_filming_licence:
+        email = ProposalFilmingApprovalSendNotificationEmail()
+    else:
+        email = ProposalApprovalSendNotificationEmail()
 
     cc_list = proposal.proposed_issuance_approval['cc_email']
     all_ccs = []
@@ -405,7 +434,10 @@ def send_proposal_approval_email_notification(proposal,request):
     if "-internal" in url:
         # remove '-internal'. This email is for external submitters
         url = ''.join(url.split('-internal'))
-    handbook_url= settings.COLS_HANDBOOK_URL
+    if proposal.is_filming_licence:
+        handbook_url= settings.COLS_FILMING_HANDBOOK_URL
+    else:
+        handbook_url= settings.COLS_HANDBOOK_URL
     context = {
         'proposal': proposal,
         'num_requirement_docs': len(attachments) - 1,
@@ -468,11 +500,13 @@ def send_district_proposal_submit_email_notification(district_proposal, request)
     if "-internal" not in url:
         # add it. This email is for internal staff (assessors)
         url = '-internal.{}'.format(settings.SITE_DOMAIN).join(url.split('.' + settings.SITE_DOMAIN))
+    proposed_start_date= district_proposal.proposal.filming_activity.commencement_date
 
     context = {
         'proposal': proposal,
         'district_proposal': district_proposal,
-        'url': url
+        'url': url,
+        'proposed_start_date': proposed_start_date,
     }
 
     msg = email.send(district_proposal.assessor_recipients, context=context)

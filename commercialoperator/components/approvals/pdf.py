@@ -420,6 +420,27 @@ def _create_approval_event(approval_buffer, approval, proposal, copied_to_permit
                               Paragraph(activities_str, styles['Left']) # remove last trailing comma
                         ])
 
+    # for trail in approval.current_proposal.trails.all():
+    #         for s in trail.sections.all():
+    #             trail_activities=[]
+    #             trail_section_name='{} - {}'.format(trail.trail.name, s.section.name)
+    #             for ts in s.trail_activities.all():
+    #               trail_activities.append(ts.activity_name.encode('UTF-8'))
+    #             #selected_parks_activities.append({'park': '{} - {}'.format(t.trail.name, s.section.name), 'activities': trail_activities})
+    #             park_data.append([Paragraph(_format_name(trail_section_name), styles['BoldLeft']),
+    #                           Paragraph(trail_activities, styles['Left']) # remove last trailing comma
+    #                     ])
+    for p in approval.current_proposal.selected_parks_activities_pdf:
+        activities_str=[]
+        for ac in p['activities']:
+            activities_str.append(ac.encode('UTF-8'))
+       
+        activities_str=str(activities_str).strip('[]').replace('\'', '')
+
+        park_data.append([Paragraph(_format_name(p['park']), styles['BoldLeft']),
+                              Paragraph(activities_str.strip().strip(','), styles['Left']) # remove last trailing comma
+                        ])
+
     if park_data:
         park_table=Table(park_data, colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
                             style=box_table_style)
@@ -726,8 +747,10 @@ def _create_approval_lawful_authority(approval_buffer, approval, proposal, copie
     approved_district_proposals= approval.current_proposal.district_proposals.filter(processing_status='approved')
     approved_district_proposals_ids= approval.current_proposal.district_proposals.filter(processing_status='approved').values_list('id', flat=True)
     for district_proposal in approved_district_proposals:   
-        for p in district_proposal.proposal_park.all():
-            park_data.append([Paragraph(_format_name(p.park.name), styles['BoldLeft']),
+        #for p in district_proposal.proposal_park.all():
+        if district_proposal.parks_list:
+            for p in district_proposal.parks_list:
+                park_data.append([Paragraph(_format_name(p.park.name), styles['BoldLeft']),
                                   Paragraph(film_type, styles['Left']) # remove last trailing comma
                             ])
 
