@@ -35,6 +35,7 @@ from commercialoperator.components.compliances.models import (
    ComplianceAmendmentRequest,
    ComplianceAmendmentReason
 )
+from commercialoperator.components.main.models import ApplicationType
 from commercialoperator.components.compliances.serializers import (
     ComplianceSerializer,
     InternalComplianceSerializer,
@@ -131,9 +132,11 @@ class ComplianceViewSet(viewsets.ModelViewSet):
         """ Used by the external dashboard filters """
         region_qs =  self.get_queryset().filter(proposal__region__isnull=False).values_list('proposal__region__name', flat=True).distinct()
         activity_qs =  self.get_queryset().filter(proposal__activity__isnull=False).values_list('proposal__activity', flat=True).distinct()
+        application_types=ApplicationType.objects.all().values_list('name', flat=True)
         data = dict(
             regions=region_qs,
             activities=activity_qs,
+            application_types=application_types,
         )
         return Response(data)
 

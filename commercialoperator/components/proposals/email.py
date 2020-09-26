@@ -55,6 +55,11 @@ class ProposalFilmingApprovalSendNotificationEmail(TemplateEmailBase):
     html_template = 'commercialoperator/emails/proposals/send_filming_approval_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_filming_approval_notification.txt'
 
+class ProposalEventApprovalSendNotificationEmail(TemplateEmailBase):
+    subject = '{} - Commercial Operations Licence Approved.'.format(settings.DEP_NAME)
+    html_template = 'commercialoperator/emails/proposals/send_event_approval_notification.html'
+    txt_template = 'commercialoperator/emails/proposals/send_event_approval_notification.txt'
+
 class ProposalAwaitingPaymentApprovalSendNotificationEmail(TemplateEmailBase):
     subject = '{} - Commercial Filming Application - Pending Payment.'.format(settings.DEP_NAME)
     html_template = 'commercialoperator/emails/proposals/send_awaiting_payment_approval_notification.html'
@@ -407,6 +412,8 @@ def send_proposal_approver_sendback_email_notification(request, proposal):
 def send_proposal_approval_email_notification(proposal,request):
     if proposal.is_filming_licence:
         email = ProposalFilmingApprovalSendNotificationEmail()
+    elif proposal.is_event_application:
+        email= ProposalEventApprovalSendNotificationEmail()
     else:
         email = ProposalApprovalSendNotificationEmail()
 

@@ -961,6 +961,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         return False
 
     @property
+    def is_event_application(self):
+        if self.application_type.name==ApplicationType.EVENT:
+            return True
+        return False
+
+    @property
     def is_filming_licence(self):
         if self.application_type.name==ApplicationType.FILMING and self.filming_approval_type=='licence':
             return True
