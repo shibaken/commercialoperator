@@ -187,7 +187,8 @@ class ComplianceFeeView(TemplateView):
                     lines,
                     return_url_ns='compliance_fee_success',
                     return_preload_url_ns='compliance_fee_success',
-                    invoice_text='Compliance Fee ({} - {})'.format(compliance.proposal.event_activity.commencement_date, compliance.proposal.event_activity.completion_date)
+                    #invoice_text='Compliance Fee ({} - {})'.format(compliance.proposal.event_activity.commencement_date, compliance.proposal.event_activity.completion_date)
+                    invoice_text='Per participant licence charge'
                 )
 
                 logger.info('{} built payment line item {} for Compliance Fee and handing over to payment gateway'.format('User {} with id {}'.format(compliance.proposal.submitter.get_full_name(),compliance.proposal.submitter.id), compliance.id))

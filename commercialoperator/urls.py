@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib import admin
 from django.conf.urls import url, include
 from django.conf.urls.static import static
 from rest_framework import routers
@@ -129,6 +130,7 @@ api_patterns = [
 urlpatterns = [
     #url(r'^admin/', include(commercialoperator_admin_site.urls)),
     url(r'^admin/', commercialoperator_admin_site.urls),
+    url(r'^ledger/admin/', admin.site.urls, name='ledger_admin'),
     url(r'', include(api_patterns)),
     url(r'^$', views.CommercialOperatorRoutingView.as_view(), name='ds_home'),
     url(r'^contact/', views.CommercialOperatorContactView.as_view(), name='ds_contact'),

@@ -324,7 +324,8 @@ def _create_invoice(invoice_buffer, invoice, compliance):
 #        val += 1
 
     # replaced above for loop because we need to aggregate lines/products to one line
-    desc = 'Compliance Fee - #participants {}'.format(compliance.num_participants)
+    #desc = 'Compliance Fee - #participants {}'.format(compliance.num_participants)
+    desc = '${} per participant licence charge - {} participants '.format(compliance.proposal.application_type.events_park_fee, compliance.num_participants)
     qty = 1
     data.append(
         [
