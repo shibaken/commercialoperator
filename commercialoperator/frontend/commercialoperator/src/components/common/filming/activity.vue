@@ -97,7 +97,7 @@
                                     <label class="control-label pull-right"  for="Name">Type of film to be undertaken</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
-                                    <select style="width:100%;" class="form-control input-sm" multiple ref="film_type_select" v-model="proposal.filming_activity.film_type" :disabled="proposal.readonly">
+                                    <select style="width:100%;" class="form-control input-sm" multiple ref="film_type_select" v-model="proposal.filming_activity.film_type" :disabled="!canEditFilmType">
                                         <option v-for="f in film_type_choices" :value="f.key">{{f.value}}</option>
                                     </select>
                                     <!--
@@ -278,6 +278,19 @@ require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
                     }
                 }
                 return false;
+            },
+            canEditFilmType:function(){
+                let vm=this;
+                var status_list = [
+                    "Approved",
+                    "Awaiting Payment",
+                    "Declined",
+                    "Discarded"
+                ];
+                if (status_list.indexOf(vm.proposal.processing_status) > -1) {
+                    return false;
+                }
+                return true;
             }
         },
         methods:{
