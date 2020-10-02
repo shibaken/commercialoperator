@@ -391,6 +391,18 @@ export default {
                 vm.access = response.body;
             }, (error) => {
                 console.log(error);
+                //console.log('INTERNAL: ' + error);
+                var text= helpers.apiVueResourceError(error);
+                if(typeof text == 'object'){
+                    if (text.hasOwnProperty('email')){
+                        text=text.email[0];
+                    }
+                }
+                swal(
+                    'Error', 
+                    'Organisation request cannot be accepted because of the following error: '+text,
+                    'error'
+                )
             });
         },(error) => {
 

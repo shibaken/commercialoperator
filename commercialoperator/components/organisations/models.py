@@ -629,7 +629,12 @@ class OrganisationRequest(models.Model):
         try:
             ledger_org = ledger_organisation.objects.get(abn=self.abn)
         except ledger_organisation.DoesNotExist:
-            ledger_org = ledger_organisation.objects.create(name=self.name,abn=self.abn)
+            try:
+                check_name = ledger_organisation.objects.get(name=self.name)
+                if check_name:
+                    raise ValidationError('Organisation with the same name already exists')
+            except ledger_organisation.DoesNotExist:
+                ledger_org = ledger_organisation.objects.create(name=self.name,abn=self.abn)
         # Create Organisation in commercialoperator
         org, created = Organisation.objects.get_or_create(organisation=ledger_org)
         # Link requester to organisation
