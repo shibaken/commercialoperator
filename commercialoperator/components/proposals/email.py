@@ -630,7 +630,7 @@ def send_district_proposal_approval_email_notification(district_proposal,approva
     if "-internal" in url:
         # remove '-internal'. This email is for external submitters
         url = ''.join(url.split('-internal'))
-    print url  
+    print(url)
     attachments = []
     licence_document= approval.licence_document._file
     if licence_document is not None:
@@ -673,7 +673,7 @@ def send_district_proposal_approval_email_notification_orig(district_proposal,ap
     if "-internal" in url:
         # remove '-internal'. This email is for external submitters
         url = ''.join(url.split('-internal'))
-    print url  
+    print(url)
     attachments = []
     licence_document= approval.licence_document._file
     if licence_document is not None:
@@ -700,7 +700,7 @@ def send_district_proposal_approval_email_notification_orig(district_proposal,ap
     }
 
     msg = email.send(proposal.submitter.email, bcc= all_ccs, attachments=attachments, context=context)
-    print msg
+    print(msg)
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
     _log_proposal_email(msg, proposal, sender=sender)
     if proposal.org_applicant:

@@ -617,7 +617,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
         check_db_connection()
         try:
             obj = super(ProposalViewSet, self).get_object()
-        except Exception, e:
+        except Exception as e:
             # because current queryset excludes migrated licences
             obj = get_object_or_404(Proposal, id=self.kwargs['id'])
         return obj
@@ -2331,7 +2331,7 @@ class SearchReferenceView(views.APIView):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                print e
+                print(e)
                 raise serializers.ValidationError(repr(e[0].encode('utf-8')))
         except Exception as e:
             print(traceback.print_exc())

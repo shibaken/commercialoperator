@@ -2131,7 +2131,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     payment_method = 'other'
                     deferred_payment_date = timezone.now() + relativedelta(months=1)
                     filming_fee = FilmingFee.objects.create(proposal=self, lines=lines, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_TEMPORARY, deferred_payment_date=deferred_payment_date)
-                except Exception, e:
+                except Exception as e:
                     logger.error('Failed to create filming fee confirmation')
                     logger.error('{}'.format(e))
 
@@ -3838,7 +3838,7 @@ def duplicate_object(self):
     # Iterate through all the fields in the parent object looking for related fields
     for field in self._meta.get_fields():
         if field.name in ['proposal', 'approval']:
-            print 'Continuing ...'
+            print('Continuing ...')
             pass
         elif field.one_to_many:
             # One to many fields are backward relationships where many child objects are related to the
@@ -3891,10 +3891,10 @@ def duplicate_object(self):
                 ##    related_object.lodgement_number = ''
 
                 setattr(related_object, related_object_field.name, self)
-                print related_object_field
+                print(related_object_field)
                 try:
                     related_object.save()
-                except Exception, e:
+                except Exception as e:
                     logger.warn(e)
 
                 text = str(related_object)

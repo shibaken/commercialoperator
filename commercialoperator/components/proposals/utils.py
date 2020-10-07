@@ -821,7 +821,7 @@ def save_proponent_data_tclass(instance,request,viewset,parks=None,trails=None):
                                     comments = acc['comments'],
                                     accreditation_expiry = datetime.strptime(acc['accreditation_expiry'], "%d/%m/%Y").date() if acc['accreditation_expiry'] else None, # TODO later this may be mandatory
                                 )
-                            except Exception, e:
+                            except Exception as e:
                                 logger.error('An error occurred while updating Accreditations {}'.format(e))
                         else:
                             serializer=ProposalAccreditationSerializer(data=acc)
