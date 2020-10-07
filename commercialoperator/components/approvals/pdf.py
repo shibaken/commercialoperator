@@ -256,11 +256,13 @@ def _create_approval_cols(approval_buffer, approval, proposal, copied_to_permit,
     for p in approval.current_proposal.selected_parks_activities_pdf:
         activities_str=[]
         for ac in p['activities']:
-            activities_str.append(ac.encode('UTF-8'))
+            #activities_str.append(ac.encode('UTF-8'))
+            activities_str.append(ac)
         access_types_str=[]
         if 'access_types' in p:
             for at in p['access_types']:
-                access_types_str.append(at.encode('UTF-8'))
+                #access_types_str.append(at.encode('UTF-8'))
+                access_types_str.append(at)
         activities_str=str(activities_str).strip('[]').replace('\'', '')
         access_types_str=str(access_types_str).strip('[]').replace('\'', '')
 
@@ -414,7 +416,8 @@ def _create_approval_event(approval_buffer, approval, proposal, copied_to_permit
     for p in approval.current_proposal.events_parks.all():
         activities_str=''
         if p.event_activities:
-            activities_str = p.event_activities.encode('UTF-8')
+            #activities_str = p.event_activities.encode('UTF-8')
+            activities_str = p.event_activities
 
         park_data.append([Paragraph(_format_name(p.park.name), styles['BoldLeft']),
                               Paragraph(activities_str, styles['Left']) # remove last trailing comma
@@ -433,7 +436,8 @@ def _create_approval_event(approval_buffer, approval, proposal, copied_to_permit
     for p in approval.current_proposal.selected_parks_activities_pdf:
         activities_str=[]
         for ac in p['activities']:
-            activities_str.append(ac.encode('UTF-8'))
+            #activities_str.append(ac.encode('UTF-8'))
+            activities_str.append(ac)
        
         activities_str=str(activities_str).strip('[]').replace('\'', '')
 
