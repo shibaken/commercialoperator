@@ -1647,7 +1647,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     def reissue_approval(self,request,status):
         if self.application_type.name==ApplicationType.FILMING and self.filming_approval_type=='lawful_authority':
             allowed_status=['approved', 'partially_approved']
-            if not self.processing_status in allowed_status and not is_lawful_authority_finalised:
+            if not self.processing_status in allowed_status and not self.is_lawful_authority_finalised:
                 raise ValidationError('You cannot change the current status at this time')
             elif self.approval and self.approval.can_reissue:
                 if self.__assessor_group() in request.user.proposalassessorgroup_set.all():
@@ -4205,7 +4205,7 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
                         final_results = {}
                         if results:
                             for r in results:
-                                for key, value in r.iteritems():
+                                for key, value in r.items():
                                     final_results.update({'key': key, 'value': value})
                             res = {
                                 'number': p.lodgement_number,
@@ -4603,6 +4603,10 @@ class DistrictProposal(models.Model):
 
     class Meta:
         app_label = 'commercialoperator'
+
+    @property
+    def get_processing_status(self):
+        return self.get_processing_status_display()
 
     @property
     def districts_list(self):

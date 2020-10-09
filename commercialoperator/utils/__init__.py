@@ -29,7 +29,8 @@ def search(dictionary, search_list):
 	"""
 	result = []
 	flat_dict = flatten(dictionary)
-	for k, v in flat_dict.iteritems():
+	#for k, v in flat_dict.iteritems():
+	for k, v in flat_dict.items():
 		if any(x.lower() in v.lower() for x in search_list):
 			result.append( {k: v} )
 
@@ -155,8 +156,10 @@ def compare_data(dict1, dict2, schema):
 	result = []
 	flat_dict1 = flatten(dict1)
 	flat_dict2 = flatten(dict2)
-	for k1, v1 in flat_dict1.iteritems():
-		for k2, v2 in flat_dict2.iteritems():
+	#for k1, v1 in flat_dict1.iteritems():
+	for k1, v1 in flat_dict1.items():
+		#for k2, v2 in flat_dict2.iteritems():
+		for k2, v2 in flat_dict2.items():
 			if k1 ==k2 and v2:
 				if v1 != v2:
 					result.append( {k1: [v1, v2]} )
@@ -234,7 +237,8 @@ def search_keys(dictionary, search_list=['help_text', 'label']):
 	search_item2 = search_list[1]
 	result = []
 	flat_dict = flatten(dictionary)
-	for k, v in flat_dict.iteritems():
+	#for k, v in flat_dict.iteritems():
+	for k, v in flat_dict.items():
 		if any(x in k for x in search_list):
 			result.append( {k: v} )
 
@@ -261,7 +265,8 @@ def missing_required_fields(proposal):
 	sections = search_multiple_keys(proposal.schema, primary_search='isRequired', search_list=['label', 'name'])
 
 	missing_fields = []
-	for flat_key in data.iteritems():
+	#for flat_key in data.iteritems():
+	for flat_key in data.items():
 		for item in sections:
 			if flat_key[0].endswith(item['name']):
 				if not flat_key[1].strip():
