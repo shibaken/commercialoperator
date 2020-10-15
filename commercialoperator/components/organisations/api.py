@@ -208,7 +208,11 @@ class OrganisationViewSet(viewsets.ModelViewSet):
 			raise
 		except ValidationError as e:
 			print(traceback.print_exc())
-			raise serializers.ValidationError(repr(e.error_dict))
+			if hasattr(e,'error_dict'):
+				raise serializers.ValidationError(repr(e.error_dict))
+			else:
+				if hasattr(e,'message'):
+					raise serializers.ValidationError(e.message)
 		except Exception as e:
 			print(traceback.print_exc())
 			raise serializers.ValidationError(str(e))
@@ -254,7 +258,11 @@ class OrganisationViewSet(viewsets.ModelViewSet):
 			raise
 		except ValidationError as e:
 			print(traceback.print_exc())
-			raise serializers.ValidationError(repr(e.error_dict))
+			if hasattr(e,'error_dict'):
+				raise serializers.ValidationError(repr(e.error_dict))
+			else:
+				if hasattr(e,'message'):
+					raise serializers.ValidationError(e.message)
 		except Exception as e:
 			print(traceback.print_exc())
 			raise serializers.ValidationError(str(e))
@@ -279,7 +287,11 @@ class OrganisationViewSet(viewsets.ModelViewSet):
 			raise
 		except ValidationError as e:
 			print(traceback.print_exc())
-			raise serializers.ValidationError(repr(e.error_dict))
+			if hasattr(e,'error_dict'):
+				raise serializers.ValidationError(repr(e.error_dict))
+			else:
+				if hasattr(e,'message'):
+					raise serializers.ValidationError(e.message)
 		except Exception as e:
 			print(traceback.print_exc())
 			raise serializers.ValidationError(str(e))
@@ -304,7 +316,8 @@ class OrganisationViewSet(viewsets.ModelViewSet):
 			if hasattr(e,'error_dict'):
 				raise serializers.ValidationError(repr(e.error_dict))
 			else:
-				raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+				if hasattr(e,'message'):
+					raise serializers.ValidationError(e.message)
 		except Exception as e:
 			print(traceback.print_exc())
 			raise serializers.ValidationError(str(e))
@@ -349,7 +362,11 @@ class OrganisationViewSet(viewsets.ModelViewSet):
 			raise
 		except ValidationError as e:
 			print(traceback.print_exc())
-			raise serializers.ValidationError(repr(e.error_dict))
+			if hasattr(e,'error_dict'):
+				raise serializers.ValidationError(repr(e.error_dict))
+			else:
+				if hasattr(e,'message'):
+					raise serializers.ValidationError(e.message)
 		except Exception as e:
 			print(traceback.print_exc())
 			raise serializers.ValidationError(str(e))
@@ -372,7 +389,11 @@ class OrganisationViewSet(viewsets.ModelViewSet):
 			raise
 		except ValidationError as e:
 			print(traceback.print_exc())
-			raise serializers.ValidationError(repr(e.error_dict))
+			if hasattr(e,'error_dict'):
+				raise serializers.ValidationError(repr(e.error_dict))
+			else:
+				if hasattr(e,'message'):
+					raise serializers.ValidationError(e.message)
 		except Exception as e:
 			print(traceback.print_exc())
 			raise serializers.ValidationError(str(e))
@@ -395,7 +416,11 @@ class OrganisationViewSet(viewsets.ModelViewSet):
 			raise
 		except ValidationError as e:
 			print(traceback.print_exc())
-			raise serializers.ValidationError(repr(e.error_dict))
+			if hasattr(e,'error_dict'):
+				raise serializers.ValidationError(repr(e.error_dict))
+			else:
+				if hasattr(e,'message'):
+					raise serializers.ValidationError(e.message)
 		except Exception as e:
 			print(traceback.print_exc())
 			raise serializers.ValidationError(str(e))
@@ -542,8 +567,8 @@ class OrganisationViewSet(viewsets.ModelViewSet):
 		except ValidationError as e:
 			if hasattr(e,'error_dict'):
 				raise serializers.ValidationError(repr(e.error_dict))
-			else:
-				raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+			if hasattr(e,'message'):
+					raise serializers.ValidationError(e.message)
 		except Exception as e:
 			print(traceback.print_exc())
 			raise serializers.ValidationError(str(e))
@@ -770,7 +795,8 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
 			if hasattr(e,'error_dict'):
 				raise serializers.ValidationError(repr(e.error_dict))
 			else:
-				raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+				if hasattr(e,'message'):
+					raise serializers.ValidationError(e.message)
 		except Exception as e:
 			print(traceback.print_exc())
 			raise serializers.ValidationError(str(e))
