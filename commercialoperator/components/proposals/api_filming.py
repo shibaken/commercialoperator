@@ -100,7 +100,7 @@ class ProposalFilmingViewSet(viewsets.ModelViewSet):
         check_db_connection()
         try:
             obj = super(ProposalViewSet, self).get_object()
-        except Exception, e:
+        except Exception as e:
             # because current queryset excludes migrated licences
             obj = get_object_or_404(Proposal, id=self.kwargs['id'])
         return obj

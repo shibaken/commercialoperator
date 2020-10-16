@@ -36,7 +36,7 @@ def check_db_connection():
     try:
         if not connection.is_usable():
             connection.connect()
-    except Exception, e:
+    except Exception as e:
         connection.connect()
 
 #def add_business_days(from_date, number_of_days):

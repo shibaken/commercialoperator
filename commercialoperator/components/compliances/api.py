@@ -202,7 +202,8 @@ class ComplianceViewSet(viewsets.ModelViewSet):
                 serializer.is_valid(raise_exception=True)
                 instance = serializer.save()
 
-                if request.data.has_key('num_participants'):
+                #if request.data.has_key('num_participants'):
+                if 'num_participants' in request.data:
                     if request.FILES:
                         # if num_adults is present instance.submit is executed after payment in das_payment/views.py
                         for f in request.FILES:
@@ -226,7 +227,8 @@ class ComplianceViewSet(viewsets.ModelViewSet):
             raise
         except ValidationError as e:
             print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+            if hasattr(e,'message'):
+                raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -261,7 +263,8 @@ class ComplianceViewSet(viewsets.ModelViewSet):
             raise
         except ValidationError as e:
             print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+            if hasattr(e,'message'):
+                raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -427,7 +430,9 @@ class ComplianceAmendmentRequestViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                #raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

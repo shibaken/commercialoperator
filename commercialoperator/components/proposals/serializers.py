@@ -1708,7 +1708,7 @@ class DistrictProposalDeclinedDetailsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class DistrictProposalSerializer(serializers.ModelSerializer):
-    processing_status = serializers.CharField(source='get_processing_status_display')
+    processing_status = serializers.CharField(source='get_processing_status')
     district_assessor_can_assess=serializers.SerializerMethodField()
     allowed_district_assessors = EmailUserSerializer(many=True)
     current_assessor = serializers.SerializerMethodField()

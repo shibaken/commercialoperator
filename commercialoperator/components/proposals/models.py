@@ -1647,7 +1647,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     def reissue_approval(self,request,status):
         if self.application_type.name==ApplicationType.FILMING and self.filming_approval_type=='lawful_authority':
             allowed_status=['approved', 'partially_approved']
-            if not self.processing_status in allowed_status and not is_lawful_authority_finalised:
+            if not self.processing_status in allowed_status and not self.is_lawful_authority_finalised:
                 raise ValidationError('You cannot change the current status at this time')
             elif self.approval and self.approval.can_reissue:
                 if self.__assessor_group() in request.user.proposalassessorgroup_set.all():
@@ -2131,7 +2131,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     payment_method = 'other'
                     deferred_payment_date = timezone.now() + relativedelta(months=1)
                     filming_fee = FilmingFee.objects.create(proposal=self, lines=lines, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_TEMPORARY, deferred_payment_date=deferred_payment_date)
-                except Exception, e:
+                except Exception as e:
                     logger.error('Failed to create filming fee confirmation')
                     logger.error('{}'.format(e))
 
@@ -3838,7 +3838,7 @@ def duplicate_object(self):
     # Iterate through all the fields in the parent object looking for related fields
     for field in self._meta.get_fields():
         if field.name in ['proposal', 'approval']:
-            print 'Continuing ...'
+            print('Continuing ...')
             pass
         elif field.one_to_many:
             # One to many fields are backward relationships where many child objects are related to the
@@ -3891,10 +3891,10 @@ def duplicate_object(self):
                 ##    related_object.lodgement_number = ''
 
                 setattr(related_object, related_object_field.name, self)
-                print related_object_field
+                print(related_object_field)
                 try:
                     related_object.save()
-                except Exception, e:
+                except Exception as e:
                     logger.warn(e)
 
                 text = str(related_object)
@@ -4205,7 +4205,7 @@ def searchKeyWords(searchWords, searchProposal, searchApproval, searchCompliance
                         final_results = {}
                         if results:
                             for r in results:
-                                for key, value in r.iteritems():
+                                for key, value in r.items():
                                     final_results.update({'key': key, 'value': value})
                             res = {
                                 'number': p.lodgement_number,
@@ -4603,6 +4603,10 @@ class DistrictProposal(models.Model):
 
     class Meta:
         app_label = 'commercialoperator'
+
+    @property
+    def get_processing_status(self):
+        return self.get_processing_status_display()
 
     @property
     def districts_list(self):

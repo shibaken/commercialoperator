@@ -126,7 +126,7 @@ class ApplicationFeeView(TemplateView):
                 logger.info('{} built payment line item {} for Application Fee and handing over to payment gateway'.format('User {} with id {}'.format(proposal.submitter.get_full_name(),proposal.submitter.id), proposal.id))
                 return checkout_response
 
-        except Exception, e:
+        except Exception as e:
             logger.error('Error Creating Application Fee: {}'.format(e))
             if application_fee:
                 application_fee.delete()
@@ -161,7 +161,7 @@ class ExistingPaymentView(TemplateView):
                 logger.info('built payment line items {} for Existing Invoice'.format(invoice.reference))
                 return checkout_response
 
-        except Exception, e:
+        except Exception as e:
             logger.error('Existing Invoice Payment: {}'.format(e))
             raise
 
@@ -194,7 +194,7 @@ class ComplianceFeeView(TemplateView):
                 logger.info('{} built payment line item {} for Compliance Fee and handing over to payment gateway'.format('User {} with id {}'.format(compliance.proposal.submitter.get_full_name(),compliance.proposal.submitter.id), compliance.id))
                 return checkout_response
 
-        except Exception, e:
+        except Exception as e:
             logger.error('Error Creating Compliance Fee: {}'.format(e))
             if compliance_fee:
                 compliance_fee.delete()
@@ -236,7 +236,7 @@ class FilmingFeeView(TemplateView):
                 logger.info('{} built payment line item {} for Proposal Fee and handing over to payment gateway'.format('User {} with id {}'.format(proposal.submitter.get_full_name(),proposal.submitter.id), proposal.id))
                 return checkout_response
 
-        except Exception, e:
+        except Exception as e:
             logger.error('Error Creating Proposal Fee: {}'.format(e))
             if filming_fee:
                 filming_fee.delete()
@@ -275,7 +275,7 @@ class DeferredInvoicingPreviewView(TemplateView):
                 return render(request, self.template_name, context)
 
 
-            except Exception, e:
+            except Exception as e:
                 logger.error('Error creating booking preview: {}'.format(e))
         else:
             logger.error('Error creating booking preview: {}'.format(e))
@@ -346,7 +346,7 @@ class DeferredInvoicingView(TemplateView):
                     return render(request, self.template_name, context)
 
 
-            except Exception, e:
+            except Exception as e:
                 logger.error('Error Creating booking: {}'.format(e))
                 if booking:
                     booking.delete()
@@ -383,7 +383,7 @@ class MakePaymentView(TemplateView):
                 logger.info('{} built payment line items {} for Park Bookings and handing over to payment gateway'.format('User {} with id {}'.format(proposal.submitter.get_full_name(),proposal.submitter.id), proposal.id))
                 return checkout_response
 
-        except Exception, e:
+        except Exception as e:
             logger.error('Error Creating booking: {}'.format(e))
             if booking:
                 booking.delete()

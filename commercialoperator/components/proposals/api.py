@@ -539,7 +539,8 @@ class ProposalSubmitViewSet(viewsets.ModelViewSet):
     #         if hasattr(e,'error_dict'):
     #             raise serializers.ValidationError(repr(e.error_dict))
     #         else:
-    #             raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+    #             if hasattr(e,'message'):
+                    #raise serializers.ValidationError(e.message)
     #     except Exception as e:
     #         print(traceback.print_exc())
     #         raise serializers.ValidationError(str(e))
@@ -617,7 +618,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
         check_db_connection()
         try:
             obj = super(ProposalViewSet, self).get_object()
-        except Exception, e:
+        except Exception as e:
             # because current queryset excludes migrated licences
             obj = get_object_or_404(Proposal, id=self.kwargs['id'])
         return obj
@@ -638,7 +639,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -659,7 +661,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -750,7 +753,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -809,7 +813,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -856,7 +861,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1203,7 +1209,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1257,7 +1264,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
 #            if hasattr(e,'error_dict'):
 #                raise serializers.ValidationError(repr(e.error_dict))
 #            else:
-#                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+#                if hasattr(e,'message'):
+                    #raise serializers.ValidationError(e.message)
 #        except Exception as e:
 #            print(traceback.print_exc())
 #            raise serializers.ValidationError(str(e))
@@ -1281,7 +1289,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1303,7 +1312,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
 #            if hasattr(e,'error_dict'):
 #                raise serializers.ValidationError(repr(e.error_dict))
 #            else:
-#                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+#                if hasattr(e,'message'):
+                    #raise serializers.ValidationError(e.message)
 #        except Exception as e:
 #            print(traceback.print_exc())
 #            raise serializers.ValidationError(str(e))
@@ -1403,7 +1413,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1431,7 +1442,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1445,7 +1457,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+            if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
 
     @detail_route(methods=['GET',])
     def amend_approval(self, request, *args, **kwargs):
@@ -1456,7 +1469,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except Exception as e:
             print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+            if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
 
 
     @detail_route(methods=['POST',])
@@ -1477,7 +1491,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1496,7 +1511,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1506,6 +1522,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
         try:
             instance = self.get_object()
             serializer = ProposedApprovalSerializer(data=request.data)
+            #import ipdb; ipdb.set_trace()
             serializer.is_valid(raise_exception=True)
             instance.final_approval(request,serializer.validated_data)
             #serializer = InternalProposalSerializer(instance,context={'request':request})
@@ -1519,7 +1536,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1542,7 +1560,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1565,7 +1584,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1686,7 +1706,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -1705,7 +1726,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
         raise serializers.ValidationError(str(e))
@@ -1725,7 +1747,8 @@ class ProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
         raise serializers.ValidationError(str(e))
@@ -2074,7 +2097,8 @@ class ReferralViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2198,7 +2222,8 @@ class ProposalRequirementViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2243,7 +2268,8 @@ class AmendmentRequestViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2331,8 +2357,9 @@ class SearchReferenceView(views.APIView):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                print e
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                print(e)
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2357,7 +2384,8 @@ class VehicleViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2377,7 +2405,8 @@ class VehicleViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2402,7 +2431,8 @@ class VesselViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2422,7 +2452,8 @@ class VesselViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2467,7 +2498,8 @@ class ProposalAssessmentViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2572,7 +2604,8 @@ class DistrictProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2595,7 +2628,8 @@ class DistrictProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2618,7 +2652,8 @@ class DistrictProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2662,7 +2697,8 @@ class DistrictProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -2685,7 +2721,8 @@ class DistrictProposalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

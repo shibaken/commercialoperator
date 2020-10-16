@@ -709,6 +709,9 @@ export default {
                             if (error.status ==500){
                                 swal('Unlink','Last Organisation Admin can not be unlinked.','error');
                             }
+                            else{
+                                swal('Unlink','There was an error unlinking this user '+ error,'error');
+                            }
                         });
                     }
                 },(error) => {
