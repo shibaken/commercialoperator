@@ -888,7 +888,8 @@ def create_approval_doc(approval,proposal, copied_to_permit, user):
             _create_approval_lawful_authority(approval_buffer, approval, proposal, copied_to_permit, user)
         else:
             _create_approval_filming(approval_buffer, approval, proposal, copied_to_permit, user)
-    filename = 'licence-{}.pdf'.format(approval.lodgement_number)
+    #filename = 'licence-{}.pdf'.format(approval.lodgement_number)
+    filename = '{}.pdf'.format(approval.lodgement_number)
     document = ApprovalDocument.objects.create(approval=approval,name=filename)
     document._file.save(filename, File(approval_buffer), save=True)
 

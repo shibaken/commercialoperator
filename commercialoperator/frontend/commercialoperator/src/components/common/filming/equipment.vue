@@ -46,7 +46,7 @@
                         <div class="row">&nbsp;</div>
                         <div class="row">
                             <div class="col-sm-6">
-                                <label class="control-label pull-right"  for="Name">Are you using a Remotely Pilotaed Aircraft (RPA) for your filming and/ or photography activities?</label>
+                                <label class="control-label pull-right"  for="Name">Are you using a Remotely Piloted Aircraft (RPA) for your filming and/or photography activities?</label>
                             </div>
                             <div class="col-sm-6" style="margin-bottom: 5px">
                                 <ul class="list-inline"  >
