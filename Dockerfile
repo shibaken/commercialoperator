@@ -1,5 +1,5 @@
 # Prepare the base environment.
-FROM ubuntu:18.04 as builder_base_cols
+FROM ubuntu:20.04 as builder_base_cols
 MAINTAINER asi@dbca.wa.gov.au
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBUG=True
@@ -15,28 +15,43 @@ ENV SITE_PREFIX='cols'
 ENV SITE_DOMAIN='dbca.wa.gov.au'
 ENV OSCAR_SHOP_NAME='Parks & Wildlife'
 ENV BPAY_ALLOWED=False
-RUN apt-get clean \
-  && apt-get update --fix-missing \
-  && apt-get upgrade -y \
-  && apt-get install -yq git mercurial gcc gdal-bin libsasl2-dev libpq-dev \
-  python python-setuptools python-dev python-pip \
-  imagemagick poppler-utils \
-  libldap2-dev libssl-dev wget build-essential \
-  libmagic-dev binutils libproj-dev gunicorn tzdata \
-  mtr libevent-dev python-gevent \
-  cron rsyslog
+
+RUN apt-get clean
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get install --no-install-recommends -y wget git libmagic-dev gcc binutils libproj-dev gdal-bin python3 python3-setuptools python3-dev python3-pip tzdata cron rsyslog gunicorn libreoffice
+RUN apt-get install --no-install-recommends -y libpq-dev patch
+RUN apt-get install --no-install-recommends -y postgresql-client mtr htop vim ssh
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -s /usr/bin/pip3 /usr/bin/pip
 RUN pip install --upgrade pip
+
+#RUN apt-get clean \
+#  && apt-get update --fix-missing \
+#  && apt-get upgrade -y \
+#  && apt-get install -yq wget git gcc gdal-bin libsasl2-dev libpq-dev \
+#  python python-setuptools python-dev python-pip \
+#  imagemagick poppler-utils \
+#  libldap2-dev libssl-dev wget build-essential \
+#  libmagic-dev binutils libproj-dev gunicorn tzdata \
+#  mtr libevent-dev python-gevent \
+#  cron rsyslog
+#RUN pip install --upgrade pip
 RUN apt-get install -yq vim
 
 # Install Python libs from requirements.txt.
 FROM builder_base_cols as python_libs_cols
 WORKDIR /app
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt \
+RUN pip3 install --no-cache-dir -r requirements.txt \
   # Update the Django <1.11 bug in django/contrib/gis/geos/libgeos.py
   # Reference: https://stackoverflow.com/questions/18643998/geodjango-geosexception-error
-  && sed -i -e "s/ver = geos_version().decode()/ver = geos_version().decode().split(' ')[0]/" /usr/local/lib/python2.7/dist-packages/django/contrib/gis/geos/libgeos.py \
+  # && sed -i -e "s/ver = geos_version().decode()/ver = geos_version().decode().split(' ')[0]/" /usr/local/lib/python2.7/dist-packages/django/contrib/gis/geos/libgeos.py \
   && rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
+
+COPY libgeos.py.patch /app/
+RUN patch /usr/local/lib/python3.8/dist-packages/django/contrib/gis/geos/libgeos.py /app/libgeos.py.patch
+RUN rm /app/libgeos.py.patch
 
 # Install the project (ensure that frontend projects have been built prior to this step).
 FROM python_libs_cols
