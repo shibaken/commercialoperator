@@ -8,12 +8,12 @@
         The activities and parks you are permitted to operate within are listed in Schedule 1 of your licence.
 
         Commercial Operator Handbook - Licence Conditions
-        All operators are required to adhere to the licence conditions listed in the Commercial Operator Handbook. Please ensure you have read the conditions on your licence and the Commercial Operator Handbook prior to conduction your events, including section 7.1 Commercial events.
+        All operators are required to adhere to the licence conditions listed in the Commercial Operator Handbook. Please ensure you have read the conditions on your licence and the Commercial Operator Handbook prior to conducting your event, including section 7.1 Commercial events.
 
         A copy of the handbook can be downloaded from the {{settings.DEP_NAME}} website {{settings.COLS_HANDBOOK_URL}}. Please ensure you have a copy of this handbook on hand either in hardcopy or an electronic version.
 
         Additional Licence Conditions
-        Additional licence conditions are listed in schedule 2 of the licence, and are listed under the “Licence Requirements” section in COLS. If you are required to submit additional documents based on these conditions, it will show under the "Compliance with requirements" section on your COLS homepage. You will need to login to your account and ensure you have completed any compliance requirements by the due date by uploading the requested documents.
+        Additional licence conditions are listed in schedule 2 of the licence. If you are required to submit additional documents based on these conditions, it will show under the "Compliance with requirements" section on your COLS homepage. You will need to login to your account and ensure you have completed any compliance requirements by the due date by uploading the requested documents.
 
         If you have any enquiries or need assistance with the online system please contact a licensing office on {{settings.DEP_PHONE_FILMING}} or email {{settings.SUPPORT_EMAIL}}
 
