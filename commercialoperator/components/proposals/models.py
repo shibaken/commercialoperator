@@ -4382,6 +4382,7 @@ class ProposalFilmingAccess(models.Model):
 class ProposalFilmingEquipment(models.Model):
     vehicle_owned=models.BooleanField('Vehicle Hired on owned',default=False)
     rps_used=models.BooleanField('Use of RPS for filming',default=False)
+    rps_used_details=models.TextField('RPA used details', blank=True, null=True)
     rps_overweight=models.BooleanField('Weight of RPS over two kg',default=False)
     num_cameras=models.TextField('Number and type of cameras to be used', blank=True, null=True)
     alteration_required=models.BooleanField('Any alteration required to the area',default=False)

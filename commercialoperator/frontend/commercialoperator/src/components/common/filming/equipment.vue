@@ -63,7 +63,7 @@
                         </div>
                         <div class="row">&nbsp;</div>
                         <div class="row" v-if="proposal.filming_equipment.rps_used">
-                            <div class="col-sm-6">
+                            <!-- <div class="col-sm-6">
                                 <label class="control-label pull-right"  for="Name">Does the RPA weigh over two kilograms?</label>
                             </div>
                             <div class="col-sm-6" style="margin-bottom: 5px">
@@ -77,10 +77,33 @@
                                             No
                                     </li>
                                 </ul>
+                            </div> -->
+                            <div class="col-sm-6">
+                                    <label class="control-label pull-right"  for="Name">
+                                    Please specify the model of RPA you intend to use and attach a copy of your CASA remotely piloted aircraft operator accreditation or licence (RePL) and operator's certificate (ReOC) </label>
+                                    
+                            </div>
+                            <div class="col-sm-6" style="margin-bottom: 5px">
+                                    <div class="col-sm-6" style="margin-bottom: 5px">
+                                      <textarea :disabled="readonly" class="form-control" name="camp_location" placeholder="" v-model="proposal.filming_equipment.rps_used_details"></textarea>
+                                    </div>    
                             </div>
                         </div>
+                        <div class="row" v-if="proposal.filming_equipment.rps_used">
+                                
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-right"  for="Name">
+                                    Attach document</label>
+                                    
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="col-sm-6" style="margin-bottom: 5px">
+                                        <FileField :proposal_id="proposal.id" isRepeatable="true" name="rps_certificate" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                    </div>
+                                </div>                                
+                        </div>
                         <div class="row">&nbsp;</div>
-                        <div class="row" v-if="proposal.filming_equipment.rps_used && proposal.filming_equipment.rps_overweight">
+                        <!-- <div class="row" v-if="proposal.filming_equipment.rps_used && proposal.filming_equipment.rps_overweight">
                             <div class="col-sm-6">
                                 <label class="control-label pull-right"  for="Name">Attach CASA Remotely piloted aircraft operator's certificate (ReOC) or licence (RePL)</label>
                             </div>
@@ -89,7 +112,7 @@
                                       <FileField :proposal_id="proposal.id" isRepeatable="false" name="rps_certificate" :id="'proposal'+proposal.id" :readonly="proposal.readonly" ref="rps_cert"></FileField>  
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
 
                     <div class="form-horizontal col-sm-12 borderDecoration">
