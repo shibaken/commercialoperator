@@ -189,7 +189,7 @@ export default {
                 confirmButtonText: 'Discard Park',
                 confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.delete(api_endpoints.discard_park(park_id))
+                vm.$http.delete(api_endpoints.discard_event_park(park_id))
                 .then((response) => {
                     swal(
                         'Discarded',

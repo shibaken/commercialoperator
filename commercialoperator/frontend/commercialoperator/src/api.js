@@ -90,6 +90,9 @@ module.exports = {
     discard_pre_event_park:function (id) {
       return `/api/proposal_pre_event_parks/${id}.json`;
     },
+    discard_event_park:function (id) {
+      return `/api/proposal_events_parks/${id}.json`;
+    },
     discard_filming_park:function (id) {
       return `/api/proposal_filming_parks/${id}.json`;
     },
