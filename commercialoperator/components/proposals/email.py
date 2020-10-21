@@ -126,7 +126,7 @@ class DistrictProposalDeclineSendNotificationEmail(TemplateEmailBase):
     txt_template = 'commercialoperator/emails/proposals/send_district_decline_notification.txt'
 
 class DistrictProposalApprovalSendNotificationEmail(TemplateEmailBase):
-    subject = '{} - Commercial Filming Lawful Authoriy Approved.'.format(settings.DEP_NAME)
+    subject = '{} - Commercial Filming Lawful Authority Approved.'.format(settings.DEP_NAME)
     html_template = 'commercialoperator/emails/proposals/send_district_approval_notification.html'
     #html_template = 'commercialoperator/emails/proposals/send_district_decline_notification.html'
     txt_template = 'commercialoperator/emails/proposals/send_district_approval_notification.txt'
@@ -647,7 +647,8 @@ def send_district_proposal_approval_email_notification(district_proposal,approva
         'proposal': proposal,
         'district_proposal': district_proposal,
         'url': url,
-        'num_requirement_docs': len(attachments)
+        'num_requirement_docs': len(attachments),
+        'approval': approval,
     }
     
     msg = email.send(proposal.submitter.email, bcc= all_ccs, context=context, attachments=attachments)
