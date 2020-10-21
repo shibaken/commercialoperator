@@ -19,38 +19,31 @@ ENV BPAY_ALLOWED=False
 RUN apt-get clean
 RUN apt-get update
 RUN apt-get upgrade -y
-RUN apt-get install --no-install-recommends -y wget git libmagic-dev gcc binutils libproj-dev gdal-bin python3 python3-setuptools python3-dev python3-pip tzdata cron rsyslog gunicorn libreoffice
+RUN apt-get install --no-install-recommends -y wget git libmagic-dev gcc binutils libproj-dev gdal-bin python3.7 python3-setuptools python3-dev python3-pip tzdata cron rsyslog gunicorn libreoffice
 RUN apt-get install --no-install-recommends -y libpq-dev patch
-RUN apt-get install --no-install-recommends -y postgresql-client mtr htop vim ssh
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
+RUN apt-get install --no-install-recommends -y postgresql-client mtr htop vim ssh software-properties-common
+
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt-get update
+RUN apt-get install --no-install-recommends -y python3.7 python3.7-dev
+
+RUN ln -s /usr/bin/python3.7 /usr/bin/python && \
     ln -s /usr/bin/pip3 /usr/bin/pip
 RUN pip install --upgrade pip
-
-#RUN apt-get clean \
-#  && apt-get update --fix-missing \
-#  && apt-get upgrade -y \
-#  && apt-get install -yq wget git gcc gdal-bin libsasl2-dev libpq-dev \
-#  python python-setuptools python-dev python-pip \
-#  imagemagick poppler-utils \
-#  libldap2-dev libssl-dev wget build-essential \
-#  libmagic-dev binutils libproj-dev gunicorn tzdata \
-#  mtr libevent-dev python-gevent \
-#  cron rsyslog
-#RUN pip install --upgrade pip
 RUN apt-get install -yq vim
 
 # Install Python libs from requirements.txt.
 FROM builder_base_cols as python_libs_cols
 WORKDIR /app
 COPY requirements.txt ./
-RUN pip3 install --no-cache-dir -r requirements.txt \
+RUN python3.7 -m pip install --no-cache-dir -r requirements.txt \
   # Update the Django <1.11 bug in django/contrib/gis/geos/libgeos.py
   # Reference: https://stackoverflow.com/questions/18643998/geodjango-geosexception-error
   # && sed -i -e "s/ver = geos_version().decode()/ver = geos_version().decode().split(' ')[0]/" /usr/local/lib/python2.7/dist-packages/django/contrib/gis/geos/libgeos.py \
   && rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
 
 COPY libgeos.py.patch /app/
-RUN patch /usr/local/lib/python3.8/dist-packages/django/contrib/gis/geos/libgeos.py /app/libgeos.py.patch
+RUN patch /usr/local/lib/python3.7/dist-packages/django/contrib/gis/geos/libgeos.py /app/libgeos.py.patch
 RUN rm /app/libgeos.py.patch
 
 # Install the project (ensure that frontend projects have been built prior to this step).
@@ -62,15 +55,8 @@ ENV TZ=Australia/Perth
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN touch /app/.env
 COPY .git ./.git
-#COPY ledger ./ledger
 COPY commercialoperator ./commercialoperator
 RUN python manage_co.py collectstatic --noinput
-
-# upgrade postgresql to v11
-#RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main 11" > /etc/apt/sources.list.d/pgsql.list
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main 11" > /etc/apt/sources.list.d/pgsql.list                                                                                        
-RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-RUN apt update && apt install -y lsb-release postgresql-11 postgresql-client
 
 RUN mkdir /app/tmp/
 RUN chmod 777 /app/tmp/
