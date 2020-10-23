@@ -7,6 +7,17 @@
                             <input type="button" style="margin-top:25px;" @click.prevent="newPark" class="btn btn-primary" value="Add" />
                 </div>
             </div>
+            <div class="row">&nbsp;</div>
+            <div class="row" >
+                <div class="" >
+                            <label class="col-sm-12"  for="Name">Please attach a detailed itinerary and map of the event route (including a GPX or KML file format). Please include information on the proposed routes, spectator points and camping sites, and any mustering, changeover, aid station or transition points.</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_park_maps" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>    
+                </div>
+            </div>
 
             <div class="row">
                 <div class="col-lg-12" style="margin-top:25px;">
@@ -21,6 +32,7 @@
 <script>
 import datatable from '@/utils/vue/datatable.vue'
 import editPark from './edit_park_activity.vue'
+import FileField from '@/components/forms/filefield.vue'
 import {
     api_endpoints,
     helpers
@@ -61,7 +73,8 @@ export default {
             datatable_id: 'park-datatable-'+vm._uid,
             uuid: 0,
             // Filters for Parks
-            park_headers:["Park or Reserve","Activities","Itinerary/ Maps","Action"],
+            //park_headers:["Park or Reserve","Activities","Itinerary/ Maps","Action"],
+            park_headers:["Park or Reserve","Activities","Action"],
             park_options:{
                 language: {
                     processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
@@ -91,16 +104,16 @@ export default {
 
                         //name: "park__activity",
                     },
-                    {
-                        data: 'events_park_documents',
-                        mRender:function (data,type,full) {
-                            let links = '';
-                            _.forEach(data, function (item) {
-                                links += `<a href='${item._file}' target='_blank' style='padding-left: 52px;'>${item.name}</a><br/>`;
-                            });
-                            return links;
-                        },
-                    },
+                    // {
+                    //     data: 'events_park_documents',
+                    //     mRender:function (data,type,full) {
+                    //         let links = '';
+                    //         _.forEach(data, function (item) {
+                    //             links += `<a href='${item._file}' target='_blank' style='padding-left: 52px;'>${item.name}</a><br/>`;
+                    //         });
+                    //         return links;
+                    //     },
+                    // },
                     {
                         data: '',
                         mRender:function (data,type,full) {
@@ -120,7 +133,8 @@ export default {
     },
     components:{
         datatable,
-        editPark
+        editPark,
+        FileField,
     },
     watch:{
     },

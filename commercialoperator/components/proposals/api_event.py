@@ -79,7 +79,7 @@ class ProposalEventsParksViewSet(viewsets.ModelViewSet):
             serializer = SaveProposalEventsParksSerializer(instance, data=json.loads(request.data.get('data')))
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            instance.add_documents(request)
+            #instance.add_documents(request)
             instance.proposal.log_user_action(ProposalUserAction.ACTION_EDIT_EVENT_PARK.format(instance.id),request)
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -100,7 +100,7 @@ class ProposalEventsParksViewSet(viewsets.ModelViewSet):
             serializer = SaveProposalEventsParksSerializer(data=json.loads(request.data.get('data')))
             serializer.is_valid(raise_exception=True)
             instance=serializer.save()
-            instance.add_documents(request)
+            #instance.add_documents(request)
             instance.proposal.log_user_action(ProposalUserAction.ACTION_CREATE_EVENT_PARK.format(instance.id),request)
             return Response(serializer.data)
         except serializers.ValidationError:

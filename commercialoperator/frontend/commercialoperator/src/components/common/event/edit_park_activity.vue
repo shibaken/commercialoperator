@@ -43,7 +43,7 @@
                            
                            
 
-                            <div class="form-group">
+                            <!-- <div class="form-group">
                                 <div class="row">
                                     <div class="col-sm-3">
                                         
@@ -56,7 +56,7 @@
 
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                                                      
                         </div>
                     </form>
@@ -143,7 +143,7 @@ export default {
             let vm =this;
             if($(vm.form).valid()){
                 vm.sendData();
-               vm.$refs.filefield.reset_files();
+               //vm.$refs.filefield.reset_files();
             }
         },
         cancel:function () {
@@ -153,7 +153,7 @@ export default {
         close:function () {
             this.isModalOpen = false;
             this.park = {};
-            this.$refs.filefield.reset_files();
+            //this.$refs.filefield.reset_files();
             this.errors = false;
             $('.has-error').removeClass('has-error');
             //this.$refs.activities_select=[];
@@ -238,15 +238,17 @@ export default {
             // }
             let park = JSON.parse(JSON.stringify(vm.park));
             let formData = new FormData()
-            var files = vm.$refs.filefield.files;
-            $.each(files, function (idx, v) {
-                var file = v['file'];
-                var filename = v['name'];
-                var name = 'file-' + idx;
-                formData.append(name, file, filename);
-            });
-            park.num_files = files.length;
-            park.input_name = 'events_park_doc';
+            //original append file code
+            // var files = vm.$refs.filefield.files;
+            // $.each(files, function (idx, v) {
+            //     var file = v['file'];
+            //     var filename = v['name'];
+            //     var name = 'file-' + idx;
+            //     formData.append(name, file, filename);
+            // });
+            // park.num_files = files.length;
+            // park.input_name = 'events_park_doc';
+            //end append file code
             //park.proposal = vm.proposal_id;
 
             formData.append('data', JSON.stringify(park));
