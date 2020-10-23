@@ -118,7 +118,11 @@ export default {
                         data: '',
                         mRender:function (data,type,full) {
                             let links = '';
-                            if(!vm.proposal.readonly){
+                        //     if(!vm.proposal.readonly){
+                        //     links +=  `<a href='#${full.id}' data-edit-park='${full.id}'>Edit Park</a><br/>`;
+                        //     links +=  `<a href='#${full.id}' data-discard-park='${full.id}'>Discard</a><br/>`;
+                        // }
+                        if(vm.canEditActivities){
                             links +=  `<a href='#${full.id}' data-edit-park='${full.id}'>Edit Park</a><br/>`;
                             links +=  `<a href='#${full.id}' data-discard-park='${full.id}'>Discard</a><br/>`;
                         }

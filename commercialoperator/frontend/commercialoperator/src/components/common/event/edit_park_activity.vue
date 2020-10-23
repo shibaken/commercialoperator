@@ -365,7 +365,7 @@ export default {
         this.$nextTick(()=>{
             vm.eventListeners();
         });
-        vm.park.events_park_documents = vm.$refs.filefield.uploaded_documents;
+        //vm.park.events_park_documents = vm.$refs.filefield.uploaded_documents;
    }
 }
 </script>
