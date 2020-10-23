@@ -14,7 +14,7 @@
                     <div class="form-horizontal col-sm-12 borderDecoration">
                         
                         <div class="">
-                            <div class="row">
+                            <!-- <div class="row">
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">Hired or owned</label>
                                 </div>
@@ -30,10 +30,11 @@
                                         </li>
                                     </ul>
                                 </div>
-                            </div>
+                            </div> -->
                             <div class="row">&nbsp;</div>
-                            <div class="" v-if="proposal.event_vehicles_vessels.hired_or_owned">
-                                <label class="control-label">Provide details of every vehicle you plan to use when accessing the parks for the event</label>
+                            <!-- <div class="" v-if="proposal.event_vehicles_vessels.hired_or_owned"> -->
+                            <div class="">
+                                <label class="">Provide details of every vehicle you plan to use when accessing the parks. 'Hire vehicle' can be entered as the vehicle registration if the hire vehicle details are not yet known.</label>
                                 <VehicleTable :url="vehicles_url" :proposal="proposal" :access_types="access_types" ref="vehicles_table"></VehicleTable>
                             </div>
                             <div class="row">&nbsp;</div>
