@@ -39,7 +39,8 @@ from commercialoperator.components.proposals.models import (
     Proposal,
     AbseilingClimbingActivity,
     PreEventsParkDocument,
-    ProposalPreEventsParks
+    ProposalPreEventsParks,
+    ProposalEventsTrails,
 )
 from commercialoperator.components.proposals.serializers_event import (
     ProposalEventsParksSerializer,
@@ -47,6 +48,8 @@ from commercialoperator.components.proposals.serializers_event import (
     AbseilingClimbingActivitySerializer,
     ProposalPreEventsParksSerializer,
     SaveProposalPreEventsParksSerializer,
+    ProposalEventsTrailsSerializer,
+    SaveProposalEventsTrailsSerializer,
     
 )
 
@@ -217,6 +220,53 @@ class ProposalPreEventsParksViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+class ProposalEventsTrailsViewSet(viewsets.ModelViewSet):
+    queryset = ProposalEventsTrails.objects.all().order_by('id')
+    serializer_class = ProposalEventsTrailsSerializer
+
+    @detail_route(methods=['post'])
+    def edit_park(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = SaveProposalEventsTrailsSerializer(instance, data=json.loads(request.data.get('data')))
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            #instance.add_documents(request)
+            instance.proposal.log_user_action(ProposalUserAction.ACTION_EDIT_EVENT_PARK.format(instance.id),request)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    def create(self, request, *args, **kwargs):
+        try:
+            #instance = self.get_object()
+            serializer = SaveProposalEventsTrailsSerializer(data=json.loads(request.data.get('data')))
+            serializer.is_valid(raise_exception=True)
+            instance=serializer.save()
+            #instance.add_documents(request)
+            instance.proposal.log_user_action(ProposalUserAction.ACTION_CREATE_EVENT_PARK.format(instance.id),request)
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            if hasattr(e,'error_dict'):
+                raise serializers.ValidationError(repr(e.error_dict))
+            else:
+                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

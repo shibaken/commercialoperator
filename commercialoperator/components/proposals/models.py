@@ -5393,6 +5393,21 @@ class PreEventsParkDocument(Document):
     def delete(self):
         if self.can_delete:
             return super(PreEventsParkDocument, self).delete()
+
+class ProposalEventsTrails(models.Model):
+    #proposal = models.OneToOneField(Proposal, related_name='filming_parks', null=True)
+    proposal = models.ForeignKey(Proposal, related_name='events_trails', null=True)
+    trail= models.ForeignKey(Trail, related_name='events_proposal', null=True)
+    section= models.ForeignKey(Section, related_name='events_proposal', null=True)
+    #activities=models.ManyToManyField(Activity) #not used any more
+    event_trail_activities=models.CharField(max_length=255,null=True,blank=True)
+
+    def __str__(self):
+        return '{}'.format(self.trail)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
 # --------------------------------------------------------------------------------------
 # Event Models End
 # --------------------------------------------------------------------------------------

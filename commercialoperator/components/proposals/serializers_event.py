@@ -39,10 +39,11 @@ from commercialoperator.components.proposals.models import (
                                     EventsParkDocument,
                                     AbseilingClimbingActivity,
                                     PreEventsParkDocument,
-                                    ProposalPreEventsParks
+                                    ProposalPreEventsParks,
+                                    ProposalEventsTrails,
                                     #ProposalEventOnlineTraining,
                                 )
-from commercialoperator.components.main.serializers import CommunicationLogEntrySerializer, ParkFilterSerializer
+from commercialoperator.components.main.serializers import CommunicationLogEntrySerializer, ParkFilterSerializer, TrailSerializer
 from rest_framework import serializers
 from django.db.models import Q
 from reversion.models import Version
@@ -133,3 +134,15 @@ class SaveProposalPreEventsParksSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProposalPreEventsParks
         fields = ('id', 'park','proposal', 'activities')
+
+class ProposalEventsTrailsSerializer(serializers.ModelSerializer):
+    trail=TrailSerializer()
+    class Meta:
+        model = ProposalEventsTrails
+        fields = ('id', 'trail','section',  'proposal', 'event_trail_activities')
+
+class SaveProposalEventsTrailsSerializer(serializers.ModelSerializer):
+    #park=ParkFilterSerializer()
+    class Meta:
+        model = ProposalEventsTrails
+        fields = ('id', 'trail','proposal', 'event_trail_activities')
