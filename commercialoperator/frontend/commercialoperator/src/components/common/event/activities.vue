@@ -83,7 +83,16 @@
         <div class="panel-body collapse in" :id="tBody">
           <div>
 
-            <div class="borderDecoration col-sm-12">
+            <div class="">
+                <div class="row">
+                    <label v-if="trail_section_map" class="col-sm-12"  for="Name">List the the track and trail sections where this event is proposed to occur and add the proposed activties to be undertaken. A map of the sections can be viewed <a :href="trail_section_map" target="_blank">here</a>.</label>
+                    <label v-else="trail_section_map" class="col-sm-12"  for="Name">List the the track and trail sections where this event is proposed to occur and add the proposed activties to be undertaken. A map of the sections can be viewed here.</label>
+                        <TrailsActivityTable :url="trails_url" :proposal="proposal"  ref="trails_table":canEditActivities="canEditActivities"></TrailsActivityTable>
+                </div>
+                <div class="row">&nbsp;</div>
+            </div> 
+
+            <!-- <div class="borderDecoration col-sm-12">
                 <form>
                     <div class="col-sm-12" >
                         <div>
@@ -98,13 +107,12 @@
                 <form>
                     <div class="col-sm-12" >
                         <div>
-                            <!--<pre>{{ selected_trail_ids }}</pre>-->
                             <label class="control-label">Select the long distance trails</label>
                             <TreeSelect :proposal="proposal" :value.sync="selected_trail_ids" :options="trail_options" :default_expand_level="1" open_direction="top" allow_edit="true" :disabled="!canEditActivities"></TreeSelect>
                         </div>
                     </div>
                 </form>
-            </div>
+            </div> -->
             
             <!-- <div>Trail_actvities: {{trail_activities}}</div><br>
             <div>Selected_Trail: {{selected_trail_ids}}</div><br>
@@ -123,8 +131,10 @@
 
 <script>
 import ParksActivityTable from './parks_activity_table.vue'
+import TrailsActivityTable from './trails_activity_table.vue'
 import AbseilingClimbingTable from './abseiling_climbing_table.vue'
 import editTrailActivities from '@/components/common/tclass/edit_trail_activities.vue'
+//import editTrailActivities from './edit_trail_activities.vue'
 import TreeSelect from '@/components/forms/treeview.vue'
 import {
   api_endpoints,
@@ -160,6 +170,7 @@ import {
                 tBody: 'tBody'+vm._uid,
                 values:null,
                 parks_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/events_parks'),
+                trails_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/events_trails'),
                 abseiling_climbing_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/abseiling_climbing_activities'),
                 trail_options: [],
                 trail_activity_options: [],
@@ -168,6 +179,7 @@ import {
                 selected_trail_ids:[],
                 trail_activities:[],
                 selected_trails_activities:[],
+                global_settings:[],
                 datepickerOptions:{
                     format: 'DD/MM/YYYY',
                     showClear:true,
@@ -179,9 +191,23 @@ import {
         },
         components:{
             ParksActivityTable,
+            TrailsActivityTable,
             AbseilingClimbingTable,
             TreeSelect,
             editTrailActivities,
+        },
+        computed:{
+            trail_section_map: function(){
+                let vm=this;
+                if(vm.global_settings){
+                    for(var i=0; i<vm.global_settings.length; i++){
+                        if(vm.global_settings[i].key=='trail_section_map'){
+                            return vm.global_settings[i].value;
+                        }
+                    }
+                }
+                return '';
+            },
         },
         watch:{
             selected_trail_ids: function(){
@@ -439,6 +465,15 @@ import {
                     }
                  });
           },
+          fetchGlobalSettings: function(){
+                let vm = this;
+                vm.$http.get('/api/global_settings.json').then((response) => {
+                    vm.global_settings = response.body;
+                    
+                },(error) => {
+                    console.log(error);
+                } );
+            },
 
           store_trails: function(trails){
             let vm=this;
@@ -514,6 +549,7 @@ import {
         mounted: function(){
             let vm=this;
             vm.fetchParkTreeview();
+            vm.fetchGlobalSettings();
             this.$nextTick(()=>{
                 vm.eventListeners();
             });

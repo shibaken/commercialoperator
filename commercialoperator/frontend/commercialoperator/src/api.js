@@ -36,6 +36,7 @@ module.exports = {
     application_types:"/api/application_types.json",
     access_types:"/api/access_types.json",
     parks:"/api/parks.json",
+    trails:"/api/trails.json",
     districts:"/api/districts.json",
     vehicles:"/api/vehicles.json",
     vessels:"/api/vessels.json",
@@ -50,6 +51,7 @@ module.exports = {
     proposal_events_parks:"/api/proposal_events_parks.json",
     abseiling_climbing_activities:"/api/abseiling_climbing_activities.json",
     proposal_pre_event_parks:"/api/proposal_pre_event_parks.json",
+    proposal_events_trails:"/api/proposal_events_trails.json",
 
     // used in internal and external dashboards
     proposals_paginated_external:   "/api/proposal_paginated/proposals_external/?format=datatables",
@@ -92,6 +94,9 @@ module.exports = {
     },
     discard_event_park:function (id) {
       return `/api/proposal_events_parks/${id}.json`;
+    },
+    discard_event_trail:function (id) {
+      return `/api/proposal_events_trails/${id}.json`;
     },
     discard_filming_park:function (id) {
       return `/api/proposal_filming_parks/${id}.json`;

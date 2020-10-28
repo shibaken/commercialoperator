@@ -229,7 +229,7 @@ class ProposalEventsTrailsViewSet(viewsets.ModelViewSet):
     serializer_class = ProposalEventsTrailsSerializer
 
     @detail_route(methods=['post'])
-    def edit_park(self, request, *args, **kwargs):
+    def edit_trail(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
             serializer = SaveProposalEventsTrailsSerializer(instance, data=json.loads(request.data.get('data')))

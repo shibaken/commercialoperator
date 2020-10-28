@@ -5487,6 +5487,7 @@ reversion.register(AbseilingClimbingActivity)
 reversion.register(EventsParkDocument)
 reversion.register(ProposalPreEventsParks, follow=['pre_event_park_documents'])
 reversion.register(PreEventsParkDocument)
+reversion.register(ProposalEventsTrails)
 
 
 

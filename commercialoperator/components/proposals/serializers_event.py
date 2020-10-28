@@ -43,7 +43,7 @@ from commercialoperator.components.proposals.models import (
                                     ProposalEventsTrails,
                                     #ProposalEventOnlineTraining,
                                 )
-from commercialoperator.components.main.serializers import CommunicationLogEntrySerializer, ParkFilterSerializer, TrailSerializer
+from commercialoperator.components.main.serializers import CommunicationLogEntrySerializer, ParkFilterSerializer, TrailSerializer, SectionSerializer
 from rest_framework import serializers
 from django.db.models import Q
 from reversion.models import Version
@@ -137,6 +137,7 @@ class SaveProposalPreEventsParksSerializer(serializers.ModelSerializer):
 
 class ProposalEventsTrailsSerializer(serializers.ModelSerializer):
     trail=TrailSerializer()
+    section=SectionSerializer()
     class Meta:
         model = ProposalEventsTrails
         fields = ('id', 'trail','section',  'proposal', 'event_trail_activities')
@@ -145,4 +146,4 @@ class SaveProposalEventsTrailsSerializer(serializers.ModelSerializer):
     #park=ParkFilterSerializer()
     class Meta:
         model = ProposalEventsTrails
-        fields = ('id', 'trail','proposal', 'event_trail_activities')
+        fields = ('id', 'trail','proposal','section', 'event_trail_activities')
