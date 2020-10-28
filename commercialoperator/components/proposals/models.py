@@ -5215,6 +5215,7 @@ class ProposalEventActivities(models.Model):
     proposal = models.OneToOneField(Proposal, related_name='event_activity', null=True)
     commencement_date=models.DateField(blank=True, null=True)
     completion_date=models.DateField(blank=True, null=True)
+    event_date=models.CharField('Event date', max_length=100, blank=True, null=True)
 
     def __str__(self):
         return '{}'.format(self.event_name)

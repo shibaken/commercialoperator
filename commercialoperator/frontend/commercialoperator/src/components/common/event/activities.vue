@@ -46,6 +46,15 @@
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
+                            <div class="row" v-if="is_internal || is_referral">
+                                <div class="col-sm-3">
+                                    <label class="control-label pull-right"  for="Name">Event date</label>
+                                </div>
+                                <div class="col-sm-9">
+                                    <!-- <input type="text" class="form-control" v-model="proposal.activities_event.event_name" name="event_name" :disabled="proposal.readonly || proposal.pending_amendment_request || proposal.is_amendment_proposal"> -->
+                                    <input type="text" class="form-control" name="event_date" :disabled="!canEditPeriod || proposal.pending_amendment_request || proposal.is_amendment_proposal" v-model="proposal.event_activity.event_date">
+                                </div>
+                            </div>
                         </div> 
                     </div>
 
@@ -161,6 +170,22 @@ import {
             canEditPeriod:{
               type: Boolean,
               default: false
+            },
+            hasAssessorMode:{
+                type:Boolean,
+                default: false
+            },
+            is_internal:{
+              type: Boolean,
+              default: false
+            },
+            is_referral:{
+              type: Boolean,
+              default: false
+            },
+            hasReferralMode:{
+                type:Boolean,
+                default: false
             },
         },
         data:function () {
