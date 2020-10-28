@@ -433,16 +433,31 @@ def _create_approval_event(approval_buffer, approval, proposal, copied_to_permit
     #             park_data.append([Paragraph(_format_name(trail_section_name), styles['BoldLeft']),
     #                           Paragraph(trail_activities, styles['Left']) # remove last trailing comma
     #                     ])
-    for p in approval.current_proposal.selected_parks_activities_pdf:
-        activities_str=[]
-        for ac in p['activities']:
-            #activities_str.append(ac.encode('UTF-8'))
-            activities_str.append(ac)
+    # for p in approval.current_proposal.selected_parks_activities_pdf:
+    #     activities_str=[]
+    #     for ac in p['activities']:
+    #         #activities_str.append(ac.encode('UTF-8'))
+    #         activities_str.append(ac)
        
-        activities_str=str(activities_str).strip('[]').replace('\'', '')
+    #     activities_str=str(activities_str).strip('[]').replace('\'', '')
 
-        park_data.append([Paragraph(_format_name(p['park']), styles['BoldLeft']),
-                              Paragraph(activities_str.strip().strip(','), styles['Left']) # remove last trailing comma
+    #     park_data.append([Paragraph(_format_name(p['park']), styles['BoldLeft']),
+    #                           Paragraph(activities_str.strip().strip(','), styles['Left']) # remove last trailing comma
+    #                     ])
+    for tr in approval.current_proposal.events_trails.all():
+        activities_str=''
+        trail_name=''
+        if tr.section:
+            trail_name='{} - {}'.format(tr.trail.name, tr.section.name)
+        else:
+            trail_name='{}'.format(tr.trail.name)
+        if tr.event_trail_activities:
+            #activities_str = p.event_activities.encode('UTF-8')
+            activities_str = tr.event_trail_activities
+
+
+        park_data.append([Paragraph(_format_name(trail_name), styles['BoldLeft']),
+                              Paragraph(activities_str, styles['Left']) # remove last trailing comma
                         ])
 
     if park_data:
