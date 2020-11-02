@@ -367,8 +367,23 @@ def _create_approval_event(approval_buffer, approval, proposal, copied_to_permit
     elements.append(KeepTogether(delegation))
 
     elements.append(Paragraph('Commencing on the {} and expiring on {}.'.format(approval.start_date.strftime(DATE_FORMAT2), approval.expiry_date.strftime(DATE_FORMAT2)),styles['BoldLeft']))
-    elements.append(Paragraph('To hold the {} commercial event.'.format(approval.current_proposal.event_activity.event_name), styles['BoldLeft']))
+    #elements.append(Paragraph('To hold the {} commercial event.'.format(approval.current_proposal.event_activity.event_name), styles['BoldLeft']))
 
+    event_delegation = []
+    event_delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    event_delegation.append(Table([[[Paragraph('Event Name:', styles['BoldLeft'])],
+                              [Paragraph(approval.current_proposal.event_activity.event_name,
+                                         styles['Left'])]]],
+                            colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                            style=approval_table_style))
+
+    event_delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    event_delegation.append(Table([[[Paragraph('Event Date:', styles['BoldLeft'])],
+                              [Paragraph(approval.current_proposal.event_activity.event_date,
+                                         styles['Left'])]]],
+                            colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                            style=approval_table_style))
+    elements.append(KeepTogether(event_delegation))
     elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
     elements.append(Paragraph('CONDITIONS', styles['BoldLeft']))
     elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
@@ -433,16 +448,31 @@ def _create_approval_event(approval_buffer, approval, proposal, copied_to_permit
     #             park_data.append([Paragraph(_format_name(trail_section_name), styles['BoldLeft']),
     #                           Paragraph(trail_activities, styles['Left']) # remove last trailing comma
     #                     ])
-    for p in approval.current_proposal.selected_parks_activities_pdf:
-        activities_str=[]
-        for ac in p['activities']:
-            #activities_str.append(ac.encode('UTF-8'))
-            activities_str.append(ac)
+    # for p in approval.current_proposal.selected_parks_activities_pdf:
+    #     activities_str=[]
+    #     for ac in p['activities']:
+    #         #activities_str.append(ac.encode('UTF-8'))
+    #         activities_str.append(ac)
        
-        activities_str=str(activities_str).strip('[]').replace('\'', '')
+    #     activities_str=str(activities_str).strip('[]').replace('\'', '')
 
-        park_data.append([Paragraph(_format_name(p['park']), styles['BoldLeft']),
-                              Paragraph(activities_str.strip().strip(','), styles['Left']) # remove last trailing comma
+    #     park_data.append([Paragraph(_format_name(p['park']), styles['BoldLeft']),
+    #                           Paragraph(activities_str.strip().strip(','), styles['Left']) # remove last trailing comma
+    #                     ])
+    for tr in approval.current_proposal.events_trails.all():
+        activities_str=''
+        trail_name=''
+        if tr.section:
+            trail_name='{} - {}'.format(tr.trail.name, tr.section.name)
+        else:
+            trail_name='{}'.format(tr.trail.name)
+        if tr.event_trail_activities:
+            #activities_str = p.event_activities.encode('UTF-8')
+            activities_str = tr.event_trail_activities
+
+
+        park_data.append([Paragraph(_format_name(trail_name), styles['BoldLeft']),
+                              Paragraph(activities_str, styles['Left']) # remove last trailing comma
                         ])
 
     if park_data:
@@ -888,7 +918,8 @@ def create_approval_doc(approval,proposal, copied_to_permit, user):
             _create_approval_lawful_authority(approval_buffer, approval, proposal, copied_to_permit, user)
         else:
             _create_approval_filming(approval_buffer, approval, proposal, copied_to_permit, user)
-    filename = 'licence-{}.pdf'.format(approval.lodgement_number)
+    #filename = 'licence-{}.pdf'.format(approval.lodgement_number)
+    filename = '{}.pdf'.format(approval.lodgement_number)
     document = ApprovalDocument.objects.create(approval=approval,name=filename)
     document._file.save(filename, File(approval_buffer), save=True)
 

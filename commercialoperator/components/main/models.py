@@ -432,6 +432,7 @@ class GlobalSettings(models.Model):
         ('commercial_filming_handbook', 'Commercial Filming Handbook link'),
         ('park_stay_link', 'Park Stay Link'),
         ('event_traffic_code_of_practice', 'Event traffic code of practice'),
+        ('trail_section_map', 'Trail section map'),
 
     )
     key = models.CharField(max_length=255, choices=keys, blank=False, null=False,)

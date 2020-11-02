@@ -97,7 +97,7 @@
                                     <label class="control-label pull-right"  for="Name">Type of film to be undertaken</label>
                                 </div>
                                 <div class="col-sm-9" style="margin-bottom: 5px">
-                                    <select style="width:100%;" class="form-control input-sm" multiple ref="film_type_select" v-model="proposal.filming_activity.film_type" :disabled="!canEditFilmType">
+                                    <select style="width:100%;" class="form-control input-sm" multiple ref="film_type_select" v-model="proposal.filming_activity.film_type" :disabled="!canEditPeriod">
                                         <option v-for="f in film_type_choices" :value="f.key">{{f.value}}</option>
                                     </select>
                                     <!--

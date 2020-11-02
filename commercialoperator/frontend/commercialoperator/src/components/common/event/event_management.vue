@@ -221,7 +221,7 @@
                                 </div>
                             </div>
                             <div class="row">&nbsp;</div>
-                            <div class="row">    
+                            <!-- <div class="row">    
                                 <div class="col-sm-6">
                                     <label class="control-label pull-left"  for="Name">Have you developed emergency response plans and notified the Local Emergency Management Committee(LEMC)? </label>                                   
                                 </div>
@@ -342,6 +342,34 @@
                                     <label class="control-label pull-left"  for="Name">Please note it will be a condition of any licence approval to provide a copy of your risk management plan 30 days prior to conducting your event. </label>                               
                                 </div>                              
                             </div>
+ -->
+
+                            <div class="row">    
+                                <div class="col-sm-12">
+                                    <label class="control-label pull-left"  for="Name">Please attach a copy of the below listed plans for your event </label>                                   
+                                </div>
+                            </div>
+                            <div class="row">
+                               <div class="col-sm-12">
+                                    <ul class="list-block"  >
+                                        <li class="control-label list-inline-item">
+                                            Event Managemet plan
+                                        </li>
+                                        <li class="control-label list-inline-item">
+                                            Emergency response plan
+                                        </li>
+                                        <li class="control-label list-inline-item">
+                                            Risk Managemet plan
+                                        </li>
+                                        
+                                    </ul>      
+                                </div>
+                            </div> 
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_risk_management_plan" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>    
+                                </div>
+                            </div>
 
                             <div class="row">&nbsp;</div>
                             <div class="row">    
@@ -371,7 +399,7 @@
                             </div>
                             <div class="row" v-if="!proposal.event_management.traffic_management_plan">
                                 <div class="col-sm-12">
-                                    <label class="control-label pull-left"  for="Name">Please note it will be a condition of any licence approval to provide an approved Traffic Management Plan 30 days prior to conducting your event, where the event impacts on public roads.</label>                               
+                                    <label class="control-label pull-left"  for="Name">Please note it is a requirement to provide an approved Traffic Management Plan for any event which impacts on public roads.</label>                               
                                 </div>
                                                                 
                             </div>

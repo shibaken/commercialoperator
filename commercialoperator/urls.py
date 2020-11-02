@@ -94,7 +94,7 @@ router.register(r'district_proposal_paginated',proposal_api.DistrictProposalPagi
 router.register(r'proposal_events_parks', proposal_api_event.ProposalEventsParksViewSet)
 router.register(r'abseiling_climbing_activities', proposal_api_event.AbseilingClimbingActivityViewSet)
 router.register(r'proposal_pre_event_parks', proposal_api_event.ProposalPreEventsParksViewSet)
-
+router.register(r'proposal_events_trails', proposal_api_event.ProposalEventsTrailsViewSet)
 
 api_patterns = [
     url(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
