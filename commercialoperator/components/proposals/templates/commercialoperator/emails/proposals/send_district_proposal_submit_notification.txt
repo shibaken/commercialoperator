@@ -5,7 +5,7 @@
 
 	After assessing the application, click ‘Enter Requirement’ to add conditions then click ‘Propose to Approve’ to send to your District/Regional Manager for approval.
 
-	Please ensure your assessment is completed at least three days prior to the licence proposed start date of {{ proposed_start_date }}.
+	Please ensure your assessment is completed at least three days prior to the lawful authority proposed start date of {{ proposed_start_date }}.
 
 
     You can access this Application using the following link:

@@ -1,14 +1,14 @@
-<template id="event_parks_activity_table">
+<template id="event_trails_activity_table">
     <div class="">
         <div class="col-sm-12"> 
             <div class="row" >
                 <div class="col-md-3" v-if="canEditActivities">
                             <!-- <button style="margin-top:25px;" class="btn btn-primary pull-right">New Application</button> -->
-                            <input type="button" style="margin-top:25px;" @click.prevent="newPark" class="btn btn-primary" value="Add" />
+                            <input type="button" style="margin-top:25px;" @click.prevent="newTrail" class="btn btn-primary" value="Add" />
                 </div>
             </div>
             <div class="row">&nbsp;</div>
-            <div class="row" >
+            <!-- <div class="row" >
                 <div class="" >
                             <label class="col-sm-12"  for="Name">Please attach a detailed itinerary and map of the event route (including a GPX or KML file format). Please include information on the proposed routes, spectator points and camping sites, and any mustering, changeover, aid station or transition points.</label>
                 </div>
@@ -17,7 +17,7 @@
                 <div class="col-sm-12">
                     <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_park_maps" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>    
                 </div>
-            </div>
+            </div> -->
 
             <div class="row">
                 <div class="col-lg-12" style="margin-top:25px;">
@@ -25,20 +25,21 @@
                 </div>
             </div>
         </div>
-        <editPark ref="edit_park" :park_id="park_id" @refreshFromResponse="refreshFromResponse" ></editPark>
+        <editTrail ref="edit_trail" :trail_id="trail_id" @refreshFromResponse="refreshFromResponse" ></editTrail>
         <!-- v-bind:key="editParkBindId" -->
     </div>
 </template> 
 <script>
 import datatable from '@/utils/vue/datatable.vue'
-import editPark from './edit_park_activity.vue'
+//import editPark from './edit_trail_activity.vue'
+import editTrail from './edit_trail_activity.vue'
 import FileField from '@/components/forms/filefield.vue'
 import {
     api_endpoints,
     helpers
 }from '@/utils/hooks'
 export default {
-    name: 'EventParkTableDash',
+    name: 'EventTrailTableDash',
     props: {
         // level:{
         //     type: String,
@@ -70,11 +71,11 @@ export default {
                 proposal: vm.proposal.id
             },
             pBody: 'pBody' + vm._uid,
-            datatable_id: 'park-datatable-'+vm._uid,
+            datatable_id: 'trail-datatable-'+vm._uid,
             uuid: 0,
             // Filters for Parks
             //park_headers:["Park or Reserve","Activities","Itinerary/ Maps","Action"],
-            park_headers:["Park or Reserve","Activities","Action"],
+            park_headers:["Trail","Section","Activities","Action"],
             park_options:{
                 language: {
                     processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
@@ -91,7 +92,7 @@ export default {
                 columns: [
                     
                     {
-                        data: "park",
+                        data: "trail",
                         mRender:function (data,type,full) {
                             //return `C${data}`;
                             return data.name;
@@ -99,32 +100,32 @@ export default {
                         
                     },
                     {
-                        //data: "activities_names",
-                        data: "event_activities",
+                        data: "section",
 
-                        //name: "park__activity",
+                        mRender:function (data,type,full) {
+                            if(data){
+                                return data.name;
+                            }
+                            else{
+                                return '';
+                            }
+                        },
                     },
-                    // {
-                    //     data: 'events_park_documents',
-                    //     mRender:function (data,type,full) {
-                    //         let links = '';
-                    //         _.forEach(data, function (item) {
-                    //             links += `<a href='${item._file}' target='_blank' style='padding-left: 52px;'>${item.name}</a><br/>`;
-                    //         });
-                    //         return links;
-                    //     },
-                    // },
+                    {
+                        data: "event_trail_activities",
+
+                    },
                     {
                         data: '',
                         mRender:function (data,type,full) {
                             let links = '';
                         //     if(!vm.proposal.readonly){
                         //     links +=  `<a href='#${full.id}' data-edit-park='${full.id}'>Edit Park</a><br/>`;
-                        //     links +=  `<a href='#${full.id}' data-discard-park='${full.id}'>Discard</a><br/>`;
+                        //     links +=  `<a href='#${full.id}' data-discard-trail='${full.id}'>Discard</a><br/>`;
                         // }
                         if(vm.canEditActivities){
-                            links +=  `<a href='#${full.id}' data-edit-park='${full.id}'>Edit Park</a><br/>`;
-                            links +=  `<a href='#${full.id}' data-discard-park='${full.id}'>Discard</a><br/>`;
+                            links +=  `<a href='#${full.id}' data-edit-park='${full.id}'>Edit Trail</a><br/>`;
+                            links +=  `<a href='#${full.id}' data-discard-trail='${full.id}'>Discard</a><br/>`;
                         }
                             return links;
                         },
@@ -137,7 +138,7 @@ export default {
     },
     components:{
         datatable,
-        editPark,
+        editTrail,
         FileField,
     },
     watch:{
@@ -147,71 +148,60 @@ export default {
             return this.level == 'external';
         },
         editParkBindId: function(){
-            let edit_park_bind_id='';
-            edit_park_bind_id='editPark' + parseInt(this.uuid);
-            return edit_park_bind_id;
+            let edit_trail_bind_id='';
+            edit_trail_bind_id='editPark' + parseInt(this.uuid);
+            return edit_trail_bind_id;
         },
     },
     methods:{
         fetchFilterLists: function(){
             let vm = this;
         },
-        newPark: function(){
+        newTrail: function(){
             let vm=this;
             this.uuid +=1;
 
             this.$nextTick(() =>{
-                this.$refs.edit_park.park_id = null;
-            //this.$refs.edit_park.fetchPark(id);
-                var new_park_another={
-                    park: null,
-                    activities:[],
+                this.$refs.edit_trail.trail_id = null;
+            //this.$refs.edit_trail.fetchtrail(id);
+                var new_trail_another={
+                    trail: null,
+                    section: null,
+                    event_trail_activities:'',
                     proposal: vm.proposal.id
                 }
-                //this.$refs.edit_park.park=this.new_park;
-                this.$refs.edit_park.park=new_park_another;
-                this.$refs.edit_park.park_action='add'
+                //this.$refs.edit_trail.trail=this.new_trail;
+                this.$refs.edit_trail.trail=new_trail_another;
+                this.$refs.edit_trail.trail_action='add'
 
-                this.$refs.edit_park.isModalOpen = true;
+                this.$refs.edit_trail.isModalOpen = true;
             });
-            // this.$refs.edit_park.park_id = null;
-            // //this.$refs.edit_park.fetchPark(id);
-            // var new_park_another={
-            //     park: null,
-            //     activities:[],
-            //     proposal: vm.proposal.id
-            // }
-            // //this.$refs.edit_park.park=this.new_park;
-            // this.$refs.edit_park.park=new_park_another;
-            // this.$refs.edit_park.park_action='add'
-
-            // this.$refs.edit_park.isModalOpen = true;
         },
-        editPark: function(id){
+        editTrail: function(id){
             this.uuid +=1;
             this.$nextTick(() =>{
-                this.$refs.edit_park.park_id = id;
-                // this.$refs.edit_park.events_park_id = id;
+                this.$refs.edit_trail.trail_id = id;
+                // this.$refs.edit_trail.events_park_id = id;
                 // $(this.$refs.events_park).val(id).trigger('change');
-                this.$refs.edit_park.fetchPark(id);
-                this.$refs.edit_park.isModalOpen = true;
+                this.$refs.edit_trail.fetchTrail(id);
+                this.$refs.edit_trail.isModalOpen = true;
             });
         },
-        discardPark:function (park_id) {
+        discardTrail:function (trail_id) {
             let vm = this;
             swal({
-                title: "Discard Park",
-                text: "Are you sure you want to discard this park?",
+                title: "Discard Trail",
+                text: "Are you sure you want to discard this trail?",
                 type: "warning",
                 showCancelButton: true,
-                confirmButtonText: 'Discard Park',
+                confirmButtonText: 'Discard Trail',
                 confirmButtonColor:'#d9534f'
             }).then(() => {
-                vm.$http.delete(api_endpoints.discard_event_park(park_id))
+                vm.$http.delete(api_endpoints.discard_event_trail(trail_id))
                 .then((response) => {
                     swal(
                         'Discarded',
-                        'Your park has been discarded',
+                        'Your trail has been discarded',
                         'success'
                     )
                     vm.$refs.park_datatable.vmDataTable.ajax.reload();
@@ -227,13 +217,13 @@ export default {
             vm.$refs.park_datatable.vmDataTable.on('click', 'a[data-edit-park]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-edit-park');
-                vm.editPark(id);
+                vm.editTrail(id);
             });
             // External Discard listener
-            vm.$refs.park_datatable.vmDataTable.on('click', 'a[data-discard-park]', function(e) {
+            vm.$refs.park_datatable.vmDataTable.on('click', 'a[data-discard-trail]', function(e) {
                 e.preventDefault();
-                var id = $(this).attr('data-discard-park');
-                vm.discardPark(id);
+                var id = $(this).attr('data-discard-trail');
+                vm.discardTrail(id);
             });
         },
         refreshFromResponse: function(){

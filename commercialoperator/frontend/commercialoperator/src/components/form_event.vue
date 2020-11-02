@@ -86,7 +86,7 @@
 
 
               <div class="tab-pane fade" id="pills-activities" role="tabpanel" aria-labelledby="pills-activities-tab">
-                <Activities :proposal="proposal" id="proposalStartActivities" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_external= "is_external" ref="event_activities"></Activities>
+                <Activities :proposal="proposal" id="proposalStartActivities" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_external= "is_external" ref="event_activities" :hasAssessorMode="hasAssessorMode" :is_internal="is_internal" :hasReferralMode="hasReferralMode"></Activities>
               </div>
               <div class="tab-pane fade" id="pills-event-management" role="tabpanel" aria-labelledby="pills-event-management-tab">
                 <EventManagement :proposal="proposal" id="proposalStartEventManagement"></EventManagement>

@@ -4382,6 +4382,7 @@ class ProposalFilmingAccess(models.Model):
 class ProposalFilmingEquipment(models.Model):
     vehicle_owned=models.BooleanField('Vehicle Hired on owned',default=False)
     rps_used=models.BooleanField('Use of RPS for filming',default=False)
+    rps_used_details=models.TextField('RPA used details', blank=True, null=True)
     rps_overweight=models.BooleanField('Weight of RPS over two kg',default=False)
     num_cameras=models.TextField('Number and type of cameras to be used', blank=True, null=True)
     alteration_required=models.BooleanField('Any alteration required to the area',default=False)
@@ -5214,6 +5215,7 @@ class ProposalEventActivities(models.Model):
     proposal = models.OneToOneField(Proposal, related_name='event_activity', null=True)
     commencement_date=models.DateField(blank=True, null=True)
     completion_date=models.DateField(blank=True, null=True)
+    event_date=models.CharField('Event date', max_length=100, blank=True, null=True)
 
     def __str__(self):
         return '{}'.format(self.event_name)
@@ -5392,6 +5394,21 @@ class PreEventsParkDocument(Document):
     def delete(self):
         if self.can_delete:
             return super(PreEventsParkDocument, self).delete()
+
+class ProposalEventsTrails(models.Model):
+    #proposal = models.OneToOneField(Proposal, related_name='filming_parks', null=True)
+    proposal = models.ForeignKey(Proposal, related_name='events_trails', null=True)
+    trail= models.ForeignKey(Trail, related_name='events_proposal', null=True)
+    section= models.ForeignKey(Section, related_name='events_proposal', null=True)
+    #activities=models.ManyToManyField(Activity) #not used any more
+    event_trail_activities=models.CharField(max_length=255,null=True,blank=True)
+
+    def __str__(self):
+        return '{}'.format(self.trail)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
 # --------------------------------------------------------------------------------------
 # Event Models End
 # --------------------------------------------------------------------------------------
@@ -5471,6 +5488,7 @@ reversion.register(AbseilingClimbingActivity)
 reversion.register(EventsParkDocument)
 reversion.register(ProposalPreEventsParks, follow=['pre_event_park_documents'])
 reversion.register(PreEventsParkDocument)
+reversion.register(ProposalEventsTrails)
 
 
 
