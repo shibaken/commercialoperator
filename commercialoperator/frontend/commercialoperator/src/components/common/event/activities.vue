@@ -68,14 +68,14 @@
                         </div> 
                     </div>
 
-                    <div class="form-horizontal col-sm-12 borderDecoration">                        
+                    <!-- <div class="form-horizontal col-sm-12 borderDecoration">                        
                         <div class="">
                             <div class="">
                                 <AbseilingClimbingTable :url="abseiling_climbing_url" :proposal="proposal"  ref="abseiling_climbing_table"></AbseilingClimbingTable>
                             </div>
                             <div class="row">&nbsp;</div>
                         </div> 
-                    </div>
+                    </div> -->
 
                 </div>
             </div>                
