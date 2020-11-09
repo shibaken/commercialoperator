@@ -8,6 +8,7 @@ from commercialoperator.components.main.models import (
     SystemMaintenance,
     ApplicationType,
     Park,
+    OracleCode,
     #ParkPrice,
     Trail,
     ActivityType,
@@ -173,8 +174,19 @@ class ApplicationTypeAdmin(admin.ModelAdmin):
         form = super(ApplicationTypeAdmin, self).get_form(request, obj, **kwargs)
         return form
 
+
+class OracleCodeInline(admin.TabularInline):
+    model = OracleCode
+    exclude = ['archive_date']
+    extra = 3
+    max_num = 3
+    can_delete = False
+
 @admin.register(Park)
 class ParkAdmin(admin.ModelAdmin):
+    inlines = [
+        OracleCodeInline,
+    ]
     list_display = ['name', 'district']
     #filter_horizontal = ('allowed_activities',)
     filter_horizontal = ('allowed_activities', 'allowed_access')

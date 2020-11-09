@@ -106,6 +106,7 @@ class ActivityCategory(models.Model):
     def __str__(self):
         return self.name
 
+
 @python_2_unicode_compatible
 class Activity(models.Model):
     name = models.CharField(max_length=200, blank=True)
@@ -138,8 +139,7 @@ class Park(models.Model):
 
     adult_price = models.DecimalField('Adult (price per adult)', max_digits=5, decimal_places=2)
     child_price = models.DecimalField('Child (price per child)', max_digits=5, decimal_places=2)
-    #senior = models.DecimalField('Senior (price per senior)', max_digits=5, decimal_places=2)
-    oracle_code = models.CharField(max_length=50)
+    #oracle_code = models.CharField(max_length=50)
 
     # editable=False --> related to invoice PDF generation, currently GST is computed assuming GST is payable for ALL parks.
     # Must fix invoice calc. GST per park in pdf line_items, for net GST if editable is to be set to True
@@ -164,6 +164,13 @@ class Park(models.Model):
     @property
     def zone_ids(self):
         return [i.id for i in self.zones.all()]
+
+    def oracle_code(self, application_type):
+        """ application_type - TClass/Filming/Event """
+        try:
+            return self.oracle_codes.get(code_type=application_type)
+        except:
+            raise ValidationError('Unknown application type: {}'.format(application_type))
 
 
 @python_2_unicode_compatible
@@ -281,6 +288,27 @@ class ApplicationType(models.Model):
 
     def __str__(self):
         return self.name
+
+
+@python_2_unicode_compatible
+class OracleCode(models.Model):
+    CODE_TYPE_CHOICES = (
+        (ApplicationType.TCLASS, ApplicationType.TCLASS),
+        (ApplicationType.FILMING, ApplicationType.FILMING),
+        (ApplicationType.EVENT, ApplicationType.EVENT),
+    )
+    park = models.ForeignKey(Park, related_name='oracle_codes')
+    code_type = models.CharField('Application Type', max_length=64, choices=CODE_TYPE_CHOICES,
+                                        default=CODE_TYPE_CHOICES[0][0])
+    code = models.CharField(max_length=50, blank=True)
+    archive_date = models.DateField(null=True, blank=True)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+    def __str__(self):
+        return '{} - {}'.format(self.code_type, self.code)
+
 
 @python_2_unicode_compatible
 class ActivityMatrix(models.Model):

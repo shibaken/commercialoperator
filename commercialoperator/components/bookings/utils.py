@@ -381,10 +381,11 @@ def create_compliance_fee_lines(compliance, invoice_text=None, vouchers=[], inte
 		if no_persons > 0:
 			return {
 				'ledger_description': '{}, participants: {}'.format(park.name, no_persons),
-				'oracle_code': park.oracle_code,
+				'oracle_code': park.oracle_code(compliance.proposal.application_type),
 				#'oracle_code': 'NNP415 GST',
 				'price_incl_tax':  price,
-				'price_excl_tax':  price if park.is_gst_exempt else round(float(calculate_excl_gst(price)), 2),
+				'price_excl_tax':  price, # NO GST
+				#'price_excl_tax':  price if park.is_gst_exempt else round(float(calculate_excl_gst(price)), 2),
 				'quantity': 1 # no_persons,
 			}
 		return None
@@ -570,7 +571,7 @@ def create_lines(request, invoice_text=None, vouchers=[], internal=False):
 		if no_persons > 0:
 			return {
 				'ledger_description': '{} - {} - {}'.format(park.name, arrival, age_group),
-				'oracle_code': park.oracle_code.encode('utf-8'),
+				'oracle_code': park.oracle_code(ApplicationType.TCLASS).encode('utf-8'),
 				'price_incl_tax':  price,
 				'price_excl_tax':  price if park.is_gst_exempt else round(float(calculate_excl_gst(price)), 2),
 				'quantity': no_persons,
