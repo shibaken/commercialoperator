@@ -426,6 +426,7 @@ class GlobalSettings(models.Model):
         ('credit_facility_link', 'Credit Facility Link'),
         ('deed_poll', 'Deed poll'),
         ('deed_poll_filming', 'Deed poll Filming'),
+        ('deed_poll_event', 'Deed poll Event'),
         ('online_training_document', 'Online Training Document'),
         ('park_finder_link', 'Park Finder Link'),
         ('fees_and_charges', 'Fees and charges link'),
