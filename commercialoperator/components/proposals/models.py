@@ -3219,7 +3219,9 @@ class Referral(RevisionedMixin):
     def add_referral_document(self, request):
         with transaction.atomic():
             try:
-                if request.data.has_key('referral_document'):
+                #import ipdb; ipdb.set_trace()
+                #if request.data.has_key('referral_document'):
+                if 'referral_document' in request.data:
                     referral_document = request.data['referral_document']
                     if referral_document != 'null':
                         try:

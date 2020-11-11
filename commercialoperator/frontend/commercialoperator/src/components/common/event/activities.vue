@@ -130,9 +130,9 @@
           </div>
         </div>
     </div>
-      <div>
+      <!-- <div>
               <editTrailActivities ref="edit_sections" :proposal="proposal" :canEditActivities="canEditActivities" @refreshTrailFromResponse="refreshTrailFromResponse"></editTrailActivities>
-      </div>
+      </div> -->
     </div>
 
 </div>
