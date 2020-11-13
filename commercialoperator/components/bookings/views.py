@@ -165,6 +165,39 @@ class ExistingPaymentView(TemplateView):
             logger.error('Existing Invoice Payment: {}'.format(e))
             raise
 
+#class ExistingPaymentView(TemplateView):
+#    #template_name = 'mooring/booking/make_booking.html'
+#    template_name = 'commercialoperator/booking/success.html'
+#
+#    def get_object(self):
+#        #return get_object_or_404(Proposal, fee_invoice_reference='05572566221')
+#        return get_object_or_404(Proposal, fee_invoice_reference=self.kwargs['invoice_ref'])
+#
+#    def get(self, request, *args, **kwargs):
+#
+#        try:
+#            proposal = self.get_object()
+#            invoice = proposal.invoice
+#            application_fee = ApplicationFee.objects.create(proposal=proposal, created_by=request.user, payment_type=ApplicationFee.PAYMENT_TYPE_TEMPORARY)
+#            #invoice_reference = '05572565392'
+#
+#            with transaction.atomic():
+#                set_session_application_invoice(request.session, application_fee)
+#                checkout_response = checkout_existing_invoice(
+#                    request,
+#                    invoice,
+#                    return_url_ns='fee_success',
+#                    return_preload_url_ns='fee_success',
+#                    invoice_text='Payment Invoice',
+#                )
+#
+#                logger.info('built payment line items {} for Existing Invoice'.format(invoice.reference))
+#                return checkout_response
+#
+#        except Exception as e:
+#            logger.error('Existing Invoice Payment: {}'.format(e))
+#            raise
+
 
 class ComplianceFeeView(TemplateView):
     template_name = 'commercialoperator/booking/success.html'
@@ -211,27 +244,28 @@ class FilmingFeeView(TemplateView):
         proposal = self.get_object()
         #filming_fee = FilmingFee.objects.create(proposal=proposal, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_TEMPORARY)
         filming_fee = proposal.filming_fees.last()
+        inv_ref = filming_fee.filming_fee_invoices.last().invoice_reference
 
         try:
             with transaction.atomic():
                 set_session_filming_invoice(request.session, filming_fee)
                 #lines = create_filming_fee_lines(proposal)
                 lines = filming_fee.lines
+                invoice = Invoice.objects.get(reference=inv_ref)
 
                 film_types = '/'.join([w.capitalize().replace('_',' ') for w in proposal.filming_activity.film_type])
                 #invoice_text = 'Payment Invoice: {} - {}'.format(film_types, self.filming_activity.activity_title)
                 invoice_text = 'Payment Invoice: {}'.format(film_types)
 
-                checkout_response = checkout(
+                checkout_response = checkout_existing_invoice(
                     request,
-                    proposal,
+                    invoice,
                     lines,
                     return_url_ns='filming_fee_success',
                     return_preload_url_ns='filming_fee_success',
-                    #return_url_ns='fee_success',
-                    #return_preload_url_ns='fee_success',
                     invoice_text=invoice_text,
                 )
+
 
                 logger.info('{} built payment line item {} for Proposal Fee and handing over to payment gateway'.format('User {} with id {}'.format(proposal.submitter.get_full_name(),proposal.submitter.id), proposal.id))
                 return checkout_response
@@ -241,6 +275,48 @@ class FilmingFeeView(TemplateView):
             if filming_fee:
                 filming_fee.delete()
             raise
+
+#class FilmingFeeView(TemplateView):
+#    template_name = 'commercialoperator/booking/success.html'
+#
+#    def get_object(self):
+#        return get_object_or_404(Proposal, id=self.kwargs['proposal_pk'])
+#
+#    def get(self, request, *args, **kwargs):
+#
+#        proposal = self.get_object()
+#        #filming_fee = FilmingFee.objects.create(proposal=proposal, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_TEMPORARY)
+#        filming_fee = proposal.filming_fees.last()
+#
+#        try:
+#            with transaction.atomic():
+#                set_session_filming_invoice(request.session, filming_fee)
+#                #lines = create_filming_fee_lines(proposal)
+#                lines = filming_fee.lines
+#
+#                film_types = '/'.join([w.capitalize().replace('_',' ') for w in proposal.filming_activity.film_type])
+#                #invoice_text = 'Payment Invoice: {} - {}'.format(film_types, self.filming_activity.activity_title)
+#                invoice_text = 'Payment Invoice: {}'.format(film_types)
+#
+#                checkout_response = checkout(
+#                    request,
+#                    proposal,
+#                    lines,
+#                    return_url_ns='filming_fee_success',
+#                    return_preload_url_ns='filming_fee_success',
+#                    #return_url_ns='fee_success',
+#                    #return_preload_url_ns='fee_success',
+#                    invoice_text=invoice_text,
+#                )
+#
+#                logger.info('{} built payment line item {} for Proposal Fee and handing over to payment gateway'.format('User {} with id {}'.format(proposal.submitter.get_full_name(),proposal.submitter.id), proposal.id))
+#                return checkout_response
+#
+#        except Exception as e:
+#            logger.error('Error Creating Proposal Fee: {}'.format(e))
+#            if filming_fee:
+#                filming_fee.delete()
+#            raise
 
 
 
@@ -490,7 +566,6 @@ class ComplianceFeeSuccessView(TemplateView):
         }
         return render(request, self.template_name, context)
 
-
 class FilmingFeeSuccessView(TemplateView):
     template_name = 'commercialoperator/booking/success_fee.html'
 
@@ -499,11 +574,13 @@ class FilmingFeeSuccessView(TemplateView):
 
         proposal = None
         submitter = None
-        invoice = None
+        inv = None
         try:
             context = template_context(self.request)
             basket = None
             filming_fee = get_session_filming_invoice(request.session)
+            fee_inv = filming_fee.filming_fee_invoices.last()
+            invoice_ref = fee_inv.invoice_reference
             proposal = filming_fee.proposal
 
             try:
@@ -513,19 +590,10 @@ class FilmingFeeSuccessView(TemplateView):
                 recipient = proposal.submitter.email
                 submitter = proposal.submitter
 
-            if self.request.user.is_authenticated():
-                basket = Basket.objects.filter(status='Submitted', owner=request.user).order_by('-id')[:1]
-            else:
-                basket = Basket.objects.filter(status='Submitted', owner=booking.proposal.submitter).order_by('-id')[:1]
-
-            order = Order.objects.get(basket=basket[0])
-            invoice = Invoice.objects.get(order_number=order.number)
-            invoice_ref = invoice.reference
-            fee_inv, created = FilmingFeeInvoice.objects.get_or_create(filming_fee=filming_fee, invoice_reference=invoice_ref)
-
+            inv = Invoice.objects.get(reference=invoice_ref)
             if filming_fee.payment_type == FilmingFee.PAYMENT_TYPE_TEMPORARY:
                 try:
-                    inv = Invoice.objects.get(reference=invoice_ref)
+                    #inv = Invoice.objects.get(reference=invoice_ref)
                     order = Order.objects.get(number=inv.order_number)
                     order.user = submitter
                     order.save()
@@ -541,13 +609,13 @@ class FilmingFeeSuccessView(TemplateView):
                     filming_fee.expiry_time = None
                     update_payments(invoice_ref)
 
-                    if proposal and (invoice.payment_status == 'paid' or invoice.payment_status == 'over_paid'):
+                    if proposal and (inv.payment_status == 'paid' or inv.payment_status == 'over_paid'):
                         proposal.fee_invoice_reference = invoice_ref
                         proposal.save()
                         proposal.final_approval(request, None)
                         proposal.reset_application_discount(request.user)
                     else:
-                        logger.error('Invoice payment status is {}'.format(invoice.payment_status))
+                        logger.error('Invoice payment status is {}'.format(inv.payment_status))
                         raise
 
                     filming_fee.save()
@@ -579,17 +647,16 @@ class FilmingFeeSuccessView(TemplateView):
 
                 if FilmingFeeInvoice.objects.filter(filming_fee=filming_fee).count() > 0:
                     ffi = FilmingFeeInvoice.objects.filter(filming_fee=filming_fee)
-                    invoice = ffi[0]
+                    inv = ffi[0]
             else:
                 return redirect('home')
 
         context = {
             'proposal': proposal,
             'submitter': submitter,
-            'fee_invoice': invoice
-        }
+            'fee_invoice': inv
+        } 
         return render(request, self.template_name, context)
-
 
 
 class ZeroApplicationFeeView(TemplateView):

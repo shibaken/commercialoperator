@@ -652,6 +652,13 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         return self.invoice.amount if self.fee_paid else None
 
     @property
+    def filming_fee_invoice_reference(self):
+        try: 
+            return self.filming_fees.last().filming_fee_invoices.last().invoice_reference
+        except:
+            return None
+
+    @property
     def can_create_final_approval(self):
         return self.fee_paid and self.processing_status==Proposal.PROCESSING_STATUS_AWAITING_PAYMENT
 
@@ -1985,11 +1992,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
                     self.processing_status = self.PROCESSING_STATUS_AWAITING_PAYMENT
                     self.customer_status = self.CUSTOMER_STATUS_AWAITING_PAYMENT
-                    #invoice = self.__create_filming_fee_invoice(request)
+                    invoice = self.__create_filming_fee_invoice(request)
                     #import ipdb; ipdb.set_trace()
-                    confirmation = self.__create_filming_fee_confirmation(request)
+                    #confirmation = self.__create_filming_fee_confirmation(request)
                     #
-                    if confirmation:
+                    #if confirmation:
+                    if invoice:
                         # send Proposal awaiting payment approval email & Log proposal action
                         send_proposal_awaiting_payment_approval_email_notification(self, request)
                         self.log_user_action(ProposalUserAction.ACTION_AWAITING_PAYMENT_APPROVAL_.format(self.id),request)
@@ -2112,11 +2120,13 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             except:
                 raise
 
-    def __create_filming_fee_confirmation(self, request):
+    def __create_filming_fee_invoice(self, request):
 
         from dateutil.relativedelta import relativedelta
         from commercialoperator.components.bookings.models import FilmingFee
         from commercialoperator.components.bookings.utils import create_filming_fee_lines
+        from ledger.checkout.utils import createCustomBasket
+        from ledger.payments.invoice.utils import CreateInvoiceBasket
 
         filming_fee = None
         if self.application_type.name == ApplicationType.FILMING and self.filming_approval_type==self.LICENCE \
@@ -2126,16 +2136,50 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
             with transaction.atomic():
                 try:
-                    logger.info('Creating filming fee confirmation')
+                    logger.info('Creating filming fee invoice')
 
-                    payment_method = 'other'
                     deferred_payment_date = timezone.now() + relativedelta(months=1)
+
+                    basket  = createCustomBasket(lines, request.user, settings.PAYMENT_SYSTEM_ID)
+                    order = CreateInvoiceBasket(
+                            payment_method='other', system=settings.PAYMENT_SYSTEM_PREFIX
+                        ).create_invoice_and_order(basket, 0, None, None, user=request.user, invoice_text='Payment Invoice')
+                    invoice = Invoice.objects.get(order_number=order.number)
+
                     filming_fee = FilmingFee.objects.create(proposal=self, lines=lines, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_TEMPORARY, deferred_payment_date=deferred_payment_date)
+                    filming_fee.filming_fee_invoices.create(invoice_reference=invoice.reference)
+
                 except Exception as e:
                     logger.error('Failed to create filming fee confirmation')
                     logger.error('{}'.format(e))
 
         return filming_fee
+
+
+#    def __create_filming_fee_confirmation(self, request):
+#
+#        from dateutil.relativedelta import relativedelta
+#        from commercialoperator.components.bookings.models import FilmingFee
+#        from commercialoperator.components.bookings.utils import create_filming_fee_lines
+#
+#        filming_fee = None
+#        if self.application_type.name == ApplicationType.FILMING and self.filming_approval_type==self.LICENCE \
+#            and not self.fee_invoice_reference and len(self.filming_activity.film_type)>0:
+#
+#            lines = create_filming_fee_lines(self)
+#
+#            with transaction.atomic():
+#                try:
+#                    logger.info('Creating filming fee confirmation')
+#
+#                    payment_method = 'other'
+#                    deferred_payment_date = timezone.now() + relativedelta(months=1)
+#                    filming_fee = FilmingFee.objects.create(proposal=self, lines=lines, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_TEMPORARY, deferred_payment_date=deferred_payment_date)
+#                except Exception as e:
+#                    logger.error('Failed to create filming fee confirmation')
+#                    logger.error('{}'.format(e))
+#
+#        return filming_fee
 
     def generate_compliances(self,approval, request):
         today = timezone.now().date()
