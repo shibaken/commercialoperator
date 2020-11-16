@@ -132,38 +132,6 @@ class ApplicationFeeView(TemplateView):
                 application_fee.delete()
             raise
 
-class ExistingPaymentView(TemplateView):
-    #template_name = 'mooring/booking/make_booking.html'
-    template_name = 'commercialoperator/booking/success.html'
-
-    def get_object(self):
-        #return get_object_or_404(Proposal, fee_invoice_reference='05572566221')
-        return get_object_or_404(Proposal, fee_invoice_reference=self.kwargs['invoice_ref'])
-
-    def get(self, request, *args, **kwargs):
-
-        try:
-            proposal = self.get_object()
-            invoice = proposal.invoice
-            application_fee = ApplicationFee.objects.create(proposal=proposal, created_by=request.user, payment_type=ApplicationFee.PAYMENT_TYPE_TEMPORARY)
-            #invoice_reference = '05572565392'
-
-            with transaction.atomic():
-                set_session_application_invoice(request.session, application_fee)
-                checkout_response = checkout_existing_invoice(
-                    request,
-                    invoice,
-                    return_url_ns='fee_success',
-                    return_preload_url_ns='fee_success',
-                    invoice_text='Payment Invoice',
-                )
-
-                logger.info('built payment line items {} for Existing Invoice'.format(invoice.reference))
-                return checkout_response
-
-        except Exception as e:
-            logger.error('Existing Invoice Payment: {}'.format(e))
-            raise
 
 #class ExistingPaymentView(TemplateView):
 #    #template_name = 'mooring/booking/make_booking.html'
@@ -275,49 +243,6 @@ class FilmingFeeView(TemplateView):
             if filming_fee:
                 filming_fee.delete()
             raise
-
-#class FilmingFeeView(TemplateView):
-#    template_name = 'commercialoperator/booking/success.html'
-#
-#    def get_object(self):
-#        return get_object_or_404(Proposal, id=self.kwargs['proposal_pk'])
-#
-#    def get(self, request, *args, **kwargs):
-#
-#        proposal = self.get_object()
-#        #filming_fee = FilmingFee.objects.create(proposal=proposal, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_TEMPORARY)
-#        filming_fee = proposal.filming_fees.last()
-#
-#        try:
-#            with transaction.atomic():
-#                set_session_filming_invoice(request.session, filming_fee)
-#                #lines = create_filming_fee_lines(proposal)
-#                lines = filming_fee.lines
-#
-#                film_types = '/'.join([w.capitalize().replace('_',' ') for w in proposal.filming_activity.film_type])
-#                #invoice_text = 'Payment Invoice: {} - {}'.format(film_types, self.filming_activity.activity_title)
-#                invoice_text = 'Payment Invoice: {}'.format(film_types)
-#
-#                checkout_response = checkout(
-#                    request,
-#                    proposal,
-#                    lines,
-#                    return_url_ns='filming_fee_success',
-#                    return_preload_url_ns='filming_fee_success',
-#                    #return_url_ns='fee_success',
-#                    #return_preload_url_ns='fee_success',
-#                    invoice_text=invoice_text,
-#                )
-#
-#                logger.info('{} built payment line item {} for Proposal Fee and handing over to payment gateway'.format('User {} with id {}'.format(proposal.submitter.get_full_name(),proposal.submitter.id), proposal.id))
-#                return checkout_response
-#
-#        except Exception as e:
-#            logger.error('Error Creating Proposal Fee: {}'.format(e))
-#            if filming_fee:
-#                filming_fee.delete()
-#            raise
-
 
 
 class DeferredInvoicingPreviewView(TemplateView):

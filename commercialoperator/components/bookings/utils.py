@@ -731,7 +731,6 @@ def checkout(request, proposal, lines, return_url_ns='public_booking_success', r
 
 def checkout_existing_invoice(request, invoice, lines, return_url_ns='public_booking_success', return_preload_url_ns='public_booking_success', invoice_text=None, vouchers=[], proxy=False):
         basket_params = {
-                #'products': invoice.order.basket.subset_lines(),
                 #'products': invoice.order.basket.lines.all(),
                 'products': lines,
                 'vouchers': vouchers,
@@ -752,8 +751,9 @@ def checkout_existing_invoice(request, invoice, lines, return_url_ns='public_boo
         create_checkout_session(request, checkout_params)
 
         #response = HttpResponseRedirect(reverse('checkout:index'))
-        #response = HttpResponse(reverse('checkout:index'))
+        # use HttpResponse instead of HttpResponseRedirect - HttpResonseRedirect does not pass cookies which is important for ledger to get the correct basket
         response = HttpResponse("<script> window.location='"+reverse('checkout:index')+"';</script> <a href='"+reverse('checkout:index')+"'> Redirecting please wait: "+reverse('checkout:index')+"</a>")
+
         # inject the current basket into the redirect response cookies
         # or else, anonymous users will be directionless
         response.set_cookie(

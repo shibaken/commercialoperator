@@ -2156,31 +2156,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         return filming_fee
 
 
-#    def __create_filming_fee_confirmation(self, request):
-#
-#        from dateutil.relativedelta import relativedelta
-#        from commercialoperator.components.bookings.models import FilmingFee
-#        from commercialoperator.components.bookings.utils import create_filming_fee_lines
-#
-#        filming_fee = None
-#        if self.application_type.name == ApplicationType.FILMING and self.filming_approval_type==self.LICENCE \
-#            and not self.fee_invoice_reference and len(self.filming_activity.film_type)>0:
-#
-#            lines = create_filming_fee_lines(self)
-#
-#            with transaction.atomic():
-#                try:
-#                    logger.info('Creating filming fee confirmation')
-#
-#                    payment_method = 'other'
-#                    deferred_payment_date = timezone.now() + relativedelta(months=1)
-#                    filming_fee = FilmingFee.objects.create(proposal=self, lines=lines, created_by=request.user, payment_type=FilmingFee.PAYMENT_TYPE_TEMPORARY, deferred_payment_date=deferred_payment_date)
-#                except Exception as e:
-#                    logger.error('Failed to create filming fee confirmation')
-#                    logger.error('{}'.format(e))
-#
-#        return filming_fee
-
     def generate_compliances(self,approval, request):
         today = timezone.now().date()
         timedelta = datetime.timedelta
