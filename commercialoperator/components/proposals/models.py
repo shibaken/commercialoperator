@@ -4426,6 +4426,7 @@ class ProposalFilmingParks(models.Model):
 
     class Meta:
         app_label = 'commercialoperator'
+        unique_together = ('proposal', 'park')
 
     def can_assessor_edit_orig(self,user):
         assessor_group=None
