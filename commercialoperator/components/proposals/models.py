@@ -4344,6 +4344,7 @@ class ProposalFilmingActivity(models.Model):
     activity_title=models.CharField('Activity title', max_length=100, null=True, blank=True)
     production_description=models.TextField(blank=True, null=True,)
     proposal = models.OneToOneField(Proposal, related_name='filming_activity', null=True)
+    #pdswa_location=models.BooleanField('Event location within PDSWA',default=False)
 
     def __str__(self):
         return '{}'.format(self.activity_title)
@@ -5219,6 +5220,7 @@ class ProposalEventActivities(models.Model):
     commencement_date=models.DateField(blank=True, null=True)
     completion_date=models.DateField(blank=True, null=True)
     event_date=models.CharField('Event date', max_length=100, blank=True, null=True)
+    pdswa_location=models.BooleanField('Event location within PDSWA',default=False)
 
     def __str__(self):
         return '{}'.format(self.event_name)

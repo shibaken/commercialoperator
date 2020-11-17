@@ -76,6 +76,37 @@
                             <div class="row">&nbsp;</div>
                         </div> 
                     </div> -->
+                    <div class="form-horizontal col-sm-12 borderDecoration">                        
+                        <div class="">
+                            <div class="row">    
+                                <div class="col-sm-6">
+                                    <label class="control-label pull-left"  for="Name">Is any part of your proposed event located within Public Drinking Water Source Areas (PDSWA)?</label>                                   
+                                </div>
+                              <div class="col-sm-6">
+                                  <ul class="list-inline"  >
+                                      <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_activity.pdswa_location" :value="true" data-parsley-required :disabled="proposal.readonly" name="pdswa_location"/>
+                                            Yes
+                                      </li>
+                                      <li class="form-check list-inline-item">
+                                            <input  class="form-check-input" ref="Radio" type="radio"  v-model="proposal.event_activity.pdswa_location" :value="false" data-parsley-required :disabled="proposal.readonly" name="pdswa_location"/>
+                                            No
+                                      </li>
+                                  </ul>      
+                                </div>
+                            </div>
+                            <div class="row" v-if="proposal.event_activity.pdswa_location">
+                                <div class="col-sm-6">
+                                    <label v-if="dwer_application_form" class="control-label pull-left"  for="Name">Please complete and attach the Department of Water and Environmental Regulation application form accessible  <a :href="dwer_application_form" target="_blank">here</a>.</label>
+                                    <label v-else class="control-label pull-left"  for="Name">Please complete and attach the Department of Water and Environmental Regulation application form accessible here.</label>                               
+                                </div>
+                                <div class="col-sm-6">
+                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_activity_pdswa_location" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                </div>                                
+                            </div>
+                            <div class="row">&nbsp;</div> 
+                        </div> 
+                    </div>
 
                 </div>
             </div>                
@@ -145,6 +176,7 @@ import AbseilingClimbingTable from './abseiling_climbing_table.vue'
 import editTrailActivities from '@/components/common/tclass/edit_trail_activities.vue'
 //import editTrailActivities from './edit_trail_activities.vue'
 import TreeSelect from '@/components/forms/treeview.vue'
+import FileField from '@/components/forms/filefield.vue'
 import {
   api_endpoints,
   helpers
@@ -220,6 +252,7 @@ import {
             AbseilingClimbingTable,
             TreeSelect,
             editTrailActivities,
+            FileField,
         },
         computed:{
             trail_section_map: function(){
@@ -227,6 +260,17 @@ import {
                 if(vm.global_settings){
                     for(var i=0; i<vm.global_settings.length; i++){
                         if(vm.global_settings[i].key=='trail_section_map'){
+                            return vm.global_settings[i].value;
+                        }
+                    }
+                }
+                return '';
+            },
+            dwer_application_form: function(){
+                let vm=this;
+                if(vm.global_settings){
+                    for(var i=0; i<vm.global_settings.length; i++){
+                        if(vm.global_settings[i].key=='dwer_application_form'){
                             return vm.global_settings[i].value;
                         }
                     }
