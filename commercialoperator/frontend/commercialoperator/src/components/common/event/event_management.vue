@@ -353,13 +353,13 @@
                                <div class="col-sm-12">
                                     <ul class="list-block"  >
                                         <li class="control-label list-inline-item">
-                                            Event Managemet plan
+                                            Event Management plan
                                         </li>
                                         <li class="control-label list-inline-item">
                                             Emergency response plan
                                         </li>
                                         <li class="control-label list-inline-item">
-                                            Risk Managemet plan
+                                            Risk Management plan
                                         </li>
                                         
                                     </ul>      
