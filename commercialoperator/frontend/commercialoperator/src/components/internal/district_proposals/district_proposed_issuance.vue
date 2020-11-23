@@ -75,7 +75,7 @@
                 </div>
             </div>
 
-            <!-- <p v-if="can_preview">Click <a href="#" @click.prevent="preview">here</a> to preview the licence document.</p> -->
+            <p v-if="can_preview">Click <a href="#" @click.prevent="preview">here</a> to preview the licence document.</p>
 
             <div slot="footer">
                 <button type="button" v-if="issuingApproval" disabled class="btn btn-default" @click="ok"><i class="fa fa-spinner fa-spin"></i> Processing</button>
@@ -167,7 +167,7 @@ export default {
             return this.processing_status == 'With Approver' ? true : false;
         },
         preview_licence_url: function() {
-          return (this.district_proposal_id) ? `/preview/licence-pdf/${this.proposal_id}` : '';
+          return (this.district_proposal_id) ? `/district_preview/licence-pdf/${this.district_proposal_id}` : '';
         },
         
 
@@ -177,7 +177,8 @@ export default {
             let vm =this;
 
             let formData = new FormData(vm.form)
-
+            formData.append('start_date', vm.approval.start_date);
+            formData.append('due_date', vm.approval.expiry_date);
             // convert formData to json
             let jsonObject = {};
             for (const [key, value] of formData.entries()) {
