@@ -58,7 +58,7 @@ export default {
             datatable_id: 'vessel-datatable-'+vm._uid,
             // Filters for Vessels
             
-            vessel_headers:["Nominated Vessel", "SPV no./ reg. no.","Hire and Drvie reg.","No.of craft","Vessel Size (m)","Action"],
+            vessel_headers:["Nominated Vessel", "SPV no./ reg. no.","Hire and Drive reg.","No.of craft","Vessel Size (m)","Action"],
             vessel_options:{
                 language: {
                     processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"

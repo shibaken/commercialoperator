@@ -62,7 +62,7 @@
                 </div>
             </div>
             <div class="borderDecoration col-sm-12">
-                <label class="control-label">Provide details of every vehicle you plan to use when accessing the parks</label>
+                <label class="control-label">Provide details of every vehicle you plan to use when accessing the parks. 'Hire vehicle' can be entered as the vehicle registration if the hire vehicle details are not yet known.</label>
                   <VehicleTable :url="vehicles_url" :proposal="proposal" :access_types="land_access_types" ref="vehicles_table"></VehicleTable>
             </div>
         </div>
