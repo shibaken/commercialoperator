@@ -98,7 +98,7 @@
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="col-sm-6" style="margin-bottom: 5px">
-                                        <FileField :proposal_id="proposal.id" isRepeatable="true" name="rps_certificate" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                        <FileField :proposal_id="proposal.id" isRepeatable="true" name="rps_certificate" :id="'proposal'+proposal.id" :readonly="proposal.readonly" ref="rps_certificate"></FileField>
                                     </div>
                                 </div>                                
                         </div>

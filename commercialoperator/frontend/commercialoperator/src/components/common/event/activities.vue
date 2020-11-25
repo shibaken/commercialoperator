@@ -101,7 +101,7 @@
                                     <label v-else class="control-label pull-left"  for="Name">Please complete and attach the Department of Water and Environmental Regulation application form accessible here.</label>                               
                                 </div>
                                 <div class="col-sm-6">
-                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_activity_pdswa_location" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_activity_pdswa_location" :id="'proposal'+proposal.id" :readonly="proposal.readonly" ref="event_activity_pdswa_file"></FileField>
                                 </div>                                
                             </div>
                             <div class="row">&nbsp;</div> 
