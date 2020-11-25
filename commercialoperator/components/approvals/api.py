@@ -49,9 +49,55 @@ from commercialoperator.components.organisations.models import Organisation, Org
 from commercialoperator.helpers import is_customer, is_internal
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from commercialoperator.components.proposals.api import ProposalFilterBackend, ProposalRenderer
+from rest_framework_datatables.filters import DatatablesFilterBackend
+
+class ApprovalFilterBackend(DatatablesFilterBackend):
+    """
+    Custom filters
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        total_count = queryset.count()
+
+        def get_choice(status, choices=Proposal.PROCESSING_STATUS_CHOICES):
+            for i in choices:
+                if i[1]==status:
+                    return i[0]
+            return None
+
+        # on the internal dashboard, the Region filter is multi-select - have to use the custom filter below
+        regions = request.GET.get('regions')
+        if regions:
+            if queryset.model is Proposal:
+                queryset = queryset.filter(region__name__iregex=regions.replace(',', '|'))
+            elif queryset.model is Referral or queryset.model is Compliance:
+                queryset = queryset.filter(proposal__region__name__iregex=regions.replace(',', '|'))
+
+        
+        date_from = request.GET.get('date_from')
+        date_to = request.GET.get('date_to')
+        
+        if queryset.model is Approval:
+            if date_from:
+                queryset = queryset.filter(start_date__gte=date_from)
+
+            if date_to:
+                queryset = queryset.filter(expiry_date__lte=date_to)
+        
+        getter = request.query_params.get
+        fields = self.get_fields(getter)
+        ordering = self.get_ordering(getter, fields)
+        queryset = queryset.order_by(*ordering)
+        if len(ordering):
+            queryset = queryset.order_by(*ordering)
+
+        queryset = super(ApprovalFilterBackend, self).filter_queryset(request, queryset, view)
+        setattr(view, '_datatables_total_count', total_count)
+        return queryset
 
 class ApprovalPaginatedViewSet(viewsets.ModelViewSet):
-    filter_backends = (ProposalFilterBackend,)
+    #filter_backends = (ProposalFilterBackend,)
+    filter_backends = (ApprovalFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
     renderer_classes = (ProposalRenderer,)
     page_size = 10

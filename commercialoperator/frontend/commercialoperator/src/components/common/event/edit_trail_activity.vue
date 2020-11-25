@@ -1,5 +1,5 @@
 <template lang="html">
-    <div id="editEventTrail">
+    <div id="editEventTrailSection2">
         <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large>
             <div class="container-fluid">
                 <div class="row">
@@ -13,13 +13,13 @@
                                         <label class="control-label pull-left"  for="Name">Trail</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <select class="form-control" name="trail" ref="events_trail" @change="fetchSections" v-model="events_trail_id">
-                                            <option v-for="t in trails_list" :value="t.id">{{t.name}}</option>
+                                        <select class="form-control" name="event_trail_new" ref="events_trail" v-model="events_trail_id">
+                                            <option v-for="t in trails_list" :value="t.id" v-bind:key="t.id">{{t.name}}</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <!-- <div class="form-group">
                                 <div class="row">
                                     <div class="col-sm-3">
                                         
@@ -28,6 +28,19 @@
                                     <div class="col-sm-9">
                                         <select class="form-control" name="section" ref="events_section" v-model="section_id">
                                             <option v-for="s in section_list" :value="s.id">{{s.name}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div> -->
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-3">
+                                        
+                                        <label class="control-label pull-left"  for="Name">Sections</label>
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <select class="form-control" name="event_trail_section" ref="events_section" v-model="section_id">
+                                            <option v-for="s in trail_list_filter" :value="s.id" v-bind:key="s.id">{{s.name}}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -144,11 +157,23 @@ export default {
             return vm.errors;
         },
         title: function(){
-            return this.park_action == 'add' ? 'Add a new Park or Reserve' : 'Edit a Park or Reserve';
+            return this.park_action == 'add' ? 'Add a new Trail' : 'Edit a Trail';
         },
         delete_url: function() {
             return (this.park_id) ? '/api/proposal_events_trails/'+this.park_id+'/delete_document/' : '';
+        },
+        trail_list_filter:function(){
+            let trail_list=[];
+            var vm = this;
+            for (var i = 0; i < vm.trails_list.length; i++) {
+                if (vm.trails_list[i].id == vm.events_trail_id) {
+                    //vm.section_list = vm.trails_list[i].sections;
+                    //vm.section_list = helpers.copyObject(vm.trails_list[i].sections)
+                    return vm.trails_list[i].sections;
+                }
+            }
         }
+
     },
     methods:{
         refreshFromResponse: function(updated_docs){
@@ -177,6 +202,7 @@ export default {
             $(this.$refs.events_trail).val(null).trigger('change');
             $(this.$refs.events_section).val(null).trigger('change');
             this.selected_activities=[];
+            this.section_list=[];
             this.events_trail_id=null;
             this.section_id=null;
             this.validation_form.resetForm();
@@ -240,13 +266,16 @@ export default {
             /* Searches for dictionary in list */
             //console.log('here');
             let vm=this;
+            vm.section_list=[];
+            $(this.$refs.events_section).val(null).trigger('change');
             for (var i = 0; i < vm.trails_list.length; i++) {
                 if (vm.trails_list[i].id == vm.events_trail_id) {
-                    vm.section_list = vm.trails_list[i].sections;
+                    //vm.section_list = vm.trails_list[i].sections;
+                    vm.section_list = helpers.copyObject(vm.trails_list[i].sections)
                 }
             }
-            //console.log(vm.section_list);
-            $(vm.$refs.events_section).trigger('change');
+            console.log(vm.section_list);
+            $(vm.$refs.events_section).val(vm.section_list).trigger('change');
         },
         sendData:function(){
             let vm = this;
@@ -359,12 +388,12 @@ export default {
             on("select2:select",function (e) {
                 var selected = $(e.currentTarget);
                 vm.events_trail_id = selected.val();
-                vm.fetchSections();
+                //vm.fetchSections();
             }).
             on("select2:unselect",function (e) {
                 var selected = $(e.currentTarget);
                 vm.events_trail_id = selected.val();
-                vm.fetchSections();
+                //vm.fetchSections();
             });
             $(vm.$refs.events_section).select2({
                 "theme": "bootstrap",

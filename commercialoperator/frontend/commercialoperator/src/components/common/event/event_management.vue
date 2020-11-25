@@ -353,13 +353,13 @@
                                <div class="col-sm-12">
                                     <ul class="list-block"  >
                                         <li class="control-label list-inline-item">
-                                            Event Managemet plan
+                                            Event Management plan
                                         </li>
                                         <li class="control-label list-inline-item">
                                             Emergency response plan
                                         </li>
                                         <li class="control-label list-inline-item">
-                                            Risk Managemet plan
+                                            Risk Management plan
                                         </li>
                                         
                                     </ul>      
@@ -367,7 +367,7 @@
                             </div> 
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_risk_management_plan" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>    
+                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_risk_management_plan" :id="'proposal'+proposal.id" :readonly="proposal.readonly" ref="event_risk_management_plan"></FileField>    
                                 </div>
                             </div>
 
@@ -394,7 +394,7 @@
                                     <label class="control-label pull-left"  for="Name">Please attach </label>                               
                                 </div>
                                 <div class="col-sm-6">
-                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_management_traffic_management_plan" :id="'proposal'+proposal.id" :readonly="proposal.readonly"></FileField>
+                                    <FileField :proposal_id="proposal.id" isRepeatable="true" name="event_management_traffic_management_plan" :id="'proposal'+proposal.id" :readonly="proposal.readonly" ref="event_management_traffic_management_plan"></FileField>
                                 </div>                                
                             </div>
                             <div class="row" v-if="!proposal.event_management.traffic_management_plan">

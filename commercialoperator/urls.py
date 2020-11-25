@@ -148,6 +148,7 @@ urlpatterns = [
     #following url is used to include url path when sending Proposal amendment request to user.
     url(r'^proposal/$', proposal_views.ProposalView.as_view(), name='proposal'),
     url(r'^preview/licence-pdf/(?P<proposal_pk>\d+)',proposal_views.PreviewLicencePDFView.as_view(), name='preview_licence_pdf'),
+    url(r'^district_preview/licence-pdf/(?P<district_proposal_pk>\d+)',proposal_views.PreviewDistrictLicencePDFView.as_view(), name='district_preview_licence_pdf'),
 
     # payment related urls
     url(r'^application_fee/(?P<proposal_pk>\d+)/$', booking_views.ApplicationFeeView.as_view(), name='application_fee'),

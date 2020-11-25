@@ -371,18 +371,21 @@ def _create_approval_event(approval_buffer, approval, proposal, copied_to_permit
 
     event_delegation = []
     event_delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-    event_delegation.append(Table([[[Paragraph('Event Name:', styles['BoldLeft'])],
-                              [Paragraph(approval.current_proposal.event_activity.event_name,
-                                         styles['Left'])]]],
-                            colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
-                            style=approval_table_style))
+    if approval.current_proposal.event_activity.event_name:
+        event_delegation.append(Table([[[Paragraph('Event Name:', styles['BoldLeft'])],
+                                  [Paragraph(approval.current_proposal.event_activity.event_name,
+                                             styles['Left'])]]],
+                                colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                                style=approval_table_style))
 
-    event_delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
-    event_delegation.append(Table([[[Paragraph('Event Date:', styles['BoldLeft'])],
-                              [Paragraph(approval.current_proposal.event_activity.event_date,
-                                         styles['Left'])]]],
-                            colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
-                            style=approval_table_style))
+        event_delegation.append(Spacer(1, SECTION_BUFFER_HEIGHT))
+    
+    if approval.current_proposal.event_activity.event_date:
+        event_delegation.append(Table([[[Paragraph('Event Date:', styles['BoldLeft'])],
+                                  [Paragraph(approval.current_proposal.event_activity.event_date,
+                                             styles['Left'])]]],
+                                colWidths=(120, PAGE_WIDTH - (2 * PAGE_MARGIN) - 120),
+                                style=approval_table_style))
     elements.append(KeepTogether(event_delegation))
     elements.append(Spacer(1, SECTION_BUFFER_HEIGHT))
     elements.append(Paragraph('CONDITIONS', styles['BoldLeft']))

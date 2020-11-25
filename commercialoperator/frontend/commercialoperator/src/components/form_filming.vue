@@ -77,10 +77,10 @@
                 <Access :proposal="proposal" id="proposalStartAccess" :hasDistrictAssessorMode="hasDistrictAssessorMode" :district_proposal= "district_proposal" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_external= "is_external" ></Access>
               </div>
               <div class="tab-pane fade" id="pills-equipment" role="tabpanel" aria-labelledby="pills-equipment-tab">
-                <Equipment :proposal="proposal" id="proposalStartEquipment"></Equipment>
+                <Equipment :proposal="proposal" id="proposalStartEquipment" ref="filming_equipment"></Equipment>
               </div>
               <div class="tab-pane fade" id="pills-other-details" role="tabpanel" aria-labelledby="pills-other-details-tab">
-                <OtherDetails :proposal="proposal" id="proposalStartOtherDetails"></OtherDetails>
+                <OtherDetails :proposal="proposal" id="proposalStartOtherDetails" ref="filming_other_details"></OtherDetails>
               </div>
               <div class="tab-pane fade" id="pills-confirm" role="tabpanel" aria-labelledby="pills-confirm-tab">
                 <Confirmation :proposal="proposal" id="proposalStartConfirmation"></Confirmation>

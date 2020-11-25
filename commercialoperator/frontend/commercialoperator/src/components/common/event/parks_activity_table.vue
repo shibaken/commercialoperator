@@ -10,7 +10,7 @@
             <div class="row">&nbsp;</div>
             <div class="row" >
                 <div class="" >
-                            <label class="col-sm-12"  for="Name">Please attach a detailed itinerary and map of the event route (including a GPX or KML file format). Please include information on the proposed routes, spectator points and camping sites, and any mustering, changeover, aid station or transition points.</label>
+                            <label class="col-sm-12"  for="Name">Please attach a detailed itinerary and map of the event route (including a GPX or KML file format). Please include information on the proposed routes, parking and staging locations, spectator points and camping sites, and any mustering, changeover, aid station or transition points.</label>
                 </div>
             </div>
             <div class="row">
