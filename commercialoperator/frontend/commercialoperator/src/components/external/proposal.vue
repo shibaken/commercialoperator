@@ -599,7 +599,7 @@ export default {
           blank_fields.push(' Items/ areas of cultural significance details are missing')
         }
       }
-      if(vm.proposal.filming_access.no_of_people=='' || vm.proposal.filming_activity.no_of_people==null){
+      if(vm.proposal.filming_access.no_of_people=='' || vm.proposal.filming_access.no_of_people==null){
           blank_fields.push(' Number of people in filming party is missing')
       }
       if(vm.proposal.filming_equipment.rps_used){
