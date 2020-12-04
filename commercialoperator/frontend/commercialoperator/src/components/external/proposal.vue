@@ -615,8 +615,11 @@ export default {
           blank_fields.push(' Any alteration to occur details are missing')
         }
       }
-      if(vm.proposal.filming_equipment.other_equipments=='' || vm.proposal.filming_equipment.other_equipments==null){
+      if(vm.proposal.filming_equipment.num_cameras=='' || vm.proposal.filming_equipment.num_cameras==null){
           blank_fields.push(' Number and type of cameras is missing')
+      }
+      if(vm.proposal.filming_equipment.other_equipments=='' || vm.proposal.filming_equipment.other_equipments==null){
+          blank_fields.push(' Other significant equipment details are missing')
       }
       if(vm.proposal.filming_other_details.safety_details=='' || vm.proposal.filming_other_details.safety_details==null){
           blank_fields.push(' Safety details are missing')
