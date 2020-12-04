@@ -431,7 +431,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             ]
 
     # List of statuses from above that allow a customer to view an application (read-only)
-    CUSTOMER_VIEWABLE_STATE = ['with_assessor', 'under_review', 'id_required', 'returns_required', 'awaiting_payment', 'approved', 'declined']
+    CUSTOMER_VIEWABLE_STATE = ['with_assessor', 'under_review', 'id_required', 'returns_required', 'awaiting_payment', 'approved', 'declined','partially_approved', 'partially_declined']
 
     PROCESSING_STATUS_TEMP = 'temp'
     PROCESSING_STATUS_DRAFT = 'draft'
