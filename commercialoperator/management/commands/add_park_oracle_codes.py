@@ -16,7 +16,8 @@ class Command(BaseCommand):
 
         logger.info('Running command {}'.format(__name__))
 
-        with open('commercialoperator/utils/csv/park_oracle_codes_09Nov2020.csv') as csvfile:
+        #with open('commercialoperator/utils/csv/park_oracle_codes_09Nov2020.csv') as csvfile:
+        with open('commercialoperator/utils/csv/park_oracle_codes_03Dec2020.csv') as csvfile:
             reader = csv.reader(csvfile, delimiter=',')
             header = next(reader)
             for row in reader:
