@@ -590,8 +590,9 @@ export default {
                         'start_date': this.proposal.other_details.nominated_start_date,
                         'expiry_date': this.proposal.other_details.proposed_end_date
                     };
+                    this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
                 }
-                this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
+                //this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
             }
             if(this.proposal.application_type==this.application_type_filming){
                 if((this.proposal.proposed_issuance_approval==null || this.proposal.proposed_issuance_approval.expiry_date==null) && this.proposal.filming_activity.completion_date!=null && this.proposal.filming_activity.commencement_date!=null){
