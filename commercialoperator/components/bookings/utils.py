@@ -571,7 +571,8 @@ def create_lines(request, invoice_text=None, vouchers=[], internal=False):
                 if no_persons > 0:
                         return {
                                 'ledger_description': '{} - {} - {}'.format(park.name, arrival, age_group),
-                                'oracle_code': park.oracle_code(ApplicationType.TCLASS).encode('utf-8'),
+                                #'oracle_code': park.oracle_code(ApplicationType.TCLASS).encode('utf-8'),
+                                'oracle_code': park.oracle_code(ApplicationType.TCLASS),
                                 'price_incl_tax':  price,
                                 'price_excl_tax':  price if park.is_gst_exempt else round(float(calculate_excl_gst(price)), 2),
                                 'quantity': no_persons,
@@ -598,6 +599,7 @@ def create_lines(request, invoice_text=None, vouchers=[], internal=False):
                 #no_children = no_children if no_children_same_tour==0 else no_children_same_tour
                 #no_free_of_charge = no_free_of_charge if no_free_of_charge_same_tour==0 else no_free_of_charge_same_tour
 
+                import ipdb; ipdb.set_trace()
                 if same_tour_group and no_adults_same_tour is not None:
                         if no_adults_same_tour > 0:
                                 lines.append(add_line_item(park, arrival, 'Adult (Same Tour Group, Total {})'.format(no_adults), price=park.adult_price, no_persons=no_adults_same_tour))

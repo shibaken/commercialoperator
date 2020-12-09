@@ -168,7 +168,7 @@ class Park(models.Model):
     def oracle_code(self, application_type):
         """ application_type - TClass/Filming/Event """
         try:
-            return self.oracle_codes.get(code_type=application_type)
+            return self.oracle_codes.get(code_type=application_type).code
         except:
             raise ValidationError('Unknown application type: {}'.format(application_type))
 
