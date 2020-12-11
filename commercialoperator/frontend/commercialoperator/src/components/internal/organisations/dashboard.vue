@@ -93,6 +93,7 @@ export default {
                 },
                 responsive: true,
                 processing:true,
+                order: [[0, 'desc']],
                 ajax: {
                     "url": helpers.add_endpoint_json(api_endpoints.organisation_requests,'datatable_list'),
                     "dataSrc": '',
