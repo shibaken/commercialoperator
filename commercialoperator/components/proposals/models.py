@@ -1469,7 +1469,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     # Check if the user is in ledger
                     try:
                         #user = EmailUser.objects.get(email__icontains=referral_email)
-                        referral_group = ReferralRecipientGroup.objects.get(name__icontains=referral_email)
+                        #referral_group = ReferralRecipientGroup.objects.get(name__icontains=referral_email)
+                        referral_group = ReferralRecipientGroup.objects.get(name__iexact=referral_email)
                     #except EmailUser.DoesNotExist:
                     except ReferralRecipientGroup.DoesNotExist:
                         raise exceptions.ProposalReferralCannotBeSent()
