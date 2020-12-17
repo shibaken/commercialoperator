@@ -405,20 +405,22 @@ export default {
                                 }
                             }
 
-                            if (full.fee_paid && full.proposal_type!='Amendment'){
-                                if(vm.is_payment_admin){
-                                    links +=  `<a href='/ledger/payments/invoice/payment?invoice=${full.fee_invoice_reference}' target='_blank'>View Payment</a><br/>`;
-                                }
-                                links +=  `<a href='/cols/payments/invoice-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i>&nbsp #${full.fee_invoice_reference}</a><br/>`;
-                            }
-
-                            if (full.processing_status=='Awaiting Payment'){
+                            if (!full.fee_paid && full.processing_status=='Awaiting Payment'){
                                 if(vm.is_payment_admin){
                                     //links +=  `<a href='/ledger/payments/invoice/payment?invoice=${full.fee_invoice_reference}' target='_blank'>Record Payment</a><br/>`;
                                     links +=  `<a href='/filming_fee/${full.id}'>Record Payment</a><br/>`;
                                 }
                                 links +=  `<a href='/cols/payments/awaiting-payment-pdf/${full.id}' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i>&nbsp Pending Invoice</a><br/>`;
                             }
+
+                            //if (full.fee_paid && full.proposal_type!='Amendment'){
+                            if (full.fee_invoice_reference && full.proposal_type!='Amendment'){
+                                if(vm.is_payment_admin){
+                                    links +=  `<a href='/ledger/payments/invoice/payment?invoice=${full.fee_invoice_reference}' target='_blank'>View Payment</a><br/>`;
+                                }
+                                links +=  `<a href='/cols/payments/invoice-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i>&nbsp #${full.fee_invoice_reference}</a><br/>`;
+                            }
+
                             return links;
                         },
                         name: '',
