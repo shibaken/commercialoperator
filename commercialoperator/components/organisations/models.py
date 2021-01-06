@@ -11,7 +11,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from ledger.accounts.models import Organisation as ledger_organisation
 from ledger.accounts.models import EmailUser,RevisionedMixin #,Document
 from commercialoperator.components.main.models import UserAction,CommunicationsLogEntry, Document
-from commercialoperator.components.organisations.utils import random_generator, can_admin_org
+from commercialoperator.components.organisations.utils import random_generator, can_admin_org, has_atleast_one_admin
 from commercialoperator.components.organisations.emails import (
                         send_organisation_request_accept_email_notification,
                         send_organisation_request_decline_email_notification,
@@ -185,7 +185,10 @@ class Organisation(models.Model):
                 except Organisation.DoesNotExist:
                     exists = False
             if exists:
-                return {'exists': exists, 'id': org.id,'first_five':org.first_five}
+                if has_atleast_one_admin(org):
+                    return {'exists': exists, 'id': org.id,'first_five':org.first_five}
+                else:
+                    return {'exists': has_atleast_one_admin(org) }
             return {'exists': exists }
 
         except:
@@ -600,7 +603,7 @@ class OrganisationRequest(models.Model):
         ('employee','Employee'),
         ('consultant','Consultant')
     )
-    name = models.CharField(max_length=128, unique=True)
+    name = models.CharField(max_length=128)
     abn = models.CharField(max_length=50, null=True, blank=True, verbose_name='ABN')
     requester = models.ForeignKey(EmailUser)
     assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='org_request_assignee')
@@ -626,7 +629,12 @@ class OrganisationRequest(models.Model):
         try:
             ledger_org = ledger_organisation.objects.get(abn=self.abn)
         except ledger_organisation.DoesNotExist:
-            ledger_org = ledger_organisation.objects.create(name=self.name,abn=self.abn)
+            try:
+                check_name = ledger_organisation.objects.get(name=self.name)
+                if check_name:
+                    raise ValidationError('Organisation with the same name already exists')
+            except ledger_organisation.DoesNotExist:
+                ledger_org = ledger_organisation.objects.create(name=self.name,abn=self.abn)
         # Create Organisation in commercialoperator
         org, created = Organisation.objects.get_or_create(organisation=ledger_org)
         # Link requester to organisation

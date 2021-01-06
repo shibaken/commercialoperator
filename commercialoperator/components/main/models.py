@@ -106,6 +106,7 @@ class ActivityCategory(models.Model):
     def __str__(self):
         return self.name
 
+
 @python_2_unicode_compatible
 class Activity(models.Model):
     name = models.CharField(max_length=200, blank=True)
@@ -138,8 +139,7 @@ class Park(models.Model):
 
     adult_price = models.DecimalField('Adult (price per adult)', max_digits=5, decimal_places=2)
     child_price = models.DecimalField('Child (price per child)', max_digits=5, decimal_places=2)
-    #senior = models.DecimalField('Senior (price per senior)', max_digits=5, decimal_places=2)
-    oracle_code = models.CharField(max_length=50)
+    #oracle_code = models.CharField(max_length=50)
 
     # editable=False --> related to invoice PDF generation, currently GST is computed assuming GST is payable for ALL parks.
     # Must fix invoice calc. GST per park in pdf line_items, for net GST if editable is to be set to True
@@ -165,6 +165,13 @@ class Park(models.Model):
     def zone_ids(self):
         return [i.id for i in self.zones.all()]
 
+    def oracle_code(self, application_type):
+        """ application_type - TClass/Filming/Event """
+        try:
+            return self.oracle_codes.get(code_type=application_type).code
+        except:
+            raise ValidationError('Unknown application type: {}'.format(application_type))
+
 
 @python_2_unicode_compatible
 class Zone(models.Model):
@@ -184,6 +191,7 @@ class Zone(models.Model):
     @property
     def allowed_activities_ids(self):
         return [i.id for i in self.allowed_activities.all()]
+
 
 
 @python_2_unicode_compatible
@@ -240,18 +248,39 @@ class ApplicationType(models.Model):
     for park in Park.objects.all().order_by('id'):
         ParkPrice.objects.create(park=park, adult=10.0, child=7.50, senior=5.00)
     """
+    #TCLASS = 'T Class'
+    TCLASS = 'Commercial operations'
+    ECLASS = 'E Class'
+    FILMING = 'Filming'
+    EVENT = 'Event'
     name = models.CharField(max_length=64, unique=True)
     order = models.PositiveSmallIntegerField(default=0)
     visible = models.BooleanField(default=True)
 
-    max_renewals = models.PositiveSmallIntegerField('Maximum number of times an Approval can be renewed', null=True, blank=True)
-    max_renewal_period = models.PositiveSmallIntegerField('Maximum period of each Approval renewal (Years)', null=True, blank=True)
-    application_fee = models.DecimalField(max_digits=6, decimal_places=2)
-    licence_fee_2mth = models.DecimalField('Licence Fee (2 Months)', max_digits=6, decimal_places=2)
-    licence_fee_1yr = models.DecimalField('Licence Fee (1 Year)', max_digits=6, decimal_places=2)
+    application_fee = models.DecimalField('Application Fee', max_digits=6, decimal_places=2, null=True)
     oracle_code_application = models.CharField(max_length=50)
     oracle_code_licence = models.CharField(max_length=50)
     is_gst_exempt = models.BooleanField(default=True)
+
+    # Events
+    events_park_fee = models.DecimalField('Events Park Fee (per participant, per park)', max_digits=6, decimal_places=2, default=0.0)
+
+    # filming
+    filming_fee_half_day = models.DecimalField('Filming half day fee', max_digits=6, decimal_places=2, default=0.0)
+    filming_fee_full_day = models.DecimalField('Filming full day fee', max_digits=6, decimal_places=2, default=0.0)
+    filming_fee_2days = models.DecimalField('Filming two days fee', max_digits=6, decimal_places=2, default=0.0)
+    filming_fee_3days = models.DecimalField('Filming 3 days or more fee', max_digits=6, decimal_places=2, default=0.0)
+
+    photography_fee_half_day = models.DecimalField('Photography half day fee', max_digits=6, decimal_places=2, default=0.0)
+    photography_fee_full_day = models.DecimalField('Photography full day fee', max_digits=6, decimal_places=2, default=0.0)
+    photography_fee_2days = models.DecimalField('Photography two days fee', max_digits=6, decimal_places=2, default=0.0)
+    photography_fee_3days = models.DecimalField('Photography 3 days or more fee', max_digits=6, decimal_places=2, default=0.0)
+
+    # T Class
+    max_renewals = models.PositiveSmallIntegerField('Maximum number of times an Approval can be renewed', null=True, blank=True)
+    max_renewal_period = models.PositiveSmallIntegerField('Maximum period of each Approval renewal (Years)', null=True, blank=True)
+    licence_fee_2mth = models.DecimalField('T Class Licence Fee (2 Months)', max_digits=6, decimal_places=2, default=0.0)
+    licence_fee_1yr = models.DecimalField('T Class Licence Fee (1 Year)', max_digits=6, decimal_places=2, default=0.0)
 
     class Meta:
         ordering = ['order', 'name']
@@ -259,6 +288,27 @@ class ApplicationType(models.Model):
 
     def __str__(self):
         return self.name
+
+
+@python_2_unicode_compatible
+class OracleCode(models.Model):
+    CODE_TYPE_CHOICES = (
+        (ApplicationType.TCLASS, ApplicationType.TCLASS),
+        (ApplicationType.FILMING, ApplicationType.FILMING),
+        (ApplicationType.EVENT, ApplicationType.EVENT),
+    )
+    park = models.ForeignKey(Park, related_name='oracle_codes')
+    code_type = models.CharField('Application Type', max_length=64, choices=CODE_TYPE_CHOICES,
+                                        default=CODE_TYPE_CHOICES[0][0])
+    code = models.CharField(max_length=50, blank=True)
+    archive_date = models.DateField(null=True, blank=True)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+    def __str__(self):
+        return '{} - {}'.format(self.code_type, self.code)
+
 
 @python_2_unicode_compatible
 class ActivityMatrix(models.Model):
@@ -304,8 +354,7 @@ class Question(models.Model):
     #answer_five = models.CharField(max_length=200, blank=True)
     correct_answer = models.CharField('Correct Answer', max_length=40, choices=CORRECT_ANSWER_CHOICES,
                                        default=CORRECT_ANSWER_CHOICES[0][0])
-
-
+    application_type = models.ForeignKey(ApplicationType, null=True, blank=True)
 
     class Meta:
         #ordering = ['name']
@@ -404,7 +453,16 @@ class GlobalSettings(models.Model):
     keys = (
         ('credit_facility_link', 'Credit Facility Link'),
         ('deed_poll', 'Deed poll'),
+        ('deed_poll_filming', 'Deed poll Filming'),
+        ('deed_poll_event', 'Deed poll Event'),
         ('online_training_document', 'Online Training Document'),
+        ('park_finder_link', 'Park Finder Link'),
+        ('fees_and_charges', 'Fees and charges link'),
+        ('commercial_filming_handbook', 'Commercial Filming Handbook link'),
+        ('park_stay_link', 'Park Stay Link'),
+        ('event_traffic_code_of_practice', 'Event traffic code of practice'),
+        ('trail_section_map', 'Trail section map'),
+        ('dwer_application_form', 'DWER Application Form'),
 
     )
     key = models.CharField(max_length=255, choices=keys, blank=False, null=False,)

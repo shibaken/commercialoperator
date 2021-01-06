@@ -43,7 +43,7 @@
                                           <div class="form-group">
                                             <label for="" class="col-sm-3 control-label" >ABN</label>
                                             <div class="col-sm-9">
-                                                <input type="text" disabled class="form-control" name="last_name" placeholder="" v-model="org.abn">
+                                                <input type="text" class="form-control" name="last_name" placeholder="" v-model="org.abn" :disabled="!is_commercialoperator_admin">
                                             </div>
                                           </div>
                                           <div class="form-group">
@@ -369,6 +369,8 @@ export default {
             logsTable: null,
             prev_licence_discount: null,
             prev_application_discount: null,
+            is_commercialoperator_admin:false,
+            profile:{},
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             activate_tables: false,
             comms_url: helpers.add_endpoint_json(api_endpoints.organisations,vm.$route.params.org_id+'/comms_log'),
@@ -435,24 +437,31 @@ export default {
     beforeRouteEnter: function(to, from, next){
         let initialisers = [
             utils.fetchCountries(),
-            utils.fetchOrganisation(to.params.org_id)
+            utils.fetchOrganisation(to.params.org_id),
+            utils.fetchProfile()
         ]
         Promise.all(initialisers).then(data => {
             next(vm => {
                 vm.countries = data[0];
                 vm.org = data[1];
+                vm.profile=data[2];
                 vm.org.address = vm.org.address != null ? vm.org.address : {};
                 vm.org.pins = vm.org.pins != null ? vm.org.pins : {};
+                //vm.profile=data[2];
+                vm.is_commercialoperator_admin=vm.profile.is_commercialoperator_admin;
             });
         });
     },
     beforeRouteUpdate: function(to, from, next){
         let initialisers = [
-            utils.fetchOrganisation(to.params.org_id)
+            utils.fetchOrganisation(to.params.org_id),
+            utils.fetchProfile()
         ]
         Promise.all(initialisers).then(data => {
             next(vm => {
                 vm.org = data[0];
+                vm.profile=data[1];
+                vm.is_commercialoperator_admin=vm.profile.is_commercialoperator_admin;
                 vm.org.address = vm.org.address != null ? vm.org.address : {};
                 vm.org.pins = vm.org.pins != null ? vm.org.pins : {};
             });

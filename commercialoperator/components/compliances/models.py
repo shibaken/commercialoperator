@@ -20,7 +20,8 @@ from ledger.licence.models import  Licence
 from commercialoperator import exceptions
 from commercialoperator.components.organisations.models import Organisation
 from commercialoperator.components.main.models import CommunicationsLogEntry, Region, UserAction, Document
-from commercialoperator.components.proposals.models import ProposalRequirement, AmendmentReason
+from commercialoperator.components.proposals.models import ProposalRequirement, AmendmentReason, DistrictProposal
+from commercialoperator.components.approvals.models import DistrictApproval
 from commercialoperator.components.compliances.email import (
                         send_compliance_accept_email_notification,
                         send_amendment_email_notification,
@@ -31,10 +32,10 @@ from commercialoperator.components.compliances.email import (
                         send_due_email_notification,
                         send_internal_due_email_notification
                         )
+from ledger.payments.invoice.models import Invoice
 
 import logging
 logger = logging.getLogger(__name__)
-
 
 #class Compliance(models.Model):
 class Compliance(RevisionedMixin):
@@ -59,6 +60,8 @@ class Compliance(RevisionedMixin):
     approval = models.ForeignKey('commercialoperator.Approval',related_name='compliances')
     due_date = models.DateField()
     text = models.TextField(blank=True)
+    #meta = JSONField(null=True, blank=True)
+    num_participants = models.SmallIntegerField('Number of participants', blank=True, null=True)
     processing_status = models.CharField(choices=PROCESSING_STATUS_CHOICES,max_length=20)
     customer_status = models.CharField(choices=CUSTOMER_STATUS_CHOICES,max_length=20, default=CUSTOMER_STATUS_CHOICES[1][0])
     assigned_to = models.ForeignKey(EmailUser,related_name='commercialoperator_compliance_assignments',null=True,blank=True)
@@ -68,6 +71,9 @@ class Compliance(RevisionedMixin):
     submitter = models.ForeignKey(EmailUser, blank=True, null=True, related_name='commercialoperator_compliances')
     reminder_sent = models.BooleanField(default=False)
     post_reminder_sent = models.BooleanField(default=False)
+    fee_invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
+    district_proposal = models.ForeignKey(DistrictProposal,related_name='district_compliance', null=True, blank=True)
+    district_approval = models.ForeignKey(DistrictApproval,related_name='district_compliance', null=True, blank=True)
 
 
     class Meta:
@@ -117,6 +123,20 @@ class Compliance(RevisionedMixin):
     def amendment_requests(self):
         qs =ComplianceAmendmentRequest.objects.filter(compliance = self)
         return qs
+
+    @property
+    def participant_number_required(self):
+        if self.requirement.standard_requirement and self.requirement.standard_requirement.participant_number_required:
+            return True
+        return False
+
+    @property
+    def fee_paid(self):
+        return True if self.fee_invoice_reference else False
+
+    @property
+    def fee_amount(self):
+        return Invoice.objects.get(reference=self.fee_invoice_reference).amount if self.fee_paid else None
 
     def save(self, *args, **kwargs):
         super(Compliance, self).save(*args,**kwargs)
@@ -347,7 +367,7 @@ class ComplianceAmendmentRequest(CompRequest):
 
 
 import reversion
-reversion.register(Compliance, follow=['documents', 'action_logs', 'comms_logs', 'comprequest_set'])
+reversion.register(Compliance, follow=['documents', 'action_logs', 'comms_logs', 'comprequest_set', 'compliance_fees'])
 reversion.register(ComplianceDocument)
 reversion.register(ComplianceUserAction)
 reversion.register(ComplianceLogEntry, follow=['documents'])

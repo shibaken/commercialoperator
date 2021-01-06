@@ -13,6 +13,7 @@
                   </div>
                   <div class="panel-body collapse in" :id="pBody">
                       <form class="form-horizontal" name="personal_form" method="post">
+                        <div v-if="org">
                           <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Organisation Name</label>
                             <div class="col-sm-9">
@@ -44,6 +45,7 @@
                                 <button v-else disabled class="pull-right btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                             </div>
                           </div>
+                        </div>
                        </form>
                   </div>
                 </div>
@@ -61,6 +63,7 @@
                   </div>
                   <div v-if="loading.length == 0" class="panel-body collapse" :id="adBody">
                       <form class="form-horizontal" action="index.html" method="post">
+                        <div v-if="org">
                           <div class="form-group">
                             <label for="" class="col-sm-3 control-label">Street</label>
                             <div class="col-sm-6">
@@ -97,6 +100,7 @@
                                 <button v-else disabled class="pull-right btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                             </div>
                           </div>
+                        </div>
                        </form>
                   </div>
                 </div>
@@ -195,7 +199,7 @@
 
             </div>
         </div>
-        <AddContact ref="add_contact" :org_id="org.id" />
+        <AddContact ref="add_contact" v-if="org" :org_id="org.id" />
     </div>
     </div>
 </template>
@@ -526,7 +530,9 @@ export default {
             this.$refs.add_contact.isModalOpen = true;
         },
         eventListeners: function(){
-            let vm = this;
+          let vm = this;
+          if (typeof vm.$refs.contacts_datatable !== 'undefined') {
+            
             vm.$refs.contacts_datatable.vmDataTable.on('click','.remove-contact',(e) => {
                 e.preventDefault();
 
@@ -702,6 +708,9 @@ export default {
                         }, (error) => {
                             if (error.status ==500){
                                 swal('Unlink','Last Organisation Admin can not be unlinked.','error');
+                            }
+                            else{
+                                swal('Unlink','There was an error unlinking this user '+ error,'error');
                             }
                         });
                     }
@@ -911,6 +920,7 @@ export default {
                 },(error) => {
                 });
             });
+          } // endif
 
         },
         updateDetails_noconfirm: function() {

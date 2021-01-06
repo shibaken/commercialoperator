@@ -4,9 +4,11 @@ from datetime import datetime, timedelta
 from django.db import models, transaction
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils import timezone
+from django.contrib.postgres.fields.jsonb import JSONField
 from ledger.accounts.models import EmailUser, RevisionedMixin
 from ledger.payments.models import Invoice
 from commercialoperator.components.proposals.models import Proposal
+from commercialoperator.components.compliances.models import Compliance
 from commercialoperator.components.main.models import Park
 from decimal import Decimal as D
 from ledger.checkout.utils import calculate_excl_gst
@@ -23,7 +25,8 @@ class Payment(RevisionedMixin):
     send_invoice = models.BooleanField(default=False)
     confirmation_sent = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
-    expiry_time = models.DateTimeField(default=expiry_time, blank=True, null=True)
+    #expiry_time = models.DateTimeField(default=timezone.now() + timedelta(minutes=30), blank=True, null=True)
+    expiry_time = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     class Meta:
         app_label = 'commercialoperator'
@@ -248,7 +251,7 @@ class ParkBooking(RevisionedMixin):
             #if no_persons > 0:
                 return {
                     'ledger_description': '{} - {} - {}'.format(self.park.name, self.arrival, age_group),
-                    'oracle_code': self.park.oracle_code,
+                    'oracle_code': self.park.oracle_code(self.booking.proposal.application_type),
                     'price_incl_tax':  D(price),
                     'price_excl_tax':  D(price) if self.park.is_gst_exempt else calculate_excl_gst(D(price)),
                     'quantity': no_persons,
@@ -393,6 +396,101 @@ class ApplicationFeeInvoice(RevisionedMixin):
             pass
         return False
 
+class ComplianceFee(Payment):
+    """ For Application Type Events """
+    PAYMENT_TYPE_INTERNET = 0
+    PAYMENT_TYPE_RECEPTION = 1
+    PAYMENT_TYPE_BLACK = 2
+    PAYMENT_TYPE_TEMPORARY = 3
+    PAYMENT_TYPE_CHOICES = (
+        (PAYMENT_TYPE_INTERNET, 'Internet booking'),
+        (PAYMENT_TYPE_RECEPTION, 'Reception booking'),
+        (PAYMENT_TYPE_BLACK, 'Black booking'),
+        (PAYMENT_TYPE_TEMPORARY, 'Temporary reservation'),
+#        (4, 'Cancelled Booking'),
+#        (5, 'Changed Booking')
+    )
+
+    compliance = models.ForeignKey(Compliance, on_delete=models.PROTECT, blank=True, null=True, related_name='compliance_fees')
+    payment_type = models.SmallIntegerField(choices=PAYMENT_TYPE_CHOICES, default=0)
+    cost = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
+    created_by = models.ForeignKey(EmailUser,on_delete=models.PROTECT, blank=True, null=True,related_name='created_by_compliance_fee')
+
+    def __str__(self):
+        return 'Compliance {} : Invoice {}'.format(self.compliance, self.compliance_fee_invoices.last())
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+class ComplianceFeeInvoice(RevisionedMixin):
+    """ For Application Type Events """
+    compliance_fee = models.ForeignKey(ComplianceFee, related_name='compliance_fee_invoices')
+    invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
+
+    def __str__(self):
+        return 'Compliance Fee {} : Invoice #{}'.format(self.id,self.invoice_reference)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+    @property
+    def active(self):
+        try:
+            invoice = Invoice.objects.get(reference=self.invoice_reference)
+            return False if invoice.voided else True
+        except Invoice.DoesNotExist:
+            pass
+        return False
+
+class FilmingFee(Payment):
+    """ For Application Type Filming """
+    PAYMENT_TYPE_INTERNET = 0
+    PAYMENT_TYPE_RECEPTION = 1
+    PAYMENT_TYPE_BLACK = 2
+    PAYMENT_TYPE_TEMPORARY = 3
+    PAYMENT_TYPE_CHOICES = (
+        (PAYMENT_TYPE_INTERNET, 'Internet booking'),
+        (PAYMENT_TYPE_RECEPTION, 'Reception booking'),
+        (PAYMENT_TYPE_BLACK, 'Black booking'),
+        (PAYMENT_TYPE_TEMPORARY, 'Temporary reservation'),
+#        (4, 'Cancelled Booking'),
+#        (5, 'Changed Booking')
+    )
+
+    proposal = models.ForeignKey(Proposal, on_delete=models.PROTECT, blank=True, null=True, related_name='filming_fees')
+    payment_type = models.SmallIntegerField(choices=PAYMENT_TYPE_CHOICES, default=0)
+    cost = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
+    created_by = models.ForeignKey(EmailUser,on_delete=models.PROTECT, blank=True, null=True,related_name='created_by_filming_fee')
+    deferred_payment_date = models.DateField(blank=True, null=True)
+    payment_due_notification_sent = models.BooleanField(default=False)
+    lines = JSONField(default=[''])
+
+    def __str__(self):
+        return 'Proposal {} : Invoice {}'.format(self.proposal, self.filming_fee_invoices.last())
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+class FilmingFeeInvoice(RevisionedMixin):
+    """ For Application Type Filming """
+    filming_fee = models.ForeignKey(FilmingFee, related_name='filming_fee_invoices')
+    invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
+
+    def __str__(self):
+        return 'Filming Fee {} : Invoice #{}'.format(self.id,self.invoice_reference)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+    @property
+    def active(self):
+        try:
+            invoice = Invoice.objects.get(reference=self.invoice_reference)
+            return False if invoice.voided else True
+        except Invoice.DoesNotExist:
+            pass
+        return False
+
 
 import reversion
 reversion.register(Booking, follow=['invoices', 'park_bookings'])
@@ -400,6 +498,10 @@ reversion.register(ParkBooking)
 reversion.register(BookingInvoice)
 reversion.register(ApplicationFee, follow=['application_fee_invoices'])
 reversion.register(ApplicationFeeInvoice)
+reversion.register(ComplianceFee, follow=['compliance_fee_invoices'])
+reversion.register(ComplianceFeeInvoice)
+reversion.register(FilmingFee, follow=['filming_fee_invoices'])
+reversion.register(FilmingFeeInvoice)
 #reversion.register(ApplicationFeeInvoice, follow=['application_fee_discounts'])
 
 

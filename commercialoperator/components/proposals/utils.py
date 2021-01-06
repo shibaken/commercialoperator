@@ -5,10 +5,10 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from preserialize.serialize import serialize
 from ledger.accounts.models import EmailUser #, Document
-from commercialoperator.components.proposals.models import ProposalDocument, ProposalPark, ProposalParkActivity, ProposalParkAccess, ProposalTrail, ProposalTrailSectionActivity, ProposalTrailSection, ProposalParkZone, ProposalParkZoneActivity, ProposalOtherDetails, ProposalAccreditation, ProposalUserAction, ProposalAssessment, ProposalAssessmentAnswer, ChecklistQuestion
+from commercialoperator.components.proposals.models import ProposalDocument, ProposalPark, ProposalParkActivity, ProposalParkAccess, ProposalTrail, ProposalTrailSectionActivity, ProposalTrailSection, ProposalParkZone, ProposalParkZoneActivity, ProposalOtherDetails, ProposalAccreditation, ProposalUserAction, ProposalAssessment, ProposalAssessmentAnswer, ChecklistQuestion,ProposalStandardRequirement
 from commercialoperator.components.approvals.models import Approval
 from commercialoperator.components.proposals.email import send_submit_email_notification, send_external_submit_email_notification
-from commercialoperator.components.proposals.serializers import SaveProposalSerializer, SaveProposalParkSerializer, SaveProposalTrailSerializer, ProposalAccreditationSerializer, ProposalOtherDetailsSerializer
+from commercialoperator.components.proposals.serializers import SaveProposalSerializer, SaveProposalParkSerializer, SaveProposalTrailSerializer, ProposalAccreditationSerializer, ProposalOtherDetailsSerializer, SaveInternalFilmingProposalSerializer, SaveInternalEventProposalSerializer
 from commercialoperator.components.main.models import Activity, Park, AccessType, Trail, Section, Zone
 import traceback
 import os
@@ -640,6 +640,122 @@ def save_park_zone_activity_data(instance,marine_parks_activities, request):
             raise
 
 def save_proponent_data(instance,request,viewset,parks=None,trails=None):
+    if instance.application_type.name==ApplicationType.FILMING:
+        save_proponent_data_filming(instance,request,viewset,parks=None,trails=None)
+    elif instance.application_type.name==ApplicationType.EVENT:
+        save_proponent_data_event(instance,request,viewset,parks=None,trails=None)
+    else:
+        save_proponent_data_tclass(instance,request,viewset,parks=None,trails=None)
+
+
+from commercialoperator.components.main.models import ApplicationType
+from commercialoperator.components.proposals.models import ProposalFilmingOtherDetails
+from commercialoperator.components.proposals.serializers_filming import ProposalFilmingOtherDetailsSerializer, ProposalFilmingActivitySerializer, ProposalFilmingAccessSerializer, ProposalFilmingEquipmentSerializer
+
+def save_proponent_data_filming(instance,request,viewset,parks=None,trails=None):
+    with transaction.atomic():
+        try:
+            data = {
+            }
+
+            try:
+                schema=request.data.get('schema')
+            except:
+                schema=request.POST.get('schema')
+            import json
+            sc=json.loads(schema)
+            filming_activity_data=sc['filming_activity']
+            filming_access_data=sc['filming_access']
+            filming_equipment_data=sc['filming_equipment']
+            filming_other_details_data=sc['filming_other_details']
+
+            #save Filming activity data
+            serializer = ProposalFilmingActivitySerializer(instance.filming_activity, data=filming_activity_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            #save Filming access data
+            serializer = ProposalFilmingAccessSerializer(instance.filming_access, data=filming_access_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            #save Filming equipment data
+            serializer = ProposalFilmingEquipmentSerializer(instance.filming_equipment, data=filming_equipment_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            #save Filming other details data
+            serializer = ProposalFilmingOtherDetailsSerializer(instance.filming_other_details, data=filming_other_details_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            filming_other_details=ProposalFilmingOtherDetails.objects.update_or_create(proposal=instance)
+            # instance.save()
+            serializer = SaveProposalSerializer(instance, data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            viewset.perform_update(serializer)
+
+        except:
+            raise
+
+from commercialoperator.components.proposals.serializers_event import ProposalEventOtherDetailsSerializer, ProposalEventManagementSerializer, ProposalEventActivitiesSerializer, ProposalEventVehiclesVesselsSerializer
+def save_proponent_data_event(instance,request,viewset,parks=None,trails=None):
+    with transaction.atomic():
+        try:
+            data = {
+            }
+
+            try:
+                schema=request.data.get('schema')
+            except:
+                schema=request.POST.get('schema')
+            import json
+            sc=json.loads(schema)
+            event_activity_data=sc['event_activity']
+            event_vehicles_vessels_data=sc['event_vehicles_vessels']
+            # filming_access_data=sc['filming_access']
+            event_management_data=sc['event_management']
+            events_other_details_data=sc['event_other_details']
+            try:
+                select_trails_activities=json.loads(request.data.get('selected_trails_activities'))
+            except:
+                select_trails_activities=json.loads(request.POST.get('selected_trails_activities', None))
+
+            #print select_trails_activities
+            #save Event Activity tab data
+            serializer = ProposalEventActivitiesSerializer(instance.event_activity, data=event_activity_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            #save Event Vehicle Vessels data
+            serializer = ProposalEventVehiclesVesselsSerializer(instance.event_vehicles_vessels, data=event_vehicles_vessels_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            #save Event Management data
+            serializer = ProposalEventManagementSerializer(instance.event_management, data=event_management_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            #save Event other details data
+            serializer = ProposalEventOtherDetailsSerializer(instance.event_other_details, data=events_other_details_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            if select_trails_activities or len(select_trails_activities)==0:
+                try:
+
+                    save_trail_section_activity_data(instance, select_trails_activities, request)
+
+                except:
+                    raise
+
+            serializer = SaveProposalSerializer(instance, data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            viewset.perform_update(serializer)
+
+        except:
+            raise
+
+
+def save_proponent_data_tclass(instance,request,viewset,parks=None,trails=None):
     with transaction.atomic():
         try:
 #            lookable_fields = ['isTitleColumnForDashboard','isActivityColumnForDashboard','isRegionColumnForDashboard']
@@ -705,7 +821,7 @@ def save_proponent_data(instance,request,viewset,parks=None,trails=None):
                                     comments = acc['comments'],
                                     accreditation_expiry = datetime.strptime(acc['accreditation_expiry'], "%d/%m/%Y").date() if acc['accreditation_expiry'] else None, # TODO later this may be mandatory
                                 )
-                            except Exception, e:
+                            except Exception as e:
                                 logger.error('An error occurred while updating Accreditations {}'.format(e))
                         else:
                             serializer=ProposalAccreditationSerializer(data=acc)
@@ -760,6 +876,214 @@ def save_assessor_data(instance,request,viewset):
             #     'assessor_data': assessor_data,
             #     'comment_data': comment_data,
             # }
+            if instance.application_type.name==ApplicationType.FILMING:
+                save_assessor_data_filming(instance,request,viewset)
+            if instance.application_type.name==ApplicationType.TCLASS:
+                save_assessor_data_tclass(instance,request,viewset)
+            if instance.application_type.name==ApplicationType.EVENT:
+                save_assessor_data_event(instance,request,viewset)            
+        except:
+            raise
+
+def proposal_submit(proposal,request):
+        with transaction.atomic():
+            if proposal.can_user_edit:
+                proposal.submitter = request.user
+                #proposal.lodgement_date = datetime.datetime.strptime(timezone.now().strftime('%Y-%m-%d'),'%Y-%m-%d').date()
+                proposal.lodgement_date = timezone.now()
+                proposal.training_completed = True
+                if (proposal.amendment_requests):
+                    qs = proposal.amendment_requests.filter(status = "requested")
+                    if (qs):
+                        for q in qs:
+                            q.status = 'amended'
+                            q.save()
+
+                # Create a log entry for the proposal
+                proposal.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id),request)
+                # Create a log entry for the organisation
+                #proposal.applicant.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id),request)
+                applicant_field=getattr(proposal, proposal.applicant_field)
+                applicant_field.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id),request)
+
+                # print('requirement block')
+                # default_requirements=ProposalStandardRequirement.objects.filter(application_type=proposal.application_type, default=True, obsolete=False)
+                # print('default', default_requirements)
+                # if default_requirements:
+                #     for req in default_requirements:
+                #         print ('req',req)
+                #         try:
+                #             r, created=ProposalRequirement.objects.get_or_create(proposal=proposal, standard_requirement=req)
+                #             print(r, created, r.id)
+                #         except:
+                #             raise
+        
+                ret1 = send_submit_email_notification(request, proposal)
+                ret2 = send_external_submit_email_notification(request, proposal)
+
+                #proposal.save_form_tabs(request)
+                if ret1 and ret2:
+                    proposal.processing_status = 'with_assessor'
+                    proposal.customer_status = 'with_assessor'
+                    proposal.documents.all().update(can_delete=False)
+                    proposal.required_documents.all().update(can_delete=False)
+                    proposal.save()
+                else:
+                    raise ValidationError('An error occurred while submitting proposal (Submit email notifications failed)')
+                #Create assessor checklist with the current assessor_list type questions
+                #Assessment instance already exits then skip.
+                try:
+                    assessor_assessment=ProposalAssessment.objects.get(proposal=proposal,referral_group=None, referral_assessment=False)
+                except ProposalAssessment.DoesNotExist:
+                    assessor_assessment=ProposalAssessment.objects.create(proposal=proposal,referral_group=None, referral_assessment=False)
+                    checklist=ChecklistQuestion.objects.filter(list_type='assessor_list', application_type=proposal.application_type, obsolete=False)
+                    for chk in checklist:
+                        try:
+                            chk_instance=ProposalAssessmentAnswer.objects.get(question=chk, assessment=assessor_assessment)
+                        except ProposalAssessmentAnswer.DoesNotExist:
+                            chk_instance=ProposalAssessmentAnswer.objects.create(question=chk, assessment=assessor_assessment)
+
+                return proposal
+
+            else:
+                raise ValidationError('You can\'t edit this proposal at this moment')
+
+
+def is_payment_officer(user):
+    from commercialoperator.components.proposals.models import PaymentOfficerGroup
+    try:
+        group= PaymentOfficerGroup.objects.get(default=True)
+    except PaymentOfficerGroup.DoesNotExist:
+        group= None
+    if group:
+        if user in group.members.all():
+            return True
+    return False
+
+def save_assessor_data_filming(instance,request,viewset):
+    with transaction.atomic():
+        try:
+            #data={}
+            try:
+                schema=request.data.get('schema')
+            except:
+                schema=request.POST.get('schema')
+            import json
+
+            sc=json.loads(schema)
+            filming_activity_data=sc['filming_activity']
+            filming_access_data=sc['filming_access']
+            filming_equipment_data=sc['filming_equipment']
+            filming_other_details_data=sc['filming_other_details']
+
+            #save Filming activity data
+            serializer = ProposalFilmingActivitySerializer(instance.filming_activity, data=filming_activity_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            #save Filming access data
+            serializer = ProposalFilmingAccessSerializer(instance.filming_access, data=filming_access_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            #save Filming equipment data
+            serializer = ProposalFilmingEquipmentSerializer(instance.filming_equipment, data=filming_equipment_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            #save Filming other details data
+            serializer = ProposalFilmingOtherDetailsSerializer(instance.filming_other_details, data=filming_other_details_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            serializer = SaveInternalFilmingProposalSerializer(instance, sc, partial=True)
+            serializer.is_valid(raise_exception=True)
+            viewset.perform_update(serializer)
+                           
+            for f in request.FILES:
+                try:
+                    #document = instance.documents.get(name=str(request.FILES[f]))
+                    document = instance.documents.get(input_name=f)
+                except ProposalDocument.DoesNotExist:
+                    document = instance.documents.get_or_create(input_name=f)[0]
+                document.name = str(request.FILES[f])
+                if document._file and os.path.isfile(document._file.path):
+                    os.remove(document._file.path)
+                document._file = request.FILES[f]
+                document.save()
+            # End Save Documents
+        except:
+            raise
+
+def save_assessor_data_event(instance,request,viewset):
+    with transaction.atomic():
+        try:
+            #data={}
+            try:
+                schema=request.data.get('schema')
+            except:
+                schema=request.POST.get('schema')
+            import json
+
+            sc=json.loads(schema)
+            event_activity_data=sc['event_activity']
+            event_vehicles_vessels_data=sc['event_vehicles_vessels']
+            # filming_access_data=sc['filming_access']
+            event_management_data=sc['event_management']
+            events_other_details_data=sc['event_other_details']
+            try:
+                select_trails_activities=json.loads(request.data.get('selected_trails_activities'))
+            except:
+                select_trails_activities=json.loads(request.POST.get('selected_trails_activities', None))
+
+            #print select_trails_activities
+            #save Event Activity tab data
+            serializer = ProposalEventActivitiesSerializer(instance.event_activity, data=event_activity_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            #save Event Vehicle Vessels data
+            serializer = ProposalEventVehiclesVesselsSerializer(instance.event_vehicles_vessels, data=event_vehicles_vessels_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            #save Event Management data
+            serializer = ProposalEventManagementSerializer(instance.event_management, data=event_management_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            #save Event other details data
+            serializer = ProposalEventOtherDetailsSerializer(instance.event_other_details, data=events_other_details_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            if select_trails_activities or len(select_trails_activities)==0:
+                try:
+
+                    save_trail_section_activity_data(instance, select_trails_activities, request)
+
+                except:
+                    raise
+
+            serializer = SaveInternalEventProposalSerializer(instance, sc, partial=True)
+            serializer.is_valid(raise_exception=True)
+            viewset.perform_update(serializer)
+                           
+            for f in request.FILES:
+                try:
+                    #document = instance.documents.get(name=str(request.FILES[f]))
+                    document = instance.documents.get(input_name=f)
+                except ProposalDocument.DoesNotExist:
+                    document = instance.documents.get_or_create(input_name=f)[0]
+                document.name = str(request.FILES[f])
+                if document._file and os.path.isfile(document._file.path):
+                    os.remove(document._file.path)
+                document._file = request.FILES[f]
+                document.save()
+            # End Save Documents
+        except:
+            raise
+
+def save_assessor_data_tclass(instance, request, viewset):
+    with transaction.atomic():
+        try:   
             data={}
             serializer = SaveProposalSerializer(instance, data, partial=True)
             serializer.is_valid(raise_exception=True)
@@ -815,73 +1139,9 @@ def save_assessor_data(instance,request,viewset):
                     os.remove(document._file.path)
                 document._file = request.FILES[f]
                 document.save()
-            # End Save Documents
+            # End Save Documents    
         except:
             raise
-
-def proposal_submit(proposal,request):
-        with transaction.atomic():
-            if proposal.can_user_edit:
-                proposal.submitter = request.user
-                #proposal.lodgement_date = datetime.datetime.strptime(timezone.now().strftime('%Y-%m-%d'),'%Y-%m-%d').date()
-                proposal.lodgement_date = timezone.now()
-                proposal.training_completed = True
-                if (proposal.amendment_requests):
-                    qs = proposal.amendment_requests.filter(status = "requested")
-                    if (qs):
-                        for q in qs:
-                            q.status = 'amended'
-                            q.save()
-
-                # Create a log entry for the proposal
-                proposal.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id),request)
-                # Create a log entry for the organisation
-                #proposal.applicant.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id),request)
-                applicant_field=getattr(proposal, proposal.applicant_field)
-                applicant_field.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id),request)
-
-                ret1 = send_submit_email_notification(request, proposal)
-                ret2 = send_external_submit_email_notification(request, proposal)
-
-                #proposal.save_form_tabs(request)
-                if ret1 and ret2:
-                    proposal.processing_status = 'with_assessor'
-                    proposal.customer_status = 'with_assessor'
-                    proposal.documents.all().update(can_delete=False)
-                    proposal.required_documents.all().update(can_delete=False)
-                    proposal.save()
-                else:
-                    raise ValidationError('An error occurred while submitting proposal (Submit email notifications failed)')
-                #Create assessor checklist with the current assessor_list type questions
-                #Assessment instance already exits then skip.
-                try:
-                    assessor_assessment=ProposalAssessment.objects.get(proposal=proposal,referral_group=None, referral_assessment=False)
-                except ProposalAssessment.DoesNotExist:
-                    assessor_assessment=ProposalAssessment.objects.create(proposal=proposal,referral_group=None, referral_assessment=False)
-                    checklist=ChecklistQuestion.objects.filter(list_type='assessor_list', obsolete=False)
-                    for chk in checklist:
-                        try:
-                            chk_instance=ProposalAssessmentAnswer.objects.get(question=chk, assessment=assessor_assessment)
-                        except ProposalAssessmentAnswer.DoesNotExist:
-                            chk_instance=ProposalAssessmentAnswer.objects.create(question=chk, assessment=assessor_assessment)
-
-                return proposal
-
-            else:
-                raise ValidationError('You can\'t edit this proposal at this moment')
-
-
-def is_payment_officer(user):
-    from commercialoperator.components.proposals.models import PaymentOfficerGroup
-    try:
-        group= PaymentOfficerGroup.objects.get(default=True)
-    except PaymentOfficerGroup.DoesNotExist:
-        group= None
-    if group:
-        if user in group.members.all():
-            return True
-    return False
-
 
 from commercialoperator.components.proposals.models import Proposal, Referral, AmendmentRequest, ProposalDeclinedDetails
 from commercialoperator.components.approvals.models import Approval

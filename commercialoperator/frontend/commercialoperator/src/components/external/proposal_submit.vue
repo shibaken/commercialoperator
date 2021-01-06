@@ -4,8 +4,17 @@
             <div class="col-sm-12">
                 <div class="row">
                     <div v-if="isProposal" class="col-sm-offset-3 col-sm-6 borderDecoration">
+                      <div v-if="proposal.application_type==application_type_filming">
+                        <strong>Your commercial filming application has been successfully submitted.</strong>
+                        <br/>
+                        
+                      </div>
+                      <div v-else>
                         <strong>Your application for a commercial operations licence has been successfully submitted.</strong>
                         <br/>
+                      </div>
+                        <!-- <strong>Your application for a commercial operations licence has been successfully submitted.</strong>
+                        <br/> -->
                         <table>
                             <tr>
                                 <td><strong>Application:</strong></td>
@@ -49,6 +58,15 @@ export default {
   computed: {
     isProposal: function(){
       return this.proposal && this.proposal.id ? true : false;
+    },
+    application_type_tclass: function(){
+      return api_endpoints.t_class;
+    },
+    application_type_filming: function(){
+      return api_endpoints.filming;
+    },
+    application_type_event: function(){
+      return api_endpoints.event;
     }
   },
   methods: {

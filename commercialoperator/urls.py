@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib import admin
 from django.conf.urls import url, include
 from django.conf.urls.static import static
 from rest_framework import routers
@@ -10,11 +11,23 @@ from commercialoperator.components.bookings import views as booking_views
 
 from commercialoperator.components.users import api as users_api
 from commercialoperator.components.organisations import api as org_api
+from commercialoperator.components.main import api as main_api
+from commercialoperator.components.bookings import api as booking_api
+
+# T Class
 from commercialoperator.components.proposals import api as proposal_api
 from commercialoperator.components.approvals import api as approval_api
 from commercialoperator.components.compliances import api as compliances_api
-from commercialoperator.components.main import api as main_api
-from commercialoperator.components.bookings import api as booking_api
+
+# Filming
+from commercialoperator.components.proposals import api_filming as proposal_api_filming
+#from commercialoperator.components.approvals import api_filming as approval_api_filming
+#from commercialoperator.components.compliances import api_filming as compliances_api_filming
+
+# Event
+from commercialoperator.components.proposals import api_event as proposal_api_event
+#from commercialoperator.components.approvals import api_event as approval_api_event
+#from commercialoperator.components.compliances import api_event as compliances_api_event
 
 from ledger.urls import urlpatterns as ledger_patterns
 
@@ -45,6 +58,7 @@ router.register(r'users',users_api.UserViewSet)
 router.register(r'amendment_request',proposal_api.AmendmentRequestViewSet)
 router.register(r'compliance_amendment_request',compliances_api.ComplianceAmendmentRequestViewSet)
 router.register(r'regions', main_api.RegionViewSet)
+router.register(r'districts', main_api.DistrictViewSet)
 router.register(r'global_settings', main_api.GlobalSettingsViewSet)
 router.register(r'activity_matrix', main_api.ActivityMatrixViewSet)
 #router.register(r'tenure', main_api.TenureViewSet)
@@ -64,6 +78,23 @@ router.register(r'marine_activities', main_api.MarineActivitiesViewSet)
 router.register(r'required_documents', main_api.RequiredDocumentViewSet)
 router.register(r'questions', main_api.QuestionViewSet)
 router.register(r'payment', main_api.PaymentViewSet)
+router.register(r'event_trail_container', main_api.TrailTabViewSet, base_name='event_trail_container')
+
+
+# Filming
+#router.register(r'proposal',proposal_api_filming.ProposalViewSet)
+#router.register(r'proposal_filming', proposal_api_filming.ProposalFilmingViewSet)
+router.register(r'proposal_filming_parks', proposal_api_filming.ProposalFilmingParksViewSet)
+#router.register(r'filming_activity_tab', proposal_api_filming.FilmingActivityTabView, base_name='filming_activity_tab')
+router.register(r'district_proposals',proposal_api.DistrictProposalViewSet)
+router.register(r'district_proposal_paginated',proposal_api.DistrictProposalPaginatedViewSet)
+
+
+#Events
+router.register(r'proposal_events_parks', proposal_api_event.ProposalEventsParksViewSet)
+router.register(r'abseiling_climbing_activities', proposal_api_event.AbseilingClimbingActivityViewSet)
+router.register(r'proposal_pre_event_parks', proposal_api_event.ProposalPreEventsParksViewSet)
+router.register(r'proposal_events_trails', proposal_api_event.ProposalEventsTrailsViewSet)
 
 api_patterns = [
     url(r'^api/profile$', users_api.GetProfile.as_view(), name='get-profile'),
@@ -81,18 +112,25 @@ api_patterns = [
     url(r'^api/search_reference',proposal_api.SearchReferenceView.as_view(),name='search_reference'),
     url(r'^api/accreditation_choices',proposal_api.AccreditationTypeView.as_view(),name='accreditation_choices'),
     url(r'^api/licence_period_choices',proposal_api.LicencePeriodChoicesView.as_view(),name='licence_period_choices'),
+    url(r'^api/filming_licence_charge_choices',proposal_api.FilmingLicenceChargeView.as_view(),name='filming_licence_charge_choices '),
+
 
     url(r'^api/oracle_job$',main_api.OracleJob.as_view(), name='get-oracle'),
     #url(r'^api/reports/bookings$', api.BookingReportView.as_view(),name='bookings-report'),
 
 
     url(r'^api/reports/booking_settlements$', main_api.BookingSettlementReportView.as_view(),name='booking-settlements-report'),
+    #Filming
+    url(r'^api/filming_activity_tab',proposal_api_filming.FilmingActivityTabView.as_view(),name='filming_activity_tab'),
+
+
 ]
 
 # URL Patterns
 urlpatterns = [
     #url(r'^admin/', include(commercialoperator_admin_site.urls)),
-    url(r'^admin/', commercialoperator_admin_site.urls),
+    #url(r'^admin/', commercialoperator_admin_site.urls),
+    url(r'^ledger/admin/', admin.site.urls, name='ledger_admin'),
     url(r'', include(api_patterns)),
     url(r'^$', views.CommercialOperatorRoutingView.as_view(), name='ds_home'),
     url(r'^contact/', views.CommercialOperatorContactView.as_view(), name='ds_contact'),
@@ -110,25 +148,37 @@ urlpatterns = [
     #following url is used to include url path when sending Proposal amendment request to user.
     url(r'^proposal/$', proposal_views.ProposalView.as_view(), name='proposal'),
     url(r'^preview/licence-pdf/(?P<proposal_pk>\d+)',proposal_views.PreviewLicencePDFView.as_view(), name='preview_licence_pdf'),
+    url(r'^district_preview/licence-pdf/(?P<district_proposal_pk>\d+)',proposal_views.PreviewDistrictLicencePDFView.as_view(), name='district_preview_licence_pdf'),
 
     # payment related urls
     url(r'^application_fee/(?P<proposal_pk>\d+)/$', booking_views.ApplicationFeeView.as_view(), name='application_fee'),
+    url(r'^compliance_fee/(?P<compliance_pk>\d+)/$', booking_views.ComplianceFeeView.as_view(), name='compliance_fee'),
+    url(r'^filming_fee/(?P<proposal_pk>\d+)/$', booking_views.FilmingFeeView.as_view(), name='filming_fee'),
     url(r'^payment/(?P<proposal_pk>\d+)/$', booking_views.MakePaymentView.as_view(), name='make_payment'),
+    #url(r'^existing_invoice_payment/(?P<invoice_ref>\d+)/$', booking_views.ExistingPaymentView.as_view(), name='existing_invoice_payment'),
     url(r'^zero_fee_success/', booking_views.ZeroApplicationFeeView.as_view(), name='zero_fee_success'),
     url(r'^payment_deferred/(?P<proposal_pk>\d+)/$', booking_views.DeferredInvoicingView.as_view(), name='deferred_invoicing'),
     url(r'^preview_deferred/(?P<proposal_pk>\d+)/$', booking_views.DeferredInvoicingPreviewView.as_view(), name='preview_deferred_invoicing'),
     url(r'^success/booking/$', booking_views.BookingSuccessView.as_view(), name='public_booking_success'),
     url(r'^success/fee/$', booking_views.ApplicationFeeSuccessView.as_view(), name='fee_success'),
+    url(r'^success/compliance_fee/$', booking_views.ComplianceFeeSuccessView.as_view(), name='compliance_fee_success'),
+    url(r'^success/filming_fee/$', booking_views.FilmingFeeSuccessView.as_view(), name='filming_fee_success'),
     url(r'cols/payments/invoice-pdf/(?P<reference>\d+)',booking_views.InvoicePDFView.as_view(), name='cols-invoice-pdf'),
+    #url(r'cols/payments/invoice-filmingfee-pdf/(?P<reference>\d+)',booking_views.InvoiceFilmingFeePDFView.as_view(), name='cols-invoice-filmingfee-pdf'),
+    url(r'cols/payments/invoice-compliance-pdf/(?P<reference>\d+)',booking_views.InvoiceCompliancePDFView.as_view(), name='cols-invoice-compliance-pdf'),
     url(r'cols/payments/confirmation-pdf/(?P<reference>\d+)',booking_views.ConfirmationPDFView.as_view(), name='cols-confirmation-pdf'),
     url(r'cols/payments/monthly-confirmation-pdf/booking/(?P<id>\d+)',booking_views.MonthlyConfirmationPDFBookingView.as_view(), name='cols-monthly-confirmation-pdf'),
     url(r'cols/payments/monthly-confirmation-pdf/park-booking/(?P<id>\d+)',booking_views.MonthlyConfirmationPDFParkBookingView.as_view(), name='cols-monthly-confirmation-pdf-park'),
+    url(r'cols/payments/awaiting-payment-pdf/(?P<id>\d+)',booking_views.AwaitingPaymentInvoicePDFView.as_view(), name='cols-awaiting-payment-pdf'),
 
     #following url is defined so that to include url path when sending Proposal amendment request to user.
     url(r'^external/proposal/(?P<proposal_pk>\d+)/$', views.ExternalProposalView.as_view(), name='external-proposal-detail'),
     url(r'^internal/proposal/(?P<proposal_pk>\d+)/$', views.InternalProposalView.as_view(), name='internal-proposal-detail'),
     url(r'^external/compliance/(?P<compliance_pk>\d+)/$', views.ExternalComplianceView.as_view(), name='external-compliance-detail'),
     url(r'^internal/compliance/(?P<compliance_pk>\d+)/$', views.InternalComplianceView.as_view(), name='internal-compliance-detail'),
+
+    #filming
+    url(r'^internal/proposal/(?P<proposal_pk>\d+)/district_proposal/(?P<district_proposal_pk>\d+)/$', views.DistrictProposalView.as_view(), name='internal-district-proposal-detail'),
 
     #url(r'^organisations/(?P<pk>\d+)/confirm-delegate-access/(?P<uid>[0-9A-Za-z]+)-(?P<token>.+)/$', views.ConfirmDelegateAccess.as_view(), name='organisation_confirm_delegate_access'),
     # reversion history-compare
@@ -146,3 +196,9 @@ urlpatterns = [
 
 if settings.DEBUG:  # Serve media locally in development.
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if settings.SHOW_DEBUG_TOOLBAR:
+    import debug_toolbar
+    urlpatterns = [
+        url('__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns

@@ -1,5 +1,6 @@
 from django.conf import settings
 from ledger.accounts.models import EmailUser,Address
+from commercialoperator.components.main.models import ApplicationType
 from commercialoperator.components.proposals.models import (
                                     ProposalType,
                                     Proposal,
@@ -31,11 +32,15 @@ from commercialoperator.components.proposals.models import (
                                     ProposalAssessmentAnswer,
                                     ProposalAssessment,
                                     RequirementDocument,
+                                    DistrictProposal,
+                                    DistrictProposalDeclinedDetails,
                                 )
 from commercialoperator.components.organisations.models import (
                                 Organisation
                             )
 from commercialoperator.components.main.serializers import CommunicationLogEntrySerializer, ParkSerializer, ActivitySerializer, AccessTypeSerializer, TrailSerializer
+from commercialoperator.components.proposals.serializers_filming import ProposalFilmingOtherDetailsSerializer, ProposalFilmingActivitySerializer, ProposalFilmingAccessSerializer, ProposalFilmingEquipmentSerializer
+from commercialoperator.components.proposals.serializers_event import ProposalEventOtherDetailsSerializer, ProposalEventManagementSerializer, ProposalEventVehiclesVesselsSerializer, ProposalEventActivitiesSerializer
 from commercialoperator.components.organisations.serializers import OrganisationSerializer
 from commercialoperator.components.users.serializers import UserAddressSerializer, DocumentSerializer
 from rest_framework import serializers
@@ -242,6 +247,7 @@ class ProposalOtherDetailsSerializer(serializers.ModelSerializer):
     # def get_accreditation_type(self,obj):
     #     return obj.get_accreditation_type_display()
 
+
 class SaveProposalOtherDetailsSerializer(serializers.ModelSerializer):
     #park=ParkSerializer()
     class Meta:
@@ -258,6 +264,8 @@ class SaveProposalOtherDetailsSerializer(serializers.ModelSerializer):
                 'credit_docket_books',
                 'proposal',
                 )
+
+
 class ChecklistQuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -325,7 +333,10 @@ class BaseProposalSerializer(serializers.ModelSerializer):
     #land_parks=ProposalParkSerializer(many=True)
     #marine_parks=ProposalParkSerializer(many=True)
     #trails=ProposalTrailSerializer(many=True)
-    other_details=ProposalOtherDetailsSerializer()
+
+#    other_details=ProposalOtherDetailsSerializer()
+#    filming_other_details=ProposalFilmingOtherDetailsSerializer()
+    other_details = serializers.SerializerMethodField()
 
     get_history = serializers.ReadOnlyField()
     is_qa_officer = serializers.SerializerMethodField()
@@ -391,6 +402,8 @@ class BaseProposalSerializer(serializers.ModelSerializer):
                 # tab field models
                 'applicant_details',
                 'other_details',
+                #'filming_other_details',
+                #'test_details',
                 'activities_land',
                 'activities_marine',
                 'land_access',
@@ -407,6 +420,18 @@ class BaseProposalSerializer(serializers.ModelSerializer):
 
                 )
         read_only_fields=('documents',)
+
+    def get_other_details(self,obj):
+        if obj.application_type.name==ApplicationType.TCLASS:
+            return ProposalOtherDetailsSerializer(obj.other_details).data
+
+        elif obj.application_type.name==ApplicationType.FILMING:
+            return ProposalFilmingOtherDetailsSerializer(obj.filming_other_details).data
+
+        elif obj.application_type.name==ApplicationType.EVENT:
+            return ProposalEventOtherDetailsSerializer(obj.event_other_details).data
+
+        return None
 
     def get_documents_url(self,obj):
         return '/media/{}/proposals/{}/documents/'.format(settings.MEDIA_APP_DIR, obj.id)
@@ -446,7 +471,7 @@ class BaseProposalSerializer(serializers.ModelSerializer):
         return obj.trails.all().values_list('trail_id', flat=True)
 
     def get_allow_full_discount(self,obj):
-        return True if obj.application_type.name=='T Class' and obj.allow_full_discount else False
+        return True if obj.application_type.name==ApplicationType.TCLASS and obj.allow_full_discount else False
 
 #Not used anymore
 class DTProposalSerializer(BaseProposalSerializer):
@@ -650,6 +675,9 @@ class SaveProposalSerializer(BaseProposalSerializer):
                 'lodgement_sequence',
                 'can_officer_process',
                 'applicant_details',
+                'filming_approval_type',
+                'filming_licence_charge_type',
+                'filming_non_standard_charge',
                 #'activities_land',
                 #'activities_marine',
                 #'other_details',
@@ -745,6 +773,7 @@ class InternalProposalSerializer(BaseProposalSerializer):
     #
     assessor_mode = serializers.SerializerMethodField()
     can_edit_activities = serializers.SerializerMethodField()
+    can_edit_period = serializers.SerializerMethodField()
     current_assessor = serializers.SerializerMethodField()
     assessor_data = serializers.SerializerMethodField()
     latest_referrals = ProposalReferralSerializer(many=True)
@@ -828,6 +857,7 @@ class InternalProposalSerializer(BaseProposalSerializer):
                 # 'trails',
                 'training_completed',
                 'can_edit_activities',
+                'can_edit_period',
                 #Following 3 are variable to store selected parks and activities at frontend
                 #'selected_parks_activities',
                 #'selected_trails_activities',
@@ -863,6 +893,11 @@ class InternalProposalSerializer(BaseProposalSerializer):
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         return obj.can_edit_activities(user)
 
+    def get_can_edit_period(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_edit_period(user)
+
     def get_readonly(self,obj):
         return True
 
@@ -892,42 +927,42 @@ class InternalProposalSerializer(BaseProposalSerializer):
         return []
 
 
-class ReferralProposalSerializer(InternalProposalSerializer):
-    def get_assessor_mode(self,obj):
-        # TODO check if the proposal has been accepted or declined
-        request = self.context['request']
-        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
-        try:
-            referral = Referral.objects.get(proposal=obj,referral=user)
-        except:
-            referral = None
-        return {
-            'assessor_mode': True,
-            'assessor_can_assess': referral.can_assess_referral(user) if referral else None,
-            'assessor_level': 'referral',
-            'assessor_box_view': obj.assessor_comments_view(user)
-        }
+# class ReferralProposalSerializer(InternalProposalSerializer):
+#     def get_assessor_mode(self,obj):
+#         # TODO check if the proposal has been accepted or declined
+#         request = self.context['request']
+#         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+#         try:
+#             referral = Referral.objects.get(proposal=obj,referral=user)
+#         except:
+#             referral = None
+#         return {
+#             'assessor_mode': True,
+#             'assessor_can_assess': referral.can_assess_referral(user) if referral else None,
+#             'assessor_level': 'referral',
+#             'assessor_box_view': obj.assessor_comments_view(user)
+#         }
 
-class ReferralSerializer(serializers.ModelSerializer):
-    processing_status = serializers.CharField(source='get_processing_status_display')
-    latest_referrals = ProposalReferralSerializer(many=True)
-    can_be_completed = serializers.BooleanField()
-    can_process=serializers.SerializerMethodField()
-    referral_assessment=ProposalAssessmentSerializer(read_only=True)
+# class ReferralSerializer(serializers.ModelSerializer):
+#     processing_status = serializers.CharField(source='get_processing_status_display')
+#     latest_referrals = ProposalReferralSerializer(many=True)
+#     can_be_completed = serializers.BooleanField()
+#     can_process=serializers.SerializerMethodField()
+#     referral_assessment=ProposalAssessmentSerializer(read_only=True)
 
 
-    class Meta:
-        model = Referral
-        fields = '__all__'
+#     class Meta:
+#         model = Referral
+#         fields = '__all__'
 
-    def __init__(self,*args,**kwargs):
-        super(ReferralSerializer, self).__init__(*args, **kwargs)
-        self.fields['proposal'] = ReferralProposalSerializer(context={'request':self.context['request']})
+#     def __init__(self,*args,**kwargs):
+#         super(ReferralSerializer, self).__init__(*args, **kwargs)
+#         self.fields['proposal'] = ReferralProposalSerializer(context={'request':self.context['request']})
 
-    def get_can_process(self,obj):
-        request = self.context['request']
-        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
-        return obj.can_process(user)
+#     def get_can_process(self,obj):
+#         request = self.context['request']
+#         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+#         return obj.can_process(user)
 
 class ProposalUserActionSerializer(serializers.ModelSerializer):
     who = serializers.CharField(source='who.get_full_name')
@@ -954,6 +989,7 @@ class SendReferralSerializer(serializers.Serializer):
 
 class DTReferralSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source='proposal.get_processing_status_display')
+    application_type = serializers.CharField(source='proposal.application_type.name')
     referral_status = serializers.CharField(source='get_processing_status_display')
     proposal_lodgement_date = serializers.CharField(source='proposal.lodgement_date')
     proposal_lodgement_number = serializers.CharField(source='proposal.lodgement_number')
@@ -972,6 +1008,7 @@ class DTReferralSerializer(serializers.ModelSerializer):
             'applicant',
             'submitter',
             'processing_status',
+            'application_type',
             'referral_status',
             'lodged_on',
             'proposal',
@@ -1002,6 +1039,7 @@ class RequirementDocumentSerializer(serializers.ModelSerializer):
 class ProposalRequirementSerializer(serializers.ModelSerializer):
     due_date = serializers.DateField(input_formats=['%d/%m/%Y'],required=False,allow_null=True)
     can_referral_edit=serializers.SerializerMethodField()
+    can_district_assessor_edit=serializers.SerializerMethodField()
     requirement_documents = RequirementDocumentSerializer(many=True, read_only=True)
     class Meta:
         model = ProposalRequirement
@@ -1020,7 +1058,10 @@ class ProposalRequirementSerializer(serializers.ModelSerializer):
             'copied_from',
             'referral_group',
             'can_referral_edit',
-            'requirement_documents'
+            'district_proposal',
+            'district',
+            'requirement_documents',
+            'can_district_assessor_edit'
         )
         read_only_fields = ('order','requirement', 'copied_from')
 
@@ -1028,6 +1069,11 @@ class ProposalRequirementSerializer(serializers.ModelSerializer):
         request = self.context['request']
         user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
         return obj.can_referral_edit(user)
+
+    def get_can_district_assessor_edit(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_district_assessor_edit(user)
 
 class ProposalStandardRequirementSerializer(serializers.ModelSerializer):
     class Meta:
@@ -1042,7 +1088,7 @@ class ProposedApprovalSerializer(serializers.Serializer):
 
 class PropedDeclineSerializer(serializers.Serializer):
     reason = serializers.CharField()
-    cc_email = serializers.CharField(required=False)
+    cc_email = serializers.CharField(required=False, allow_null=True)
 
 class OnHoldSerializer(serializers.Serializer):
     comment = serializers.CharField()
@@ -1102,3 +1148,738 @@ class SaveVehicleSerializer(serializers.ModelSerializer):
         model = Vehicle
         fields = ('id', 'capacity', 'rego', 'license', 'access_type', 'rego_expiry', 'proposal')
 
+
+class ProposalFilmingSerializer(BaseProposalSerializer):
+    assessor_data = serializers.JSONField(required=False)
+    application_type = serializers.CharField(source='application_type.name', read_only=True)
+    submitter = serializers.CharField(source='submitter.get_full_name')
+    processing_status = serializers.SerializerMethodField(read_only=True)
+    #review_status = serializers.SerializerMethodField(read_only=True)
+    customer_status = serializers.SerializerMethodField(read_only=True)
+    filming_activity= ProposalFilmingActivitySerializer()
+    filming_access=ProposalFilmingAccessSerializer()
+    filming_equipment=ProposalFilmingEquipmentSerializer()
+    filming_other_details=ProposalFilmingOtherDetailsSerializer()
+    training_completed=serializers.SerializerMethodField()
+
+    class Meta:
+        model = Proposal
+        fields = (
+                'id',
+                'application_type',
+                'activity',
+                'approval_level',
+                'title',
+                'region',
+                'district',
+                # 'tenure',
+                'data',
+                'assessor_data',
+                'comment_data',
+                'schema',
+                'customer_status',
+                'processing_status',
+                'fee_paid',
+                'training_completed',
+                'applicant_type',
+                'applicant',
+                'org_applicant',
+                'proxy_applicant',
+                'submitter',
+                'assigned_officer',
+                'previous_application',
+                'lodgement_date',
+                'documents',
+                'requirements',
+                'readonly',
+                'can_user_edit',
+                'can_user_view',
+                'reference',
+                'lodgement_number',
+                'lodgement_sequence',
+                'can_officer_process',
+                'can_view_district_table',
+                'applicant_details',
+                'filming_activity',
+                'filming_access',
+                'filming_equipment',
+                'filming_other_details',
+                'filming_approval_type',
+                'filming_licence_charge_type',
+                'filming_non_standard_charge',
+                )
+        read_only_fields=('documents','requirements',)
+
+    def get_training_completed (self,obj):
+        #return obj.get_reason_display()
+        return True
+
+    def get_readonly(self,obj):
+        return obj.can_user_view
+
+class InternalFilmingProposalSerializer(BaseProposalSerializer):
+    #applicant = ApplicantSerializer()
+    applicant = serializers.CharField(read_only=True)
+    org_applicant = OrganisationSerializer()
+    processing_status = serializers.SerializerMethodField(read_only=True)
+    review_status = serializers.SerializerMethodField(read_only=True)
+    customer_status = serializers.SerializerMethodField(read_only=True)
+    submitter = EmailUserAppViewSerializer()
+    proposaldeclineddetails = ProposalDeclinedDetailsSerializer()
+    assessor_mode = serializers.SerializerMethodField()
+    can_edit_activities = serializers.SerializerMethodField()
+    can_edit_period = serializers.SerializerMethodField()
+    current_assessor = serializers.SerializerMethodField()
+    assessor_data = serializers.SerializerMethodField()
+    latest_referrals = ProposalReferralSerializer(many=True)
+    allowed_assessors = EmailUserSerializer(many=True)
+    approval_level_document = serializers.SerializerMethodField()
+    application_type = serializers.CharField(source='application_type.name', read_only=True)
+    region = serializers.CharField(source='region.name', read_only=True)
+    district = serializers.CharField(source='district.name', read_only=True)
+    qaofficer_referrals = QAOfficerReferralSerializer(many=True)
+    reversion_ids = serializers.SerializerMethodField()
+    assessor_assessment=ProposalAssessmentSerializer(read_only=True)
+    referral_assessments=ProposalAssessmentSerializer(read_only=True, many=True)
+    fee_invoice_url = serializers.SerializerMethodField()
+    filming_activity= ProposalFilmingActivitySerializer()
+    filming_access=ProposalFilmingAccessSerializer()
+    filming_equipment=ProposalFilmingEquipmentSerializer()
+    filming_other_details=ProposalFilmingOtherDetailsSerializer()
+    #training_completed=serializers.SerializerMethodField()
+
+    class Meta:
+        model = Proposal
+        fields = (
+                'id',
+                'application_type',
+                'activity',
+                'approval_level',
+                'approval_level_document',
+                'region',
+                'district',
+                'tenure',
+                'title',
+                'data',
+                'schema',
+                'customer_status',
+                'processing_status',
+                'review_status',
+                #'hard_copy',
+                'applicant',
+                'org_applicant',
+                'proxy_applicant',
+                'submitter',
+                'applicant_type',
+                'assigned_officer',
+                'assigned_approver',
+                'previous_application',
+                'get_history',
+                'lodgement_date',
+                'modified_date',
+                'documents',
+                'requirements',
+                'readonly',
+                'can_user_edit',
+                'can_user_view',
+                'documents_url',
+                'assessor_mode',
+                'current_assessor',
+                'assessor_data',
+                'comment_data',
+                'latest_referrals',
+                'allowed_assessors',
+                'proposed_issuance_approval',
+                'proposed_decline_status',
+                'proposaldeclineddetails',
+                'permit',
+                'reference',
+                'lodgement_number',
+                'lodgement_sequence',
+                'can_officer_process',
+                'can_view_district_table',
+                'proposal_type',
+                'qaofficer_referrals',
+                # tab field models
+                'applicant_details',
+                'training_completed',
+                'can_edit_activities',
+                'can_edit_period',
+                'reversion_ids',
+                'assessor_assessment',
+                'referral_assessments',
+                'fee_invoice_url',
+                'fee_paid',
+                'filming_activity',
+                'filming_access',
+                'filming_equipment',
+                'filming_other_details',
+                'filming_approval_type',
+                'filming_licence_charge_type',
+                'filming_non_standard_charge',
+                'district_proposals'
+                )
+        read_only_fields=('documents','requirements')
+
+    def get_approval_level_document(self,obj):
+        if obj.approval_level_document is not None:
+            return [obj.approval_level_document.name,obj.approval_level_document._file.url]
+        else:
+            return obj.approval_level_document
+
+    def get_assessor_mode(self,obj):
+        # TODO check if the proposal has been accepted or declined
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return {
+            'assessor_mode': True,
+            'has_assessor_mode': obj.has_assessor_mode(user),
+            'assessor_can_assess': obj.can_assess(user),
+            'assessor_level': 'assessor',
+            'assessor_box_view': obj.assessor_comments_view(user)
+        }
+
+    def get_can_edit_activities(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_edit_activities(user)
+
+    def get_can_edit_period(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_edit_period(user)
+
+    def get_readonly(self,obj):
+        return True
+
+    def get_current_assessor(self,obj):
+        return {
+            'id': self.context['request'].user.id,
+            'name': self.context['request'].user.get_full_name(),
+            'email': self.context['request'].user.email
+        }
+
+    def get_assessor_data(self,obj):
+        return obj.assessor_data
+
+    def get_reversion_ids(self,obj):
+        return obj.reversion_ids[:5]
+
+    def get_fee_invoice_url(self,obj):
+        return '/cols/payments/invoice-pdf/{}'.format(obj.fee_invoice_reference) if obj.fee_paid else None
+
+#Event serializer
+class ProposalEventSerializer(BaseProposalSerializer):
+    assessor_data = serializers.JSONField(required=False)
+    application_type = serializers.CharField(source='application_type.name', read_only=True)
+    submitter = serializers.CharField(source='submitter.get_full_name')
+    processing_status = serializers.SerializerMethodField(read_only=True)
+    customer_status = serializers.SerializerMethodField(read_only=True)
+    event_activity=ProposalEventActivitiesSerializer()
+    event_other_details=ProposalEventOtherDetailsSerializer()
+    event_management=ProposalEventManagementSerializer()
+    event_vehicles_vessels=ProposalEventVehiclesVesselsSerializer()
+    trails=ProposalTrailSerializer(many=True)
+
+    class Meta:
+        model = Proposal
+        fields = (
+                'id',
+                'application_type',
+                'activity',
+                'approval_level',
+                'title',
+                'region',
+                'district',
+                # 'tenure',
+                'data',
+                'assessor_data',
+                'comment_data',
+                'schema',
+                'customer_status',
+                'processing_status',
+                'fee_paid',
+                'training_completed',
+                'applicant_type',
+                'applicant',
+                'org_applicant',
+                'proxy_applicant',
+                'submitter',
+                'assigned_officer',
+                'previous_application',
+                'lodgement_date',
+                'documents',
+                'requirements',
+                'readonly',
+                'can_user_edit',
+                'can_user_view',
+                'reference',
+                'lodgement_number',
+                'lodgement_sequence',
+                'can_officer_process',
+                'can_view_district_table',
+                'applicant_details',
+                # 'filming_activity',
+                # 'filming_access',
+                # 'filming_equipment',
+                'event_activity',
+                'event_management',
+                'event_other_details',
+                'event_vehicles_vessels',
+                'trails',
+                )
+        read_only_fields=('documents','requirements',)
+
+
+
+    def get_readonly(self,obj):
+        return obj.can_user_view
+
+
+class InternalEventProposalSerializer(BaseProposalSerializer):
+    #applicant = ApplicantSerializer()
+    applicant = serializers.CharField(read_only=True)
+    org_applicant = OrganisationSerializer()
+    processing_status = serializers.SerializerMethodField(read_only=True)
+    review_status = serializers.SerializerMethodField(read_only=True)
+    customer_status = serializers.SerializerMethodField(read_only=True)
+    submitter = EmailUserAppViewSerializer()
+    proposaldeclineddetails = ProposalDeclinedDetailsSerializer()
+    assessor_mode = serializers.SerializerMethodField()
+    can_edit_activities = serializers.SerializerMethodField()
+    can_edit_period = serializers.SerializerMethodField()
+    current_assessor = serializers.SerializerMethodField()
+    assessor_data = serializers.SerializerMethodField()
+    latest_referrals = ProposalReferralSerializer(many=True)
+    allowed_assessors = EmailUserSerializer(many=True)
+    approval_level_document = serializers.SerializerMethodField()
+    application_type = serializers.CharField(source='application_type.name', read_only=True)
+    region = serializers.CharField(source='region.name', read_only=True)
+    district = serializers.CharField(source='district.name', read_only=True)
+    qaofficer_referrals = QAOfficerReferralSerializer(many=True)
+    reversion_ids = serializers.SerializerMethodField()
+    assessor_assessment=ProposalAssessmentSerializer(read_only=True)
+    referral_assessments=ProposalAssessmentSerializer(read_only=True, many=True)
+    fee_invoice_url = serializers.SerializerMethodField()
+    event_activity=ProposalEventActivitiesSerializer()
+    event_other_details=ProposalEventOtherDetailsSerializer()
+    event_management=ProposalEventManagementSerializer()
+    event_vehicles_vessels=ProposalEventVehiclesVesselsSerializer()
+    trails=ProposalTrailSerializer(many=True)
+
+
+
+    class Meta:
+        model = Proposal
+        fields = (
+                'id',
+                'application_type',
+                'activity',
+                'approval_level',
+                'approval_level_document',
+                'region',
+                'district',
+                'tenure',
+                'title',
+                'data',
+                'schema',
+                'customer_status',
+                'processing_status',
+                'review_status',
+                #'hard_copy',
+                'applicant',
+                'org_applicant',
+                'proxy_applicant',
+                'submitter',
+                'applicant_type',
+                'assigned_officer',
+                'assigned_approver',
+                'previous_application',
+                'get_history',
+                'lodgement_date',
+                'modified_date',
+                'documents',
+                'requirements',
+                'readonly',
+                'can_user_edit',
+                'can_user_view',
+                'documents_url',
+                'assessor_mode',
+                'current_assessor',
+                'assessor_data',
+                'comment_data',
+                'latest_referrals',
+                'allowed_assessors',
+                'proposed_issuance_approval',
+                'proposed_decline_status',
+                'proposaldeclineddetails',
+                'permit',
+                'reference',
+                'lodgement_number',
+                'lodgement_sequence',
+                'can_officer_process',
+                'can_view_district_table',
+                'proposal_type',
+                'qaofficer_referrals',
+                # tab field models
+                'applicant_details',
+                'training_completed',
+                'can_edit_activities',
+                'can_edit_period',
+                'reversion_ids',
+                'assessor_assessment',
+                'referral_assessments',
+                'fee_invoice_url',
+                'fee_paid',
+                'event_activity',
+                'event_management',
+                'event_other_details',
+                'event_vehicles_vessels',
+                'trails',
+                )
+        read_only_fields=('documents','requirements')
+
+    def get_approval_level_document(self,obj):
+        if obj.approval_level_document is not None:
+            return [obj.approval_level_document.name,obj.approval_level_document._file.url]
+        else:
+            return obj.approval_level_document
+
+    def get_assessor_mode(self,obj):
+        # TODO check if the proposal has been accepted or declined
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return {
+            'assessor_mode': True,
+            'has_assessor_mode': obj.has_assessor_mode(user),
+            'assessor_can_assess': obj.can_assess(user),
+            'assessor_level': 'assessor',
+            'assessor_box_view': obj.assessor_comments_view(user)
+        }
+
+    def get_can_edit_activities(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_edit_activities(user)
+
+    def get_can_edit_period(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_edit_period(user)
+
+    def get_readonly(self,obj):
+        return True
+
+    def get_current_assessor(self,obj):
+        return {
+            'id': self.context['request'].user.id,
+            'name': self.context['request'].user.get_full_name(),
+            'email': self.context['request'].user.email
+        }
+
+    def get_assessor_data(self,obj):
+        return obj.assessor_data
+
+    def get_reversion_ids(self,obj):
+        return obj.reversion_ids[:5]
+
+    def get_fee_invoice_url(self,obj):
+        return '/cols/payments/invoice-pdf/{}'.format(obj.fee_invoice_reference) if obj.fee_paid else None
+
+class SaveInternalFilmingProposalSerializer(BaseProposalSerializer):
+    #assessor_data = serializers.JSONField(required=False)
+    #applicant_details = ProposalApplicantDetailsSerializer(required=False)
+    #other_details= SaveProposalOtherDetailsSerializer()
+
+    class Meta:
+        model = Proposal
+        fields = (
+                'id',
+                #'application_type',
+                'activity',
+                'approval_level',
+                'title',
+                'region',
+                'district',
+                'tenure',
+                'data',
+                #'assessor_data',
+                #'comment_data',
+                #'schema',
+                #'customer_status',
+                #'processing_status',
+                #'review_status',
+                #'hard_copy',
+                'applicant_type',
+                #'applicant',
+                #'org_applicant',
+                #'proxy_applicant',
+                #'submitter',
+                'assigned_officer',
+                'previous_application',
+                'lodgement_date',
+                'documents',
+                'requirements',
+                'readonly',
+                'can_user_edit',
+                'can_user_view',
+                'reference',
+                'lodgement_number',
+                'lodgement_sequence',
+                'can_officer_process',
+                'can_view_district_table',
+                'applicant_details',
+                'filming_approval_type',
+                'filming_licence_charge_type',
+                'filming_non_standard_charge',
+                #'activities_land',
+                #'activities_marine',
+                #'other_details',
+                )
+        read_only_fields=('documents','requirements',)
+
+class SaveInternalEventProposalSerializer(BaseProposalSerializer):
+    #assessor_data = serializers.JSONField(required=False)
+    #applicant_details = ProposalApplicantDetailsSerializer(required=False)
+    #other_details= SaveProposalOtherDetailsSerializer()
+
+    class Meta:
+        model = Proposal
+        fields = (
+                'id',
+                #'application_type',
+                'activity',
+                'approval_level',
+                'title',
+                'region',
+                'district',
+                'tenure',
+                'data',
+                #'assessor_data',
+                #'comment_data',
+                #'schema',
+                #'customer_status',
+                #'processing_status',
+                #'review_status',
+                #'hard_copy',
+                'applicant_type',
+                #'applicant',
+                #'org_applicant',
+                #'proxy_applicant',
+                #'submitter',
+                'assigned_officer',
+                'previous_application',
+                'lodgement_date',
+                'documents',
+                'requirements',
+                'readonly',
+                'can_user_edit',
+                'can_user_view',
+                'reference',
+                'lodgement_number',
+                'lodgement_sequence',
+                'can_officer_process',
+                'can_view_district_table',
+                'applicant_details',
+                'filming_approval_type',
+                'filming_licence_charge_type',
+                'filming_non_standard_charge',
+                #'activities_land',
+                #'activities_marine',
+                #'other_details',
+                )
+        read_only_fields=('documents','requirements',)
+
+class FilmingDistrictProposalSerializer(InternalFilmingProposalSerializer):
+    def get_assessor_mode(self,obj):
+        # TODO check if the proposal has been accepted or declined
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return {
+            'assessor_mode': False,
+            'assessor_can_assess': obj.can_assess(user),
+            'assessor_level': 'district',
+            'assessor_box_view': obj.assessor_comments_view(user)
+        }
+
+class DistrictProposalDeclinedDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DistrictProposalDeclinedDetails
+        fields = '__all__'
+
+class DistrictProposalSerializer(serializers.ModelSerializer):
+    processing_status = serializers.CharField(source='get_processing_status')
+    district_assessor_can_assess=serializers.SerializerMethodField()
+    allowed_district_assessors = EmailUserSerializer(many=True)
+    current_assessor = serializers.SerializerMethodField()
+    can_process_requirements = serializers.SerializerMethodField()
+    district_name = serializers.CharField(read_only=True)
+    districtproposaldeclineddetails = DistrictProposalDeclinedDetailsSerializer()
+    #customer_status = serializers.CharField(source='get_customer_status_display')
+    # latest_referrals = ProposalReferralSerializer(many=True)
+    # can_be_completed = serializers.BooleanField()
+    # can_process=serializers.SerializerMethodField()
+    # referral_assessment=ProposalAssessmentSerializer(read_only=True)
+    #proposal=FilmingDistrictProposalSerializer()
+
+
+    class Meta:
+        model = DistrictProposal
+        fields = '__all__'
+
+    def __init__(self,*args,**kwargs):
+        super(DistrictProposalSerializer, self).__init__(*args, **kwargs)       
+        self.fields['proposal'] = FilmingDistrictProposalSerializer(context={'request': self.context['request']})
+
+    def get_district_assessor_can_assess(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_assess(user)
+
+    def get_current_assessor(self,obj):
+        return {
+            'id': self.context['request'].user.id,
+            'name': self.context['request'].user.get_full_name(),
+            'email': self.context['request'].user.email
+        }
+
+    def get_can_process_requirements(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_process_requirements(user)
+
+
+class ListDistrictProposalSerializer(serializers.ModelSerializer):
+    processing_status = serializers.CharField(source='get_processing_status_display')
+    district_assessor_can_assess=serializers.SerializerMethodField()
+    district_name = serializers.CharField(read_only=True)
+    proposal_lodgement_date = serializers.CharField(source='proposal.lodgement_date')
+    proposal_lodgement_number = serializers.CharField(source='proposal.lodgement_number')
+    submitter = serializers.SerializerMethodField()
+    assigned_officer = serializers.CharField(source='assigned_officer.get_full_name', allow_null=True)
+    #submitter= EmailUserAppViewSerializer()
+
+    class Meta:
+        model = DistrictProposal
+        fields = (
+                'id',
+                'processing_status',
+                'district_name',
+                'district_assessor_can_assess',
+                'proposal',
+                'applicant',
+                'submitter',
+                'proposal_lodgement_date',
+                'proposal_lodgement_number',
+                'assigned_officer',
+
+                )
+
+        datatables_always_serialize = (
+                'id',
+                'processing_status',
+                'district_name',
+                'district_assessor_can_assess',
+                'proposal',
+                'applicant',
+                'submitter',
+                'proposal_lodgement_date',
+                'proposal_lodgement_number',
+                'assigned_officer',
+                )
+
+
+    # def __init__(self,*args,**kwargs):
+    #     super(ListDistrictProposalSerializer, self).__init__(*args, **kwargs)
+    #     self.fields['proposal'] = FilmingDistrictProposalSerializer(context={'request':self.context['request']})
+
+    def get_district_assessor_can_assess(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_assess(user)
+
+    def get_submitter(self,obj):
+        return EmailUserSerializer(obj.proposal.submitter).data
+
+class ReferralProposalSerializer(InternalProposalSerializer):
+    def get_assessor_mode(self,obj):
+        # TODO check if the proposal has been accepted or declined
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        try:
+            referral = Referral.objects.get(proposal=obj,referral=user)
+        except:
+            referral = None
+        return {
+            'assessor_mode': True,
+            'assessor_can_assess': referral.can_assess_referral(user) if referral else None,
+            'assessor_level': 'referral',
+            'assessor_box_view': obj.assessor_comments_view(user)
+        }
+
+class FilmingReferralProposalSerializer(InternalFilmingProposalSerializer):
+    def get_assessor_mode(self,obj):
+        # TODO check if the proposal has been accepted or declined
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        try:
+            referral = Referral.objects.get(proposal=obj,referral=user)
+        except:
+            referral = None
+        return {
+            'assessor_mode': True,
+            'assessor_can_assess': referral.can_assess_referral(user) if referral else None,
+            'assessor_level': 'referral',
+            'assessor_box_view': obj.assessor_comments_view(user)
+        }
+
+class EventReferralProposalSerializer(InternalEventProposalSerializer):
+    def get_assessor_mode(self,obj):
+        # TODO check if the proposal has been accepted or declined
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        try:
+            referral = Referral.objects.get(proposal=obj,referral=user)
+        except:
+            referral = None
+        return {
+            'assessor_mode': True,
+            'assessor_can_assess': referral.can_assess_referral(user) if referral else None,
+            'assessor_level': 'referral',
+            'assessor_box_view': obj.assessor_comments_view(user)
+        }
+
+class ReferralSerializer(serializers.ModelSerializer):
+    processing_status = serializers.CharField(source='get_processing_status_display')
+    latest_referrals = ProposalReferralSerializer(many=True)
+    can_be_completed = serializers.BooleanField()
+    can_process=serializers.SerializerMethodField()
+    referral_assessment=ProposalAssessmentSerializer(read_only=True)
+    application_type=serializers.CharField(read_only=True)
+
+
+    class Meta:
+        model = Referral
+        fields = '__all__'
+
+    # def __init__(self,*args,**kwargs):
+    #     super(ReferralSerializer, self).__init__(*args, **kwargs)
+    #     self.fields['proposal'] = ReferralProposalSerializer(context={'request':self.context['request']})
+        
+
+    def __init__(self,*args,**kwargs):
+        super(ReferralSerializer, self).__init__(*args, **kwargs)
+        try:    
+            if kwargs.get('context')['view'].get_object().proposal.application_type.name == ApplicationType.TCLASS:
+                self.fields['proposal'] = ReferralProposalSerializer(context={'request':self.context['request']})
+            elif kwargs.get('context')['view'].get_object().proposal.application_type.name == ApplicationType.FILMING:
+                self.fields['proposal'] = FilmingReferralProposalSerializer(context={'request':self.context['request']})
+            elif kwargs.get('context')['view'].get_object().proposal.application_type.name == ApplicationType.EVENT:
+                self.fields['proposal'] = EventReferralProposalSerializer(context={'request':self.context['request']})
+        except:
+            raise
+
+    def get_can_process(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        return obj.can_process(user)

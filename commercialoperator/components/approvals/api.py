@@ -25,6 +25,7 @@ from datetime import datetime, timedelta
 from collections import OrderedDict
 from django.core.cache import cache
 from ledger.accounts.models import EmailUser, Address
+from ledger.accounts.models import Organisation as ledger_org
 from ledger.address.models import Country
 from datetime import datetime, timedelta, date
 from django.urls import reverse
@@ -48,9 +49,55 @@ from commercialoperator.components.organisations.models import Organisation, Org
 from commercialoperator.helpers import is_customer, is_internal
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from commercialoperator.components.proposals.api import ProposalFilterBackend, ProposalRenderer
+from rest_framework_datatables.filters import DatatablesFilterBackend
+
+class ApprovalFilterBackend(DatatablesFilterBackend):
+    """
+    Custom filters
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        total_count = queryset.count()
+
+        def get_choice(status, choices=Proposal.PROCESSING_STATUS_CHOICES):
+            for i in choices:
+                if i[1]==status:
+                    return i[0]
+            return None
+
+        # on the internal dashboard, the Region filter is multi-select - have to use the custom filter below
+        regions = request.GET.get('regions')
+        if regions:
+            if queryset.model is Proposal:
+                queryset = queryset.filter(region__name__iregex=regions.replace(',', '|'))
+            elif queryset.model is Referral or queryset.model is Compliance:
+                queryset = queryset.filter(proposal__region__name__iregex=regions.replace(',', '|'))
+
+        
+        date_from = request.GET.get('date_from')
+        date_to = request.GET.get('date_to')
+        
+        if queryset.model is Approval:
+            if date_from:
+                queryset = queryset.filter(start_date__gte=date_from)
+
+            if date_to:
+                queryset = queryset.filter(expiry_date__lte=date_to)
+        
+        getter = request.query_params.get
+        fields = self.get_fields(getter)
+        ordering = self.get_ordering(getter, fields)
+        queryset = queryset.order_by(*ordering)
+        if len(ordering):
+            queryset = queryset.order_by(*ordering)
+
+        queryset = super(ApprovalFilterBackend, self).filter_queryset(request, queryset, view)
+        setattr(view, '_datatables_total_count', total_count)
+        return queryset
 
 class ApprovalPaginatedViewSet(viewsets.ModelViewSet):
-    filter_backends = (ProposalFilterBackend,)
+    #filter_backends = (ProposalFilterBackend,)
+    filter_backends = (ApprovalFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
     renderer_classes = (ProposalRenderer,)
     page_size = 10
@@ -171,10 +218,12 @@ class ApprovalViewSet(viewsets.ModelViewSet):
         """ Used by the external dashboard filters """
         region_qs =  self.get_queryset().filter(current_proposal__region__isnull=False).values_list('current_proposal__region__name', flat=True).distinct()
         activity_qs =  self.get_queryset().filter(current_proposal__activity__isnull=False).values_list('current_proposal__activity', flat=True).distinct()
+        application_types=ApplicationType.objects.all().values_list('name', flat=True)
         data = dict(
             regions=region_qs,
             activities=activity_qs,
             approval_status_choices = [i[1] for i in Approval.STATUS_CHOICES],
+            application_types=application_types,
         )
         return Response(data)
 
@@ -229,6 +278,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
                 try:
                     if request.data.get('applicant_type') == 'org':
                         org_applicant = Organisation.objects.get(organisation_id=request.data.get('holder-selected'))
+                        #org_applicant = ledger_org.objects.get(id=request.data.get('holder-selected'))
                     else:
                         proxy_applicant = EmailUser.objects.get(id=request.data.get('holder-selected'))
                 except:
@@ -270,7 +320,8 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -293,7 +344,8 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -314,7 +366,8 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -335,7 +388,8 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -355,7 +409,8 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
@@ -376,7 +431,8 @@ class ApprovalViewSet(viewsets.ModelViewSet):
             if hasattr(e,'error_dict'):
                 raise serializers.ValidationError(repr(e.error_dict))
             else:
-                raise serializers.ValidationError(repr(e[0].encode('utf-8')))
+                if hasattr(e,'message'):
+                    raise serializers.ValidationError(e.message)
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))

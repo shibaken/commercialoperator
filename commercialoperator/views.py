@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 
 from commercialoperator.helpers import is_internal
 from commercialoperator.forms import *
-from commercialoperator.components.proposals.models import Referral, Proposal, HelpPage
+from commercialoperator.components.proposals.models import Referral, Proposal, HelpPage, DistrictProposal
 from commercialoperator.components.compliances.models import Compliance
 from commercialoperator.components.proposals.mixins import ReferralOwnerMixin
 from commercialoperator.components.main.models import Park
@@ -65,6 +65,10 @@ class ExternalComplianceView(DetailView):
 
 class InternalComplianceView(DetailView):
     model = Compliance
+    template_name = 'commercialoperator/dash/index.html'
+
+class DistrictProposalView(DetailView):
+    model = DistrictProposal
     template_name = 'commercialoperator/dash/index.html'
 
 class CommercialOperatorRoutingView(TemplateView):
@@ -156,7 +160,7 @@ class ManagementCommandsView(LoginRequiredMixin, TemplateView):
         data = {}
         command_script = request.POST.get('script', None)
         if command_script:
-            print 'running {}'.format(command_script)
+            print ('running {}'.format(command_script))
             call_command(command_script)
             data.update({command_script: 'true'})
 

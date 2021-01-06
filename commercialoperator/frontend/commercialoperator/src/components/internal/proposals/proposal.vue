@@ -171,11 +171,19 @@
                                             <strong>Action</strong><br/>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <button v-if="changingStatus" style="width:80%;" class="btn btn-primary" disabled>Enter Requirements&nbsp;
+                                    <div class="row" v-if="proposal.application_type==application_type_filming && proposal.filming_approval_type=='lawful_authority'">
+                                        <div class="col-sm-12"  >
+                                            <!-- <button  v-if="proposal.application_type=='Filming' && proposal.filming_approval_type=='lawful_authority'" style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="sendToDistricts()">Send to Districts</button><br/> -->
+                                            <button v-if="sendingToDistrict" style="width:80%;" class="btn btn-primary top-buffer-s" disabled>Send to Districts&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                            <button v-if="!changingStatus" style="width:80%;" class="btn btn-primary" :disabled="proposal.can_user_edit" @click.prevent="switchStatus('with_assessor_requirements')">Enter Requirements</button><br/>
+                                            <button  v-if="!sendingToDistrict" style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="sendToDistricts()">Send to Districts</button><br/>
+                                        </div>
+                                    </div>                                    
+                                    <div v-else class="row">
+                                        <div class="col-sm-12">
+                                            <button v-if="changingStatus" style="width:80%;" class="btn btn-primary top-buffer-s" disabled>Enter Requirements&nbsp;
+                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            <button v-if="!changingStatus" style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="switchStatus('with_assessor_requirements')">Enter Requirements</button><br/>
                                         </div>
                                     </div>
                                     <div class="row">
@@ -316,6 +324,9 @@
                 <template v-if="proposal.processing_status == 'With Approver' || isFinalised">
                     <ApprovalScreen :proposal="proposal" @refreshFromResponse="refreshFromResponse"/>
                 </template>
+                <template v-if="proposal.can_view_district_table">
+                    <FilmingDistrictProposalsTable :proposal="proposal" @refreshFromResponse="refreshFromResponse" :url="district_proposals_url"/>
+                </template>
                 <template v-if="proposal.processing_status == 'With Assessor (Requirements)' || ((proposal.processing_status == 'With Approver' || isFinalised) && showingRequirements)">
                     <Requirements :proposal="proposal"/>
                 </template>
@@ -323,7 +334,9 @@
                     <div class="">
                         <div class="row">
                             <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
-                                <ProposalTClass ref="tclass" v-if="proposal && proposal_parks && proposal.application_type=='T Class'" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalTClass>
+                                <ProposalTClass ref="tclass" v-if="proposal && proposal_parks && proposal.application_type==application_type_tclass" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities"  :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalTClass>
+                                <ProposalFilming ref="filming" v-else-if="proposal && proposal.application_type==application_type_filming" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalFilming>
+                                <ProposalEvent ref="event" v-else-if="proposal && proposal.application_type==application_type_event" :proposal="proposal" id="proposalStart" :canEditActivities="canEditActivities" :canEditPeriod="canEditPeriod" :is_internal="true" :hasAssessorMode="hasAssessorMode" :proposal_parks="proposal_parks"></ProposalEvent>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token"/>
                                     <input type='hidden' name="schema" :value="JSON.stringify(proposal)" />
                                     <input type='hidden' name="proposal_id" :value="1" />
@@ -371,6 +384,7 @@ import ProposalFilming from '@/components/form_filming.vue'
 import ProposalEvent from '@/components/form_event.vue'
 import OnHold from './proposal_onhold.vue'
 import WithQAOfficer from './proposal_qaofficer.vue'
+import FilmingDistrictProposalsTable from '@common-utils/filming_district_proposals_table.vue'
 import {
     api_endpoints,
     helpers
@@ -443,9 +457,11 @@ export default {
             comms_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/comms_log'),
             comms_add_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/add_comms_log'),
             logs_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/action_log'),
+            district_proposals_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/district_proposals'),
             panelClickersInitialised: false,
             sendingReferral: false,
             comparing: false,
+            sendingToDistrict: false,
         }
     },
     components: {
@@ -464,6 +480,7 @@ export default {
         ProposalEvent,
         OnHold,
         WithQAOfficer,
+        FilmingDistrictProposalsTable
     },
     filters: {
         formatDate: function(data){
@@ -492,7 +509,7 @@ export default {
           return (this.proposal) ? `/api/proposal/${this.proposal.id}/assessor_save.json` : '';
         },
         isFinalised: function(){
-            return this.proposal.processing_status == 'Declined' || this.proposal.processing_status == 'Approved';
+            return this.proposal.processing_status == 'Declined' || this.proposal.processing_status == 'Approved' || this.proposal.processing_status == 'Awaiting Payment';
         },
         canAssess: function(){
             return this.proposal && this.proposal.assessor_mode.assessor_can_assess ? true : false;
@@ -502,6 +519,9 @@ export default {
         },
         canEditActivities: function(){
             return this.proposal && this.proposal.assessor_mode && this.proposal.assessor_mode.assessor_mode && this.proposal.can_edit_activities;
+        },
+        canEditPeriod: function(){
+            return this.proposal && this.proposal.assessor_mode && this.proposal.assessor_mode.assessor_mode && this.proposal.can_edit_period;
         },
         canAction: function(){
             if (this.proposal.processing_status == 'With Approver'){
@@ -534,11 +554,19 @@ export default {
         class_ncols: function(){
             return this.comparing ? 'col-md-12' : 'col-md-8';
         },
+        application_type_tclass: function(){
+          return api_endpoints.t_class;
+        },
+        application_type_filming: function(){
+          return api_endpoints.filming;
+        },
+        application_type_event: function(){
+          return api_endpoints.event;
+        }
     },
     methods: {
         initialiseOrgContactTable: function(){
             let vm = this;
-            console.log("i am here original")
             if (vm.proposal && !vm.contacts_table_initialised){
                 vm.contacts_options.ajax.url = helpers.add_endpoint_json(api_endpoints.organisations,vm.proposal.org_applicant.id+'/contacts');
                 vm.contacts_table = $('#'+vm.contacts_table_id).DataTable(vm.contacts_options);
@@ -555,14 +583,44 @@ export default {
         },
         proposedApproval: function(){
             this.$refs.proposed_approval.approval = this.proposal.proposed_issuance_approval != null ? helpers.copyObject(this.proposal.proposed_issuance_approval) : {};
-            if((this.proposal.proposed_issuance_approval==null || this.proposal.proposed_issuance_approval.expiry_date==null) && this.proposal.other_details.proposed_end_date!=null){
-                // this.$refs.proposed_approval.expiry_date=this.proposal.other_details.proposed_end_date;
-                var test_approval={
-                    'start_date': this.proposal.other_details.nominated_start_date,
-                    'expiry_date': this.proposal.other_details.proposed_end_date
-                };
-                this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
+            if(this.proposal.application_type==this.application_type_tclass){
+                if((this.proposal.proposed_issuance_approval==null || this.proposal.proposed_issuance_approval.expiry_date==null) && this.proposal.other_details.proposed_end_date!=null){
+                    // this.$refs.proposed_approval.expiry_date=this.proposal.other_details.proposed_end_date;
+                    var test_approval={
+                        'start_date': this.proposal.other_details.nominated_start_date,
+                        'expiry_date': this.proposal.other_details.proposed_end_date
+                    };
+                    this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
+                }
+                //this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
             }
+            if(this.proposal.application_type==this.application_type_filming){
+                if((this.proposal.proposed_issuance_approval==null || this.proposal.proposed_issuance_approval.expiry_date==null) && this.proposal.filming_activity.completion_date!=null && this.proposal.filming_activity.commencement_date!=null){
+                    // this.$refs.proposed_approval.expiry_date=this.proposal.other_details.proposed_end_date;
+                    var test_approval={
+                        'start_date': this.proposal.filming_activity.commencement_date,
+                        'expiry_date': this.proposal.filming_activity.completion_date
+                    };
+                    this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
+
+                }
+                //console.logt(test_approval)
+                //this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
+            }
+            if(this.proposal.application_type==this.application_type_event){
+                if((this.proposal.proposed_issuance_approval==null || this.proposal.proposed_issuance_approval.expiry_date==null) && this.proposal.event_activity.completion_date!=null && this.proposal.event_activity.commencement_date!=null){
+                    // this.$refs.proposed_approval.expiry_date=this.proposal.other_details.proposed_end_date;
+                    var test_approval={
+                        'start_date': this.proposal.event_activity.commencement_date,
+                        'expiry_date': this.proposal.event_activity.completion_date
+                    };
+                    this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
+
+                }
+                //console.logt(test_approval)
+                //this.$refs.proposed_approval.approval= helpers.copyObject(test_approval);
+            }
+
             this.$refs.proposed_approval.isModalOpen = true;
         },
         issueProposal:function(){
@@ -575,6 +633,41 @@ export default {
         declineProposal:function(){
             this.$refs.proposed_decline.decline = this.proposal.proposaldeclineddetails != null ? helpers.copyObject(this.proposal.proposaldeclineddetails): {};
             this.$refs.proposed_decline.isModalOpen = true;
+        },
+        sendToDistricts: function(){
+            console.log('hello');
+            let vm = this;
+            //vm.save_wo();
+            let formData = new FormData(vm.form);
+            formData.append('selected_parks_activities', JSON.stringify(vm.proposal.selected_parks_activities))
+            formData.append('selected_trails_activities', JSON.stringify(vm.proposal.selected_trails_activities))
+            formData.append('marine_parks_activities', JSON.stringify(vm.proposal.marine_parks_activities))
+            
+            vm.sendingToDistrict = true;
+            vm.$http.post(vm.proposal_form_url,formData).then(res=>{
+            
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/send_to_districts'))).then((response) => {
+                    vm.sendingToDistrict = false;
+                    vm.original_proposal = helpers.copyObject(response.body);
+                    vm.proposal = response.body;
+                    swal(
+                        'Sent',
+                        'The proposal has been sent to Districts',
+                        'success'
+                    )
+                }, (error) => {
+                    console.log(error);
+                    swal(
+                        'Error',
+                        helpers.apiVueResourceError(error),
+                        'error'
+                    )
+                    vm.sendingToDistrict = false;
+                });
+
+              
+            },err=>{
+            });
         },
         amendmentRequest: function(){
             this.save_wo();
@@ -840,7 +933,7 @@ export default {
           let vm=this;
           vm.$http.get(helpers.add_endpoint_json(api_endpoints.proposals,proposal_id+'/parks_and_trails')).then(response => {
                     vm.proposal_parks = helpers.copyObject(response.body);
-                    console.log(vm.proposal_parks)
+                    //console.log(vm.proposal_parks)
                 },
                   error => {
                 });
@@ -1067,6 +1160,12 @@ export default {
                 vm.proposal.selected_parks_activities = vm.$refs.tclass.$refs.activities_land.selected_parks_activities;
                 vm.proposal.selected_trails_activities = vm.$refs.tclass.$refs.activities_land.selected_trails_activities;
                 vm.proposal.marine_parks_activities = vm.$refs.tclass.$refs.activities_marine.marine_parks_activities;
+            }
+            if (typeof vm.$refs.event !== 'undefined') {
+                //  hack - after a local update (re-assign assessor or send referral) these are being reset to null, so resetting these to the correct values here
+                
+                vm.proposal.selected_trails_activities = vm.$refs.event.$refs.event_activities.selected_trails_activities;
+                
             }
 
             vm.form = document.forms.new_proposal;

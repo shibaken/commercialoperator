@@ -71,6 +71,15 @@
                                 </span>
                             </div>
                         </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="">Licence Type</label>
+                                <select class="form-control" v-model="filterApplicationType">
+                                    <option value="All">All</option>
+                                    <option v-for="s in application_types" :value="s">{{s}}</option>
+                                </select>
+                            </div>
+                        </div>
                         <!-- <div class="col-md-3">
                             <div class="form-group">
                                 <label for="">Submitter</label>
@@ -128,6 +137,7 @@ export default {
             profile: {},
             is_payment_admin: false,
             // Filters for Proposals
+            filterApplicationType: 'All',
             filterProposalStatus: 'All',
             filterProposalLodgedFrom: '',
             filterProposalLodgedTo: '',
@@ -140,12 +150,18 @@ export default {
                 keepInvalid:true,
                 allowInputToggle:true
             },
+            // application_types:[
+            //     {value:'T Class', name:'T Class'},
+            //     {value:'Filming', name:'Filming'},
+            //     {value:'Event', name:'Event'},
+            // ],
             external_status:[
                 {value: 'draft', name: 'Draft'},
                 {value: 'with_assessor', name: 'Under Review'},
                 {value: 'approved', name: 'Approved'},
                 {value: 'declined', name: 'Declined'},
                 {value: 'discarded', name: 'Discarded'},
+                {value: 'awaiting_payment', name: 'Awaiting Payment'},
             ],
             internal_status:[
                 {value: 'draft', name: 'Draft'},
@@ -158,6 +174,7 @@ export default {
                 {value: 'approved', name: 'Approved'},
                 {value: 'declined', name: 'Declined'},
                 {value: 'discarded', name: 'Discarded'},
+                {value: 'awaiting_payment', name: 'Awaiting Payment'},
             ],
             proposal_submitters: [],
             proposal_status: [],
@@ -171,6 +188,9 @@ export default {
                 },
                 responsive: true,
                 serverSide: true,
+                order: [
+                    [0, 'desc']
+                ],
                 lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
                 ajax: {
                     "url": vm.url,
@@ -232,9 +252,7 @@ export default {
                             if (!vm.is_external){
                                 /*if(vm.check_assessor(full) && full.can_officer_process)*/
                                 if(full.assessor_process){
-                                    
                                     links +=  `<a href='/internal/proposal/${full.id}'>Process</a><br/>`;
-                                
                             }
                                 else{
                                     links +=  `<a href='/internal/proposal/${full.id}'>View</a><br/>`;
@@ -248,8 +266,12 @@ export default {
                                 else if (full.can_user_view) {
                                     links +=  `<a href='/external/proposal/${full.id}'>View</a><br/>`;
                                 }
+                                if (full.customer_status=='Awaiting Payment' && !full.fee_paid) {
+                                    links +=  `<a href='/filming_fee/${full.id}'>Make Payment</a><br/>`;
+                                    links +=  `<a href='/cols/payments/awaiting-payment-pdf/${full.id}' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i>&nbsp Pending Invoice</a><br/>`;
+                                }
                             }
-                            if (full.fee_paid && full.proposal_type!='Amendment'){
+                            if (full.fee_invoice_reference && full.proposal_type!='Amendment'){
                                 links +=  `<a href='/cols/payments/invoice-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i>&nbsp #${full.fee_invoice_reference}</a><br/>`;
                             }
                             return links;
@@ -299,6 +321,9 @@ export default {
                 },
                 responsive: true,
                 serverSide: true,
+                order: [
+                    [0, 'desc']
+                ],
                 lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
                 ajax: {
                     "url": vm.url,
@@ -365,7 +390,7 @@ export default {
                                 /*if(vm.check_assessor(full) && full.can_officer_process)*/
                                 if(full.assessor_process){   
                                         links +=  `<a href='/internal/proposal/${full.id}'>Process</a><br/>`;    
-                            }
+                                }
                                 else{
                                     links +=  `<a href='/internal/proposal/${full.id}'>View</a><br/>`;
                                 }
@@ -379,12 +404,23 @@ export default {
                                     links +=  `<a href='/external/proposal/${full.id}'>View</a><br/>`;
                                 }
                             }
-                            if (full.fee_paid && full.proposal_type!='Amendment'){
+
+                            if (!full.fee_paid && full.processing_status=='Awaiting Payment'){
+                                if(vm.is_payment_admin){
+                                    //links +=  `<a href='/ledger/payments/invoice/payment?invoice=${full.fee_invoice_reference}' target='_blank'>Record Payment</a><br/>`;
+                                    links +=  `<a href='/filming_fee/${full.id}'>Record Payment</a><br/>`;
+                                }
+                                links +=  `<a href='/cols/payments/awaiting-payment-pdf/${full.id}' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i>&nbsp Pending Invoice</a><br/>`;
+                            }
+
+                            //if (full.fee_paid && full.proposal_type!='Amendment'){
+                            if (full.fee_invoice_reference && full.proposal_type!='Amendment'){
                                 if(vm.is_payment_admin){
                                     links +=  `<a href='/ledger/payments/invoice/payment?invoice=${full.fee_invoice_reference}' target='_blank'>View Payment</a><br/>`;
                                 }
                                 links +=  `<a href='/cols/payments/invoice-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i>&nbsp #${full.fee_invoice_reference}</a><br/>`;
                             }
+
                             return links;
                         },
                         name: '',
@@ -448,6 +484,14 @@ export default {
                 vm.$refs.proposal_datatable.vmDataTable.columns(4).search('').draw();
             }
         },
+        filterApplicationType: function() {
+            let vm = this;
+            if (vm.filterApplicationType!= 'All') {
+                vm.$refs.proposal_datatable.vmDataTable.columns(1).search(vm.filterApplicationType).draw();
+            } else {
+                vm.$refs.proposal_datatable.vmDataTable.columns(1).search('').draw();
+            }
+        },
         filterProposalLodgedFrom: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
         },
@@ -465,12 +509,32 @@ export default {
         
     },
     methods:{
+        make_payment: function(fee_invoice_reference){
+        //make_payment2: function(){
+            vm.$http.post('/existing_invoice_payment/' + fee_invoice_reference).then((response) => {
+                vm.res = response.body;
+            },(error) => {
+                console.log(error);
+            })
+
+        },
+        make_payment2: function (fee_invoice_reference) {
+            let vm = this;
+            var form = document.forms.new_payment;
+            if (vm.payment_method == 'existing_invoice') {
+                form.action = '/existing_invoice_payment/' + fee_invoice_reference  + '/?method=' + vm.payment_method;
+                form.submit();
+            }
+        },
+
+
         fetchFilterLists: function(){
             let vm = this;
 
             //vm.$http.get('/api/list_proposal/filter_list/').then((response) => {
             vm.$http.get(api_endpoints.filter_list).then((response) => {
                 vm.proposal_submitters = response.body.submitters;
+                vm.application_types= response.body.application_types;
                 //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
                 vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {

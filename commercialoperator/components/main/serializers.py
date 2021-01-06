@@ -117,7 +117,8 @@ class MarineParkSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Park
-        fields=('id', 'name', 'can_edit', 'last_leaf', 'code', 'park_type', 'allowed_activities', 'zone_ids', 'adult_price', 'child_price', 'oracle_code', 'children' )
+        #fields=('id', 'name', 'can_edit', 'last_leaf', 'code', 'park_type', 'allowed_activities', 'zone_ids', 'adult_price', 'child_price', 'oracle_code', 'children' )
+        fields=('id', 'name', 'can_edit', 'last_leaf', 'code', 'park_type', 'allowed_activities', 'zone_ids', 'adult_price', 'child_price', 'children' )
 
     def get_can_edit(self, obj):
         return False
@@ -150,7 +151,8 @@ class ParkSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Park
-        fields=('id', 'name', 'can_edit', 'last_leaf', 'code', 'park_type', 'allowed_activities', 'zone_ids', 'adult_price', 'child_price', 'oracle_code', 'zones', 'district', 'region', 'max_group_arrival_by_date' )
+        #fields=('id', 'name', 'can_edit', 'last_leaf', 'code', 'park_type', 'allowed_activities', 'zone_ids', 'adult_price', 'child_price', 'oracle_code', 'zones', 'district', 'region', 'max_group_arrival_by_date' )
+        fields=('id', 'name', 'can_edit', 'last_leaf', 'code', 'park_type', 'allowed_activities', 'zone_ids', 'adult_price', 'child_price', 'zones', 'district', 'region', 'max_group_arrival_by_date' )
 
     def get_can_edit(self, obj):
         #proposal = self.context['request'].GET.get('proposal')
@@ -165,7 +167,6 @@ class ParkSerializer(serializers.ModelSerializer):
         return obj.district.id
 
     def get_region(self, obj):
-        #import ipdb; ipdb.set_trace()
         return {'name': obj.district.region.name, 'id': obj.district.region_id}
 
 #    def get_max_group_arrival_by_date(self, obj):
@@ -364,3 +365,42 @@ class OracleSerializer(serializers.Serializer):
     override = serializers.BooleanField(default=False)
 
 
+
+class ActivityFilterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Activity
+        fields = ('id', 'name',)
+
+class EventsParkSerializer(serializers.ModelSerializer):
+    allowed_activities= serializers.SerializerMethodField()
+
+    class Meta:
+        model = Park
+        fields=('id', 'name', 'allowed_activities', )
+
+    def get_allowed_activities(self, obj):
+        """ The way ro push parent date to child level nested childen (ZoneSerializer --> ActivitySerializer)
+        """
+        children=[]
+        if obj.park_type=='land':
+            children = obj.allowed_activities
+        if obj.park_type=='marine':
+            for zone in obj.zones.all():
+                #children.append(zone.allowed_activities.all())
+                zone_activities=[i for i in zone.allowed_activities.all()]
+                children=children+zone_activities
+        serializer_context = {'request': self.context.get('request'),
+                              }
+        serializer = ActivityFilterSerializer(children, many=True, context=serializer_context)
+        return serializer.data
+
+class FilmingParkSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Park
+        fields=('id', 'name',)
+
+
+class TrailTabSerializer(serializers.Serializer):
+    land_activity_types = ActivitySerializer(many=True, read_only=True)
+    trails = TrailSerializer(many=True, read_only=True)

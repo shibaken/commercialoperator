@@ -1,5 +1,5 @@
 # Prepare the base environment.
-FROM ubuntu:18.04 as builder_base_cols
+FROM ubuntu:20.04 as builder_base_cols
 MAINTAINER asi@dbca.wa.gov.au
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBUG=True
@@ -15,41 +15,49 @@ ENV SITE_PREFIX='cols'
 ENV SITE_DOMAIN='dbca.wa.gov.au'
 ENV OSCAR_SHOP_NAME='Parks & Wildlife'
 ENV BPAY_ALLOWED=False
-RUN apt-get clean \
-  && apt-get update --fix-missing \
-  && apt-get upgrade -y \
-  && apt-get install -yq git mercurial gcc gdal-bin libsasl2-dev libpq-dev \
-  python python-setuptools python-dev python-pip \
-  imagemagick poppler-utils \
-  libldap2-dev libssl-dev wget build-essential \
-  libmagic-dev binutils libproj-dev gunicorn tzdata \
-  postgresql-client mtr \
-  cron rsyslog
-RUN pip install --upgrade pip
+
+RUN apt-get clean
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get install --no-install-recommends -y wget git libmagic-dev gcc binutils libproj-dev gdal-bin python3-setuptools python3-pip tzdata cron rsyslog gunicorn libreoffice
+RUN apt-get install --no-install-recommends -y libpq-dev patch
+RUN apt-get install --no-install-recommends -y postgresql-client mtr htop vim ssh 
+RUN apt-get install --no-install-recommends -y python3-gevent software-properties-common imagemagick
+
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt-get update
+RUN apt-get install --no-install-recommends -y python3.7 python3.7-dev
+
+RUN ln -s /usr/bin/python3.7 /usr/bin/python && \
+    ln -s /usr/bin/pip3 /usr/bin/pip
+#RUN pip install --upgrade pip
+RUN python3.7 -m pip install --upgrade pip
 RUN apt-get install -yq vim
 
 # Install Python libs from requirements.txt.
 FROM builder_base_cols as python_libs_cols
 WORKDIR /app
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt \
+RUN python3.7 -m pip install --no-cache-dir -r requirements.txt \
   # Update the Django <1.11 bug in django/contrib/gis/geos/libgeos.py
   # Reference: https://stackoverflow.com/questions/18643998/geodjango-geosexception-error
-  && sed -i -e "s/ver = geos_version().decode()/ver = geos_version().decode().split(' ')[0]/" /usr/local/lib/python2.7/dist-packages/django/contrib/gis/geos/libgeos.py \
+  # && sed -i -e "s/ver = geos_version().decode()/ver = geos_version().decode().split(' ')[0]/" /usr/local/lib/python2.7/dist-packages/django/contrib/gis/geos/libgeos.py \
   && rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
 
+COPY libgeos.py.patch /app/
+RUN patch /usr/local/lib/python3.7/dist-packages/django/contrib/gis/geos/libgeos.py /app/libgeos.py.patch
+RUN rm /app/libgeos.py.patch
 
 # Install the project (ensure that frontend projects have been built prior to this step).
 FROM python_libs_cols
 COPY gunicorn.ini manage_co.py ./
-COPY timezone /etc/timezone
+#COPY timezone /etc/timezone
+RUN echo "Australia/Perth" > /etc/timezone
 ENV TZ=Australia/Perth
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN touch /app/.env
 COPY .git ./.git
-#COPY ledger ./ledger
 COPY commercialoperator ./commercialoperator
-#RUN rm -rf ./commercialoperator/frontend/commercialoperator/node_modules
 RUN python manage_co.py collectstatic --noinput
 
 RUN mkdir /app/tmp/
