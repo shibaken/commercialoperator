@@ -4619,7 +4619,7 @@ class DistrictProposal(models.Model):
     processing_status = models.CharField('Processing Status', max_length=30, choices=PROCESSING_STATUS_CHOICES,
                                          default=PROCESSING_STATUS_CHOICES[0][0])
     assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='commercialoperator_district_proposals_assigned', on_delete=models.SET_NULL)
-    assigned_approver = models.ForeignKey(EmailUser, blank=True, null=True, related_name='commercialoperator__district_proposals_approvals', on_delete=models.SET_NULL)
+    assigned_approver = models.ForeignKey(EmailUser, blank=True, null=True, related_name='commercialoperator_district_proposals_approvals', on_delete=models.SET_NULL)
     proposed_issuance_approval = JSONField(blank=True, null=True)
     proposed_decline_status = models.BooleanField(default=False)
 
