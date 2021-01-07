@@ -2124,6 +2124,69 @@ class ReferralViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    @detail_route(methods=['GET',])
+    def assign_request_user(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.assign_officer(request,request.user)
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer = self.get_serializer(instance, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['POST',])
+    def assign_to(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            user_id = request.data.get('user_id',None)
+            user = None
+            if not user_id:
+                raise serializers.ValidationError('An assessor id is required')
+            try:
+                user = EmailUser.objects.get(id=user_id)
+            except EmailUser.DoesNotExist:
+                raise serializers.ValidationError('A user with the id passed in does not exist')
+            instance.assign_officer(request,user)
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer = self.get_serializer(instance, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+    @detail_route(methods=['GET',])
+    def unassign(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.unassign(request)
+            #serializer = InternalProposalSerializer(instance,context={'request':request})
+            serializer = self.get_serializer(instance, context={'request':request})
+            return Response(serializer.data)
+        except serializers.ValidationError:
+            print(traceback.print_exc())
+            raise
+        except ValidationError as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(repr(e.error_dict))
+        except Exception as e:
+            print(traceback.print_exc())
+            raise serializers.ValidationError(str(e))
+
+
 class ProposalRequirementViewSet(viewsets.ModelViewSet):
     #queryset = ProposalRequirement.objects.all()
     queryset = ProposalRequirement.objects.none()

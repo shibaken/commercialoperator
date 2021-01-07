@@ -2930,6 +2930,9 @@ class ProposalUserAction(UserAction):
     RECALL_REFERRAL = "Referral {} for application {} has been recalled"
     CONCLUDE_REFERRAL = "{}: Referral {} for application {} has been concluded by group {}"
     ACTION_REFERRAL_DOCUMENT = "Assign Referral document {}"
+    ACTION_REFERRAL_ASSIGN_TO_ASSESSOR = "Assign Referral  {} of application {} to {} as the assessor"
+    ACTION_REFERRAL_UNASSIGN_ASSESSOR = "Unassign assessor from Referral {} of application {}"
+    
     #Approval
     ACTION_REISSUE_APPROVAL = "Reissue licence for application {}"
     ACTION_CANCEL_APPROVAL = "Cancel licence for application {}"
@@ -3117,6 +3120,7 @@ class Referral(RevisionedMixin):
     text = models.TextField(blank=True) #Assessor text
     referral_text = models.TextField(blank=True)
     document = models.ForeignKey(ReferralDocument, blank=True, null=True, related_name='referral_document')
+    assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='commercialoperator_referrals_assigned', on_delete=models.SET_NULL)
 
 
     class Meta:
@@ -3154,6 +3158,11 @@ class Referral(RevisionedMixin):
         else:
             return True
 
+    @property
+    def allowed_assessors(self):
+        group = self.referral_group
+        return group.members.all() if group else []
+
     def can_process(self, user):
         if self.processing_status=='with_referral':
             group =  ReferralRecipientGroup.objects.filter(id=self.referral_group.id)
@@ -3164,6 +3173,35 @@ class Referral(RevisionedMixin):
                 return False
         return False
 
+    def assign_officer(self,request,officer):
+        with transaction.atomic():
+            try:
+                if not self.can_process(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if not self.can_process(officer):
+                    raise ValidationError('The selected person is not authorised to be assigned to this Referral')
+                if officer != self.assigned_officer:
+                    self.assigned_officer = officer
+                    self.save()
+                    self.proposal.log_user_action(ProposalUserAction.ACTION_REFERRAL_ASSIGN_TO_ASSESSOR.format(self.id,self.proposal.id, '{}({})'.format(officer.get_full_name(),officer.email)),request)
+            except:
+                raise
+
+    def unassign(self,request):
+        with transaction.atomic():
+            try:
+                if not self.can_process(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if self.assigned_officer:
+                    self.assigned_officer = None
+                    self.save()
+                    # Create a log entry for the proposal
+                    self.proposal.log_user_action(ProposalUserAction.ACTION_REFERRAL_UNASSIGN_ASSESSOR.format(self.id, self.proposal.id),request)
+                    # Create a log entry for the organisation
+                    applicant_field=getattr(self.proposal, self.proposal.applicant_field)
+                    applicant_field.log_user_action(ProposalUserAction.ACTION_REFERRAL_UNASSIGN_ASSESSOR.format(self.id, self.proposal.id),request)
+            except:
+                raise
 
     def recall(self,request):
         with transaction.atomic():

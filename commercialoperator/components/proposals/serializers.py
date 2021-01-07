@@ -1856,11 +1856,19 @@ class ReferralSerializer(serializers.ModelSerializer):
     can_process=serializers.SerializerMethodField()
     referral_assessment=ProposalAssessmentSerializer(read_only=True)
     application_type=serializers.CharField(read_only=True)
-
+    allowed_assessors = EmailUserSerializer(many=True)
+    current_assessor = serializers.SerializerMethodField()
 
     class Meta:
         model = Referral
         fields = '__all__'
+
+    def get_current_assessor(self,obj):
+        return {
+            'id': self.context['request'].user.id,
+            'name': self.context['request'].user.get_full_name(),
+            'email': self.context['request'].user.email
+        }
 
     # def __init__(self,*args,**kwargs):
     #     super(ReferralSerializer, self).__init__(*args, **kwargs)

@@ -46,15 +46,21 @@
                             <div class="col-sm-12">
                                 <div class="separator"></div>
                             </div>
+                            <div v-if="!isFinalised" class="col-sm-12 top-buffer-s">
+                                <strong>Currently assigned to</strong><br/>
+                                <div class="form-group">
+                                    <template>
+                                        <select ref="assigned_officer" :disabled="!referral.can_process" class="form-control" v-model="referral.assigned_officer">
+                                            <option v-for="member in referral.allowed_assessors" :value="member.id">{{member.first_name}} {{member.last_name}}</option>
+                                        </select>
+                                        <a v-if="referral.can_process && referral.assigned_officer != referral.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn pull-right">Assign to me</a>
+                                    </template>
+                                </div>
+                            </div>
                             <div class="col-sm-12 top-buffer-s">
-                                <strong>Referrals</strong><br/>
+                                <!-- <strong>Referrals</strong><br/>
                                 <div class="form-group" v-if="!isFinalised">
-                                    <!--
-                                    <select :disabled="isFinalised || proposal.can_user_edit" ref="department_users" class="form-control">
-                                        <option value="null"></option>
-                                        <option v-for="user in department_users" :value="user.email">{{user.name}}</option>
-                                    </select>
-                                    -->
+                                   
 
                                     <select :disabled="  proposal.can_user_edit || isFinalised" ref="referral_recipient_groups" class="form-control">
                                         <option value="null"></option>
@@ -74,7 +80,7 @@
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
                                         </span>
                                     </template>
-                                </div>
+                                </div> -->
                                 <table class="table small-table">
                                     <tr>
                                         <th>Referral</th>
@@ -120,7 +126,8 @@
                             <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && referral.referral == proposal.current_assessor.id && referral.can_be_completed">
                             -->
                             <!-- <div class="col-sm-12 top-buffer-s" v-if="!isFinalised && referral.can_be_completed && referral.can_process"> -->
-                            <div class="col-sm-12 top-buffer-s" v-if="referral.can_process && referral.can_be_completed">
+                            <!-- <div class="col-sm-12 top-buffer-s" v-if="referral.can_process && referral.can_be_completed"> -->
+                            <div class="col-sm-12 top-buffer-s" v-if="canComplete">
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <strong>Action</strong><br/>
@@ -415,6 +422,19 @@ export default {
         application_type_event: function(){
           return api_endpoints.event;
         },
+        canComplete: function(){
+            let vm=this;
+            if(vm.referral.can_process && vm.referral.can_be_completed){
+                if(vm.referral.assigned_officer){
+                    if(vm.referral.assigned_officer==vm.referral.current_assessor.id){
+                        return true;
+                    }
+                }
+                else 
+                    return true;
+            }
+            return false;
+        },
     },
     methods: {
         completeReferral2: function(){
@@ -478,26 +498,49 @@ export default {
         },
         assignTo: function(){
             let vm = this;
-            if ( vm.proposal.assigned_officer != 'null'){
-                let data = {'user_id': vm.proposal.assigned_officer};
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.proposal.id+'/assign_to')),JSON.stringify(data),{
+            //console.log(vm.referral.assigned_officer)
+            // if (vm.referral.assigned_officer != 'null' ||vm.referral.assigned_officer != null){
+            //     let data = {'user_id': vm.referral.assigned_officer};
+            //     vm.$http.post(helpers.add_endpoint_json(api_endpoints.referrals,(vm.referral.id+'/assign_to')),JSON.stringify(data),{
+            //         emulateJSON:true
+            //     }).then((response) => {
+            //         console.log(response);
+            //         vm.referral = response.body;
+            //     }, (error) => {
+            //         console.log(error);
+            //     });
+            // }
+            // else{
+            //     vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,(vm.referral.id+'/unassign')))
+            //     .then((response) => {
+            //         console.log(response);
+            //         vm.referral = response.body;
+            //     }, (error) => {
+            //         console.log(error);
+            //     });
+            // }
+            if(vm.referral.assigned_officer == null){
+                vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,(vm.referral.id+'/unassign')))
+                .then((response) => {
+                    //console.log(response);
+                    vm.referral = response.body;
+                }, (error) => {
+                    console.log(error);
+                });
+            }
+
+            else{
+                let data = {'user_id': vm.referral.assigned_officer};
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.referrals,(vm.referral.id+'/assign_to')),JSON.stringify(data),{
                     emulateJSON:true
                 }).then((response) => {
-                    console.log(response);
-                    vm.proposal = response.body;
+                    //console.log(response);
+                    vm.referral = response.body;
                 }, (error) => {
                     console.log(error);
                 });
             }
-            else{
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.organisation_requests,(vm.proposal.id+'/unassign')))
-                .then((response) => {
-                    console.log(response);
-                    vm.proposal = response.body;
-                }, (error) => {
-                    console.log(error);
-                });
-            }
+            
         },
         fetchProposalGroupMembers: function(){
             let vm = this;
@@ -564,6 +607,7 @@ export default {
                     var selected = $(e.currentTarget);
                     vm.$emit('input',selected[0])
                });
+                vm.initialiseAssignedOfficerSelect();
                 vm.initialisedSelects = true;
             }
         },
@@ -702,6 +746,34 @@ export default {
                 )
             });
         },
+        updateAssignedOfficerSelect:function(){
+            let vm = this;
+            //console.log('here',vm.referral.assigned_officer)
+                $(vm.$refs.assigned_officer).val(vm.referral.assigned_officer);
+                $(vm.$refs.assigned_officer).trigger('change');
+        },
+        assignRequestUser: function(){
+            let vm = this;
+
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.referrals,(vm.referral.id+'/assign_request_user')))
+            .then((response) => {
+                vm.referral = response.body;
+                //vm.fetchProposalParks(vm.proposal.id);
+                //vm.original_proposal = helpers.copyObject(response.body);
+                // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
+                vm.updateAssignedOfficerSelect();
+
+            }, (error) => {
+                //vm.proposal = helpers.copyObject(vm.original_proposal)
+                // vm.proposal.org_applicant.address = vm.proposal.org_applicant.address != null ? vm.proposal.org_applicant.address : {};
+                vm.updateAssignedOfficerSelect();
+                swal(
+                    'Application Error',
+                    helpers.apiVueResourceError(error),
+                    'error'
+                )
+            });
+        },
         fetchreferrallist: function(referral_id){
             let vm = this;
 
@@ -735,6 +807,35 @@ export default {
                   error => {
                 });
 
+        },
+        initialiseAssignedOfficerSelect:function(reinit=false){
+            let vm = this;
+            if (reinit){
+                $(vm.$refs.assigned_officer).data('select2') ? $(vm.$refs.assigned_officer).select2('destroy'): '';
+            }
+            // Assigned officer select
+            $(vm.$refs.assigned_officer).select2({
+                "theme": "bootstrap",
+                allowClear: true,
+                placeholder:"Select Officer"
+            }).
+            on("select2:select",function (e) {
+                var selected = $(e.currentTarget);
+                vm.referral.assigned_officer = selected.val();
+                //console.log('1');
+                vm.assignTo();
+            }).on("select2:unselecting", function(e) {
+                var self = $(this);
+                //console.log('2');
+                setTimeout(() => {
+                    self.select2('close');
+                }, 0);
+            }).on("select2:unselect",function (e) {
+                var selected = $(e.currentTarget);
+                vm.referral.assigned_officer = null;
+                //console.log('3');
+                vm.assignTo();
+            });
         },
         completeReferral:function(){
             let vm = this;
