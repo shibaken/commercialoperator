@@ -10,7 +10,8 @@
                     </h3>
                 </div>
                 <div class="panel-body collapse in" :id="pBody">
-                    <div v-if="proposal.training_completed" class="form-horizontal col-sm-12">
+                    <!-- <div v-if="proposal.training_completed" class="form-horizontal col-sm-12"> -->
+                    <div v-if="proposal.applicant_training_completed" class="form-horizontal col-sm-12">
                         <label style="color: green">Your online training has been completed. Please proceed to pay and submit the application.</label>
                     </div>
                     <div >                        
@@ -62,7 +63,8 @@
                             </div>
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <input type="button" v-if="!proposal.training_completed && !proposal.readonly"@click.prevent="checkAnswers" class="btn btn-primary pull-right" value="Check Answers" />
+                                    <!-- <input type="button" v-if="!proposal.training_completed && !proposal.readonly"@click.prevent="checkAnswers" class="btn btn-primary pull-right" value="Check Answers" /> -->
+                                    <input type="button" v-if="!proposal.applicant_training_completed && !proposal.readonly"@click.prevent="checkAnswers" class="btn btn-primary pull-right" value="Check Answers" />
                                 </div>                                
                             </div>
                         </div>
@@ -195,6 +197,7 @@ from '@/utils/hooks'
                 let vm = this;
                 vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals,(vm.proposal.id+'/update_training_flag')), JSON.stringify({'training_completed': true})).then((response) => {
                     vm.proposal.training_completed = response.body['training_completed'];
+                    vm.proposal.applicant_training_completed=response.body['training_completed'];
                 }, (error) => {
                     swal(
                         'Application Error',

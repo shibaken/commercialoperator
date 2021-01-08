@@ -1757,9 +1757,23 @@ class ProposalViewSet(viewsets.ModelViewSet):
     def update_training_flag(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+            today = timezone.now().date()
             if request.data.get('training_completed'):
                 instance.training_completed = True
                 instance.save()
+                if instance.application_type.name== ApplicationType.EVENT:
+                    if instance.org_applicant:
+                        instance.org_applicant.event_training_completed= True
+                        instance.org_applicant.event_training_date= today
+                        instance.org_applicant.save()
+                    elif instance.proxy_applicant:
+                        instance.proxy_applicant.system_settings.event_training_completed=True
+                        instance.proxy_applicant.system_settings.event_training_date= today
+                        instance.proxy_applicant.system_settings.save()
+                    else:
+                        instance.submitter.system_settings.event_training_completed=True
+                        instance.submitter.system_settings.event_training_date= today
+                        instance.submitter.system_settings.save()
             return Response({'training_completed': True})
         except serializers.ValidationError:
             print(traceback.print_exc())

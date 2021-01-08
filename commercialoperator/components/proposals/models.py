@@ -798,6 +798,33 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         else:
             return 'submitter'
 
+    @property
+    def applicant_training_completed(self):
+        today = timezone.now().date()
+        timedelta = datetime.timedelta
+        if self.org_applicant: 
+            if self.org_applicant.event_training_completed:
+                future_date =self.org_applicant.event_training_date+timedelta(days=365)
+                if future_date < today:
+                    return False
+                else:
+                    return self.org_applicant.event_training_completed
+        elif self.proxy_applicant:
+            if self.proxy_applicant.system_settings.event_training_completed:
+                future_date =self.proxy_applicant.system_settings.event_training_date+timedelta(days=365)
+                if future_date < today:
+                    return False
+                else:
+                    return self.proxy_applicant.system_settings.event_training_completed
+        else:
+            if self.submitter.system_settings.event_training_completed:
+                future_date =self.submitter.system_settings.event_training_date+timedelta(days=365)
+                if future_date < today:
+                    return False
+                else:
+                    return self.submitter.system_settings.event_training_completed
+        return False
+
     def qa_officers(self, name=None):
         if not name:
             return QAOfficerGroup.objects.get(default=True).members.all().values_list('email', flat=True)
