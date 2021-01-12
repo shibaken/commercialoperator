@@ -562,7 +562,14 @@ export default {
                         'children': response.body['land_activity_types']
                     }
                 ]
-                vm.trail_activity_options = vm.land_activity_options
+                vm.trail_activity_options = [
+                    {
+                        'id': 'All',
+                        'name':'Select all',
+                        'children': response.body['trail_activity_types']
+                    }
+                ]
+                vm.trail_activity_options = vm.trail_activity_options
                 vm.activities = response.body['land_activity_types'] // needed to pass to Vehicle component
 
                 vm.trail_options = [

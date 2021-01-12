@@ -344,6 +344,7 @@ class LandActivityTabSerializer(serializers.Serializer):
     land_parks = RegionSerializer2(many=True, read_only=True, source='regions')
     access_types = AccessTypeSerializer(many=True, read_only=True)
     land_activity_types = ActivitySerializer(many=True, read_only=True)
+    trail_activity_types = ActivitySerializer(many=True, read_only=True)
     trails = TrailSerializer(many=True, read_only=True)
     land_required_documents = RequiredDocumentSerializer(many=True, read_only=True)
     #marine_activity_types = ActivitySerializer(many=True, read_only=True)
