@@ -248,7 +248,7 @@
                                             <button v-if="!changingStatus" style="width:80%;" class="btn btn-primary" :disabled="proposal.can_user_edit" @click.prevent="switchStatus('with_assessor')">Back To Processing</button><br/>
                                         </div>
                                     </div>
-                                    <div class="row">
+                                    <div class="row" v-if="requirementsComplete">
                                         <div class="col-sm-12">
                                             <button style="width:80%;" class="btn btn-primary top-buffer-s" :disabled="proposal.can_user_edit" @click.prevent="proposedApproval()">Propose to Approve</button><br/>
                                         </div>
@@ -328,7 +328,7 @@
                     <FilmingDistrictProposalsTable :proposal="proposal" @refreshFromResponse="refreshFromResponse" :url="district_proposals_url"/>
                 </template>
                 <template v-if="proposal.processing_status == 'With Assessor (Requirements)' || ((proposal.processing_status == 'With Approver' || isFinalised) && showingRequirements)">
-                    <Requirements :proposal="proposal"/>
+                    <Requirements :proposal="proposal" @refreshRequirements="refreshRequirements"/>
                 </template>
                 <template v-if="canSeeSubmission || (!canSeeSubmission && showingProposal)">
                     <div class="">
@@ -415,6 +415,7 @@ export default {
             showingRequirements:false,
             savingProposal:false,
             changingStatus:false,
+            requirementsComplete:true,
             state_options: ['requirements','processing'],
             contacts_table_id: vm._uid+'contacts-table',
             contacts_options:{
@@ -562,7 +563,10 @@ export default {
         },
         application_type_event: function(){
           return api_endpoints.event;
-        }
+        },
+        // requirementsComplete: function(){
+        //     return this.proposal.requirements_completed? this.proposal.requirements_completed: true;
+        // }
     },
     methods: {
         initialiseOrgContactTable: function(){
@@ -766,6 +770,12 @@ export default {
                 vm.updateAssignedOfficerSelect();
             });
         },
+        refreshRequirements: function(bool){
+              let vm=this;
+              //vm.proposal.requirements_completed=bool;
+              //console.log('here', bool);
+              vm.requirementsComplete=bool;
+          },
         assignTo: function(){
             let vm = this;
             let unassign = true;

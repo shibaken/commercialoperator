@@ -2322,6 +2322,29 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     # require  user to pay Application and Licence Fee again
                     proposal.fee_invoice_reference = None
 
+                req=self.requirements.all().exclude(is_deleted=True)
+                from copy import deepcopy
+                if req:
+                    for r in req:
+                        old_r = deepcopy(r)
+                        r.proposal = proposal
+                        #r.copied_from=old_r
+                        r.copied_for_renewal=True
+                        if r.due_date:
+                            r.due_date=None
+                            r.require_due_date=True
+                        r.id = None
+                        r.district_proposal=None
+                        r.save()
+                #copy all the requirement documents from previous proposal
+                for requirement in proposal.requirements.all():
+                    for requirement_document in RequirementDocument.objects.filter(requirement=requirement.copied_from):
+                        requirement_document.requirement = requirement
+                        requirement_document.id = None
+                        requirement_document._file.name = u'{}/proposals/{}/requirement_documents/{}'.format(settings.MEDIA_APP_DIR, proposal.id, requirement_document.name)
+                        requirement_document.can_delete = True
+                        requirement_document.save()
+                        # Create a log entry for the proposal
                 self.log_user_action(ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.id),request)
                 # Create a log entry for the organisation
                 applicant_field=getattr(self, self.applicant_field)
@@ -3444,6 +3467,8 @@ class ProposalRequirement(OrderedModel):
     recurrence_schedule = models.IntegerField(null=True,blank=True)
     copied_from = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
+    copied_for_renewal = models.BooleanField(default=False)
+    require_due_date = models.BooleanField(default=False)
     #To determine if requirement has been added by referral and the group of referral who added it
     #Null if added by an assessor
     referral_group = models.ForeignKey(ReferralRecipientGroup,null=True,blank=True,related_name='requirement_referral_groups')

@@ -867,7 +867,8 @@ class InternalProposalSerializer(BaseProposalSerializer):
                 'assessor_assessment',
                 'referral_assessments',
                 'fee_invoice_url',
-                'fee_paid'
+                'fee_paid',
+                'requirements_completed',
                 )
         read_only_fields=('documents','requirements')
 
@@ -900,6 +901,9 @@ class InternalProposalSerializer(BaseProposalSerializer):
         return obj.can_edit_period(user)
 
     def get_readonly(self,obj):
+        return True
+
+    def get_requirements_completed(self,obj):
         return True
 
     def get_current_assessor(self,obj):
@@ -1062,7 +1066,9 @@ class ProposalRequirementSerializer(serializers.ModelSerializer):
             'district_proposal',
             'district',
             'requirement_documents',
-            'can_district_assessor_edit'
+            'can_district_assessor_edit',
+            'require_due_date',
+            'copied_for_renewal',
         )
         read_only_fields = ('order','requirement', 'copied_from')
 
