@@ -325,7 +325,7 @@ class TrailSerializer(serializers.ModelSerializer):
     allowed_activities=ActivitySerializer(many=True)
     class Meta:
         model = Trail
-        fields = ('id', 'name', 'can_edit', 'last_leaf', 'code', 'section_ids', 'sections', 'allowed_activities')
+        fields = ('id', 'name', 'can_edit', 'last_leaf', 'code', 'section_ids', 'sections', 'allowed_activities', 'allowed_activities_ids')
 
     def get_can_edit(self, obj):
         return True

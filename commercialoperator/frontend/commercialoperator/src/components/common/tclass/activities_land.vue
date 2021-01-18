@@ -81,6 +81,14 @@
           <div>
 
             <div class="borderDecoration col-sm-12">
+              <form v-if="trail_error_list">
+                <div class="col-sm-12">
+                  <div v-for="e in trail_error_list">
+                    <label style="color: orange">{{ e }}</label>
+                    
+                  </div>
+                </div>
+              </form>
                 <form>
                     <div class="col-sm-12" >
                         <div>
@@ -206,6 +214,7 @@ export default {
                 vehicles_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/vehicles'),
                 selected_parks_activities:[],
                 selected_trails_activities:[],
+                trail_error_list: [],
             }
         },
         components: {
@@ -457,7 +466,7 @@ export default {
         },
         selected_trails_activities: function(){
             let vm=this;
-
+            vm.checkAllowedActivities();
             if (vm.proposal){
               vm.proposal.selected_trails_activities=vm.selected_trails_activities;
             }
@@ -507,6 +516,7 @@ export default {
               }
             }
           }
+          vm.checkAllowedActivities();
         },
         },
         methods:{
@@ -635,6 +645,46 @@ export default {
             }
           }
           },
+          checkAllowedActivities: function(){
+            let trails=[]
+            let vm=this;
+            trails=vm.trail_options[0].children
+            vm.trail_error_list=[]
+
+            //let vm=this;
+            for (var i=0; i<vm.selected_trails_activities.length; i++)
+            {
+              for(var j=0; j<trails.length; j++)
+              {
+                let not_allowed=false;
+                if(vm.selected_trails_activities[i].trail== trails[j].id)
+                {
+                  var not_allowed_activities=[];
+                  for(var k=0; k<vm.selected_trails_activities[i].activities.length; k++){
+                      // if(vm.selected_trails_activities[i].activities[k].activities.indexOf(added[j])<0){
+                      // vm.selected_trails_activities[i].activities[k].activities.push(added[j]);
+                      // }
+                      for(var l=0; l<vm.selected_trails_activities[i].activities[k].activities.length; l++){
+                              //console.log('here')
+                            if(trails[j].allowed_activities_ids.indexOf(vm.selected_trails_activities[i].activities[k].activities[l])==-1){
+                              //;,.-console.log('inside')
+                              var activity_name=''
+                              activity_name=vm.trail_activity_options[0].children.find(act => parseInt(act.id) === parseInt(vm.selected_trails_activities[i].activities[k].activities[l])).name;
+                              if(not_allowed_activities.indexOf(activity_name)==-1){
+                                not_allowed_activities.push(activity_name);
+                              }
+                              not_allowed=true;
+                            }
+                        }
+                    }
+                    if(not_allowed){
+                      vm.trail_error_list.push('Warning: ' +not_allowed_activities+ ' activities is/are not allowed for the trail: '+vm.trails[j].name)
+                    }
+                }
+              }
+            }
+
+          },
           edit_activities_child_test:function(node){
               alert("IN PARENT:  park_id: " + node.raw.id + ", park_name: " + node.raw.label );
           },
@@ -700,6 +750,7 @@ export default {
                 vm.selected_trails_activities[j].activities= new_activities;
               }
             }
+            vm.checkAllowedActivities();
           },
           find_repeated: function(array){
             var common=new Map();

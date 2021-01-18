@@ -789,6 +789,7 @@ class InternalProposalSerializer(BaseProposalSerializer):
     assessor_assessment=ProposalAssessmentSerializer(read_only=True)
     referral_assessments=ProposalAssessmentSerializer(read_only=True, many=True)
     fee_invoice_url = serializers.SerializerMethodField()
+    requirements_completed=serializers.SerializerMethodField()
     #selected_trails_activities=serializers.SerializerMethodField()
     #selected_parks_activities=serializers.SerializerMethodField()
     #marine_parks_activities=serializers.SerializerMethodField()
@@ -868,7 +869,7 @@ class InternalProposalSerializer(BaseProposalSerializer):
                 'referral_assessments',
                 'fee_invoice_url',
                 'fee_paid',
-                'requirements_completed',
+                'requirements_completed'
                 )
         read_only_fields=('documents','requirements')
 
