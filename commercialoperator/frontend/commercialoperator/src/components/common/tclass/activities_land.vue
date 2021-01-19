@@ -12,6 +12,14 @@
         </div>
         <div class="panel-body collapse in" :id="pBody">
             <div class="borderDecoration col-sm-12">
+              <form v-if="park_error_list">
+                <div class="col-sm-12">
+                  <div v-for="e in park_error_list">
+                    <label style="color: orange">{{ e }}</label>
+                    
+                  </div>
+                </div>
+              </form>
                 <form>
                     <div class="col-sm-12" >
                         <div>
@@ -215,6 +223,7 @@ export default {
                 selected_parks_activities:[],
                 selected_trails_activities:[],
                 trail_error_list: [],
+                park_error_list:[],
             }
         },
         components: {
@@ -413,7 +422,8 @@ export default {
               }
             }
           }
-          vm.checkRequiredDocuements(vm.selected_parks_activities)
+          vm.checkRequiredDocuements(vm.selected_parks_activities);
+          vm.checkAllowedActivitiesPark();
         },
         selected_access: function(){
           let vm=this;
@@ -463,6 +473,7 @@ export default {
               vm.proposal.selected_land_access=vm.selected_access;
               vm.proposal.selected_land_activities=vm.selected_activities;
             }
+            vm.checkAllowedActivitiesPark()
         },
         selected_trails_activities: function(){
             let vm=this;
@@ -678,12 +689,60 @@ export default {
                         }
                     }
                     if(not_allowed){
-                      vm.trail_error_list.push('Warning: ' +not_allowed_activities+ ' activities is/are not allowed for the trail: '+vm.trails[j].name)
+                      vm.trail_error_list.push('Warning: ' +not_allowed_activities+ ' activities is/are not allowed for the trail: '+trails[j].name)
                     }
                 }
               }
             }
+          },
+          checkAllowedActivitiesPark: function(){
+            let parks=[]
+            let vm=this;
+            //parks=vm.park_options[0].children
+            vm.park_error_list=[]
 
+            //let vm=this;
+            var regions=[];
+            regions=vm.park_options[0].children
+            for(var x=0; x<regions.length; x++){
+              var districts=[];
+              districts=regions[x].children;
+              for (var  y= 0; y < districts.length; y++) {
+                //var parks=[];
+                parks=districts[y].children;
+              
+
+            for (var j=0; j<parks.length; j++)
+            {
+              for(var i=0; i<vm.selected_parks_activities.length; i++)
+              {
+                let not_allowed=false;
+                if(vm.selected_parks_activities[i].park== parks[j].id)
+                {
+                  var not_allowed_activities=[];
+                  for(var k=0; k<vm.selected_parks_activities[i].activities.length; k++){
+                      
+                      
+                              //console.log('here')
+                            if(parks[j].allowed_activities_ids.indexOf(vm.selected_parks_activities[i].activities[k])==-1){
+                              //;,.-console.log('inside')
+                              var activity_name=''
+                              activity_name=vm.land_activity_options[0].children.find(act => parseInt(act.id) === parseInt(vm.selected_parks_activities[i].activities[k])).name;
+                              if(not_allowed_activities.indexOf(activity_name)==-1){
+                                not_allowed_activities.push(activity_name);
+                              }
+                              not_allowed=true;
+                            }
+                        
+                    }
+                    if(not_allowed){
+                      vm.park_error_list.push('Warning: ' +not_allowed_activities+ ' activities is/are not allowed for the park: '+parks[j].name)
+                    }
+                }
+              }
+            }
+            }
+            }
           },
           edit_activities_child_test:function(node){
               alert("IN PARENT:  park_id: " + node.raw.id + ", park_name: " + node.raw.label );
@@ -742,6 +801,7 @@ export default {
               }
             }
             vm.checkRequiredDocuements(vm.selected_parks_activities)
+            vm.checkAllowedActivitiesPark()
           },
           refreshTrailFromResponse: function(trail_id, new_activities){
               let vm=this;

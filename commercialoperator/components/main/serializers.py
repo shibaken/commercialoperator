@@ -152,7 +152,7 @@ class ParkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Park
         #fields=('id', 'name', 'can_edit', 'last_leaf', 'code', 'park_type', 'allowed_activities', 'zone_ids', 'adult_price', 'child_price', 'oracle_code', 'zones', 'district', 'region', 'max_group_arrival_by_date' )
-        fields=('id', 'name', 'can_edit', 'last_leaf', 'code', 'park_type', 'allowed_activities', 'zone_ids', 'adult_price', 'child_price', 'zones', 'district', 'region', 'max_group_arrival_by_date' )
+        fields=('id', 'name', 'can_edit', 'last_leaf', 'code', 'park_type', 'allowed_activities', 'zone_ids', 'adult_price', 'child_price', 'zones', 'district', 'region', 'max_group_arrival_by_date','allowed_activities_ids')
 
     def get_can_edit(self, obj):
         #proposal = self.context['request'].GET.get('proposal')
