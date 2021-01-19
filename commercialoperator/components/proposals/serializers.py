@@ -1004,6 +1004,7 @@ class DTReferralSerializer(serializers.ModelSerializer):
     #referral = EmailUserSerializer()
     referral = serializers.CharField(source='referral_group.name')
     document = serializers.SerializerMethodField()
+    assigned_officer = serializers.CharField(source='assigned_officer.get_full_name', allow_null=True)
     class Meta:
         model = Referral
         fields = (
@@ -1024,6 +1025,7 @@ class DTReferralSerializer(serializers.ModelSerializer):
             'proposal_lodgement_number',
             'referral_text',
             'document',
+            'assigned_officer',
         )
 
     def get_submitter(self,obj):
