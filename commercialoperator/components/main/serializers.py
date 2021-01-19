@@ -75,7 +75,7 @@ class ZoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Zone
         #fields = ('id', 'name', 'can_edit', 'last_leaf','visible', 'children')
-        fields = ('id', 'name', 'label', 'park_id', 'can_edit', 'last_leaf','visible', 'allowed_zone_activities')
+        fields = ('id', 'name', 'label', 'park_id', 'can_edit', 'last_leaf','visible', 'allowed_zone_activities', 'allowed_activities_ids')
 
     def get_can_edit(self, obj):
         return True
