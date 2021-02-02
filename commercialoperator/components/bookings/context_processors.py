@@ -29,7 +29,7 @@ def commercialoperator_url(request):
         'IS_OFFICER' : is_officer,
         'IS_ADMIN' : is_admin,
         'IS_CUSTOMER' : is_customer,
-        'PUBLIC_URL' : settings.PUBLIC_URL
+        'PUBLIC_URL' : settings.PUBLIC_URL,
         }
 
 

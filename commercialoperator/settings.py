@@ -1,6 +1,6 @@
 from django.core.exceptions import ImproperlyConfigured
 
-import os
+import os, hashlib
 import confy
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 confy.read_environment_file(BASE_DIR+"/.env")
@@ -15,6 +15,7 @@ SYSTEM_MAINTENANCE_WARNING = env('SYSTEM_MAINTENANCE_WARNING', 24) # hours
 DISABLE_EMAIL = env('DISABLE_EMAIL', False)
 SHOW_TESTS_URL = env('SHOW_TESTS_URL', False)
 SHOW_DEBUG_TOOLBAR = env('SHOW_DEBUG_TOOLBAR', False)
+BUILD_TAG = env('BUILD_TAG', hashlib.md5(os.urandom(32)).hexdigest())  # URL of the Dev app.js served by webpack & express
 
 if SHOW_DEBUG_TOOLBAR:
 #    def get_ip():

@@ -42,3 +42,7 @@ def basket_total_price(lines):
         total += line['price_incl_tax'] * line['quantity']
     return "{:.2f}".format(round(total, 2))
 
+@register.simple_tag()
+def build_tag():
+    return settings.BUILD_TAG
+
