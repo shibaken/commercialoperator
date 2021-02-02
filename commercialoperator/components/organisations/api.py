@@ -485,8 +485,11 @@ class OrganisationViewSet(viewsets.ModelViewSet):
 		try:
 			with transaction.atomic():
 				instance = self.get_object()
+				mutable=request.data._mutable
+				request.data._mutable=True
 				request.data['organisation'] = u'{}'.format(instance.id)
 				request.data['staff'] = u'{}'.format(request.user.id)
+				request.data._mutable=mutable
 				serializer = OrganisationLogEntrySerializer(data=request.data)
 				serializer.is_valid(raise_exception=True)
 				comms = serializer.save()
@@ -918,9 +921,12 @@ class OrganisationRequestsViewSet(viewsets.ModelViewSet):
 		try:
 			with transaction.atomic():
 				instance = self.get_object()
+				mutable=request.data._mutable
+				request.data._mutable=True
 				request.data['organisation'] = u'{}'.format(instance.id)
 				request.data['request'] = u'{}'.format(instance.id)
 				request.data['staff'] = u'{}'.format(request.user.id)
+				request.data._mutable=mutable
 				serializer = OrganisationRequestLogEntrySerializer(data=request.data)
 				serializer.is_valid(raise_exception=True)
 				comms = serializer.save()

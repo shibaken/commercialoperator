@@ -227,6 +227,13 @@ export default {
 
                 ],
                 processing: true,
+                rowCallback: function ( row, data, index) {
+                    if (data.copied_for_renewal && data.require_due_date && !data.due_date) {
+                        $('td', row).css('background-color', 'Red');
+                        vm.setApplicationWorkflowState(false)
+                        //vm.$emit('refreshRequirements',false);
+                    }
+                },
                 drawCallback: function (settings) {
                     $(vm.$refs.requirements_datatable.table).find('tr:last .dtMoveDown').remove();
                     $(vm.$refs.requirements_datatable.table).children('tbody').find('tr:first .dtMoveUp').remove();
@@ -238,6 +245,10 @@ export default {
                     // Bind clicks to functions
                     $('.dtMoveUp').click(vm.moveUp);
                     $('.dtMoveDown').click(vm.moveDown);
+                },
+                preDrawCallback: function (settings) {
+                    vm.setApplicationWorkflowState(true)
+                    //vm.$emit('refreshRequirements',true);
                 }
             }
         }
@@ -406,6 +417,12 @@ export default {
             table.row(index + order).data(data1);
 
             table.page(0).draw(false);
+        },
+        setApplicationWorkflowState(bool){
+            let vm=this;
+            //vm.proposal.requirements_completed=bool;
+            //console.log('child', bool);
+            vm.$emit('refreshRequirements',bool);
         }
     },
     mounted: function(){

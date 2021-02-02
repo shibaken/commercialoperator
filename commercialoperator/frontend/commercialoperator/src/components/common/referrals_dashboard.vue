@@ -126,7 +126,7 @@ export default {
             },
             proposal_status:[],
             proposal_submitters: [],
-            proposal_headers:["Number","Licence Type","Submitter","Applicant","Status","Lodged on","Action"],
+            proposal_headers:["Number","Licence Type","Submitter","Applicant","Status","Lodged on", "Assigned Officer","Action"],
             proposal_options:{
                 customProposalSearch: true,
                 tableID: 'proposal-datatable-'+vm._uid,
@@ -194,6 +194,10 @@ export default {
                             return data != '' && data != null ? moment(data).format(vm.dateFormat): '';
                         },
                         name: "proposal__lodgement_date",
+                    },
+                    {
+                        data: "assigned_officer",
+                        name: "assigned_officer__first_name, assigned_officer__last_name",
                     },
                     {
                         data: '',

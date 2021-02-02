@@ -49,6 +49,8 @@ class Organisation(models.Model):
 
     apply_licence_discount = models.BooleanField(default=False)
     licence_discount = models.FloatField(default=0.0, validators=[MinValueValidator(0.0)])
+    event_training_completed = models.BooleanField(default=False)
+    event_training_date= models.DateField(blank=True, null=True)
 
     class Meta:
         app_label = 'commercialoperator'

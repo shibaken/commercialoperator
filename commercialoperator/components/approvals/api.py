@@ -477,8 +477,11 @@ class ApprovalViewSet(viewsets.ModelViewSet):
         try:
             with transaction.atomic():
                 instance = self.get_object()
+                mutable=request.data._mutable
+                request.data._mutable=True
                 request.data['approval'] = u'{}'.format(instance.id)
                 request.data['staff'] = u'{}'.format(request.user.id)
+                request.data._mutable=mutable
                 serializer = ApprovalLogEntrySerializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
                 comms = serializer.save()

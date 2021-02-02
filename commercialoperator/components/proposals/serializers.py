@@ -414,6 +414,7 @@ class BaseProposalSerializer(serializers.ModelSerializer):
                 # 'marine_parks',
                 # 'trails',
                 'training_completed',
+                'applicant_training_completed',
                 'fee_invoice_url',
                 'fee_paid',
                 'allow_full_discount',
@@ -788,6 +789,7 @@ class InternalProposalSerializer(BaseProposalSerializer):
     assessor_assessment=ProposalAssessmentSerializer(read_only=True)
     referral_assessments=ProposalAssessmentSerializer(read_only=True, many=True)
     fee_invoice_url = serializers.SerializerMethodField()
+    requirements_completed=serializers.SerializerMethodField()
     #selected_trails_activities=serializers.SerializerMethodField()
     #selected_parks_activities=serializers.SerializerMethodField()
     #marine_parks_activities=serializers.SerializerMethodField()
@@ -866,7 +868,8 @@ class InternalProposalSerializer(BaseProposalSerializer):
                 'assessor_assessment',
                 'referral_assessments',
                 'fee_invoice_url',
-                'fee_paid'
+                'fee_paid',
+                'requirements_completed'
                 )
         read_only_fields=('documents','requirements')
 
@@ -899,6 +902,9 @@ class InternalProposalSerializer(BaseProposalSerializer):
         return obj.can_edit_period(user)
 
     def get_readonly(self,obj):
+        return True
+
+    def get_requirements_completed(self,obj):
         return True
 
     def get_current_assessor(self,obj):
@@ -998,6 +1004,7 @@ class DTReferralSerializer(serializers.ModelSerializer):
     #referral = EmailUserSerializer()
     referral = serializers.CharField(source='referral_group.name')
     document = serializers.SerializerMethodField()
+    assigned_officer = serializers.CharField(source='assigned_officer.get_full_name', allow_null=True)
     class Meta:
         model = Referral
         fields = (
@@ -1018,6 +1025,7 @@ class DTReferralSerializer(serializers.ModelSerializer):
             'proposal_lodgement_number',
             'referral_text',
             'document',
+            'assigned_officer',
         )
 
     def get_submitter(self,obj):
@@ -1061,7 +1069,9 @@ class ProposalRequirementSerializer(serializers.ModelSerializer):
             'district_proposal',
             'district',
             'requirement_documents',
-            'can_district_assessor_edit'
+            'can_district_assessor_edit',
+            'require_due_date',
+            'copied_for_renewal',
         )
         read_only_fields = ('order','requirement', 'copied_from')
 
@@ -1400,6 +1410,7 @@ class ProposalEventSerializer(BaseProposalSerializer):
                 'processing_status',
                 'fee_paid',
                 'training_completed',
+                'applicant_training_completed',
                 'applicant_type',
                 'applicant',
                 'org_applicant',
@@ -1856,11 +1867,19 @@ class ReferralSerializer(serializers.ModelSerializer):
     can_process=serializers.SerializerMethodField()
     referral_assessment=ProposalAssessmentSerializer(read_only=True)
     application_type=serializers.CharField(read_only=True)
-
+    allowed_assessors = EmailUserSerializer(many=True)
+    current_assessor = serializers.SerializerMethodField()
 
     class Meta:
         model = Referral
         fields = '__all__'
+
+    def get_current_assessor(self,obj):
+        return {
+            'id': self.context['request'].user.id,
+            'name': self.context['request'].user.get_full_name(),
+            'email': self.context['request'].user.email
+        }
 
     # def __init__(self,*args,**kwargs):
     #     super(ReferralSerializer, self).__init__(*args, **kwargs)

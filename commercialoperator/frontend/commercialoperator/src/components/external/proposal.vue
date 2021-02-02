@@ -61,7 +61,8 @@
 
                                         <button v-if="paySubmitting" type="button" class="btn btn-primary" disabled>{{ submit_text() }}&nbsp;
                                                 <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                        <input v-else type="button" @click.prevent="submit" class="btn btn-primary" :value="submit_text()" :disabled="!proposal.training_completed || saveExitProposal || savingProposal"/>
+                                        <!-- <input v-else type="button" @click.prevent="submit" class="btn btn-primary" :value="submit_text()" :disabled="!proposal.training_completed || saveExitProposal || savingProposal"/> -->
+                                        <input v-else type="button" @click.prevent="submit" class="btn btn-primary" :value="submit_text()" :disabled="!trainingCompleted || saveExitProposal || savingProposal"/>
                                         <input id="save_and_continue_btn" type="hidden" @click.prevent="save_wo_confirm" class="btn btn-primary" value="Save Without Confirmation"/>
                                       </p>
                                     </div>
@@ -149,6 +150,13 @@ export default {
     },
     application_type_event: function(){
       return api_endpoints.event;
+    },
+    trainingCompleted: function(){
+      if(this.proposal.application_type== 'Event')
+        {
+          return this.proposal.applicant_training_completed;
+        }
+      return this.proposal.training_completed;
     }
 
   },

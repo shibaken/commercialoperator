@@ -798,6 +798,33 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         else:
             return 'submitter'
 
+    @property
+    def applicant_training_completed(self):
+        today = timezone.now().date()
+        timedelta = datetime.timedelta
+        if self.org_applicant: 
+            if self.org_applicant.event_training_completed:
+                future_date =self.org_applicant.event_training_date+timedelta(days=365)
+                if future_date < today:
+                    return False
+                else:
+                    return self.org_applicant.event_training_completed
+        elif self.proxy_applicant:
+            if self.proxy_applicant.system_settings.event_training_completed:
+                future_date =self.proxy_applicant.system_settings.event_training_date+timedelta(days=365)
+                if future_date < today:
+                    return False
+                else:
+                    return self.proxy_applicant.system_settings.event_training_completed
+        else:
+            if self.submitter.system_settings.event_training_completed:
+                future_date =self.submitter.system_settings.event_training_date+timedelta(days=365)
+                if future_date < today:
+                    return False
+                else:
+                    return self.submitter.system_settings.event_training_completed
+        return False
+
     def qa_officers(self, name=None):
         if not name:
             return QAOfficerGroup.objects.get(default=True).members.all().values_list('email', flat=True)
@@ -2295,6 +2322,29 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     # require  user to pay Application and Licence Fee again
                     proposal.fee_invoice_reference = None
 
+                req=self.requirements.all().exclude(is_deleted=True)
+                from copy import deepcopy
+                if req:
+                    for r in req:
+                        old_r = deepcopy(r)
+                        r.proposal = proposal
+                        r.copied_from=None
+                        r.copied_for_renewal=True
+                        if r.due_date:
+                            r.due_date=None
+                            r.require_due_date=True
+                        r.id = None
+                        r.district_proposal=None
+                        r.save()
+                #copy all the requirement documents from previous proposal
+                for requirement in proposal.requirements.all():
+                    for requirement_document in RequirementDocument.objects.filter(requirement=requirement.copied_from):
+                        requirement_document.requirement = requirement
+                        requirement_document.id = None
+                        requirement_document._file.name = u'{}/proposals/{}/requirement_documents/{}'.format(settings.MEDIA_APP_DIR, proposal.id, requirement_document.name)
+                        requirement_document.can_delete = True
+                        requirement_document.save()
+                        # Create a log entry for the proposal
                 self.log_user_action(ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.id),request)
                 # Create a log entry for the organisation
                 applicant_field=getattr(self, self.applicant_field)
@@ -2930,6 +2980,9 @@ class ProposalUserAction(UserAction):
     RECALL_REFERRAL = "Referral {} for application {} has been recalled"
     CONCLUDE_REFERRAL = "{}: Referral {} for application {} has been concluded by group {}"
     ACTION_REFERRAL_DOCUMENT = "Assign Referral document {}"
+    ACTION_REFERRAL_ASSIGN_TO_ASSESSOR = "Assign Referral  {} of application {} to {} as the assessor"
+    ACTION_REFERRAL_UNASSIGN_ASSESSOR = "Unassign assessor from Referral {} of application {}"
+    
     #Approval
     ACTION_REISSUE_APPROVAL = "Reissue licence for application {}"
     ACTION_CANCEL_APPROVAL = "Cancel licence for application {}"
@@ -3117,6 +3170,7 @@ class Referral(RevisionedMixin):
     text = models.TextField(blank=True) #Assessor text
     referral_text = models.TextField(blank=True)
     document = models.ForeignKey(ReferralDocument, blank=True, null=True, related_name='referral_document')
+    assigned_officer = models.ForeignKey(EmailUser, blank=True, null=True, related_name='commercialoperator_referrals_assigned', on_delete=models.SET_NULL)
 
 
     class Meta:
@@ -3154,6 +3208,11 @@ class Referral(RevisionedMixin):
         else:
             return True
 
+    @property
+    def allowed_assessors(self):
+        group = self.referral_group
+        return group.members.all() if group else []
+
     def can_process(self, user):
         if self.processing_status=='with_referral':
             group =  ReferralRecipientGroup.objects.filter(id=self.referral_group.id)
@@ -3164,6 +3223,35 @@ class Referral(RevisionedMixin):
                 return False
         return False
 
+    def assign_officer(self,request,officer):
+        with transaction.atomic():
+            try:
+                if not self.can_process(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if not self.can_process(officer):
+                    raise ValidationError('The selected person is not authorised to be assigned to this Referral')
+                if officer != self.assigned_officer:
+                    self.assigned_officer = officer
+                    self.save()
+                    self.proposal.log_user_action(ProposalUserAction.ACTION_REFERRAL_ASSIGN_TO_ASSESSOR.format(self.id,self.proposal.id, '{}({})'.format(officer.get_full_name(),officer.email)),request)
+            except:
+                raise
+
+    def unassign(self,request):
+        with transaction.atomic():
+            try:
+                if not self.can_process(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if self.assigned_officer:
+                    self.assigned_officer = None
+                    self.save()
+                    # Create a log entry for the proposal
+                    self.proposal.log_user_action(ProposalUserAction.ACTION_REFERRAL_UNASSIGN_ASSESSOR.format(self.id, self.proposal.id),request)
+                    # Create a log entry for the organisation
+                    applicant_field=getattr(self.proposal, self.proposal.applicant_field)
+                    applicant_field.log_user_action(ProposalUserAction.ACTION_REFERRAL_UNASSIGN_ASSESSOR.format(self.id, self.proposal.id),request)
+            except:
+                raise
 
     def recall(self,request):
         with transaction.atomic():
@@ -3379,6 +3467,8 @@ class ProposalRequirement(OrderedModel):
     recurrence_schedule = models.IntegerField(null=True,blank=True)
     copied_from = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
+    copied_for_renewal = models.BooleanField(default=False)
+    require_due_date = models.BooleanField(default=False)
     #To determine if requirement has been added by referral and the group of referral who added it
     #Null if added by an assessor
     referral_group = models.ForeignKey(ReferralRecipientGroup,null=True,blank=True,related_name='requirement_referral_groups')
