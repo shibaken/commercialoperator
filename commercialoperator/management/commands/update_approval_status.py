@@ -28,6 +28,8 @@ class Command(BaseCommand):
         except:
             user = EmailUser.objects.create(email=settings.CRON_EMAIL, password='')
 
+        errors = []
+        updates = []
         today = timezone.localtime(timezone.now()).date()
         logger.info('Running command {}'.format(__name__))
         for a in Approval.objects.filter(status = 'current'):
@@ -44,8 +46,11 @@ class Command(BaseCommand):
                         ApprovalUserAction.log_action(a,ApprovalUserAction.ACTION_SUSPEND_APPROVAL.format(a.id),user)  
                         ProposalUserAction.log_action(proposal,ProposalUserAction.ACTION_SUSPEND_APPROVAL.format(proposal.id),user)
                         logger.info('Updated Approval {} status to {}'.format(a.id,a.status))
-                    except:
-                        logger.info('Error suspending Approval {} status'.format(a.id))
+                        updates.append(dict(suspended=a.lodgement_number))
+                    except Exception as e:
+                        err_msg = 'Error suspending Approval {} status'.format(a.lodgement_number)
+                        logger.error('{}\n{}'.format(err_msg, str(e)))
+                        errors.append(err_msg)
 
             if a.cancellation_date and a.set_to_cancel:                              
                 if a.cancellation_date <= today:
@@ -58,8 +63,11 @@ class Command(BaseCommand):
                         ApprovalUserAction.log_action(a,ApprovalUserAction.ACTION_CANCEL_APPROVAL.format(a.id),user)  
                         ProposalUserAction.log_action(proposal,ProposalUserAction.ACTION_CANCEL_APPROVAL.format(proposal.id),user)
                         logger.info('Updated Approval {} status to {}'.format(a.id,a.status))
-                    except:
-                        logger.info('Error cancelling Approval {} status'.format(a.id))
+                        updates.append(dict(cancelled=a.lodgement_number))
+                    except Exception as e:
+                        err_msg = 'Error cancelling Approval {} status'.format(a.lodgement_number)
+                        logger.error('{}\n{}'.format(err_msg, str(e)))
+                        errors.append(err_msg)
 
             if a.surrender_details and a.set_to_surrender:
                 surrender_date = datetime.datetime.strptime(a.surrender_details['surrender_date'],'%d/%m/%Y')
@@ -74,8 +82,11 @@ class Command(BaseCommand):
                         ApprovalUserAction.log_action(a,ApprovalUserAction.ACTION_SURRENDER_APPROVAL.format(a.id),user)  
                         ProposalUserAction.log_action(proposal,ProposalUserAction.ACTION_SURRENDER_APPROVAL.format(proposal.id),user)
                         logger.info('Updated Approval {} status to {}'.format(a.id,a.status))
+                        updates.append(dict(surrender=a.lodgement_number))
                     except:
-                        logger.info('Error surrendering Approval {} status'.format(a.id))
+                        err_msg = 'Error surrendering Approval {} status'.format(a.lodgement_number)
+                        logger.error('{}\n{}'.format(err_msg, str(e)))
+                        errors.append(err_msg)
 
         for a in Approval.objects.filter(status = 'suspended'):
             if a.suspension_details and a.suspension_details['to_date']:               
@@ -89,8 +100,11 @@ class Command(BaseCommand):
                         ApprovalUserAction.log_action(a,ApprovalUserAction.ACTION_REINSTATE_APPROVAL.format(a.id),user)  
                         ProposalUserAction.log_action(proposal,ProposalUserAction.ACTION_REINSTATE_APPROVAL.format(proposal.id),user)
                         logger.info('Updated Approval {} status to {}'.format(a.id,a.status))
-                    except:
-                        logger.info('Error suspending Approval {} status'.format(a.id))
+                        updates.append(dict(current=a.lodgement_number))
+                    except Exception as e:
+                        err_msg = 'Error suspending Approval {} status'.format(a.lodgement_number)
+                        logger.error('{}\n{}'.format(err_msg, str(e)))
+                        errors.append(err_msg)
 
             if a.cancellation_date and a.set_to_cancel:                              
                 if a.cancellation_date <= today:
@@ -103,8 +117,11 @@ class Command(BaseCommand):
                         ApprovalUserAction.log_action(a,ApprovalUserAction.ACTION_CANCEL_APPROVAL.format(a.id),user)  
                         ProposalUserAction.log_action(proposal,ProposalUserAction.ACTION_CANCEL_APPROVAL.format(proposal.id),user)
                         logger.info('Updated Approval {} status to {}'.format(a.id,a.status))
-                    except:
-                        logger.info('Error cancelling Approval {} status'.format(a.id))
+                        updates.append(dict(cancelled=a.lodgement_number))
+                    except Exception as e:
+                        err_msg = 'Error cancelling Approval {} status'.format(a.lodgement_number)
+                        logger.error('{}\n{}'.format(err_msg, str(e)))
+                        errors.append(err_msg)
 
             if a.surrender_details and a.set_to_surrender:
                 surrender_date = datetime.datetime.strptime(a.surrender_details['surrender_date'],'%d/%m/%Y')
@@ -119,14 +136,17 @@ class Command(BaseCommand):
                         ApprovalUserAction.log_action(a,ApprovalUserAction.ACTION_SURRENDER_APPROVAL.format(a.id),user)  
                         ProposalUserAction.log_action(proposal,ProposalUserAction.ACTION_SURRENDER_APPROVAL.format(proposal.id),user)
                         logger.info('Updated Approval {} status to {}'.format(a.id,a.status))
+                        updates.append(dict(surrendered=a.lodgement_number))
                     except:
-                        logger.info('Error surrendering Approval {} status'.format(a.id))
+                        err_msg = 'Error surrendering Approval {} status'.format(a.lodgement_number)
+                        logger.error('{}\n{}'.format(err_msg, str(e)))
+                        errors.append(err_msg)
 
         logger.info('Command {} completed'.format(__name__))
 
-
-
-
-                
-
+        cmd_name = __name__.split('.')[-1].replace('_', ' ').upper()
+        err_str = '<strong style="color: red;">Errors: {}</strong>'.format(len(errors)) if len(errors)>0 else '<strong style="color: green;">Errors: 0</strong>'
+        msg = '<p>{} completed. Errors: {}. IDs updated: {}.</p>'.format(cmd_name, err_str, updates)
+        logger.info(msg)
+        print(msg) # will redirect to cron_tasks.log file, by the parent script
 

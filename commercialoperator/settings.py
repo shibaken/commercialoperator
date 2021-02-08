@@ -169,6 +169,7 @@ OSCAR_BASKET_COOKIE_OPEN = 'cols_basket'
 PAYMENT_SYSTEM_ID = env('PAYMENT_SYSTEM_ID', 'S557')
 PAYMENT_SYSTEM_PREFIX = env('PAYMENT_SYSTEM_PREFIX', PAYMENT_SYSTEM_ID.replace('S','0')) # '0557'
 os.environ['LEDGER_PRODUCT_CUSTOM_FIELDS'] = "('ledger_description','quantity','price_incl_tax','price_excl_tax','oracle_code')"
+CRON_NOTIFICATION_EMAIL = env('CRON_NOTIFICATION_EMAIL', NOTIFICATION_EMAIL).lower()
 
 if not VALID_SYSTEMS:
     VALID_SYSTEMS = [PAYMENT_SYSTEM_ID]
@@ -204,4 +205,10 @@ LOGGING['loggers']['payment_checkout'] = {
             'handlers': ['payment_checkout'],
             'level': 'INFO'
         }
+
+LOGGING['loggers']['commercialoperator'] = {
+            'handlers': ['file'],
+            'level': 'INFO'
+        }
+
 
