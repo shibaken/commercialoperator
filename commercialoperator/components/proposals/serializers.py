@@ -1004,6 +1004,7 @@ class DTReferralSerializer(serializers.ModelSerializer):
     #referral = EmailUserSerializer()
     referral = serializers.CharField(source='referral_group.name')
     document = serializers.SerializerMethodField()
+    can_user_process=serializers.SerializerMethodField()
     assigned_officer = serializers.CharField(source='assigned_officer.get_full_name', allow_null=True)
     class Meta:
         model = Referral
@@ -1026,6 +1027,7 @@ class DTReferralSerializer(serializers.ModelSerializer):
             'referral_text',
             'document',
             'assigned_officer',
+            'can_user_process',
         )
 
     def get_submitter(self,obj):
@@ -1037,6 +1039,19 @@ class DTReferralSerializer(serializers.ModelSerializer):
     def get_document(self,obj):
         #doc = obj.referral_documents.last()
         return [obj.document.name, obj.document._file.url] if obj.document else None
+
+    def get_can_user_process(self,obj):
+        request = self.context['request']
+        user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        if obj.can_process(user) and obj.can_be_completed:
+            if obj.assigned_officer:
+                if obj.assigned_officer == user:
+                    return True
+            else:
+                return True
+        return False
+
+
 
 class RequirementDocumentSerializer(serializers.ModelSerializer):
     class Meta:

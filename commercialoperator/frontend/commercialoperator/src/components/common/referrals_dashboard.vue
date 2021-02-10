@@ -203,7 +203,7 @@ export default {
                         data: '',
                         mRender:function (data,type,full) {
                             let links = '';
-                            links +=  full.can_be_processed ? `<a href='/internal/proposal/${full.proposal}/referral/${full.id}'>Process</a><br/>`: `<a href='/internal/proposal/${full.proposal}/referral/${full.id}'>View</a><br/>`;
+                            links +=  full.can_user_process ? `<a href='/internal/proposal/${full.proposal}/referral/${full.id}'>Process</a><br/>`: `<a href='/internal/proposal/${full.proposal}/referral/${full.id}'>View</a><br/>`;
                             return links;
                         },
                         searchable: false,
@@ -211,6 +211,7 @@ export default {
                         name: ''
                     },
                     {data: "can_be_processed", visible: false},
+                    {data: "can_user_process", visible: false},
                     {data: "proposal_lodgement_number", visible: false},
                     {data: "id", visible: false},
 
