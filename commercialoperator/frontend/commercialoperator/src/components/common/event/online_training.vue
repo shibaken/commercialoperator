@@ -20,7 +20,7 @@
                         </div>
                         <!-- <label style="color: green">Your online training has been completed. Please proceed to pay and submit the application.</label> -->
                     </div>
-                    <div >                        
+                    <div v-else>                        
                         <div class="form-horizontal col-sm-12 borderDecoration">
                             <div class="row">
                                 <alert v-if="showError" type="danger" style="color: red"><strong>{{errorString}}</strong></alert>
