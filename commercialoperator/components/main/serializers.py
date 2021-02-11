@@ -75,7 +75,7 @@ class ZoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Zone
         #fields = ('id', 'name', 'can_edit', 'last_leaf','visible', 'children')
-        fields = ('id', 'name', 'label', 'park_id', 'can_edit', 'last_leaf','visible', 'allowed_zone_activities')
+        fields = ('id', 'name', 'label', 'park_id', 'can_edit', 'last_leaf','visible', 'allowed_zone_activities', 'allowed_activities_ids')
 
     def get_can_edit(self, obj):
         return True
@@ -152,7 +152,7 @@ class ParkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Park
         #fields=('id', 'name', 'can_edit', 'last_leaf', 'code', 'park_type', 'allowed_activities', 'zone_ids', 'adult_price', 'child_price', 'oracle_code', 'zones', 'district', 'region', 'max_group_arrival_by_date' )
-        fields=('id', 'name', 'can_edit', 'last_leaf', 'code', 'park_type', 'allowed_activities', 'zone_ids', 'adult_price', 'child_price', 'zones', 'district', 'region', 'max_group_arrival_by_date' )
+        fields=('id', 'name', 'can_edit', 'last_leaf', 'code', 'park_type', 'allowed_activities', 'zone_ids', 'adult_price', 'child_price', 'zones', 'district', 'region', 'max_group_arrival_by_date','allowed_activities_ids')
 
     def get_can_edit(self, obj):
         #proposal = self.context['request'].GET.get('proposal')
@@ -325,7 +325,7 @@ class TrailSerializer(serializers.ModelSerializer):
     allowed_activities=ActivitySerializer(many=True)
     class Meta:
         model = Trail
-        fields = ('id', 'name', 'can_edit', 'last_leaf', 'code', 'section_ids', 'sections', 'allowed_activities')
+        fields = ('id', 'name', 'can_edit', 'last_leaf', 'code', 'section_ids', 'sections', 'allowed_activities', 'allowed_activities_ids')
 
     def get_can_edit(self, obj):
         return True
@@ -344,6 +344,7 @@ class LandActivityTabSerializer(serializers.Serializer):
     land_parks = RegionSerializer2(many=True, read_only=True, source='regions')
     access_types = AccessTypeSerializer(many=True, read_only=True)
     land_activity_types = ActivitySerializer(many=True, read_only=True)
+    trail_activity_types = ActivitySerializer(many=True, read_only=True)
     trails = TrailSerializer(many=True, read_only=True)
     land_required_documents = RequiredDocumentSerializer(many=True, read_only=True)
     #marine_activity_types = ActivitySerializer(many=True, read_only=True)

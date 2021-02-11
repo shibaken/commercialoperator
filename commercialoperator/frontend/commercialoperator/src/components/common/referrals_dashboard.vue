@@ -126,7 +126,7 @@ export default {
             },
             proposal_status:[],
             proposal_submitters: [],
-            proposal_headers:["Number","Licence Type","Submitter","Applicant","Status","Lodged on","Action"],
+            proposal_headers:["Number","Licence Type","Submitter","Applicant","Status","Lodged on", "Assigned Officer","Action"],
             proposal_options:{
                 customProposalSearch: true,
                 tableID: 'proposal-datatable-'+vm._uid,
@@ -196,10 +196,14 @@ export default {
                         name: "proposal__lodgement_date",
                     },
                     {
+                        data: "assigned_officer",
+                        name: "assigned_officer__first_name, assigned_officer__last_name",
+                    },
+                    {
                         data: '',
                         mRender:function (data,type,full) {
                             let links = '';
-                            links +=  full.can_be_processed ? `<a href='/internal/proposal/${full.proposal}/referral/${full.id}'>Process</a><br/>`: `<a href='/internal/proposal/${full.proposal}/referral/${full.id}'>View</a><br/>`;
+                            links +=  full.can_user_process ? `<a href='/internal/proposal/${full.proposal}/referral/${full.id}'>Process</a><br/>`: `<a href='/internal/proposal/${full.proposal}/referral/${full.id}'>View</a><br/>`;
                             return links;
                         },
                         searchable: false,
@@ -207,6 +211,7 @@ export default {
                         name: ''
                     },
                     {data: "can_be_processed", visible: false},
+                    {data: "can_user_process", visible: false},
                     {data: "proposal_lodgement_number", visible: false},
                     {data: "id", visible: false},
 

@@ -13,6 +13,14 @@
                     <div class="" >
 
                         <div class="borderDecoration col-sm-12">
+                          <form v-if="park_error_list">
+                            <div class="col-sm-12">
+                              <div v-for="e in park_error_list">
+                                <label style="color: orange">{{ e }}</label>
+                                
+                              </div>
+                            </div>
+                          </form>
                             <form>
                                 <div class="col-sm-12" >
                                     <div>
@@ -112,11 +120,14 @@ from '@/utils/hooks'
                 vessels_url: helpers.add_endpoint_json(api_endpoints.proposals,vm.$route.params.proposal_id+'/vessels'),
                 marine_parks:[],
                 marine_activities: [],
+                marine_activity_options:[],
+                marine_park_options:[],
                 selected_activities:[],
                 selected_activities_before:[],
                 selected_zones:[],
                 selected_zones_before:[],
                 marine_parks_activities:[],
+                park_error_list:[],
                 required_documents_list: null,
             }
         },
@@ -219,6 +230,7 @@ from '@/utils/hooks'
                 }
               }
             }
+            vm.checkAllowedActivities();
         },
         selected_activities: function(){
           let vm=this;
@@ -263,7 +275,8 @@ from '@/utils/hooks'
               }
             }
           }
-          vm.checkRequiredDocuements(vm.marine_parks_activities)
+          vm.checkRequiredDocuements(vm.marine_parks_activities);
+          vm.checkAllowedActivities();
         },
         marine_parks_activities: function(){
             let vm=this;
@@ -271,6 +284,7 @@ from '@/utils/hooks'
             if (vm.proposal){
               vm.proposal.marine_parks_activities=vm.marine_parks_activities;
             }
+            vm.checkAllowedActivities()
         },
         },
 
@@ -460,6 +474,70 @@ from '@/utils/hooks'
             }
           }
           },
+          checkAllowedActivities: function(){
+            let parks=[]
+            let vm=this;
+            parks=vm.marine_park_options
+            vm.park_error_list=[]
+            var marine_parks_activities=[];
+            marine_parks_activities=vm.marine_parks_activities
+            for (var i=0; i<marine_parks_activities.length; i++){
+              for(var j=0; j<marine_parks_activities[i].activities.length; j++){
+                  marine_parks_activities[i].activities[j].calculated=false;
+                }   
+            }
+            for (var i=0; i<marine_parks_activities.length; i++)
+            {
+              for(var j=0; j<parks.length; j++)
+              {
+                let not_allowed=false;
+                var not_allowed_activities=[];
+                if(marine_parks_activities[i].park== parks[j].id)
+                {
+                  //var not_allowed_activities=[];
+                  for(var k=0; k<marine_parks_activities[i].activities.length; k++){
+                     //not_allowed_activities=[];
+                      //loop through maring_parks_activities
+                     for(var v=0; v < parks[j]["children"].length; v++) {
+                      if(parks[j].children[v].id==marine_parks_activities[i].activities[k].zone &&!marine_parks_activities[i].activities[k].calculated)
+                      {
+                        //not_allowed_activities=[];
+                        not_allowed=false;
+                      for(var l=0; l<marine_parks_activities[i].activities[k].activities.length; l++){
+                              //console.log('here')
+                            if(parks[j].children[v].allowed_activities_ids.indexOf(marine_parks_activities[i].activities[k].activities[l])==-1){
+                              
+                              var activity_name=''
+                              for(var s=0; s< vm.marine_activity_options[0].children.length; s++)
+                              {
+                                var res=null;
+                                res=vm.marine_activity_options[0].children[s].children.find(act => parseInt(act.id) === parseInt(marine_parks_activities[i].activities[k].activities[l]));
+                                if(typeof res !=="undefined"|| res!= null){
+                                  activity_name=res.name;
+                                }
+                              }
+                              if(not_allowed_activities.indexOf(activity_name)==-1){
+                                not_allowed_activities.push(activity_name);
+                              }
+                              not_allowed=true;
+                            }
+                        }
+                        if(not_allowed){                        
+                          vm.park_error_list.push('Warning: ' +not_allowed_activities+ ' activities is/are not allowed for the park: '+parks[j].name+'-'+parks[j].children[v].name)
+                      }
+                        
+                      }
+                      // if(not_allowed){                        
+                      //     vm.park_error_list.push('Warning: ' +not_allowed_activities+ ' activities is/are not allowed for the park: '+parks[j].name+'-'+parks[j].children[v].name)
+                      // }
+                    }
+                      marine_parks_activities[i].activities[k].calculated=true;
+                    }
+                }
+              }
+            }
+
+          },
           edit_activities: function(node){
             let vm=this;
             var park_id = node.raw.park_id
@@ -515,7 +593,8 @@ from '@/utils/hooks'
               vm.marine_parks_activities[park_idx].activities.splice(zone_idx,1)
               vm.marine_parks_activities[park_idx].activities.push( new_activities );
 
-              vm.checkRequiredDocuements(vm.marine_parks_activities)
+              vm.checkRequiredDocuements(vm.marine_parks_activities);
+              vm.checkAllowedActivities();
           },
           find_repeated: function(array){
             var common=new Map();
