@@ -29,7 +29,7 @@
                                   <div class="panel-body collapse in" :id="pdBody">
                                       <form class="form-horizontal" name="personal_form" method="post">
                                           <div class="form-group">
-                                            <label for="" class="col-sm-3 control-label">Name</label>
+                                            <label for="" class="col-sm-3 control-label">Organisation Name</label>
                                             <div class="col-sm-9">
                                                 <input type="text" class="form-control" name="first_name" placeholder="" v-model="org.name">
                                             </div>
@@ -43,7 +43,7 @@
                                           <div class="form-group">
                                             <label for="" class="col-sm-3 control-label" >ABN</label>
                                             <div class="col-sm-9">
-                                                <input type="text" disabled class="form-control" name="last_name" placeholder="" v-model="org.abn">
+                                                <input type="text" class="form-control" name="last_name" placeholder="" v-model="org.abn" :disabled="!is_commercialoperator_admin">
                                             </div>
                                           </div>
                                           <div class="form-group">
@@ -53,9 +53,104 @@
                                             </div>
                                           </div>
 
+                                          <!--
+                                          <div class="form-group">
+                                            <div class="row">
+                                                <label class="col-sm-3 control-label" for="">Apply waiver for T Class application fee</label>
+                                                <div class="col-sm-6">
+                                                    <div class="col-sm-1">
+                                                        <label>
+                                                            <input type="radio" value="true" v-model="org.apply_application_discount" ref="application_discount_yes"/>Yes
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-sm-1">
+                                                        <label>
+                                                            <input type="radio" value="false" v-model="org.apply_application_discount"/>No
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-sm-8">
+                                                        <div class="col-sm-6">
+                                                            <label class="control-label pull-left"  for="Name">Discount</label>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <input type="number" class="form-control" min="0" max="100" name="application_discount" placeholder="" v-model="org.application_discount">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                          </div>
+                                          -->
+
+                                          <div class="form-group">
+                                            <div class="row">
+                                                <div class="col-sm-4">
+                                                    <label class="control-label pull-right"  for="Name">Apply waiver for T Class application fee</label>
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <label>
+                                                        <input type="radio" :value="true" v-model="org.apply_application_discount" ref="application_discount_yes"/>Yes
+                                                    </label>
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <label>
+                                                        <input type="radio" :value="false" v-model="org.apply_application_discount"/>No
+                                                    </label>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <div v-show="org.apply_application_discount">
+                                                        <div class="col-sm-3">
+                                                            <label class="control-label pull-left"  for="Name">Waiver</label>
+                                                        </div>
+                                                        <div class="col-sm-6 input-group">
+                                                            <label class="input-group-addon" for="number">$</label> 
+                                                            <input type="number" class="form-control" min="0" name="application_discount" v-model.number="org.application_discount" @input="handleApplicationCurrencyInput">
+                                                        </div>
+                                                        <div v-show="!validateApplicationDiscount()">
+                                                            <p style="color:red;"> Waiver amount must be between $0 - $10,000 </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                          </div>
+
+
+                                          <div class="form-group">
+                                            <div class="row">
+                                                <div class="col-sm-4">
+                                                    <label class="control-label pull-right"  for="Name">Apply waiver for T Class licence fee</label>
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <label>
+                                                        <input type="radio" :value="true" v-model="org.apply_licence_discount" ref="licence_discount_yes"/>Yes
+                                                    </label>
+                                                </div>
+                                                <div class="col-sm-1">
+                                                    <label>
+                                                        <input type="radio" :value="false" v-model="org.apply_licence_discount"/>No
+                                                    </label>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <div v-show="org.apply_licence_discount">
+                                                        <div class="col-sm-3">
+                                                            <label class="control-label pull-left"  for="Name">Waiver</label>
+                                                        </div>
+                                                        <div class="col-sm-6 input-group">
+                                                            <label class="input-group-addon" for="number">$</label> 
+                                                            <input type="number" class="form-control" min="0" name="licence_discount" v-model.number="org.licence_discount" @input="handleLicenceCurrencyInput">
+                                                        </div>
+                                                        <div v-show="!validateLicenceDiscount()">
+                                                            <p style="color:red;"> Waiver amount must be between $0 - $10,000 </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                          </div>
+
+
+
                                           <div class="form-group">
                                             <div class="col-sm-12">
-                                                <button v-if="!updatingDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()">Update</button>
+                                                <button v-if="!updatingDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button>
                                                 <button v-else disabled class="pull-right btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                                             </div>
                                           </div>
@@ -272,6 +367,10 @@ export default {
             updatingContact: false,
             empty_list: '/api/empty_list',
             logsTable: null,
+            prev_licence_discount: null,
+            prev_application_discount: null,
+            is_commercialoperator_admin:false,
+            profile:{},
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             activate_tables: false,
             comms_url: helpers.add_endpoint_json(api_endpoints.organisations,vm.$route.params.org_id+'/comms_log'),
@@ -328,6 +427,8 @@ export default {
         AddContact,
         CommsLogs
     },
+	watch: {
+	},
     computed: {
         isLoading: function () {
           return this.loading.length == 0;
@@ -336,30 +437,77 @@ export default {
     beforeRouteEnter: function(to, from, next){
         let initialisers = [
             utils.fetchCountries(),
-            utils.fetchOrganisation(to.params.org_id)
+            utils.fetchOrganisation(to.params.org_id),
+            utils.fetchProfile()
         ]
         Promise.all(initialisers).then(data => {
             next(vm => {
                 vm.countries = data[0];
                 vm.org = data[1];
+                vm.profile=data[2];
                 vm.org.address = vm.org.address != null ? vm.org.address : {};
                 vm.org.pins = vm.org.pins != null ? vm.org.pins : {};
+                //vm.profile=data[2];
+                vm.is_commercialoperator_admin=vm.profile.is_commercialoperator_admin;
             });
         });
     },
     beforeRouteUpdate: function(to, from, next){
         let initialisers = [
-            utils.fetchOrganisation(to.params.org_id)
+            utils.fetchOrganisation(to.params.org_id),
+            utils.fetchProfile()
         ]
         Promise.all(initialisers).then(data => {
             next(vm => {
                 vm.org = data[0];
+                vm.profile=data[1];
+                vm.is_commercialoperator_admin=vm.profile.is_commercialoperator_admin;
                 vm.org.address = vm.org.address != null ? vm.org.address : {};
                 vm.org.pins = vm.org.pins != null ? vm.org.pins : {};
             });
         });
     },
     methods: {
+       handleApplicationCurrencyInput(e) {
+            // allow max 2dp
+            let vm = this;
+		    let stringValue = e.target.value.toString()
+		    let regex = /^\d*(\.\d{1,2})?$/
+		    if(!stringValue.match(regex) && vm.org.licence_discount !== '') {
+			    vm.org.application_discount= vm.prev_application_discount
+		    }
+		    vm.prev_application_discount = vm.org.application_discount
+		},
+       handleLicenceCurrencyInput(e) {
+            // allow max 2dp
+            let vm = this;
+		    let stringValue = e.target.value.toString()
+		    let regex = /^\d*(\.\d{1,2})?$/
+		    if(!stringValue.match(regex) && vm.org.licence_discount !== '') {
+			    vm.org.licence_discount= vm.prev_licence_discount
+		    }
+		    vm.prev_licence_discount = vm.org.licence_discount
+		},
+        validateApplicationDiscount: function(){
+            if (this.org.application_discount < 0 || this.org.application_discount > 10000) {
+                return false;
+			}
+            return true;
+        },
+        validateLicenceDiscount: function(){
+            if (this.org.licence_discount < 0 || this.org.licence_discount > 10000) {
+                return false;
+			}
+            return true;
+        },
+        can_update: function(){
+            // can update the Organisation section
+            if (this.validateApplicationDiscount() && this.validateLicenceDiscount()) {
+                return true;
+			}
+            return false;
+        },
+
         addContact: function(){
             this.$refs.add_contact.isModalOpen = true;
         },
@@ -404,7 +552,7 @@ export default {
                     'success'
                 )
             }, (error) => {
-                console.log(error);
+                console.log('INTERNAL: ' + error);
                 var text= helpers.apiVueResourceError(error);
                 if(typeof text == 'object'){
                     if (text.hasOwnProperty('email')){
@@ -468,11 +616,12 @@ export default {
                 vm.updatingAddress = false;
             });
         },
-    },
-    mounted: function(){
-        let vm = this;
-        this.personal_form = document.forms.personal_form;
-        this.eventListeners();
+
+        mounted: function(){
+            let vm = this;
+            this.personal_form = document.forms.personal_form;
+            this.eventListeners();
+        },
     },
 }
 </script>
@@ -487,5 +636,28 @@ export default {
 }
 .hidePopover {
     display: none;
+}
+
+.input-group {
+    display: table;
+    white-space: nowrap;
+    vertical-align: top;
+    width: 75%;
+}
+.input-group .form-control {
+    display: table-cell;
+    vertical-align: top;
+    width: 75%;
+}
+.input-group .input-group-addon {
+    display: table-cell;
+    width: 1%;
+    vertical-align: top;
+    background: #2f353e;
+    color: #fff;
+    font-size: 1.15rem;
+    line-height: 19px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 </style>

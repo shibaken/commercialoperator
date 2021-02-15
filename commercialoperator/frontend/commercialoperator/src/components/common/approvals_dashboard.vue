@@ -11,6 +11,26 @@
                 </div>
                 <div class="panel-body collapse in" :id="pBody">
                     <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="">Status</label>
+                                <select class="form-control" v-model="filterProposalStatus">
+                                    <option value="All">All</option>
+                                    <option v-for="s in approval_status" :value="s">{{s}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="">Licence Type</label>
+                                <select class="form-control" v-model="filterApplicationType">
+                                    <option value="All">All</option>
+                                    <option v-for="s in application_types" :value="s">{{s}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
                         <!--
                         <div class="col-md-3">
                             <div class="form-group">
@@ -31,7 +51,8 @@
                             </div>
                         </div>
                         -->
-                        <div class="col-md-3">
+
+                        <!-- <div class="col-md-3">
                             <div class="form-group">
                                 <label for="">Status</label>
                                 <select class="form-control" v-model="filterProposalStatus">
@@ -40,6 +61,17 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="">Application Type</label>
+                                <select class="form-control" v-model="filterApplicationType">
+                                    <option value="All">All</option>
+                                    <option v-for="s in application_types" :value="s">{{s}}</option>
+                                </select>
+                            </div>
+                        </div> -->
+
+
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label for="">Expiry From</label>
@@ -62,6 +94,7 @@
                                 </div>
                             </div>
                         </div>
+                        
                         <div v-if="is_internal" class="col-md-3">
                             <div class="form-group">
                                 <label/>
@@ -71,6 +104,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="row">
                         <div class="col-lg-12" style="margin-top:25px;">
                             <datatable ref="proposal_datatable" :id="datatable_id" :dtOptions="proposal_options" :dtHeaders="proposal_headers"/>
@@ -134,6 +168,7 @@ export default {
             //Profile to check if user has access to process Proposal
             profile: {},
             // Filters for Proposals
+            filterApplicationType: 'All',
             filterProposalStatus: 'All',
             filterProposalLodgedFrom: '',
             filterProposalLodgedTo: '',
@@ -157,6 +192,9 @@ export default {
                 },
                 responsive: true,
                 serverSide: true,
+                order: [
+                    [0, 'desc']
+                ],
                 lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
                 ajax: {
                     "url": vm.url,
@@ -291,14 +329,23 @@ export default {
                             if (!vm.is_external){
                                 //if(vm.check_assessor(full)){
                                 if(full.is_approver){
-                                    if(full.can_reissue){
-                                        links +=  `<a href='#${full.id}' data-reissue-approval='${full.current_proposal}'>Reissue</a><br/>`;
+                                    if(!full.is_lawful_authority)
+                                    {
+                                        if(full.can_reissue){
+                                            links +=  `<a href='#${full.id}' data-reissue-approval='${full.current_proposal}'>Reissue</a><br/>`;
+                                        }
                                     }
                                 }
                                 if(full.is_assessor){
                                     // if(full.can_reissue){
                                     //     links +=  `<a href='#${full.id}' data-reissue-approval='${full.current_proposal}'>Reissue</a><br/>`;
                                     // }
+                                    if(full.is_lawful_authority)
+                                    {
+                                        if(full.can_reissue_lawful_authority){
+                                            links +=  `<a href='#${full.id}' data-reissue-approval='${full.current_proposal}'>Reissue</a><br/>`;
+                                        }
+                                    }
                                     if(full.application_type=='E Class' && (full.status=='Current' || full.status=='Suspended')){
                                         if(full.can_extend){
                                             links +=  `<a href='#${full.id}' data-extend-approval='${full.id}'>Extend</a><br/>`;
@@ -307,11 +354,32 @@ export default {
                                         }
                                     }
                                     if(full.can_reissue && full.can_action){
-                                        links +=  `<a href='#${full.id}' data-cancel-approval='${full.id}'>Cancel</a><br/>`;
-                                        links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
+                                        if(full.is_lawful_authority)
+                                        {
+                                            if(full.can_reissue_lawful_authority){
+                                                links +=  `<a href='#${full.id}' data-cancel-approval='${full.id}'>Cancel</a><br/>`;
+                                                links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
+                                            }
+                                        }
+                                        else{
+                                            links +=  `<a href='#${full.id}' data-cancel-approval='${full.id}'>Cancel</a><br/>`;
+                                            links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
+                                        }
+                                        // links +=  `<a href='#${full.id}' data-cancel-approval='${full.id}'>Cancel</a><br/>`;
+                                        // links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
                                     }
                                     if(full.status == 'Current' && full.can_action){
-                                        links +=  `<a href='#${full.id}' data-suspend-approval='${full.id}'>Suspend</a><br/>`;
+                                        if(full.is_lawful_authority)
+                                        {
+                                            if(full.is_lawful_authority_finalised){
+                                                links +=  `<a href='#${full.id}' data-suspend-approval='${full.id}'>Suspend</a><br/>`;
+                                            }
+                                        }
+                                        else{
+                                            links +=  `<a href='#${full.id}' data-suspend-approval='${full.id}'>Suspend</a><br/>`;
+                                        }
+
+                                        // links +=  `<a href='#${full.id}' data-suspend-approval='${full.id}'>Suspend</a><br/>`;
                                     }
                                     if(full.can_reinstate)
                                     {
@@ -331,7 +399,17 @@ export default {
                                 if (full.can_reissue) {
                                     links +=  `<a href='/external/approval/${full.id}'>View</a><br/>`;
                                     if(full.can_action){
-                                        links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
+                                        if(full.is_lawful_authority)
+                                        {
+                                            if(full.can_reissue_lawful_authority){
+                                                links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
+                                            }
+                                        }
+                                        else{
+                                            links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
+                                        }
+                                        // links +=  `<a href='#${full.id}' data-surrender-approval='${full.id}'>Surrender</a><br/>`;
+
                                         if(full.can_amend){
                                            links +=  `<a href='#${full.id}' data-amend-approval='${full.current_proposal}'>Amend</a><br/>`; 
                                        }                                        
@@ -397,7 +475,15 @@ export default {
         },
         filterProposalLodgedTo: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
-        }
+        },
+        filterApplicationType: function() {
+            let vm = this;
+            if (vm.filterApplicationType!= 'All') {
+                vm.$refs.proposal_datatable.vmDataTable.columns(2).search(vm.filterApplicationType).draw();
+            } else {
+                vm.$refs.proposal_datatable.vmDataTable.columns(2).search('').draw();
+            }
+        },
     },
     computed: {
         status: function(){
@@ -426,6 +512,7 @@ export default {
             vm.$http.get(api_endpoints.filter_list_approvals).then((response) => {
                 vm.proposal_submitters = response.body.submitters;
                 vm.approval_status = response.body.approval_status_choices;
+                vm.application_types= response.body.application_types;
             },(error) => {
                 console.log(error);
             })
@@ -448,7 +535,7 @@ export default {
             $(vm.$refs.proposalDateFromPicker).on('dp.change',function (e) {
                 if ($(vm.$refs.proposalDateFromPicker).data('DateTimePicker').date()) {
                     vm.filterProposalLodgedFrom = e.date.format('DD/MM/YYYY');
-                    $(vm.$refs.proposalDateToPicker).data("DateTimePicker").minDate(e.date);
+                    //$(vm.$refs.proposalDateToPicker).data("DateTimePicker").minDate(e.date);
                 }
                 else if ($(vm.$refs.proposalDateFromPicker).data('date') === "") {
                     vm.filterProposalLodgedFrom = "";

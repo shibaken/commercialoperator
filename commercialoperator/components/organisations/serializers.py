@@ -19,6 +19,7 @@ from commercialoperator.components.organisations.utils import (
                                 is_last_admin,
                             )
 from commercialoperator.components.main.serializers import CommunicationLogEntrySerializer
+from commercialoperator.helpers import is_commercialoperator_admin 
 from rest_framework import serializers, status
 import rest_framework_gis.serializers as gis_serializers
 
@@ -92,6 +93,10 @@ class OrganisationSerializer(serializers.ModelSerializer):
     delegates = serializers.SerializerMethodField(read_only=True)
     organisation = LedgerOrganisationSerializer()
     trading_name = serializers.SerializerMethodField(read_only=True)
+    apply_application_discount = serializers.SerializerMethodField(read_only=True)
+    application_discount = serializers.SerializerMethodField(read_only=True)
+    apply_licence_discount = serializers.SerializerMethodField(read_only=True)
+    licence_discount = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Organisation
@@ -106,7 +111,24 @@ class OrganisationSerializer(serializers.ModelSerializer):
             'phone_number',
             'pins',
             'delegates',
+
+            'apply_application_discount',
+            'application_discount',
+            'apply_licence_discount',
+            'licence_discount',
         )
+
+    def get_apply_application_discount(self, obj):
+        return obj.apply_application_discount
+
+    def get_application_discount(self, obj):
+        return obj.application_discount
+
+    def get_apply_licence_discount(self, obj):
+        return obj.apply_licence_discount
+
+    def get_licence_discount(self, obj):
+        return obj.licence_discount
 
     def get_delegates(self, obj):
         """
@@ -114,7 +136,7 @@ class OrganisationSerializer(serializers.ModelSerializer):
         """
         delegates = []
         for user in obj.delegates.all():
-            admin_qs = obj.contacts.filter(organisation__organisation_id=obj.organisation_id, email=user.email, is_admin=True) #.values_list('is_admin',flat=True)
+            admin_qs = obj.contacts.filter(organisation__organisation_id=obj.organisation_id, email=user.email, is_admin=True, user_role='organisation_admin') #.values_list('is_admin',flat=True)
             if admin_qs.count() > 0:
                 delegates.append(dict(id=user.id, name=user.get_full_name(), email=user.email, is_admin=True))
             else:
@@ -191,7 +213,44 @@ class MyOrganisationsSerializer(serializers.ModelSerializer):
 class DetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ledger_organisation
-        fields = ('id','name', 'trading_name', 'email')
+        fields = (
+            'id',
+            'name',
+            'trading_name',
+            'email',
+            'abn',
+#            'apply_application_discount',
+#            'application_discount',
+#            'apply_licence_discount',
+#            'licence_discount',
+        )
+
+    def validate(self, data):
+        #import ipdb; ipdb.set_trace()
+        request = self.context['request']
+        #user = request.user._wrapped if hasattr(request.user,'_wrapped') else request.user
+        new_abn=data['abn']
+        obj_id=self.instance.id
+        if new_abn and obj_id and new_abn!=self.instance.abn:
+            if not is_commercialoperator_admin(request):
+                raise serializers.ValidationError('You are not authorised to change the ABN')
+            else:
+                existance = ledger_organisation.objects.filter(abn=new_abn).exclude(id=obj_id).exists()
+                if existance:
+                    raise serializers.ValidationError('An organisation with the same abn already exists')
+        return data
+
+class SaveDiscountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organisation
+        fields = (
+            'id',
+            'apply_application_discount',
+            'application_discount',
+            'apply_licence_discount',
+            'licence_discount',
+        )
+
 
 class OrganisationContactSerializer(serializers.ModelSerializer):
     user_status= serializers.SerializerMethodField()
@@ -280,9 +339,13 @@ class OrganisationRequestCommsSerializer(serializers.ModelSerializer):
         return [[d.name,d._file.url] for d in obj.documents.all()]
 
 class OrganisationCommsSerializer(serializers.ModelSerializer):
+    documents = serializers.SerializerMethodField()
     class Meta:
         model = OrganisationLogEntry
         fields = '__all__'
+
+    def get_documents(self,obj):
+        return [[d.name,d._file.url] for d in obj.documents.all()]
 
 class OrganisationRequestLogEntrySerializer(CommunicationLogEntrySerializer):
     documents = serializers.SerializerMethodField()

@@ -15,7 +15,7 @@
             :open-direction="open_direction"
             :disabled="disabled"
             open-on-focus="true"
-            :limit="limit"
+            limit="Infinity"
             >
 
             <template slot="option-label" slot-scope="{ node }">
@@ -123,6 +123,10 @@ export default {
             type: Number,
             default: Infinity
         },
+        // limit:{
+        //     type: Number,
+        //     default: 60
+        // },
 
     },
 

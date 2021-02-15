@@ -19,7 +19,7 @@ from ledger.accounts.models import EmailUser, RevisionedMixin
 from ledger.licence.models import  Licence
 from commercialoperator import exceptions
 from commercialoperator.components.organisations.models import Organisation
-from commercialoperator.components.proposals.models import Proposal, ProposalUserAction
+from commercialoperator.components.proposals.models import Proposal, ProposalUserAction, DistrictProposal
 from commercialoperator.components.main.models import CommunicationsLogEntry, UserAction, Document, ApplicationType
 from commercialoperator.components.approvals.email import (
     send_approval_expire_email_notification,
@@ -56,13 +56,22 @@ class ApprovalDocument(Document):
 
 #class Approval(models.Model):
 class Approval(RevisionedMixin):
+    APPROVAL_STATUS_CURRENT = 'current'
+    APPROVAL_STATUS_EXPIRED = 'expired'
+    APPROVAL_STATUS_CANCELLED = 'cancelled'
+    APPROVAL_STATUS_SURRENDERED = 'surrendered'
+    APPROVAL_STATUS_SUSPENDED = 'suspended'
+    APPROVAL_STATUS_EXTENDED = 'extended'
+    APPROVAL_STATUS_AWAITING_PAYMENT = 'awaiting_payment'
+
     STATUS_CHOICES = (
-        ('current','Current'),
-        ('expired','Expired'),
-        ('cancelled','Cancelled'),
-        ('surrendered','Surrendered'),
-        ('suspended','Suspended'),
-        ('extended','extended'),
+        (APPROVAL_STATUS_CURRENT ,'Current'),
+        (APPROVAL_STATUS_EXPIRED ,'Expired'),
+        (APPROVAL_STATUS_CANCELLED ,'Cancelled'),
+        (APPROVAL_STATUS_SURRENDERED ,'Surrendered'),
+        (APPROVAL_STATUS_SUSPENDED ,'Suspended'),
+        (APPROVAL_STATUS_EXTENDED ,'extended'),
+        (APPROVAL_STATUS_AWAITING_PAYMENT ,'Awaiting Payment'),
     )
     lodgement_number = models.CharField(max_length=9, blank=True, default='')
     status = models.CharField(max_length=40, choices=STATUS_CHOICES,
@@ -287,10 +296,53 @@ class Approval(RevisionedMixin):
             if proposal:
                 return False
         except Proposal.DoesNotExist:
-            if self.can_renew:
-                return True
+            if self.current_proposal.is_lawful_authority:
+                if self.current_proposal.is_lawful_authority_finalised and self.can_renew:
+                        return True
+                else:
+                        return False
             else:
-                return False
+                if self.can_renew:
+                    return True
+                else:
+                    return False
+        return False
+
+    @property
+    def is_lawful_authority(self):
+        return self.current_proposal.is_lawful_authority
+
+    @property
+    def is_lawful_authority_finalised(self):
+        return self.current_proposal.is_lawful_authority_finalised
+
+    @property
+    def is_filming_licence(self):
+        return self.current_proposal.is_filming_licence
+
+    @property
+    def can_reissue_lawful_authority(self):
+        if self.current_proposal.is_lawful_authority and self.current_proposal.is_lawful_authority_finalised:
+            return self.can_reissue
+        return False    
+        
+    
+
+    # @property
+    # def can_amend(self):
+    #     try:
+    #         amend_conditions = {
+    #                 'previous_application': self.current_proposal,
+    #                 'proposal_type': 'amendment'
+    #                 }
+    #         proposal=Proposal.objects.get(**amend_conditions)
+    #         if proposal:
+    #             return False
+    #     except Proposal.DoesNotExist:
+    #             if self.can_renew:
+    #                 return True
+    #             else:
+    #                 return False
 
 
     def generate_doc(self, user, preview=False):
@@ -564,6 +616,48 @@ def delete_documents(sender, instance, *args, **kwargs):
         except:
             pass
 
+#Filming Models
+class DistrictApproval(RevisionedMixin):
+    STATUS_CHOICES = (
+        ('current','Current'),
+        ('expired','Expired'),
+        ('cancelled','Cancelled'),
+        ('surrendered','Surrendered'),
+        ('suspended','Suspended'),
+        ('extended','extended'),
+    )
+    lodgement_number = models.CharField(max_length=9, blank=True, default='')
+    status = models.CharField(max_length=40, choices=STATUS_CHOICES,
+                                       default=STATUS_CHOICES[0][0])
+    licence_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='district_licence_document')
+    #cover_letter_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='cover_letter_document')
+    replaced_by = models.ForeignKey('self', blank=True, null=True)
+    current_district_proposal = models.ForeignKey(DistrictProposal,related_name='district_approvals', null=True)
+    renewal_document = models.ForeignKey(ApprovalDocument, blank=True, null=True, related_name='district_renewal_document')
+    renewal_sent = models.BooleanField(default=False)
+    issue_date = models.DateTimeField()
+    original_issue_date = models.DateField(auto_now_add=True)
+    start_date = models.DateField()
+    expiry_date = models.DateField()
+    surrender_details = JSONField(blank=True,null=True)
+    suspension_details = JSONField(blank=True,null=True)
+    #submitter = models.ForeignKey(EmailUser, on_delete=models.PROTECT, blank=True, null=True, related_name='commercialoperator_approvals')
+    #org_applicant = models.ForeignKey(Organisation,on_delete=models.PROTECT, blank=True, null=True, related_name='org_approvals')
+    #proxy_applicant = models.ForeignKey(EmailUser,on_delete=models.PROTECT, blank=True, null=True, related_name='proxy_approvals')
+    extracted_fields = JSONField(blank=True, null=True)
+    cancellation_details = models.TextField(blank=True)
+    extend_details = models.TextField(blank=True)
+    cancellation_date = models.DateField(blank=True, null=True)
+    set_to_cancel = models.BooleanField(default=False)
+    set_to_suspend = models.BooleanField(default=False)
+    set_to_surrender = models.BooleanField(default=False)
+    renewal_count = models.PositiveSmallIntegerField('Number of times an Approval has been renewed', default=0)
+    migrated=models.BooleanField(default=False)
+
+    class Meta:
+        app_label = 'commercialoperator'
+        unique_together= ('lodgement_number', 'issue_date')
+
 #import reversion
 #reversion.register(Approval, follow=['documents', 'approval_set', 'action_logs'])
 #reversion.register(ApprovalDocument)
@@ -577,4 +671,6 @@ reversion.register(ApprovalDocument, follow=['licence_document', 'cover_letter_d
 reversion.register(ApprovalLogEntry, follow=['documents'])
 reversion.register(ApprovalLogDocument)
 reversion.register(ApprovalUserAction)
+reversion.register(DistrictApproval)
+
 

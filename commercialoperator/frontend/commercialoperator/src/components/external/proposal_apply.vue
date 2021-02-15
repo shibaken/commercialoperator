@@ -192,8 +192,12 @@
                         </div>
                     </div>
 
+                    <div class="col-sm-12" v-show="has_active_proposals()">
+                        <p style="color:red;"> An active application already exists in the system: </p>
+                        <p style="color:red;"> {{ active_proposals() }}</p>
+                    </div>
                     <div class="col-sm-12">
-                        <button v-if="!creatingProposal" :disabled="isDisabled()" @click.prevent="submit()" class="btn btn-primary pull-right">Continue</button>
+                        <button v-if="!creatingProposal" :disabled="isDisabled() || has_active_proposals()" @click.prevent="submit()" class="btn btn-primary pull-right">Continue</button>
                         <button v-else disabled class="pull-right btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Creating</button>
                     </div>
                   </div>
@@ -292,10 +296,32 @@ export default {
     },
     category_help_url: function() {
       return this.site_url + "help/commercialoperator/user/#apply_category"
-    }
+    },
+    application_type_tclass: function(){
+        return api_endpoints.t_class;
+    },
+    application_type_filming: function(){
+        return api_endpoints.filming;
+    },
+    application_type_event: function(){
+        return api_endpoints.event;
+    },
 
   },
   methods: {
+    has_active_proposals: function() {
+        return this.active_proposals().length > 0;
+    },
+    active_proposals: function() {
+        // returns active 'T Class' proposals - cannot have more than 1 active 'T Class' application at a time
+        let vm = this;
+        var proposals = [];
+        var org = vm.profile.commercialoperator_organisations.find(el => el.name === vm.org)
+        if (org && vm.selected_application_name == vm.application_type_tclass) {
+            proposals = org.active_proposals.find(el => el.application_type === vm.application_type_tclass).proposals
+        }
+        return proposals;
+    },
     submit: function() {
         let vm = this;
 		console.log(vm.org_applicant)
@@ -306,18 +332,23 @@ export default {
             showCancelButton: true,
             confirmButtonText: 'Accept'
         }).then(() => {
-         	vm.createProposal();
+            if (!vm.has_active_proposals()) {
+         	    vm.createProposal();
+            }
         },(error) => {
         });
     },
     alertText: function() {
         let vm = this;
-		if (vm.selected_application_name == 'T Class') {
-        	return "a T Class";
-		} else if (vm.selected_application_name == 'Filming') {
-        	return "a Filming";
-		} else if (vm.selected_application_name == 'Event') {
-        	return "an Event";
+		if (vm.selected_application_name == vm.application_type_tclass) {
+        	//return "a T Class";
+            return "a "+vm.application_type_tclass;
+		} else if (vm.selected_application_name == vm.application_type_filming) {
+        	//return "a Filming";
+            return "a "+vm.application_type_filming;
+		} else if (vm.selected_application_name == vm.application_type_event) {
+        	//return "an Event";
+            return "an "+vm.application_type_event;
 		}
 	},
     createProposal:function () {

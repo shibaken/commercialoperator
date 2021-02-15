@@ -26,4 +26,10 @@ class Command(BaseCommand):
             # some invoices failed
             logger.info('Command {} failed. Invoice failed to generate for booking IDs {}'.format(__name__, failed_bookings))
             send_monthly_invoices_failed_tclass(failed_bookings)
-        logger.info('Command {} completed'.format(__name__))
+
+        cmd_name = __name__.split('.')[-1].replace('_', ' ').upper()
+        err_str = '<strong style="color: red;">Errors: {}</strong>'.format(len(failed_bookings)) if len(failed_bookings)>0 else '<strong style="color: green;">Errors: 0</strong>'
+        msg = '<p>{} completed. {}.</p>'.format(cmd_name, err_str)
+        logger.info(msg)
+        print(msg) # will redirect to cron_tasks.log file, by the parent script
+

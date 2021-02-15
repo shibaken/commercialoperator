@@ -60,7 +60,7 @@ class DepartmentUserList(views.APIView):
 class GetProfile(views.APIView):
     renderer_classes = [JSONRenderer,]
     def get(self, request, format=None):
-        serializer  = UserSerializer(request.user)
+        serializer  = UserSerializer(request.user, context={'request':request})
         return Response(serializer.data)
 
 from rest_framework import filters
@@ -250,8 +250,11 @@ class UserViewSet(viewsets.ModelViewSet):
         try:
             with transaction.atomic():
                 instance = self.get_object()
+                mutable=request.data._mutable
+                request.data._mutable=True
                 request.data['emailuser'] = u'{}'.format(instance.id)
                 request.data['staff'] = u'{}'.format(request.user.id)
+                request.data._mutable=mutable
                 serializer = EmailUserLogEntrySerializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
                 comms = serializer.save()

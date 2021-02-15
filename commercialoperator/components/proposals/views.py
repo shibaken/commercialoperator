@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import View, TemplateView
 from django.db.models import Q
 from commercialoperator.components.proposals.utils import create_data_from_form
-from commercialoperator.components.proposals.models import Proposal, Referral, ProposalType, HelpPage
+from commercialoperator.components.proposals.models import Proposal, Referral, ProposalType, HelpPage, DistrictProposal
 from commercialoperator.components.approvals.models import Approval
 from commercialoperator.components.compliances.models import Compliance
 import json,traceback
@@ -110,6 +110,20 @@ class PreviewLicencePDFView(View):
 
     def get_object(self):
         return get_object_or_404(Proposal, id=self.kwargs['proposal_pk'])
+
+class PreviewDistrictLicencePDFView(View):
+    def post(self, request, *args, **kwargs):
+        response = HttpResponse(content_type='application/pdf')
+
+        district_proposal = self.get_object()
+        details = json.loads(request.POST.get('formData'))
+
+        response.write(district_proposal.preview_approval(request, details))
+        return response
+
+    def get_object(self):
+        return get_object_or_404(DistrictProposal, id=self.kwargs['district_proposal_pk'])
+
 
 
 from commercialoperator.components.proposals.utils import test_proposal_emails

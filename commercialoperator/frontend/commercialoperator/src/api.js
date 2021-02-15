@@ -1,4 +1,7 @@
 var site_url = location.origin
+var t_class='Commercial operations'
+var filming='Filming'
+var event='Event'
 
 module.exports = {
     organisations: '/api/organisations.json',
@@ -33,9 +36,22 @@ module.exports = {
     application_types:"/api/application_types.json",
     access_types:"/api/access_types.json",
     parks:"/api/parks.json",
+    trails:"/api/trails.json",
+    districts:"/api/districts.json",
     vehicles:"/api/vehicles.json",
     vessels:"/api/vessels.json",
     assessments:"/api/assessments.json",
+    event_trail_container:"/api/event_trail_container",
+    
+    //filming
+    proposal_filming_parks:"/api/proposal_filming_parks.json",
+    district_proposals:"/api/district_proposals.json",
+
+    //Events
+    proposal_events_parks:"/api/proposal_events_parks.json",
+    abseiling_climbing_activities:"/api/abseiling_climbing_activities.json",
+    proposal_pre_event_parks:"/api/proposal_pre_event_parks.json",
+    proposal_events_trails:"/api/proposal_events_trails.json",
 
     // used in internal and external dashboards
     proposals_paginated_external:   "/api/proposal_paginated/proposals_external/?format=datatables",
@@ -46,12 +62,15 @@ module.exports = {
     qaofficer_paginated_internal:   "/api/proposal_paginated/qaofficer_internal/?format=datatables",
     booking_paginated_internal:     "/api/booking_paginated/bookings_external/?format=datatables",
     parkbooking_paginated_internal: "/api/parkbooking_paginated/park_bookings/?format=datatables",
+    district_proposals_paginated_internal:   "/api/district_proposal_paginated/district_proposals_internal/?format=datatables",
+
     //filter_list:                    "/api/proposal_paginated/filter_list.json",
     filter_list:                    "/api/proposal/filter_list.json",
     filter_list_approvals:          "/api/approvals/filter_list.json",
     filter_list_compliances:        "/api/compliances/filter_list.json",
     filter_list_referrals:          "/api/referrals/filter_list.json",
     filter_list_parks:              "/api/parks/filter_list.json",
+    filter_list_district_proposals:  "/api/district_proposals/filter_list.json",
 
     //approvals_paginated:"/api/approvals/user_list_paginated/?format=datatables",
     //compliances_paginated:"/api/compliances/user_list_paginated/?format=datatables",
@@ -67,6 +86,21 @@ module.exports = {
     discard_vehicle:function (id) {
       return `/api/vehicles/${id}.json`;
     },
+    discard_abseiling_climbing:function (id) {
+      return `/api/abseiling_climbing_activities/${id}.json`;
+    },
+    discard_pre_event_park:function (id) {
+      return `/api/proposal_pre_event_parks/${id}.json`;
+    },
+    discard_event_park:function (id) {
+      return `/api/proposal_events_parks/${id}.json`;
+    },
+    discard_event_trail:function (id) {
+      return `/api/proposal_events_trails/${id}.json`;
+    },
+    discard_filming_park:function (id) {
+      return `/api/proposal_filming_parks/${id}.json`;
+    },
     site_url: site_url,
     //dep_name: 'Department of Biodiversity, Conservation and Attractions',
     //dep_name_short: 'DBCA',
@@ -74,5 +108,7 @@ module.exports = {
     //system_name_short: 'DAS',
     payment_help_url: 'https://parks.dpaw.wa.gov.au/for-business/training-accreditation-insurance-fees',
     proposal_type_help_url: ' https://parks.dbca.wa.gov.au/for-business/commercial-operations-licensing',
-
+    t_class: t_class,
+    filming: filming,
+    event: event,
 }

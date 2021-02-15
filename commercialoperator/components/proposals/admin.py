@@ -8,6 +8,7 @@ from commercialoperator.components.main.models import (
     SystemMaintenance,
     ApplicationType,
     Park,
+    OracleCode,
     #ParkPrice,
     Trail,
     ActivityType,
@@ -18,7 +19,7 @@ from commercialoperator.components.main.models import (
     Zone,
     RequiredDocument,
     Question,
-    GlobalSettings
+    GlobalSettings,
 )
 #from commercialoperator.components.main.models import Activity, SubActivityLevel1, SubActivityLevel2, SubCategory
 from reversion.admin import VersionAdmin
@@ -99,7 +100,7 @@ class ProposalApproverGroupAdmin(admin.ModelAdmin):
 
 @admin.register(models.ProposalStandardRequirement)
 class ProposalStandardRequirementAdmin(admin.ModelAdmin):
-    list_display = ['code','text','obsolete']
+    list_display = ['code','text','obsolete', 'application_type', 'participant_number_required', 'default']
 
 #@admin.register(models.HelpPage)
 class HelpPageAdmin(admin.ModelAdmin):
@@ -128,7 +129,7 @@ class HelpPageAdmin(admin.ModelAdmin):
 
 @admin.register(models.ChecklistQuestion)
 class ChecklistQuestionAdmin(admin.ModelAdmin):
-    list_display = ['text', 'list_type', 'obsolete','answer_type', 'order']
+    list_display = ['text', 'application_type','list_type', 'obsolete','answer_type', 'order']
     ordering = ('order',)
 
 @admin.register(SystemMaintenance)
@@ -143,8 +144,49 @@ class ApplicationTypeAdmin(admin.ModelAdmin):
     list_display = ['name', 'order', 'visible', 'max_renewals', 'max_renewal_period', 'application_fee']
     ordering = ('order',)
 
+    def get_form(self, request, obj=None, **kwargs):
+        self.exclude = ()
+        if obj.name == ApplicationType.EVENT:
+            self.exclude = (
+                "max_renewals", "max_renewal_period", "licence_fee_2mth", "licence_fee_1yr",
+                "filming_fee_half_day", "filming_fee_full_day", "filming_fee_2days", "filming_fee_3days",
+                "photography_fee_half_day", "photography_fee_full_day", "photography_fee_2days", "photography_fee_3days",
+            )
+        elif obj.name == ApplicationType.FILMING:
+            self.exclude = (
+                "max_renewals", "max_renewal_period", "licence_fee_2mth", "licence_fee_1yr",
+                "events_park_fee",
+            )
+        elif obj.name == ApplicationType.TCLASS:
+            self.exclude = (
+                "filming_fee_half_day", "filming_fee_full_day", "filming_fee_2days", "filming_fee_3days",
+                "photography_fee_half_day", "photography_fee_full_day", "photography_fee_2days", "photography_fee_3days",
+                "events_park_fee",
+            )
+        elif obj.name == ApplicationType.ECLASS:
+            self.exclude = (
+                "max_renewals", "max_renewal_period", "licence_fee_2mth", "licence_fee_1yr",
+                "filming_fee_half_day", "filming_fee_full_day", "filming_fee_2days", "filming_fee_3days",
+                "photography_fee_half_day", "photography_fee_full_day", "photography_fee_2days", "photography_fee_3days",
+                "events_park_fee",
+            )
+
+        form = super(ApplicationTypeAdmin, self).get_form(request, obj, **kwargs)
+        return form
+
+
+class OracleCodeInline(admin.TabularInline):
+    model = OracleCode
+    exclude = ['archive_date']
+    extra = 3
+    max_num = 3
+    can_delete = False
+
 @admin.register(Park)
 class ParkAdmin(admin.ModelAdmin):
+    inlines = [
+        OracleCodeInline,
+    ]
     list_display = ['name', 'district']
     #filter_horizontal = ('allowed_activities',)
     filter_horizontal = ('allowed_activities', 'allowed_access')
@@ -235,10 +277,59 @@ class QAOfficerGroupAdmin(admin.ModelAdmin):
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
-    list_display = ['question_text', 'answer_one', 'answer_two', 'answer_three', 'answer_four',]
+    list_display = ['question_text', 'answer_one', 'answer_two', 'answer_three', 'answer_four', 'application_type',]
     ordering = ('question_text',)
 
 @admin.register(ApplicationFeeInvoice)
 class SectionAdmin(admin.ModelAdmin):
     list_display = [f.name for f in ApplicationFeeInvoice._meta.fields]
 
+
+@admin.register(models.DistrictProposalAssessorGroup)
+class DistrictProposalAssessorGroupAdmin(admin.ModelAdmin):
+    list_display = ['name','default']
+    filter_horizontal = ('members',)
+    form = forms.DistrictProposalAssessorGroupAdminForm
+    #readonly_fields = ['default']
+    #readonly_fields = ['default', 'regions', 'activities']
+
+    def get_actions(self, request):
+        actions =  super(DistrictProposalAssessorGroupAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        if self.model.objects.count() == 1:
+            return False
+        return super(DistrictProposalAssessorGroupAdmin, self).has_delete_permission(request, obj)
+
+    # def has_add_permission(self, request):
+    #     if self.model.objects.count() > 0:
+    #         return False
+    #     return super(DistrictProposalAssessorGroupAdmin, self).has_add_permission(request)
+
+
+@admin.register(models.DistrictProposalApproverGroup)
+class DistrictProposalApproverGroupAdmin(admin.ModelAdmin):
+    list_display = ['name','default']
+    filter_horizontal = ('members',)
+    form = forms.DistrictProposalApproverGroupAdminForm
+    #readonly_fields = ['default']
+    #readonly_fields = ['default', 'regions', 'activities']
+
+    def get_actions(self, request):
+        actions =  super(DistrictProposalApproverGroupAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        if self.model.objects.count() == 1:
+            return False
+        return super(DistrictProposalApproverGroupAdmin, self).has_delete_permission(request, obj)
+
+    # def has_add_permission(self, request):
+    #     if self.model.objects.count() > 0:
+    #         return False
+    #     return super(DistrictProposalApproverGroupAdmin, self).has_add_permission(request)

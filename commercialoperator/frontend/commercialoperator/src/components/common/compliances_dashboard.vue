@@ -41,6 +41,17 @@
                             </div>
                         </div>
                         <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="">Licence Type</label>
+                                <select class="form-control" v-model="filterApplicationType">
+                                    <option value="All">All</option>
+                                    <option v-for="s in application_types" :value="s">{{s}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
                             <label for="">Due date From</label>
                             <div class="input-group date" ref="complianceDateFromPicker">
                                 <input type="text" class="form-control" placeholder="DD/MM/YYYY" v-model="filterComplianceDueFrom">
@@ -71,6 +82,7 @@
 </template>
 <script>
 import datatable from '@/utils/vue/datatable.vue'
+import Vue from 'vue'
 import {
     api_endpoints,
     helpers
@@ -95,8 +107,10 @@ export default {
         let vm = this;
         return {
             pBody: 'pBody' + vm._uid,
+            is_payment_admin: false,
             datatable_id: 'proposal-datatable-'+vm._uid,
             // Filters for Proposals
+            filterApplicationType: 'All',
             filterProposalRegion: 'All',
             filterProposalActivity: 'All',
             filterComplianceStatus: 'All',
@@ -124,14 +138,18 @@ export default {
                 {value: 'approved', name: 'Approved'},
             ],
             status: [],
+            application_types: [],
             proposal_submitters: [],
-            proposal_headers:["Number","Licence","Holder","Status","Due Date","Assigned To", "Action"],
+            proposal_headers:["Number","Licence","Licence Type", "Holder","Status","Due Date","Assigned To", "Action"],
             proposal_options:{
                 language: {
                     processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
                 },
                 responsive: true,
                 serverSide: true,
+                order: [
+                    [0, 'desc']
+                ],
                 lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
                 ajax: {
                     "url": vm.url,
@@ -162,6 +180,10 @@ export default {
                             return data;
                         },
                         name: "approval__lodgement_number"
+                    },
+                    {
+                        data: "application_type",
+                        name: "proposal__application_type__name"
                     },
                     {
                         data: "holder",
@@ -196,6 +218,11 @@ export default {
                                 else {
                                     links +=  `<a href='/internal/compliance/${full.id}'>View</a><br/>`;
                                 }
+                                if (full.fee_paid){
+                                    if(vm.is_payment_admin){
+                                        links +=  `<a href='/ledger/payments/invoice/payment?invoice=${full.fee_invoice_reference}' target='_blank'>View Payment</a><br/>`;
+                                    }
+                                }
                             }
                             else{
                                 if (full.can_user_view) {
@@ -206,6 +233,11 @@ export default {
                                     links +=  `<a href='/external/compliance/${full.id}'>Submit</a><br/>`;
                                 }
                             }
+
+                            if (full.fee_invoice_reference) {
+                                links +=  `<a href='/cols/payments/invoice-compliance-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fa fa-file-pdf-o'></i>&nbsp #${full.fee_invoice_reference}</a><br/>`;
+                            }
+
                             return links;
                         },
                         name: ''
@@ -214,6 +246,8 @@ export default {
                     {data: "customer_status", visible: false},
                     {data: "can_user_view", visible: false},
                     {data: "can_process", visible: false},
+                    {data: "fee_invoice_reference", visible: false},
+                    {data: "fee_paid", visible: false},
 
                 ],
                 processing: true,
@@ -240,9 +274,9 @@ export default {
         filterComplianceStatus: function() {
             let vm = this;
             if (vm.filterComplianceStatus!= 'All') {
-                vm.$refs.proposal_datatable.vmDataTable.columns(3).search(vm.filterComplianceStatus).draw();
+                vm.$refs.proposal_datatable.vmDataTable.columns(4).search(vm.filterComplianceStatus).draw();
             } else {
-                vm.$refs.proposal_datatable.vmDataTable.columns(3).search('').draw();
+                vm.$refs.proposal_datatable.vmDataTable.columns(4).search('').draw();
             }
         },
         filterProposalSubmitter: function(){
@@ -253,7 +287,15 @@ export default {
         },
         filterComplianceDueTo: function(){
             this.$refs.proposal_datatable.vmDataTable.draw();
-        }
+        },
+        filterApplicationType: function() {
+            let vm = this;
+            if (vm.filterApplicationType!= 'All') {
+                vm.$refs.proposal_datatable.vmDataTable.columns(2).search(vm.filterApplicationType).draw();
+            } else {
+                vm.$refs.proposal_datatable.vmDataTable.columns(2).search('').draw();
+            }
+        },
     },
     computed: {
        /* status: function(){
@@ -270,13 +312,13 @@ export default {
             let vm = this;
 
             vm.status = vm.level == 'external' ? vm.external_status: vm.internal_status;
-            /*
+            
             vm.$http.get(api_endpoints.filter_list_compliances).then((response) => {
-                vm.status = vm.level == 'external' ? vm.external_status: vm.internal_status;
+                vm.application_types= response.body.application_types;
             },(error) => {
                 console.log(error);
             })
-            */
+            
             //console.log(vm.regions);
         },
 
@@ -354,10 +396,22 @@ export default {
                     }
                 }
             );
-        }
+        },
+        fetchProfile: function(){
+            let vm = this;
+            Vue.http.get(api_endpoints.profile).then((response) => {
+                vm.profile = response.body;
+                vm.is_payment_admin=response.body.is_payment_admin;
+            },(error) => {
+                
+            })
+        },
+
+
     },
     mounted: function(){
         let vm = this;
+        this.fetchProfile();
         vm.fetchFilterLists();
         $( 'a[data-toggle="collapse"]' ).on( 'click', function () {
             var chev = $( this ).children()[ 0 ];
