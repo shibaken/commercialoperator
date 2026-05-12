@@ -2,7 +2,7 @@
 <template lang="html">
     <div id="otherInfo" class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Safety"
@@ -74,7 +74,7 @@
             </div>
         </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Other"
@@ -132,7 +132,7 @@
         </div>
 
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Payment of Fees and Charges"
@@ -226,7 +226,7 @@
             </div>
         </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Insurance"
@@ -326,7 +326,7 @@
             </div>
         </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Deed Poll"

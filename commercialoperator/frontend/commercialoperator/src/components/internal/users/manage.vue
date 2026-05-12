@@ -54,7 +54,7 @@
                             >
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <div class="panel panel-default">
+                                        <div class="card">
                                             <FormSection
                                                 :form-collapse="false"
                                                 label="Personal Details"
@@ -138,7 +138,7 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <div class="panel panel-default">
+                                        <div class="card">
                                             <FormSection
                                                 :form-collapse="false"
                                                 label="Address Details"
@@ -303,7 +303,7 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <div class="panel panel-default">
+                                        <div class="card">
                                             <FormSection
                                                 :form-collapse="false"
                                                 label="Contact Details"
@@ -408,7 +408,7 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <div class="panel panel-default">
+                                        <div class="card">
                                             <FormSection
                                                 :form-collapse="false"
                                                 label="Organisations"

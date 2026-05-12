@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="accessInfo" class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Access Requirements"

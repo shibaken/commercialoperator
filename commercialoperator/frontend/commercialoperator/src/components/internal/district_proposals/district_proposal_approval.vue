@@ -32,7 +32,7 @@
 
         <div class="col-md-12">
             <div class="row">
-                <div class="panel panel-default">
+                <div class="card">
                     <FormSection
                         :form-collapse="false"
                         :label="!isFinalised ? 'Proposed Decision' : 'Decision'"

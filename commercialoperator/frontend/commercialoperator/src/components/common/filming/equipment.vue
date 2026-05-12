@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="equipmentInfo" class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Vehicles, Vessels, RPA and other Equipment"

@@ -1,7 +1,7 @@
 <template id="district_proposal_dashboard">
     <div class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <div class="row mb-1">
                     <div class="col-md-3">
                         <div

@@ -40,7 +40,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="panel panel-default">
+                <div class="card">
                     <FormSection
                         :form-collapse="false"
                         label="Park Entry Fees (per Park)"

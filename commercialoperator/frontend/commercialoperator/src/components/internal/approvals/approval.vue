@@ -54,7 +54,7 @@
             <div class="col-md-1"></div>
             <div class="col-md-8">
                 <div class="">
-                    <div class="panel panel-default">
+                    <div class="card">
                         <FormSection
                             :form-collapse="false"
                             label="Holder"
@@ -129,7 +129,7 @@
                 </div>
 
                 <div class="row">
-                    <div class="panel panel-default">
+                    <div class="card">
                         <FormSection
                             :form-collapse="false"
                             label="Address Details"
@@ -239,7 +239,7 @@
                 </div>
 
                 <div class="row">
-                    <div class="panel panel-default">
+                    <div class="card">
                         <FormSection
                             :form-collapse="false"
                             label="Licence Details"

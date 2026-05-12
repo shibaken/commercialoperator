@@ -2,7 +2,7 @@
     <div id="internalSearch" class="container">
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
+                <div class="card">
                     <FormSection
                         :form-collapse="false"
                         label="Search Organisation"
@@ -42,7 +42,7 @@
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
+                <div class="card">
                     <FormSection
                         :form-collapse="false"
                         label="Search User"
@@ -90,7 +90,7 @@
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
+                <div class="card">
                     <FormSection
                         :form-collapse="false"
                         label="Filter"
@@ -260,7 +260,7 @@
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
+                <div class="card">
                     <FormSection
                         :form-collapse="false"
                         label="Reference"

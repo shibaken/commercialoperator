@@ -10,7 +10,7 @@
             <div v-if="!isFinalised">
                 <div v-if="hasAmendmentRequest" class="row" style="color: red">
                     <div class="col-lg-12 pull-right">
-                        <div class="panel panel-default">
+                        <div class="card">
                             <FormSection
                                 :form-collapse="false"
                                 label="An amendment has been requested for this Compliance with Requirements"
@@ -39,7 +39,7 @@
 
             <div class="col-md-12">
                 <div class="row">
-                    <div class="panel panel-default">
+                    <div class="card">
                         <FormSection
                             :form-collapse="false"
                             label="Compliance with Requirements"

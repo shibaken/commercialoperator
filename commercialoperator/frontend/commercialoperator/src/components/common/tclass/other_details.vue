@@ -2,7 +2,7 @@
 <template lang="html">
     <div id="userInfo" class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Tourism Accreditation"
@@ -72,7 +72,7 @@
             </div>
         </div>
         <div class="col-sm-12">
-        <div class="panel panel-default">
+        <div class="card">
             <FormSection
                 :form-collapse="false"
                 label="Tourism accessibility and emissions reduction standards"
@@ -129,7 +129,7 @@
         </div>
     </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Licence Term"
@@ -238,7 +238,7 @@
             </div>
         </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Moorings"
@@ -311,7 +311,7 @@
             </div>
         </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Insurance"
@@ -406,7 +406,7 @@
             </div>
         </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Other"
@@ -462,7 +462,7 @@
             </div>
         </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Park Entry and Camping Fees"
@@ -600,7 +600,7 @@
             </div>
         </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Deed Poll"

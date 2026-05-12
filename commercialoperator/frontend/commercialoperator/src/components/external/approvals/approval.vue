@@ -5,7 +5,7 @@
 
             <div class="col-sm-12">
                 <div class="row">
-                    <div class="panel panel-default">
+                    <div class="card">
                         <FormSection
                             :form-collapse="false"
                             label="Holder"
@@ -76,7 +76,7 @@
                 </div>
 
                 <div class="row">
-                    <div class="panel panel-default">
+                    <div class="card">
                         <FormSection
                             :form-collapse="false"
                             label="Address Details"
@@ -176,7 +176,7 @@
                 </div>
 
                 <div class="row">
-                    <div class="panel panel-default">
+                    <div class="card">
                         <FormSection
                             :form-collapse="false"
                             label="Licence Details"

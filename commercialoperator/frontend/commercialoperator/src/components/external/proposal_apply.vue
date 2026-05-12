@@ -7,7 +7,7 @@
                     name="personal_form"
                     method="post"
                 >
-                    <div class="panel panel-default">
+                    <div class="card">
                         <FormSection
                             :form-collapse="false"
                             label="Applicant"
@@ -79,7 +79,7 @@
 
                     <div
                         v-show="org_applicant != '' || yourself != ''"
-                        class="panel panel-default"
+                        class="card"
                     >
                         <FormSection
                             :form-collapse="false"

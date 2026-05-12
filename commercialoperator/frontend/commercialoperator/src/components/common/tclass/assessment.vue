@@ -3,7 +3,7 @@
         <div class="">
             <div class="col-md-12">
                 <div class="">
-                    <div class="panel panel-default">
+                    <div class="card">
                         <FormSection
                             v-if="assessment"
                             :form-collapse="false"

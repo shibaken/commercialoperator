@@ -9,7 +9,7 @@
             <div v-if="!proposal_readonly">
                 <div v-if="hasAmendmentRequest" class="row" style="color: red">
                     <div class="col-lg-12 pull-right">
-                        <div class="panel panel-default">
+                        <div class="card">
                             <FormSection
                                 :form-collapse="false"
                                 label="An amendment has been requested for this Application"

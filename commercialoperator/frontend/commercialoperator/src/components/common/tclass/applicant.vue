@@ -4,7 +4,7 @@
         <div class="col-sm-12">
             <div class="col-md-12">
                 <div class="row">
-                    <div class="panel panel-default">
+                    <div class="card">
                         <FormSection
                             v-if="applicantType == 'ORG'"
                             :form-collapse="false"
@@ -131,7 +131,7 @@
             </div>
             <div class="col-md-12">
                 <div class="row">
-                    <div class="panel panel-default">
+                    <div class="card">
                         <FormSection
                             v-if="
                                 applicantType == 'ORG' &&
@@ -362,7 +362,7 @@
             </div>
             <div class="col-md-12">
                 <div class="row">
-                    <div class="panel panel-default">
+                    <div class="card">
                         <FormSection
                             v-if="applicantType == 'ORG'"
                             :form-collapse="false"
