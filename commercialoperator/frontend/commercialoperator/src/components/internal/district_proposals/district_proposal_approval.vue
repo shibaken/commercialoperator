@@ -32,7 +32,6 @@
 
         <div class="col-md-12">
             <div class="row">
-                <div class="card">
                     <FormSection
                         :form-collapse="false"
                         :label="!isFinalised ? 'Proposed Decision' : 'Decision'"
@@ -127,7 +126,6 @@
                             </div>
                         </div>
                     </FormSection>
-                </div>
             </div>
         </div>
     </div>

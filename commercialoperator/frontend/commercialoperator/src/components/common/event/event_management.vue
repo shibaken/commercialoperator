@@ -1,7 +1,6 @@
 <template lang="html">
     <div id="eventManagementInfo" class="row">
         <div class="col-sm-12">
-            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Event Management"
@@ -812,7 +811,6 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
     </div>
 </template>

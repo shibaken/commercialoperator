@@ -1,7 +1,6 @@
 <template lang="html">
     <div id="approvalType" class="row">
         <div class="col-sm-12">
-            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Approval Type"
@@ -141,7 +140,6 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
     </div>
 </template>

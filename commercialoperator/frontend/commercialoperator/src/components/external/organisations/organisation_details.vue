@@ -3,7 +3,6 @@
         <div class="col-sm-12">
             <div class="row">
                 <div class="col-sm-12">
-                    <div class="card">
                         <FormSection
                             :form-collapse="false"
                             label="Organisation Details"
@@ -94,12 +93,10 @@
                                 </div>
                             </form>
                         </FormSection>
-                    </div>
                 </div>
             </div>
             <div class="row">
                 <div class="col-sm-12">
-                    <div class="card">
                         <FormSection
                             :form-collapse="false"
                             label="Address Details"
@@ -223,7 +220,6 @@
                                 </div>
                             </form>
                         </FormSection>
-                    </div>
                 </div>
             </div>
         </div>

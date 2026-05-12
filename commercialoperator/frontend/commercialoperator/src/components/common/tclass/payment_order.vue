@@ -2,7 +2,6 @@
     <div class="container">
         <div class="col-sm-12">
             <div class="row">
-                <div class="card">
                     <FormSection
                         :form-collapse="false"
                         label="Park Entry Fees"
@@ -138,7 +137,6 @@
                             </div>
                         </form>
                     </FormSection>
-                </div>
             </div>
         </div>
     </div>

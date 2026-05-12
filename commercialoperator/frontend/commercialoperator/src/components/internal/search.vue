@@ -2,7 +2,6 @@
     <div id="internalSearch" class="container">
         <div class="row">
             <div class="col-sm-12">
-                <div class="card">
                     <FormSection
                         :form-collapse="false"
                         label="Search Organisation"
@@ -37,12 +36,10 @@
                             </form>
                         </div>
                     </FormSection>
-                </div>
             </div>
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="card">
                     <FormSection
                         :form-collapse="false"
                         label="Search User"
@@ -85,12 +82,10 @@
                             </form>
                         </div>
                     </FormSection>
-                </div>
             </div>
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="card">
                     <FormSection
                         :form-collapse="false"
                         label="Filter"
@@ -252,12 +247,10 @@
                             </div>
                         </div>
                     </FormSection>
-                </div>
             </div>
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="card">
                     <FormSection
                         :form-collapse="false"
                         label="Reference"
@@ -293,7 +286,6 @@
                             >
                         </div>
                     </FormSection>
-                </div>
             </div>
         </div>
     </div>

@@ -2,7 +2,6 @@
 <template lang="html">
     <div class="row">
         <div class="col-sm-12">
-            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Activities and Location"
@@ -133,7 +132,6 @@
                         "
                     ></editMarineParkActivities>
                 </div>
-            </div>
         </div>
     </div>
 </template>

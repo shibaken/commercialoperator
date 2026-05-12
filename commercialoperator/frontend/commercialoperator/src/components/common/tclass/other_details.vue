@@ -2,7 +2,6 @@
 <template lang="html">
     <div id="userInfo" class="row">
         <div class="col-sm-12">
-            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Tourism Accreditation"
@@ -69,10 +68,8 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
         <div class="col-sm-12">
-        <div class="card">
             <FormSection
                 :form-collapse="false"
                 label="Tourism accessibility and emissions reduction standards"
@@ -126,10 +123,8 @@
                     </div>
                 </div>
           </FormSection>           
-        </div>
     </div>
         <div class="col-sm-12">
-            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Licence Term"
@@ -233,10 +228,8 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
         <div class="col-sm-12">
-            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Moorings"
@@ -306,10 +299,8 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
         <div class="col-sm-12">
-            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Insurance"
@@ -399,10 +390,8 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
         <div class="col-sm-12">
-            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Other"
@@ -455,10 +444,8 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
         <div class="col-sm-12">
-            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Park Entry and Camping Fees"
@@ -593,10 +580,8 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
         <div class="col-sm-12">
-            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Deed Poll"
@@ -656,7 +641,6 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
     </div>
 </template>

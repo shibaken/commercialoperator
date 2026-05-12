@@ -54,7 +54,6 @@
             <div class="col-md-1"></div>
             <div class="col-md-8">
                 <div class="">
-                    <div class="card">
                         <FormSection
                             :form-collapse="false"
                             label="Holder"
@@ -125,11 +124,9 @@
                                 </div>
                             </div>
                         </FormSection>
-                    </div>
                 </div>
 
                 <div class="row">
-                    <div class="card">
                         <FormSection
                             :form-collapse="false"
                             label="Address Details"
@@ -235,11 +232,9 @@
                                 </div>
                             </form>
                         </FormSection>
-                    </div>
                 </div>
 
                 <div class="row">
-                    <div class="card">
                         <FormSection
                             :form-collapse="false"
                             label="Licence Details"
@@ -366,7 +361,6 @@
                                 </div>
                             </form>
                         </FormSection>
-                    </div>
                 </div>
             </div>
         </div>

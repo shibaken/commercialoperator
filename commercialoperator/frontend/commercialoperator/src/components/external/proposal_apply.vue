@@ -7,8 +7,7 @@
                     name="personal_form"
                     method="post"
                 >
-                    <div class="card">
-                        <FormSection
+                    <FormSection
                             :form-collapse="false"
                             label="Applicant"
                             index="license_applicant"
@@ -75,13 +74,9 @@
                                 </div>
                             </div>
                         </FormSection>
-                    </div>
 
-                    <div
-                        v-show="org_applicant != '' || yourself != ''"
-                        class="card"
-                    >
-                        <FormSection
+                    <FormSection
+                            v-show="org_applicant != '' || yourself != ''"
                             :form-collapse="false"
                             label="Apply for"
                             index="license_apply_for"
@@ -476,7 +471,6 @@
                                 </div>
                             </div>
                         </FormSection>
-                    </div>
 
                     <div v-show="has_active_proposals()" class="col-sm-12">
                         <p style="color: red">

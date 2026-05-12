@@ -1,7 +1,6 @@
 <template id="proposal_requirements">
     <div class="col-md-12">
         <div class="row">
-            <div class="card">
                 <FormSection
                     :form-collapse="false"
                     label="Requirements"
@@ -59,7 +58,6 @@
                         />
                     </form>
                 </FormSection>
-            </div>
         </div>
         <RequirementDetail
             ref="requirement_detail"
