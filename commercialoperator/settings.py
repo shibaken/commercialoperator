@@ -515,7 +515,7 @@ DJANGO_VITE = {
         BASE_DIR, "commercialoperator", "static", "commercialoperator_vue", "manifest.json"
     ),
     "dev_server_host": "localhost", # Default host for vite (can change if needed)
-    "dev_server_port": 5173, # Default port for vite (can change if needed)
+    "dev_server_port": env("DJANGO_VITE_DEV_SERVER_PORT", 5173), # Default port for vite (can change if needed)
     "static_url_prefix": STATIC_URL_PREFIX,
   }
 }
