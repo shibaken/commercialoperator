@@ -303,7 +303,7 @@
                         v-if="updatingRequirement"
                         type="button"
                         disabled
-                        class="btn btn-secondary"
+                        class="btn btn-primary"
                         @click="ok"
                     >
                         <i class="fas fa-spinnner fa-spin"></i> Updating
@@ -311,7 +311,7 @@
                     <button
                         v-else
                         type="button"
-                        class="btn btn-secondary"
+                        class="btn btn-primary"
                         @click="ok"
                     >
                         Update
