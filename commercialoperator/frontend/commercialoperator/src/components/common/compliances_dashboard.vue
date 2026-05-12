@@ -345,7 +345,7 @@ export default {
                             }
 
                             if (full.fee_invoice_reference) {
-                                links += `<a href='/cols/payments/invoice-compliance-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fa fa-file-pdf'>&nbsp</i>#${full.fee_invoice_reference}</a><br/>`;
+                                links += `<a href='/cols/payments/invoice-compliance-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fas fa-file-pdf'>&nbsp</i>#${full.fee_invoice_reference}</a><br/>`;
                             }
 
                             return links;

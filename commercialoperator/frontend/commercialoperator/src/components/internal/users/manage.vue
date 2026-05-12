@@ -290,7 +290,7 @@
                                                                 class="btn btn-primary float-end"
                                                             >
                                                                 <i
-                                                                    class="fa fa-spin fa-spinner"
+                                                                    class="fas fa-spin fa-spinner"
                                                                 ></i
                                                                 >&nbsp;Updating
                                                             </button>
@@ -395,7 +395,7 @@
                                                                 class="btn btn-primary float-end"
                                                             >
                                                                 <i
-                                                                    class="fa fa-spin fa-spinner"
+                                                                    class="fas fa-spin fa-spinner"
                                                                 ></i
                                                                 >&nbsp;Updating
                                                             </button>
@@ -468,7 +468,7 @@
                                                                     )
                                                                 "
                                                                 ><i
-                                                                    class="fa fa-chain-broken fa-2x"
+                                                                    class="fas fa-link-slash fa-2x"
                                                                 ></i
                                                                 >&nbsp;Unlink</a
                                                             >

@@ -180,7 +180,7 @@
                                                         access.identification
                                                     "
                                                     ><i
-                                                        class="fa fa-file-pdf"
+                                                        class="fas fa-file-pdf"
                                                     ></i
                                                     >&nbsp;Letter</a
                                                 >

@@ -354,7 +354,7 @@ export default {
                                 var message = '';
                                 let icon = '';
                                 icon =
-                                    "<i class='fa fa-exclamation-triangle' style='color:red'></i>";
+                                    "<i class='fas fa-exclamation-triangle' style='color:red'></i>";
                                 result = full.reserved_licence
                                     ? '<span>' +
                                       full.lodgement_number +
@@ -457,10 +457,10 @@ export default {
                             var result = '';
                             var popTemplate = '';
                             if (!full.migrated) {
-                                result = `<a href="${data}" target="_blank"><i style="color:red" class="fa fa-file-pdf"></i></a>`;
+                                result = `<a href="${data}" target="_blank"><i style="color:red" class="fas fa-file-pdf"></i></a>`;
                             } else if (full.migrated) {
                                 var icon =
-                                    "<i class='fa fa-file-pdf' style='color:red'></i>";
+                                    "<i class='fas fa-file-pdf' style='color:red'></i>";
                                 var message = 'This is a migrated licence';
 
                                 const title = `License ${full.lodgement_number}`;

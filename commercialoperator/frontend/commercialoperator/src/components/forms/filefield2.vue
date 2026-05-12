@@ -25,7 +25,7 @@
                                     }}</a>
                                     &nbsp;
                                     <a
-                                        class="fa fa-trash"
+                                        class="fas fa-trash"
                                         title="Remove file"
                                         :filename="v.name"
                                         style="cursor: pointer; color: red"
@@ -74,7 +74,7 @@
                                 <p>
                                     File:{{ v.name }} &nbsp;
                                     <a
-                                        class="fa fa-trash"
+                                        class="fas fa-trash"
                                         title="Remove file"
                                         :filename="v.name"
                                         style="cursor: pointer; color: red"
@@ -88,7 +88,7 @@
             </div>
 
             <span v-if="show_spinner"
-                ><i class="fa fa-2x fa-spinner fa-spin"></i
+                ><i class="fas fa-2x fa-spinner fa-spin"></i
             ></span>
         </div>
     </div>

@@ -222,7 +222,7 @@
                                                 >
                                                     Enter Requirements&nbsp;
                                                     <i
-                                                        class="fa fa-circle-o-notch fa-spin fa-fw"
+                                                        class="fas fa-circle-notch fa-spin fa-fw"
                                                     ></i>
                                                 </button>
                                                 <button
@@ -282,7 +282,7 @@
                                                 >
                                                     Back To Processing&nbsp;
                                                     <i
-                                                        class="fa fa-circle-o-notch fa-spin fa-fw"
+                                                        class="fas fa-circle-notch fa-spin fa-fw"
                                                     ></i>
                                                 </button>
                                                 <button

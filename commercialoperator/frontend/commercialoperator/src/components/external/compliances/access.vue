@@ -138,7 +138,7 @@
                                                             "
                                                         >
                                                             <a
-                                                                class="fa fa-trash control-label"
+                                                                class="fas fa-trash control-label"
                                                                 title="Remove file"
                                                                 style="
                                                                     cursor: pointer;
@@ -153,7 +153,7 @@
                                                         </span>
                                                         <span v-else>
                                                             <i
-                                                                class="fa fa-info-circle"
+                                                                class="fas fa-circle-info"
                                                                 aria-hidden="true"
                                                                 title="Previously submitted documents cannot be deleted"
                                                                 style="
@@ -278,7 +278,7 @@
                                                             attachAnother
                                                         "
                                                         ><i
-                                                            class="fa fa-lg fa-plus top-buffer-2x"
+                                                            class="fas fa-lg fa-plus top-buffer-2x"
                                                         ></i
                                                     ></a>
                                                 </div>

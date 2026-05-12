@@ -166,7 +166,7 @@
                                                 >
                                                     <label style="color: green"
                                                         ><i
-                                                            class="fa fa-check"
+                                                            class="fas fa-check"
                                                         ></i
                                                         >Correct</label
                                                     >
@@ -186,7 +186,7 @@
                                                 >
                                                     <label style="color: red"
                                                         ><i
-                                                            class="fa fa-times"
+                                                            class="fas fa-xmark"
                                                         ></i
                                                         >Incorrect</label
                                                     >

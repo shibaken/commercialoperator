@@ -17,7 +17,7 @@
                             <template #header-extra>
                                 <span
                                     >&nbsp;<i
-                                        class="fa fa-question-circle"
+                                        class="fas fa-circle-question"
                                         data-bs-toggle="tooltip"
                                         data-placement="bottom"
                                         style="color: blue"
@@ -96,7 +96,7 @@
                                         :href="proposal_type_help_url"
                                         target="_blank"
                                         ><i
-                                            class="fa fa-question-circle"
+                                            class="fas fa-circle-question"
                                             style="color: blue"
                                             >&nbsp;</i
                                         ></a
@@ -186,7 +186,7 @@
                                     >Region *
                                     <a :href="region_help_url" target="_blank"
                                         ><i
-                                            class="fa fa-question-circle"
+                                            class="fas fa-circle-question"
                                             style="color: blue"
                                             >&nbsp;</i
                                         ></a
@@ -236,7 +236,7 @@
                                     >District
                                     <a :href="district_help_url" target="_blank"
                                         ><i
-                                            class="fa fa-question-circle"
+                                            class="fas fa-circle-question"
                                             style="color: blue"
                                             >&nbsp;</i
                                         ></a
@@ -279,7 +279,7 @@
                                             :href="activity_type_help_url"
                                             target="_blank"
                                             ><i
-                                                class="fa fa-question-circle"
+                                                class="fas fa-circle-question"
                                                 style="color: blue"
                                                 >&nbsp;</i
                                             ></a
@@ -330,7 +330,7 @@
                                             :href="sub_activity_1_help_url"
                                             target="_blank"
                                             ><i
-                                                class="fa fa-question-circle"
+                                                class="fas fa-circle-question"
                                                 style="color: blue"
                                                 >&nbsp;</i
                                             ></a
@@ -381,7 +381,7 @@
                                             :href="sub_activity_2_help_url"
                                             target="_blank"
                                             ><i
-                                                class="fa fa-question-circle"
+                                                class="fas fa-circle-question"
                                                 style="color: blue"
                                                 >&nbsp;</i
                                             ></a
@@ -432,7 +432,7 @@
                                             :href="category_help_url"
                                             target="_blank"
                                             ><i
-                                                class="fa fa-question-circle"
+                                                class="fas fa-circle-question"
                                                 style="color: blue"
                                                 >&nbsp;</i
                                             ></a
@@ -501,7 +501,7 @@
                             disabled
                             class="pull-right btn btn-primary"
                         >
-                            <i class="fa fa-spin fa-spinner"></i>&nbsp;Creating
+                            <i class="fas fa-spin fa-spinner"></i>&nbsp;Creating
                         </button>
                     </div>
                 </form>

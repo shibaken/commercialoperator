@@ -155,7 +155,7 @@
                     class="btn btn-secondary"
                     @click="ok"
                 >
-                    <i class="fa fa-spinner fa-spin"></i> Processing
+                    <i class="fas fa-spinner fa-spin"></i> Processing
                 </button>
                 <button
                     v-else

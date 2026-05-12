@@ -217,10 +217,10 @@ export default {
                             let tick = '';
                             if (full.can_be_processed) {
                                 tick =
-                                    "&nbsp;<i class='fa fa-exclamation-circle' style='color:#FFBF00'></i>";
+                                    "&nbsp;<i class='fas fa-exclamation-circle' style='color:#FFBF00'></i>";
                             } else {
                                 tick =
-                                    "&nbsp;<i class='fa fa-check-circle' style='color:green'></i>";
+                                    "&nbsp;<i class='fas fa-check-circle' style='color:green'></i>";
                             }
                             return full.proposal_lodgement_number + tick;
                         },

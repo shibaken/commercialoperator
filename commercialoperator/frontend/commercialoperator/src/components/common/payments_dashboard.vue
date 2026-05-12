@@ -32,7 +32,7 @@
                             Entry fees apply to passenger
                             <a :href="payment_help_url" target="_blank"
                                 ><i
-                                    class="fa fa-question-circle"
+                                    class="fas fa-circle-question"
                                     style="color: blue"
                                     >&nbsp;</i
                                 ></a
@@ -417,15 +417,15 @@ export default {
                                     'monthly invoicing' &&
                                     full.invoice_reference !== null)
                             ) {
-                                links += `<a href='/cols/payments/invoice-pdf/${full.invoice_reference}.pdf' target='_blank'><i style='color:red;' class='fa fa-file-pdf'></i></a>&nbsp;`;
-                                links += `<a href='/cols/payments/confirmation-pdf/${full.invoice_reference}.pdf' target='_blank'><i style='color:red;' class='fa fa-file-pdf'></i></a><br/>`;
+                                links += `<a href='/cols/payments/invoice-pdf/${full.invoice_reference}.pdf' target='_blank'><i style='color:red;' class='fas fa-file-pdf'></i></a>&nbsp;`;
+                                links += `<a href='/cols/payments/confirmation-pdf/${full.invoice_reference}.pdf' target='_blank'><i style='color:red;' class='fas fa-file-pdf'></i></a><br/>`;
                             } else if (
                                 full.payment_method.toLowerCase() ==
                                     'monthly invoicing' &&
                                 full.invoice_reference == null
                             ) {
                                 // running aggregated monthly booking - not yet invoiced
-                                links += `<a href='/cols/payments/monthly-confirmation-pdf/booking/${full.id}.pdf' target='_blank' style='padding-left: 52px;'><i style='color:red;' class='fa fa-file-pdf'></i></a><br/>`;
+                                links += `<a href='/cols/payments/monthly-confirmation-pdf/booking/${full.id}.pdf' target='_blank' style='padding-left: 52px;'><i style='color:red;' class='fas fa-file-pdf'></i></a><br/>`;
                             }
                             return links;
                         },

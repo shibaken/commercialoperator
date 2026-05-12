@@ -18,7 +18,7 @@
                                     href="https://parks.dpaw.wa.gov.au/for-business/training-accreditation-insurance-fees"
                                     target="_blank"
                                     ><i
-                                        class="fa fa-question-circle"
+                                        class="fas fa-circle-question"
                                         style="color: blue"
                                         >&nbsp;</i
                                     ></a
@@ -81,7 +81,7 @@
             >
                 <div class="" >                        
                     <div class="form-horizontal col-sm-12 borderDecoration">
-                        <label class="">Select which provider you have used to complete your assessments and provide a link to your publicly available information. Click  <a :href="tourism_standards_link" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a> for more information.</label>
+                        <label class="">Select which provider you have used to complete your assessments and provide a link to your publicly available information. Click  <a :href="tourism_standards_link" target="_blank"><i class="fas fa-circle-question" style="color:blue">&nbsp;</i></a> for more information.</label>
                         <label class="">Accessible Tourism Information Standard</label>
                         <ul class="list-inline"  >
                             <li 
@@ -222,7 +222,7 @@
                                             href="https://parks.dpaw.wa.gov.au/for-business/training-accreditation-insurance-fees"
                                             target="_blank"
                                             ><i
-                                                class="fa fa-question-circle"
+                                                class="fas fa-circle-question"
                                                 style="color: blue"
                                                 >&nbsp;</i
                                             ></a

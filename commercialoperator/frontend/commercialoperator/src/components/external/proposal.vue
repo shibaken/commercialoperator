@@ -130,7 +130,7 @@
                                     >
                                         Save and Exit&nbsp;
                                         <i
-                                            class="fa fa-circle-o-notch fa-spin fa-fw"
+                                            class="fas fa-circle-notch fa-spin fa-fw"
                                         ></i>
                                     </button>
                                     <input
@@ -151,7 +151,7 @@
                                     >
                                         Save and Continue&nbsp;
                                         <i
-                                            class="fa fa-circle-o-notch fa-spin fa-fw"
+                                            class="fas fa-circle-notch fa-spin fa-fw"
                                         ></i>
                                     </button>
                                     <input
@@ -173,7 +173,7 @@
                                     >
                                         {{ submit_text() }}&nbsp;
                                         <i
-                                            class="fa fa-circle-o-notch fa-spin fa-fw"
+                                            class="fas fa-circle-notch fa-spin fa-fw"
                                         ></i>
                                     </button>
                                     <input

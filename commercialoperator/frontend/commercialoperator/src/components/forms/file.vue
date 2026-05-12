@@ -35,16 +35,16 @@
                         "
                         href=""
                         @click.prevent="toggleComment"
-                        ><i style="color: red" class="fa fa-comment-o"
+                        ><i style="color: red" class="far fa-comment"
                             >&nbsp;</i
                         ></a
                     >
                     <a v-else href="" @click.prevent="toggleComment"
-                        ><i class="fa fa-comment-o">&nbsp;</i></a
+                        ><i class="far fa-comment">&nbsp;</i></a
                     >
                 </template>
                 <a v-else href="" @click.prevent="toggleComment"
-                    ><i class="fa fa-ban">&nbsp;</i></a
+                    ><i class="fas fa-ban">&nbsp;</i></a
                 >
             </template>
             <div v-if="files">
@@ -55,7 +55,7 @@
                         &nbsp;
                         <span v-if="!readonly && v.can_delete">
                             <a
-                                class="fa fa-trash"
+                                class="fas fa-trash"
                                 title="Remove file"
                                 :filename="v.name"
                                 style="cursor: pointer; color: red"
@@ -65,7 +65,7 @@
                         <span v-else>
                             <span v-if="!assessorMode">
                                 <i
-                                    class="fa fa-info-circle"
+                                    class="fas fa-circle-info"
                                     aria-hidden="true"
                                     title="Previously submitted documents cannot be deleted"
                                     style="cursor: pointer"
@@ -96,7 +96,7 @@
                 </div>
             </template>
             <span v-if="show_spinner"
-                ><i class="fa fa-2x fa-spinner fa-spin"></i
+                ><i class="fas fa-2x fa-spinner fa-spin"></i
             ></span>
         </div>
         <Comment

@@ -2,7 +2,7 @@
     <span v-if="help_text_url">
         <template v-if="!isForAssessor">
             <a :href="help_text_url" target="_blank"
-                ><i class="fa fa-question-circle" style="color: blue"
+                ><i class="fas fa-circle-question" style="color: blue"
                     >&nbsp;</i
                 ></a
             >
@@ -10,7 +10,7 @@
 
         <template v-else-if="assessorMode">
             <a :href="help_text_url" target="_blank"
-                ><i class="fa fa-question-circle" style="color: green"
+                ><i class="fas fa-circle-question" style="color: green"
                     >&nbsp;</i
                 ></a
             >

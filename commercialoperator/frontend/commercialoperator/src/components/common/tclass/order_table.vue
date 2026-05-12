@@ -17,7 +17,7 @@
                                     "
                                 >
                                     <i
-                                        class="fa fa-info-circle"
+                                        class="fas fa-circle-info"
                                         aria-hidden="true"
                                         title="If a tour is entering multiple parks with entry fees on the same day, only one entry fee applies per passenger. When adding additional parks to a payment, check the ‘same tour group’ box which will reduce the fee to zero dollars for passengers who have already paid an entry fee on that date. If a tour is visiting Nambung and Yanchep National parks on the same day, a per passenger fee will be charged for both parks."
                                         style="cursor: pointer;  color: blue"
@@ -171,7 +171,7 @@
                                     @click="deleteRow(row, row_idx)"
                                 >
                                     <i
-                                        class="fa fa-trash"
+                                        class="fas fa-trash"
                                         style="cursor: pointer; color: red"
                                     ></i>
                                 </a>

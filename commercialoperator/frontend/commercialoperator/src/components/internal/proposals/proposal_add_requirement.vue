@@ -306,7 +306,7 @@
                         class="btn btn-secondary"
                         @click="ok"
                     >
-                        <i class="fa fa-spinnner fa-spin"></i> Updating
+                        <i class="fas fa-spinnner fa-spin"></i> Updating
                     </button>
                     <button
                         v-else
@@ -325,7 +325,7 @@
                         class="btn btn-secondary"
                         @click="ok"
                     >
-                        <i class="fa fa-spinner fa-spin"></i> Adding
+                        <i class="fas fa-spinner fa-spin"></i> Adding
                     </button>
                     <button
                         v-else
