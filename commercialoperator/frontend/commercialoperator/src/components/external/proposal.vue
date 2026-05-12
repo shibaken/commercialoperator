@@ -9,7 +9,6 @@
             <div v-if="!proposal_readonly">
                 <div v-if="hasAmendmentRequest" class="row" style="color: red">
                     <div class="col-lg-12 pull-right">
-                        <div class="panel panel-default">
                             <FormSection
                                 :form-collapse="false"
                                 label="An amendment has been requested for this Application"
@@ -27,7 +26,6 @@
                                     </p>
                                 </div>
                             </FormSection>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -130,7 +128,7 @@
                                     >
                                         Save and Exit&nbsp;
                                         <i
-                                            class="fa fa-circle-o-notch fa-spin fa-fw"
+                                            class="fas fa-circle-notch fa-spin fa-fw"
                                         ></i>
                                     </button>
                                     <input
@@ -151,7 +149,7 @@
                                     >
                                         Save and Continue&nbsp;
                                         <i
-                                            class="fa fa-circle-o-notch fa-spin fa-fw"
+                                            class="fas fa-circle-notch fa-spin fa-fw"
                                         ></i>
                                     </button>
                                     <input
@@ -173,7 +171,7 @@
                                     >
                                         {{ submit_text() }}&nbsp;
                                         <i
-                                            class="fa fa-circle-o-notch fa-spin fa-fw"
+                                            class="fas fa-circle-notch fa-spin fa-fw"
                                         ></i>
                                     </button>
                                     <input

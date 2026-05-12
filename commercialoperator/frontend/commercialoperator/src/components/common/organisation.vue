@@ -258,13 +258,13 @@ export default {
                             if (full.user_status == 'Pending') {
                                 links += `<span class='badge bg-warning me-1 p-2'>${full.user_status}</span>`;
                             } else if (full.user_status == 'Active') {
-                                links += `<span class='badge bg-success me-1 p-2'><i class="fa fa-chain"></i> ${full.user_status}</span>`;
+                                links += `<span class='badge bg-success me-1 p-2'><i class="fas fa-link"></i> ${full.user_status}</span>`;
                             } else if (full.user_status == 'Declined') {
                                 links += `<span class='badge bg-danger me-1 p-2'>${full.user_status}</span>`;
                             } else if (full.user_status == 'Suspended') {
                                 links += `<span class='badge bg-danger me-1 p-2'>${full.user_status}</span>`;
                             } else if (full.user_status == 'Unlinked') {
-                                links += `<span class='badge bg-secondary me-1 p-2'><i class="fa fa-chain-broken"></i> ${full.user_status}</span>`;
+                                links += `<span class='badge bg-secondary me-1 p-2'><i class="fas fa-link-slash"></i> ${full.user_status}</span>`;
                             } else if (full.user_status == 'ContactForm') {
                                 links += `<span class='badge bg-info me-1 p-2'>${full.user_status}</span>`;
                             } else {
@@ -284,7 +284,7 @@ export default {
                                 } else if (full.user_status == 'Suspended') {
                                     links += `<a data-email='${full.email}' data-firstname='${full.first_name}' data-lastname='${full.last_name}' data-id='${full.id}' data-mobile='${full.mobile_number}' data-phone='${full.phone_number}' class="reinstate_contact">Reinstate</a><br/>`;
                                 } else if (full.user_status == 'Active') {
-                                    links += `<button class='btn btn-danger btn-sm btn-status unlink_contact' role='button' data-email='${full.email}' data-firstname='${full.first_name}' data-lastname='${full.last_name}' data-id='${full.id}' data-mobile='${full.mobile_number}' data-phone='${full.phone_number}'><i class="fa fa-chain-broken"></i> Unlink</button><br/>`;
+                                    links += `<button class='btn btn-danger btn-sm btn-status unlink_contact' role='button' data-email='${full.email}' data-firstname='${full.first_name}' data-lastname='${full.last_name}' data-id='${full.id}' data-mobile='${full.mobile_number}' data-phone='${full.phone_number}'><i class="fas fa-link-slash"></i> Unlink</button><br/>`;
                                     links += `<a data-email='${full.email}'  data-firstname='${full.first_name}' data-lastname='${full.last_name}' data-id='${full.id}' data-mobile='${full.mobile_number}' data-phone='${full.phone_number}' class="suspend_contact">Suspend</a><br/>`;
                                     if (full.user_role == 'Organisation User') {
                                         links += `<a data-email='${full.email}'  data-firstname='${full.first_name}' data-lastname='${full.last_name}' data-id='${full.id}' data-mobile='${full.mobile_number}' data-phone='${full.phone_number}' class="make_admin_contact">Make Organisation Admin</a><br/>`;

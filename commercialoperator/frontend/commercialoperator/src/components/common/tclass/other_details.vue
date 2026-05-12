@@ -2,7 +2,6 @@
 <template lang="html">
     <div id="userInfo" class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Tourism Accreditation"
@@ -18,7 +17,7 @@
                                     href="https://parks.dpaw.wa.gov.au/for-business/training-accreditation-insurance-fees"
                                     target="_blank"
                                     ><i
-                                        class="fa fa-question-circle"
+                                        class="fas fa-circle-question"
                                         style="color: blue"
                                         >&nbsp;</i
                                     ></a
@@ -69,10 +68,8 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
         <div class="col-sm-12">
-        <div class="panel panel-default">
             <FormSection
                 :form-collapse="false"
                 label="Tourism accessibility and emissions reduction standards"
@@ -81,7 +78,7 @@
             >
                 <div class="" >                        
                     <div class="form-horizontal col-sm-12 borderDecoration">
-                        <label class="">Select which provider you have used to complete your assessments and provide a link to your publicly available information. Click  <a :href="tourism_standards_link" target="_blank"><i class="fa fa-question-circle" style="color:blue">&nbsp;</i></a> for more information.</label>
+                        <label class="">Select which provider you have used to complete your assessments and provide a link to your publicly available information. Click  <a :href="tourism_standards_link" target="_blank"><i class="fas fa-circle-question" style="color:blue">&nbsp;</i></a> for more information.</label>
                         <label class="">Accessible Tourism Information Standard</label>
                         <ul class="list-inline"  >
                             <li 
@@ -126,10 +123,8 @@
                     </div>
                 </div>
           </FormSection>           
-        </div>
     </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Licence Term"
@@ -208,10 +203,8 @@
                                                     proposal.is_amendment_proposal
                                                 "
                                             />
-                                            <span class="input-group-addon">
-                                                <span
-                                                    class="glyphicon glyphicon-calendar"
-                                                ></span>
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
                                     </div>
@@ -224,7 +217,7 @@
                                             href="https://parks.dpaw.wa.gov.au/for-business/training-accreditation-insurance-fees"
                                             target="_blank"
                                             ><i
-                                                class="fa fa-question-circle"
+                                                class="fas fa-circle-question"
                                                 style="color: blue"
                                                 >&nbsp;</i
                                             ></a
@@ -235,10 +228,8 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Moorings"
@@ -308,10 +299,8 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Insurance"
@@ -391,10 +380,8 @@
                                                 required
                                                 :disabled="proposal.readonly"
                                             />
-                                            <span class="input-group-addon">
-                                                <span
-                                                    class="glyphicon glyphicon-calendar"
-                                                ></span>
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
                                     </div>
@@ -403,10 +390,8 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Other"
@@ -459,10 +444,8 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Park Entry and Camping Fees"
@@ -597,10 +580,8 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Deed Poll"
@@ -660,7 +641,6 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
     </div>
 </template>

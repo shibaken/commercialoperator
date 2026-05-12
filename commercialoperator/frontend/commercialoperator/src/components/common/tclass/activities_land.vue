@@ -2,7 +2,6 @@
 <template lang="html">
     <div class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Activities and Location"
@@ -38,7 +37,7 @@
                             </div>
                             <div v-else>
                                 <div v-if="isLoading" class="col-sm-12">
-                                    <i class="fa fa-spinner fa-spin"></i>
+                                    <i class="fas fa-spinner fa-spin"></i>
                                     Loading
                                 </div>
                             </div>
@@ -66,7 +65,7 @@
                             </div>
                             <div v-else>
                                 <div v-if="isLoading" class="col-sm-12">
-                                    <i class="fa fa-spinner fa-spin"></i>
+                                    <i class="fas fa-spinner fa-spin"></i>
                                     Loading
                                 </div>
                             </div>
@@ -92,7 +91,7 @@
                             </div>
                             <div v-else>
                                 <div v-if="isLoading" class="col-sm-12">
-                                    <i class="fa fa-spinner fa-spin"></i>
+                                    <i class="fas fa-spinner fa-spin"></i>
                                     Loading
                                 </div>
                             </div>
@@ -135,9 +134,7 @@
                         ></VehicleTable>
                     </div>
                 </FormSection>
-            </div>
 
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Activities and Location"
@@ -176,7 +173,7 @@
                                 </div>
                                 <div v-else>
                                     <div v-if="isLoading" class="col-sm-12">
-                                        <i class="fa fa-spinner fa-spin"></i>
+                                        <i class="fas fa-spinner fa-spin"></i>
                                         Loading
                                     </div>
                                 </div>
@@ -207,7 +204,7 @@
                                 </div>
                                 <div v-else>
                                     <div v-if="isLoading" class="col-sm-12">
-                                        <i class="fa fa-spinner fa-spin"></i>
+                                        <i class="fas fa-spinner fa-spin"></i>
                                         Loading
                                     </div>
                                 </div>
@@ -215,7 +212,6 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
 
             <div>
                 <editParkActivities
@@ -832,11 +828,11 @@ export default {
         vm.selected_trail_ids = vm.get_selected_trail_ids();
         vm.selected_trail_ids_before = vm.selected_trail_ids;
 
-        $('a[data-toggle="collapse"]').on('click', function () {
+        $('a[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
                 $(chev).toggleClass(
-                    'glyphicon-chevron-down glyphicon-chevron-up'
+                    'fa-chevron-down fa-chevron-up'
                 );
             }, 100);
         });
@@ -1443,7 +1439,7 @@ export default {
     padding-left: 45px;
 }
 
-.list-group-item .glyphicon {
+.list-group-item .fas {
     margin-right: 5px;
 }
 </style>

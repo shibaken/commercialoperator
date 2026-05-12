@@ -1,7 +1,7 @@
 <template id="proposal_dashboard">
     <div class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <div class="row mb-1">
                     <div class="col-md-3">
                         <div
@@ -82,10 +82,8 @@
                                 max="2999-12-31"
                                 placeholder="DD/MM/YYYY"
                             />
-                            <span class="input-group-addon">
-                                <span
-                                    class="glyphicon glyphicon-calendar"
-                                ></span>
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar-days"></i>
                             </span>
                         </div>
                     </div>
@@ -103,10 +101,8 @@
                                 max="2999-12-31"
                                 placeholder="DD/MM/YYYY"
                             />
-                            <span class="input-group-addon">
-                                <span
-                                    class="glyphicon glyphicon-calendar"
-                                ></span>
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar-days"></i>
                             </span>
                         </div>
                     </div>
@@ -221,10 +217,10 @@ export default {
                             let tick = '';
                             if (full.can_be_processed) {
                                 tick =
-                                    "&nbsp;<i class='fa fa-exclamation-circle' style='color:#FFBF00'></i>";
+                                    "&nbsp;<i class='fas fa-exclamation-circle' style='color:#FFBF00'></i>";
                             } else {
                                 tick =
-                                    "&nbsp;<i class='fa fa-check-circle' style='color:green'></i>";
+                                    "&nbsp;<i class='fas fa-check-circle' style='color:green'></i>";
                             }
                             return full.proposal_lodgement_number + tick;
                         },
@@ -374,11 +370,11 @@ export default {
     mounted: function () {
         let vm = this;
         vm.fetchFilterLists();
-        $('a[data-toggle="collapse"]').on('click', function () {
+        $('a[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
                 $(chev).toggleClass(
-                    'glyphicon-chevron-down glyphicon-chevron-up'
+                    'fa-chevron-down fa-chevron-up'
                 );
             }, 100);
         });

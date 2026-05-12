@@ -7,7 +7,7 @@
                     label="Organisation Access Requests"
                     index="organisation_access_requests"
                 >
-                    <div class="panel panel-default">
+                    <div class="card">
                         <div class="row mb-1">
                             <div class="col-md-3">
                                 <div

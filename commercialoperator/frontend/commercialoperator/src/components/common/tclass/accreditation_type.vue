@@ -28,10 +28,8 @@
                                     placeholder="DD/MM/YYYY"
                                     :disabled="readonly"
                                 />
-                                <span class="input-group-addon">
-                                    <span
-                                        class="glyphicon glyphicon-calendar"
-                                    ></span>
+                                <span class="input-group-text">
+                                    <i class="fas fa-calendar-days"></i>
                                 </span>
                             </div>
                         </div>

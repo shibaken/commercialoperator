@@ -2,7 +2,6 @@
 <template lang="html">
     <div id="otherInfo" class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Pre-Event Training"
@@ -39,10 +38,8 @@
                                                 required
                                                 :disabled="proposal.readonly"
                                             />
-                                            <span class="input-group-addon">
-                                                <span
-                                                    class="glyphicon glyphicon-calendar"
-                                                ></span>
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
                                     </div>
@@ -179,11 +176,9 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
 
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Other"
@@ -234,11 +229,9 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
 
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Payment of Fees and Charges"
@@ -272,11 +265,9 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
 
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Insurance"
@@ -356,10 +347,8 @@
                                                 required
                                                 :disabled="proposal.readonly"
                                             />
-                                            <span class="input-group-addon">
-                                                <span
-                                                    class="glyphicon glyphicon-calendar"
-                                                ></span>
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
                                     </div>
@@ -368,10 +357,8 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Deed Poll"
@@ -431,7 +418,6 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
     </div>
 </template>

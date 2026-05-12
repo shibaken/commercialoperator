@@ -2,7 +2,6 @@
 <template lang="html">
     <div class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Activities and Location"
@@ -41,7 +40,7 @@
                                 </div>
                                 <div v-else>
                                     <div v-if="isLoading" class="col-sm-12">
-                                        <i class="fa fa-spinner fa-spin"></i>
+                                        <i class="fas fa-spinner fa-spin"></i>
                                         Loading
                                     </div>
                                 </div>
@@ -71,7 +70,7 @@
                                 </div>
                                 <div v-else>
                                     <div v-if="isLoading" class="col-sm-12">
-                                        <i class="fa fa-spinner fa-spin"></i>
+                                        <i class="fas fa-spinner fa-spin"></i>
                                         Loading
                                     </div>
                                 </div>
@@ -133,7 +132,6 @@
                         "
                     ></editMarineParkActivities>
                 </div>
-            </div>
         </div>
     </div>
 </template>
@@ -919,7 +917,7 @@ export default {
     padding-left: 45px;
 }
 
-.list-group-item .glyphicon {
+.list-group-item .fas {
     margin-right: 5px;
 }
 </style>

@@ -70,21 +70,21 @@
                     v-if="issuingVehicle"
                     type="button"
                     disabled
-                    class="btn btn-default"
+                    class="btn btn-primary"
                     @click="ok"
                 >
-                    <i class="fa fa-spinner fa-spin"></i> Processing
+                    <i class="fas fa-spinner fa-spin"></i> Processing
                 </button>
                 <button
                     v-else
                     type="button"
-                    class="btn btn-default"
+                    class="btn btn-primary"
                     :disabled="!canEditActivities"
                     @click="ok"
                 >
                     Ok
                 </button>
-                <button type="button" class="btn btn-default" @click="cancel">
+                <button type="button" class="btn btn-secondary" @click="cancel">
                     Cancel
                 </button>
             </template>

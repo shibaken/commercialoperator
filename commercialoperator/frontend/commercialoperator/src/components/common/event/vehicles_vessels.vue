@@ -1,7 +1,6 @@
 <template lang="html">
     <div id="vehiclesVesselsInfo" class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Vehicles/Vessels"
@@ -44,7 +43,6 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
     </div>
 </template>

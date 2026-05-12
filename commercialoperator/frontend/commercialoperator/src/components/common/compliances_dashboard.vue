@@ -1,7 +1,7 @@
 <template id="proposal_dashboard">
     <div class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <div class="row mb-1">
                     <div class="col-md-3">
                         <div
@@ -82,10 +82,8 @@
                                 max="2999-12-31"
                                 placeholder="DD/MM/YYYY"
                             />
-                            <span class="input-group-addon">
-                                <span
-                                    class="glyphicon glyphicon-calendar"
-                                ></span>
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar-days"></i>
                             </span>
                         </div>
                     </div>
@@ -105,10 +103,8 @@
                                 max="2999-12-31"
                                 placeholder="DD/MM/YYYY"
                             />
-                            <span class="input-group-addon">
-                                <span
-                                    class="glyphicon glyphicon-calendar"
-                                ></span>
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar-days"></i>
                             </span>
                         </div>
                     </div>
@@ -349,7 +345,7 @@ export default {
                             }
 
                             if (full.fee_invoice_reference) {
-                                links += `<a href='/cols/payments/invoice-compliance-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fa fa-file-pdf'>&nbsp</i>#${full.fee_invoice_reference}</a><br/>`;
+                                links += `<a href='/cols/payments/invoice-compliance-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fas fa-file-pdf'>&nbsp</i>#${full.fee_invoice_reference}</a><br/>`;
                             }
 
                             return links;
@@ -424,11 +420,11 @@ export default {
         let vm = this;
         this.fetchProfile();
         vm.fetchFilterLists();
-        $('a[data-toggle="collapse"]').on('click', function () {
+        $('a[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
                 $(chev).toggleClass(
-                    'glyphicon-chevron-down glyphicon-chevron-up'
+                    'fa-chevron-down fa-chevron-up'
                 );
             }, 100);
         });

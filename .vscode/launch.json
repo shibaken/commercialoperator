@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Django",
+            "name": "Django: Current (9106)",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/manage.py",
@@ -14,7 +14,48 @@
                 "runserver",
                 "0.0.0.0:9106"
             ],
-            "django": true
+            "django": true,
+            "env": {
+                "DJANGO_VITE_DEV_MODE": "True",
+                "DJANGO_VITE_DEV_SERVER_PORT": "9107"
+            }
+        },
+        {
+            "name": "Django: Original dd04956 (9109)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/data/data/projects/commercialoperator-original/manage.py",
+            "python": "${workspaceFolder}/venv/bin/python",
+            "cwd": "/data/data/projects/commercialoperator-original",
+            "args": [
+                "runserver",
+                "0.0.0.0:9109"
+            ],
+            "django": true,
+            "env": {
+                "DJANGO_VITE_DEV_MODE": "True",
+                "DJANGO_VITE_DEV_SERVER_PORT": "9108"
+            }
+        },
+        {
+            "name": "Vite: Current (9107)",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "dev"],
+            "cwd": "${workspaceFolder}/commercialoperator/frontend/commercialoperator",
+            "env": { "PORT": "9107" },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Vite: Original (9108)",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "dev"],
+            "cwd": "/data/data/projects/commercialoperator-original/commercialoperator/frontend/commercialoperator",
+            "env": { "PORT": "9108" },
+            "console": "integratedTerminal"
         },
         {
             "type": "chrome",
@@ -37,6 +78,18 @@
               "${workspaceFolder}/commercialoperator/frontend/commercialoperator/src/**/*.html"
             ],
             "preLaunchTask": "node: serve"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Compare: Current + Original (all servers)",
+            "configurations": [
+                "Vite: Current (9107)",
+                "Vite: Original (9108)",
+                "Django: Current (9106)",
+                "Django: Original dd04956 (9109)"
+            ],
+            "stopAll": true
         }
     ]
 }

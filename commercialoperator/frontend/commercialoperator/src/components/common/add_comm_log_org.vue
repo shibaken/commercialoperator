@@ -211,7 +211,7 @@
                                             href=""
                                             @click.prevent="attachAnother"
                                             ><i
-                                                class="fa fa-lg fa-plus top-buffer-2x"
+                                                class="fas fa-lg fa-plus top-buffer-2x"
                                             ></i
                                         ></a>
                                     </div>
@@ -226,20 +226,20 @@
                     v-if="addingComms"
                     type="button"
                     disabled
-                    class="btn btn-default"
+                    class="btn btn-primary"
                     @click="ok"
                 >
-                    <i class="fa fa-spinner fa-spin"></i> Adding
+                    <i class="fas fa-spinner fa-spin"></i> Adding
                 </button>
                 <button
                     v-else
                     type="button"
-                    class="btn btn-default"
+                    class="btn btn-primary"
                     @click="ok"
                 >
                     Add
                 </button>
-                <button type="button" class="btn btn-default" @click="cancel">
+                <button type="button" class="btn btn-secondary" @click="cancel">
                     Cancel
                 </button>
             </template>

@@ -307,7 +307,7 @@
                                         organisation_request.status
                                     "
                                     class="badge bg-secondary p-2"
-                                    ><i class="fa fa-clock"></i> Pending</span
+                                    ><i class="fas fa-clock"></i> Pending</span
                                 >
                                 <span
                                     v-if="
@@ -315,7 +315,7 @@
                                         organisation_request.status
                                     "
                                     class="badge bg-success me-1 p-2"
-                                    ><i class="fa fa-chain"></i> Linked</span
+                                    ><i class="fas fa-link"></i> Linked</span
                                 >
                             </td>
                             <td>
@@ -335,7 +335,7 @@
                                                 )
                                             "
                                         >
-                                            <i class="fa fa-chain-broken"></i>
+                                            <i class="fas fa-link-slash"></i>
                                             Unlink
                                         </button>
                                     </div>

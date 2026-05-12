@@ -1,7 +1,6 @@
 <template lang="html">
     <div id="accessInfo" class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Access Requirements"
@@ -809,7 +808,6 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
     </div>
 </template>

@@ -7,8 +7,7 @@
                     name="personal_form"
                     method="post"
                 >
-                    <div class="panel panel-default">
-                        <FormSection
+                    <FormSection
                             :form-collapse="false"
                             label="Applicant"
                             index="license_applicant"
@@ -17,8 +16,8 @@
                             <template #header-extra>
                                 <span
                                     >&nbsp;<i
-                                        class="fa fa-question-circle"
-                                        data-toggle="tooltip"
+                                        class="fas fa-circle-question"
+                                        data-bs-toggle="tooltip"
                                         data-placement="bottom"
                                         style="color: blue"
                                         title="Please ensure the applicant is the same as the insured party on your public liability on your public liability insurance certificate."
@@ -75,13 +74,9 @@
                                 </div>
                             </div>
                         </FormSection>
-                    </div>
 
-                    <div
-                        v-show="org_applicant != '' || yourself != ''"
-                        class="panel panel-default"
-                    >
-                        <FormSection
+                    <FormSection
+                            v-show="org_applicant != '' || yourself != ''"
                             :form-collapse="false"
                             label="Apply for"
                             index="license_apply_for"
@@ -96,7 +91,7 @@
                                         :href="proposal_type_help_url"
                                         target="_blank"
                                         ><i
-                                            class="fa fa-question-circle"
+                                            class="fas fa-circle-question"
                                             style="color: blue"
                                             >&nbsp;</i
                                         ></a
@@ -186,7 +181,7 @@
                                     >Region *
                                     <a :href="region_help_url" target="_blank"
                                         ><i
-                                            class="fa fa-question-circle"
+                                            class="fas fa-circle-question"
                                             style="color: blue"
                                             >&nbsp;</i
                                         ></a
@@ -236,7 +231,7 @@
                                     >District
                                     <a :href="district_help_url" target="_blank"
                                         ><i
-                                            class="fa fa-question-circle"
+                                            class="fas fa-circle-question"
                                             style="color: blue"
                                             >&nbsp;</i
                                         ></a
@@ -279,7 +274,7 @@
                                             :href="activity_type_help_url"
                                             target="_blank"
                                             ><i
-                                                class="fa fa-question-circle"
+                                                class="fas fa-circle-question"
                                                 style="color: blue"
                                                 >&nbsp;</i
                                             ></a
@@ -330,7 +325,7 @@
                                             :href="sub_activity_1_help_url"
                                             target="_blank"
                                             ><i
-                                                class="fa fa-question-circle"
+                                                class="fas fa-circle-question"
                                                 style="color: blue"
                                                 >&nbsp;</i
                                             ></a
@@ -381,7 +376,7 @@
                                             :href="sub_activity_2_help_url"
                                             target="_blank"
                                             ><i
-                                                class="fa fa-question-circle"
+                                                class="fas fa-circle-question"
                                                 style="color: blue"
                                                 >&nbsp;</i
                                             ></a
@@ -432,7 +427,7 @@
                                             :href="category_help_url"
                                             target="_blank"
                                             ><i
-                                                class="fa fa-question-circle"
+                                                class="fas fa-circle-question"
                                                 style="color: blue"
                                                 >&nbsp;</i
                                             ></a
@@ -476,7 +471,6 @@
                                 </div>
                             </div>
                         </FormSection>
-                    </div>
 
                     <div v-show="has_active_proposals()" class="col-sm-12">
                         <p style="color: red">
@@ -501,7 +495,7 @@
                             disabled
                             class="pull-right btn btn-primary"
                         >
-                            <i class="fa fa-spin fa-spinner"></i>&nbsp;Creating
+                            <i class="fas fa-spin fa-spinner"></i>&nbsp;Creating
                         </button>
                     </div>
                 </form>
