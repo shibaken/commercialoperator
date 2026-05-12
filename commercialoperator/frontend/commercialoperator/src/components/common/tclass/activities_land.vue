@@ -832,7 +832,7 @@ export default {
         vm.selected_trail_ids = vm.get_selected_trail_ids();
         vm.selected_trail_ids_before = vm.selected_trail_ids;
 
-        $('a[data-toggle="collapse"]').on('click', function () {
+        $('a[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
                 $(chev).toggleClass(

@@ -21,7 +21,7 @@
                             <li class="nav-item">
                                 <a
                                     id="pills-details-tab"
-                                    data-toggle="tab"
+                                    data-bs-toggle="tab"
                                     class="nav-link active"
                                     data-bs-toggle="pill"
                                     :href="'#' + dTab"
@@ -34,7 +34,7 @@
                             <li class="nav-item">
                                 <a
                                     id="pills-other-tab"
-                                    data-toggle="tab"
+                                    data-bs-toggle="tab"
                                     class="nav-link"
                                     data-bs-toggle="pill"
                                     :href="'#' + oTab"

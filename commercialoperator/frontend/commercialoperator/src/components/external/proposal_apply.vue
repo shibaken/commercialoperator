@@ -18,7 +18,7 @@
                                 <span
                                     >&nbsp;<i
                                         class="fa fa-question-circle"
-                                        data-toggle="tooltip"
+                                        data-bs-toggle="tooltip"
                                         data-placement="bottom"
                                         style="color: blue"
                                         title="Please ensure the applicant is the same as the insured party on your public liability on your public liability insurance certificate."

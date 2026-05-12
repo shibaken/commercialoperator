@@ -414,7 +414,7 @@ export default {
                                 popTemplate = _.template(
                                     '<a href="#" ' +
                                         'role="button" ' +
-                                        'data-toggle="popover" ' +
+                                        'data-bs-toggle="popover" ' +
                                         'data-trigger="click" ' +
                                         'data-placement="top auto"' +
                                         'data-html="true" ' +

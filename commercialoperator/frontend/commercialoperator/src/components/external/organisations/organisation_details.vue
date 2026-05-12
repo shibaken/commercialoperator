@@ -310,7 +310,7 @@ export default {
         });
     },
     updated: function () {
-        $('.panelClicker[data-toggle="collapse"]').on('click', function () {
+        $('.panelClicker[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
                 $(chev).toggleClass(

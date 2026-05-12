@@ -635,7 +635,7 @@ export default {
         this.fetchFilterLists();
         this.fetchProfile();
         let vm = this;
-        $('a[data-toggle="collapse"]').on('click', function () {
+        $('a[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
                 $(chev).toggleClass(
