@@ -11,7 +11,7 @@
                             <div class="col-sm-9">
                                 <div class="input-group date" ref="emission_standard_expiry" style="width: 70%;">
                                     <input type="text" class="form-control" v-model="emission_standard.emission_standard_expiry" name="emission_standard_expiry" placeholder="DD/MM/YYYY" :disabled="readonly">
-                                    <span class="input-group-addon">
+                                    <span class="input-group-text">
                                         <i class="fas fa-calendar-days"></i>
                                     </span>
                                 </div>

@@ -44,7 +44,7 @@
                                             <div class="invalid-feedback">
                                                 Please enter a valid date
                                             </div>
-                                            <span class="input-group-addon">
+                                            <span class="input-group-text">
                                                 <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
@@ -79,7 +79,7 @@
                                             <div class="invalid-feedback">
                                                 Please enter a valid date
                                             </div>
-                                            <span class="input-group-addon">
+                                            <span class="input-group-text">
                                                 <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>

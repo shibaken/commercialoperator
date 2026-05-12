@@ -114,7 +114,7 @@
                                                 placeholder="DD/MM/YYYY"
                                                 required
                                             />
-                                            <span class="input-group-addon">
+                                            <span class="input-group-text">
                                                 <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
