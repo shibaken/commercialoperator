@@ -205,10 +205,7 @@
                                         ><a
                                             href=""
                                             @click.prevent="removeKeyword(i)"
-                                            ><span
-                                                class="glyphicon glyphicon-remove"
-                                            ></span
-                                        ></a>
+                                            ><i class="fas fa-xmark"></i></a>
                                     </li>
                                 </ul>
                             </div>
@@ -447,7 +444,7 @@ export default {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
                 $(chev).toggleClass(
-                    'glyphicon-chevron-down glyphicon-chevron-up'
+                    'fa-chevron-down fa-chevron-up'
                 );
             }, 100);
         });

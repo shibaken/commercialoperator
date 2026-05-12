@@ -45,9 +45,7 @@
                                                 Please enter a valid date
                                             </div>
                                             <span class="input-group-addon">
-                                                <span
-                                                    class="glyphicon glyphicon-calendar"
-                                                ></span>
+                                                <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
                                     </div>
@@ -82,9 +80,7 @@
                                                 Please enter a valid date
                                             </div>
                                             <span class="input-group-addon">
-                                                <span
-                                                    class="glyphicon glyphicon-calendar"
-                                                ></span>
+                                                <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
                                     </div>

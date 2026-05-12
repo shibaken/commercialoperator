@@ -93,9 +93,7 @@
                                                 placeholder="DD/MM/YYYY"
                                             />
                                             <span class="input-group-addon">
-                                                <span
-                                                    class="glyphicon glyphicon-calendar"
-                                                ></span>
+                                                <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
                                     </div>
@@ -126,9 +124,7 @@
                                                 placeholder="DD/MM/YYYY"
                                             />
                                             <span class="input-group-addon">
-                                                <span
-                                                    class="glyphicon glyphicon-calendar"
-                                                ></span>
+                                                <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
                                     </div>

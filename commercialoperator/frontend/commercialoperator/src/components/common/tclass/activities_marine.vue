@@ -919,7 +919,7 @@ export default {
     padding-left: 45px;
 }
 
-.list-group-item .glyphicon {
+.list-group-item .fas {
     margin-right: 5px;
 }
 </style>

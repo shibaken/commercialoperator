@@ -117,9 +117,7 @@
                                         placeholder="DD/MM/YYYY"
                                     />
                                     <span class="input-group-addon">
-                                        <span
-                                            class="glyphicon glyphicon-calendar"
-                                        ></span>
+                                        <i class="fas fa-calendar-days"></i>
                                     </span>
                                 </div>
                             </div>
@@ -142,9 +140,7 @@
                                         placeholder="DD/MM/YYYY"
                                     />
                                     <span class="input-group-addon">
-                                        <span
-                                            class="glyphicon glyphicon-calendar"
-                                        ></span>
+                                        <i class="fas fa-calendar-days"></i>
                                     </span>
                                 </div>
                             </div>
@@ -553,7 +549,7 @@ export default {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
                 $(chev).toggleClass(
-                    'glyphicon-chevron-down glyphicon-chevron-up'
+                    'fa-chevron-down fa-chevron-up'
                 );
             }, 100);
         });

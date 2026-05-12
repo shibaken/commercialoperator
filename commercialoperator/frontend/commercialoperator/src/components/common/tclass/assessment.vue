@@ -179,7 +179,7 @@ export default {
                 var chev = $(this).children()[0];
                 window.setTimeout(function () {
                     $(chev).toggleClass(
-                        'glyphicon-chevron-down glyphicon-chevron-up'
+                        'fa-chevron-down fa-chevron-up'
                     );
                 }, 100);
             });
