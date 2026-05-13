@@ -5,4 +5,4 @@
 #25 9 * * * root eval $(grep -v '^#' /etc/.cronenv | xargs -d "\n" -I {} echo export \"{}\" ) && cd /app && python manage_co.py bpoint_ledger_payment_audit_report >> logs/bpoint_ledger_payment_audit_report.log 2>&1
 10 9 * * * root eval $(grep -v '^#' /etc/.cronenv | xargs -d "\n" -I {} echo export \"{}\" ) && cd /app && python manage_co.py appmonitor_check >> logs/appmonitor_check.log 2>&1
 # Log Rotate
-1 0 * * *  /bin/log_rotate.sh  >> /app/logs/log_rotate.log 2>&1
+1 0 * * * root /bin/log_rotate.sh  >> /app/logs/log_rotate.log 2>&1
