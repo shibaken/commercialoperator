@@ -4,12 +4,10 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from commercialoperator.components.proposals.models import (
     ProposalAssessorGroup,
     ProposalApproverGroup,
-    HelpPage,
     DistrictProposalAssessorGroup,
     DistrictProposalApproverGroup,
 )
 from commercialoperator.components.main.models import SystemMaintenance
-from django_ckeditor_5.widgets import CKEditor5Widget as CKEditorWidget
 from django.conf import settings
 import pytz
 from datetime import datetime, timedelta
@@ -75,15 +73,6 @@ class ProposalApproverGroupAdminForm(forms.ModelForm):
                             )
             except:
                 logger.exception("Error in ProposalApproverGroupAdminForm.clean")
-
-
-class CommercialOperatorHelpPageAdminForm(forms.ModelForm):
-    content = forms.CharField(widget=CKEditorWidget())
-
-    class Meta:
-        model = HelpPage
-        fields = "__all__"
-
 
 class SystemMaintenanceAdminForm(forms.ModelForm):
     class Meta:
