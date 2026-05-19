@@ -9,7 +9,6 @@ from commercialoperator.forms import *
 from commercialoperator.components.proposals.models import (
     Referral,
     Proposal,
-    HelpPage,
     DistrictProposal,
 )
 
@@ -103,32 +102,6 @@ class InternalProposalView(DetailView):
             if is_internal(self.request):
                 return super(InternalProposalView, self).get(*args, **kwargs)
 
-#TODO unclear if this is used anymore - investigate and remove/refactor
-class HelpView(LoginRequiredMixin, TemplateView):
-    template_name = "commercialoperator/help.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(HelpView, self).get_context_data(**kwargs)
-
-        if self.request.user.is_authenticated:
-            application_type = kwargs.get("application_type", None)
-            if kwargs.get("help_type", None) == "assessor":
-                if is_internal(self.request):
-                    qs = HelpPage.objects.filter(
-                        application_type__name__icontains=application_type,
-                        help_type=HelpPage.HELP_TEXT_INTERNAL,
-                    ).order_by("-version")
-                    context["help"] = qs.first()
-            #                else:
-            #                    return TemplateResponse(self.request, 'commercialoperator/not-permitted.html', context)
-            #                    context['permitted'] = False
-            else:
-                qs = HelpPage.objects.filter(
-                    application_type__name__icontains=application_type,
-                    help_type=HelpPage.HELP_TEXT_EXTERNAL,
-                ).order_by("-version")
-                context["help"] = qs.first()
-        return context
 
 #TODO we may need to lock this behind an env var so this is not accessible on prod
 class ManagementCommandsView(UserPassesTestMixin, LoginRequiredMixin, TemplateView):

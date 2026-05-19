@@ -269,11 +269,6 @@ urlpatterns = (
         url(r"^external/", views.ExternalView.as_view(), name="external"),
         url(r"^profiles/", views.ExternalView.as_view(), name="manage-profiles"),
         url(
-            r"^help/(?P<application_type>[^/]+)/(?P<help_type>[^/]+)/$",
-            views.HelpView.as_view(),
-            name="help",
-        ),
-        url(
             r"^mgt-commands/$",
             views.ManagementCommandsView.as_view(),
             name="mgt-commands",
@@ -461,16 +456,10 @@ urlpatterns = (
             name="proposaltype_history",
         ),
         url(
-            r"^history/helppage/(?P<pk>\d+)/$",
-            proposal_views.HelpPageHistoryCompareView.as_view(),
-            name="helppage_history",
-        ),
-        url(
             r"^history/organisation/(?P<pk>\d+)/$",
             organisation_views.OrganisationHistoryCompareView.as_view(),
             name="organisation_history",
         ),
-        url("ckeditor5/", include("django_ckeditor_5.urls")),
         url(
             r"^booking-session/abort-redirect$",
             booking_views.SessionAbortRedirectView.as_view(),

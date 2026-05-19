@@ -6069,31 +6069,6 @@ def search_reference(reference_number):
     else:
         raise ValidationError("Record with provided reference number does not exist")
 
-
-from django_ckeditor_5.fields import CKEditor5Field as RichTextField
-
-
-class HelpPage(SanitiseMixin):
-    HELP_TEXT_EXTERNAL = 1
-    HELP_TEXT_INTERNAL = 2
-    HELP_TYPE_CHOICES = (
-        (HELP_TEXT_EXTERNAL, "External"),
-        (HELP_TEXT_INTERNAL, "Internal"),
-    )
-
-    application_type = models.ForeignKey(ApplicationType, on_delete=models.CASCADE)
-    content = RichTextField()
-    description = models.CharField(max_length=256, blank=True, null=True)
-    help_type = models.SmallIntegerField(
-        "Help Type", choices=HELP_TYPE_CHOICES, default=HELP_TEXT_EXTERNAL
-    )
-    version = models.SmallIntegerField(default=1, blank=False, null=False)
-
-    class Meta:
-        app_label = "commercialoperator"
-        unique_together = ("application_type", "help_type", "version")
-
-
 # --------------------------------------------------------------------------------------
 # Filming Models Start
 # --------------------------------------------------------------------------------------
@@ -7865,7 +7840,6 @@ reversion.register(QAOfficerGroup, follow=["qaofficer_groups"], exclude=["member
 reversion.register(QAOfficerReferral)
 reversion.register(QAOfficerDocument, follow=["qaofficer_referral_document"])
 reversion.register(ProposalAccreditation)
-reversion.register(HelpPage)
 reversion.register(ChecklistQuestion, follow=["answers"])
 reversion.register(ProposalAssessment, follow=["answers"])
 reversion.register(ProposalAssessmentAnswer)

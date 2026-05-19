@@ -6,7 +6,6 @@ from commercialoperator.components.proposals.models import (
     Proposal,
     Referral,
     ProposalType,
-    HelpPage,
     DistrictProposal,
 )
 from commercialoperator.components.approvals.models import Approval
@@ -102,15 +101,6 @@ class ProposalTypeHistoryCompareView(InternalHistoryCompareDetailView):
     """
 
     model = ProposalType
-    template_name = "commercialoperator/reversion_history.html"
-
-
-class HelpPageHistoryCompareView(InternalHistoryCompareDetailView):
-    """
-    View for reversion_compare
-    """
-
-    model = HelpPage
     template_name = "commercialoperator/reversion_history.html"
 
 

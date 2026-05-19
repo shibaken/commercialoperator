@@ -34,9 +34,6 @@ from commercialoperator.components.segregation.models import (
     QAOfficerGroupMembers,
     ReferralRecipientGroupMembers,
 )
-from commercialoperator.utils import create_helppage_object
-
-
 # Commented since COLS does not use schema - so will not require direct editing by user in Admin (although a ProposalType is still required for ApplicationType)
 # @admin.register(models.ProposalType)
 class ProposalTypeAdmin(admin.ModelAdmin):
@@ -172,43 +169,6 @@ class ProposalStandardRequirementAdmin(admin.ModelAdmin):
         "participant_number_required",
         "default",
     ]
-
-
-# @admin.register(models.HelpPage)
-class HelpPageAdmin(admin.ModelAdmin):
-    list_display = ["application_type", "help_type", "description", "version"]
-    form = forms.CommercialOperatorHelpPageAdminForm
-    change_list_template = "commercialoperator/help_page_changelist.html"
-    ordering = ("application_type", "help_type", "-version")
-    list_filter = ("application_type", "help_type")
-
-    def get_urls(self):
-        urls = super(HelpPageAdmin, self).get_urls()
-        my_urls = [
-            url(
-                "create_commercialoperator_help/",
-                self.admin_site.admin_view(self.create_commercialoperator_help),
-            ),
-            url(
-                "create_commercialoperator_help_assessor/",
-                self.admin_site.admin_view(
-                    self.create_commercialoperator_help_assessor
-                ),
-            ),
-        ]
-        return my_urls + urls
-
-    def create_commercialoperator_help(self, request):
-        create_helppage_object(
-            application_type="T Class", help_type=models.HelpPage.HELP_TEXT_EXTERNAL
-        )
-        return HttpResponseRedirect("../")
-
-    def create_commercialoperator_help_assessor(self, request):
-        create_helppage_object(
-            application_type="T Class", help_type=models.HelpPage.HELP_TEXT_INTERNAL
-        )
-        return HttpResponseRedirect("../")
 
 
 @admin.register(models.ChecklistQuestion)
