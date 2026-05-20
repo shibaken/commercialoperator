@@ -668,12 +668,7 @@ class ListProposalSerializer(serializers.ModelSerializer):
             """if (obj.assigned_officer and obj.assigned_officer == user) or (user in obj.allowed_assessors):
             return True"""
             if obj.assigned_officer_id:
-                assigned_officer = (
-                    retrieve_email_user(obj.assigned_approver_id)
-                    if obj.assigned_approver_id
-                    else None
-                )
-                if assigned_officer == user:
+                if obj.assigned_officer_id == user.id:
                     return True
             elif user.id in obj.allowed_assessors:
                 return True
