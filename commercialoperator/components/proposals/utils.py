@@ -271,6 +271,7 @@ def search_in_emailuser_fields(search_value: str) -> list[int]:
     Search `search_value` in EmailUser fields: email, first_name, last_name, and full name.
     Returns a list of matching EmailUser IDs.
     """
+
     if not search_value:
         return []
 

@@ -73,7 +73,7 @@ class ProposalAdmin(VersionAdmin):
 class ProposalAssessorGroupMembersInline(admin.TabularInline):
     model = ProposalAssessorGroupMembers
     extra = 0
-    can_delete = False
+    #can_delete = False
     raw_id_fields = ("emailuser",)
     verbose_name = "Proposal Assessor Group Member"
     verbose_name_plural = "Proposal Assessor Group Members"
@@ -119,7 +119,7 @@ class ProposalAssessorGroupAdmin(admin.ModelAdmin):
 class ProposalApproverGroupMembersInline(admin.TabularInline):
     model = ProposalApproverGroupMembers
     extra = 0
-    can_delete = False
+    #can_delete = False
     raw_id_fields = ("emailuser",)
     verbose_name = "Proposal Approver Group Member"
     verbose_name_plural = "Proposal Approver Group Members"
@@ -298,7 +298,7 @@ class OracleCodeInline(admin.TabularInline):
     exclude = ["archive_date"]
     extra = 3
     max_num = 3
-    can_delete = False
+    #can_delete = False
 
 
 @admin.register(Park)
@@ -393,7 +393,7 @@ class GlobalSettingsAdmin(admin.ModelAdmin):
 class ReferralRecipientGroupMembersInline(admin.TabularInline):
     model = ReferralRecipientGroupMembers
     extra = 0
-    can_delete = False
+    #can_delete = False
     raw_id_fields = ("emailuser",)
     verbose_name = "Referral Recipient Group Member"
     verbose_name_plural = "Referral Recipient Group Members"
@@ -422,7 +422,7 @@ class ReferralRecipientGroupAdmin(admin.ModelAdmin):
 class QAOfficerGroupMembersInline(admin.TabularInline):
     model = QAOfficerGroupMembers
     extra = 0
-    can_delete = False
+    #can_delete = False
     raw_id_fields = ("emailuser",)
     verbose_name = "QA Officer Group Member"
     verbose_name_plural = "QA Officer Group Members"
@@ -481,7 +481,7 @@ class SectionAdmin(admin.ModelAdmin):
 class DistrictProposalAssessorGroupMembersInline(admin.TabularInline):
     model = DistrictProposalAssessorGroupMembers
     extra = 0
-    can_delete = False
+    #can_delete = False
     raw_id_fields = ("emailuser",)
     verbose_name = "District Proposal Assessor Group Member"
     verbose_name_plural = "District Proposal Assessor Group Members"
@@ -518,7 +518,7 @@ class DistrictProposalAssessorGroupAdmin(admin.ModelAdmin):
 class DistrictProposalApproverGroupMembersInline(admin.TabularInline):
     model = DistrictProposalApproverGroupMembers
     extra = 0
-    can_delete = False
+    #can_delete = False
     raw_id_fields = ("emailuser",)
     verbose_name = "District Proposal Approver Group Member"
     verbose_name_plural = "District Proposal Approver Group Members"

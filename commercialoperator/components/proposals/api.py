@@ -282,7 +282,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             if application_type and application_type.lower() != "all":
                 queryset = queryset.filter(application_type__name=application_type)
 
-            if search_text and super_queryset:
+            if search_text and super_queryset != None:
                 search_queryset = proposal_search_filter(queryset, search_text)
                 if search_queryset.exists():
                     queryset = search_queryset.distinct() | super_queryset   
@@ -306,7 +306,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             if application_type and application_type.lower() != "all":
                 queryset = queryset.filter(proposal__application_type__name=application_type)
 
-            if search_text and super_queryset:
+            if search_text and super_queryset != None:
                 search_queryset, results_found = compliance_search_filter(queryset, search_text)
                 if results_found:
                     queryset = search_queryset.distinct() | super_queryset   
@@ -330,7 +330,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             if application_type and application_type.lower() != "all":
                 queryset = queryset.filter(proposal__application_type__name=application_type)
 
-            if search_text and super_queryset:
+            if search_text and super_queryset != None:
                 search_queryset, results_found = referral_search_filter(queryset, search_text)
                 if results_found:
                     queryset = search_queryset.distinct() | super_queryset   
@@ -370,7 +370,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             if payment_status and payment_status.lower() != "all":
                 queryset = queryset.filter(invoices__property_cache__payment_status__iexact=payment_status.lower())
 
-            if search_text and super_queryset:
+            if search_text and super_queryset != None:
                 queryset = queryset.distinct() & super_queryset   
 
         elif queryset.model is ParkBooking:
@@ -403,7 +403,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             if payment_status and payment_status.lower() != "all":
                 queryset = queryset.filter(booking__invoices__property_cache__payment_status__iexact=payment_status.lower())
 
-            if search_text and super_queryset:
+            if search_text and super_queryset != None:
                 queryset = queryset.distinct() & super_queryset
 
         elif queryset.model is DistrictProposal:
@@ -419,7 +419,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             if processing_status and processing_status.lower() != "all":
                 queryset = queryset.filter(processing_status=processing_status)
 
-            if search_text and super_queryset:
+            if search_text and super_queryset != None:
                 search_queryset, results_found = district_proposal_search_filter(queryset, search_text)
                 if results_found:
                     queryset = search_queryset.distinct() | super_queryset   
