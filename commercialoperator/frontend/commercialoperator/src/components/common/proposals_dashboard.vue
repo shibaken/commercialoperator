@@ -339,9 +339,9 @@ export default {
                     },
                     {
                         data: 'event_name',
-                        searchable: false,
+                        searchable: true,
                         orderable: false,
-                        name: 'event_name',
+                        name: 'event_activity__event_name',
                     },
                     {
                         data: 'id',
@@ -524,9 +524,9 @@ export default {
                     },
                     {
                         data: 'event_name',
+                        searchable: true,
                         orderable: false,
-                        searchable: false,
-                        name: 'event_name',
+                        name: 'event_activity__event_name',
                     },
                     {
                         data: 'id',
