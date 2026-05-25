@@ -56,6 +56,8 @@ from commercialoperator.components.main.models import (
     Section,
     Zone,
 )
+from commercialoperator.components.organisations.models import Organisation
+
 import traceback
 import os
 from datetime import datetime
@@ -293,6 +295,26 @@ def search_in_emailuser_fields(search_value: str) -> list[int]:
     return list(
         EmailUser.objects
         .annotate(full_name=full_name_expr)
+        .filter(q)
+        .values_list('id', flat=True)
+        .distinct()
+    )
+
+def search_organisation_properties(search_value, search_abn=False):
+
+    if search_abn:
+        q = (
+            Q(property_cache__name__icontains=search_value) |
+            Q(property_cache__abn__icontains=search_value)
+        )
+    else:
+        q = (
+            Q(property_cache__name__icontains=search_value)
+        )
+
+
+    return  list(
+        Organisation.objects
         .filter(q)
         .values_list('id', flat=True)
         .distinct()
