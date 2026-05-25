@@ -293,10 +293,13 @@ def send_approval_renewal_email_notification(approval):
 
     # attach renewal notice
     if approval.renewal_document and approval.renewal_document._file is not None:
-        renewal_document = approval.renewal_document._file
-        file_name = approval.renewal_document.name
-        attachment = (file_name, renewal_document.file.read(), "application/pdf")
-        attachment = [attachment]
+        try:
+            renewal_document = approval.renewal_document._file
+            file_name = approval.renewal_document.name
+            attachment = (file_name, renewal_document.file.read(), "application/pdf")
+            attachment = [attachment]
+        except:
+            logger.warning(f"{file_name} does not exist.")
     else:
         attachment = []
     all_ccs = []
