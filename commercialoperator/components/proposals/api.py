@@ -156,43 +156,42 @@ def district_proposal_search_filter(qs, search_value):
 
     if search_value:
         matching_ids = search_in_emailuser_fields(search_value)
+        org_matching_ids = search_organisation_properties(search_value, False)
 
         # Apply both filters only if we found any matching submitters
-        if matching_ids:
-                    
-            qs = qs.filter(
-                Q(proposal__submitter_id__in=matching_ids) | Q(proposal__proxy_applicant_id__in=matching_ids) | Q(assigned_officer_id__in=matching_ids)
-            )
+        qs = qs.filter(
+            Q(proposal__submitter_id__in=matching_ids) | Q(proposal__proxy_applicant_id__in=matching_ids) | Q(assigned_officer_id__in=matching_ids) | Q(proposal__org_applicant_id__in=org_matching_ids)
+        )
 
-    return qs, matching_ids
+    return qs, matching_ids+org_matching_ids
 
 def referral_search_filter(qs, search_value):
 
     if search_value:
         matching_ids = search_in_emailuser_fields(search_value)
+        org_matching_ids = search_organisation_properties(search_value, False)
 
         # Apply both filters only if we found any matching submitters
-        if matching_ids:
-                    
-            qs = qs.filter(
-                Q(proposal__submitter_id__in=matching_ids) | Q(proposal__proxy_applicant_id__in=matching_ids) | Q(proposal__assigned_officer_id__in=matching_ids)
-            )
+        qs = qs.filter(
+            Q(proposal__submitter_id__in=matching_ids) | Q(proposal__proxy_applicant_id__in=matching_ids) | Q(proposal__assigned_officer_id__in=matching_ids) | Q(proposal__org_applicant_id__in=org_matching_ids)
+        )
 
-    return qs, matching_ids
+    return qs, matching_ids+org_matching_ids
 
 def compliance_search_filter(qs, search_value):
 
     if search_value:
         matching_ids = search_in_emailuser_fields(search_value)
+        org_matching_ids = search_organisation_properties(search_value, False)
 
         # Apply both filters only if we found any matching submitters
         if matching_ids:
                     
             qs = qs.filter(
-                Q(assigned_to_id__in=matching_ids)
+                Q(assigned_to_id__in=matching_ids) | Q(proposal__submitter_id__in=matching_ids) | Q(proposal__proxy_applicant_id__in=matching_ids) | Q(proposal__org_applicant_id__in=org_matching_ids)
             )
 
-    return qs, matching_ids
+    return qs, matching_ids+org_matching_ids
 
 
 def user_can_edit(request, instance):
