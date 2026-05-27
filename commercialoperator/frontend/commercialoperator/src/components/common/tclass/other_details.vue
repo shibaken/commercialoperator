@@ -593,36 +593,10 @@
                             <div class="form-group">
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <label
-                                            >It is a requirement of all
-                                            commercial operations licence
-                                            holders to sign a deed poll to
-                                            release and indemnify the State of
-                                            Western Australia. Please note:
-                                            electronic or digital signatures
-                                            cannot be accepted.</label
-                                        >
-                                        <label v-if="deed_poll_url"
-                                            >Please click
-                                            <a
-                                                :href="deed_poll_url"
-                                                target="_blank"
-                                                >here</a
-                                            >
-                                            to download the deed poll. The deed
-                                            poll must be signed and have a
-                                            witness signature and be dated. Once
-                                            signed and dated, please scan and
-                                            attach the deed poll below.</label
-                                        >
-                                        <label v-else
-                                            >Please click here to download the
-                                            deed poll. The deed poll must be
-                                            signed and have a witness signature
-                                            and be dated. Once signed and dated,
-                                            please scan and attach the deed poll
-                                            below.</label
-                                        >
+                                        <label>It is a requirement of all commercial operations licence holders to sign a Deed Poll to release and indemnify the State of Western Australia.</label> 
+                                        <label>Please note: Electronic signatures cannot be accepted. This includes images of handwritten signatures pasted into the document, or signatures typed into a text box. </label>
+                                        <label v-if="deed_poll_url">Click <a :href="deed_poll_url" target="_blank">here</a> to download the Deed Poll. The Deed Poll must be printed, signed in the correct section, be dated and have a witness signature when stipulated. Once signed and dated, please attach the Deed Poll document below.</label>
+                                        <label v-else>Please click here to download the Deed Poll. The Deed Poll must be printed, signed in the correct section, be dated and have a witness signature when stipulated. Once signed and dated, please attach the Deed Poll document below.</label>
                                     </div>
                                 </div>
                                 <div class="row">
