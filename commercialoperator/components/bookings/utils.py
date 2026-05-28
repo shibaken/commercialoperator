@@ -435,6 +435,7 @@ def get_session_application_invoice(session):
 
 
 def set_session_application_invoice(session, application_fee):
+    logger.info("Application Fee session ID Set")
     """Application Fee session ID"""
     session["cols_app_invoice"] = application_fee.id
     session.modified = True
