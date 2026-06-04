@@ -31,7 +31,7 @@ stages:
         tags: | 
               latest_seg
               $(tagDate)
-        containerRegistry: DockerHub
+        containerRegistry: DockerGitHub
         repository: ghcr.io/dbca-wa/commercialoperator
     - task: Docker@2
       displayName: Dev Build image and Push
