@@ -1,45 +1,36 @@
-from django.http import HttpResponse, JsonResponse
-from django.urls import reverse
-from django.shortcuts import redirect, get_object_or_404
-from django.views.generic import View, TemplateView
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.views.generic import View
 from django.db.models import Q
-from commercialoperator.components.proposals.utils import create_data_from_form
 from commercialoperator.components.proposals.models import (
     Proposal,
     Referral,
     ProposalType,
-    HelpPage,
     DistrictProposal,
 )
 from commercialoperator.components.approvals.models import Approval
 from commercialoperator.components.compliances.models import Compliance
-import json, traceback
+import json
 from reversion_compare.views import HistoryCompareDetailView
 from reversion.models import Version
+from django.contrib.auth.mixins import UserPassesTestMixin
+from commercialoperator.helpers import is_internal
 
+class InternalHistoryCompareDetailView(UserPassesTestMixin, HistoryCompareDetailView):
 
-class ProposalView(TemplateView):
-    template_name = "commercialoperator/proposal.html"
-
-    def post(self, request, *args, **kwargs):
-        extracted_fields = []
-        try:
-            proposal_id = request.POST.pop("proposal_id")
-            proposal = Proposal.objects.get(proposal_id)
-            schema = json.loads(request.POST.pop("schema")[0])
-            extracted_fields = create_data_from_form(
-                schema, request.POST, request.FILES
+    def _get_action_list(self):
+        action_list = [
+            {"version": version, "revision": version.revision}
+            for version in self._order_version_queryset(
+                Version.objects.get_for_object(self.get_object()).select_related("revision")
             )
-            proposal.schema = schema
-            proposal.data = extracted_fields
-            proposal.save()
-            return redirect(reverse("external"))
-        except:
-            traceback.print_exc
-            return JsonResponse({"error": "something went wrong"}, safe=False, status=400)
+        ]
+        return action_list
 
+    def test_func(self):
+        return is_internal(self.request)
 
-class ProposalHistoryCompareView(HistoryCompareDetailView):
+class ProposalHistoryCompareView(InternalHistoryCompareDetailView):
     """
     View for reversion_compare
     """
@@ -48,7 +39,7 @@ class ProposalHistoryCompareView(HistoryCompareDetailView):
     template_name = "commercialoperator/reversion_history.html"
 
 
-class ProposalFilteredHistoryCompareView(HistoryCompareDetailView):
+class ProposalFilteredHistoryCompareView(InternalHistoryCompareDetailView):
     """
     View for reversion_compare - with 'status' in the comment field only'
     """
@@ -77,7 +68,7 @@ class ProposalFilteredHistoryCompareView(HistoryCompareDetailView):
         return action_list
 
 
-class ReferralHistoryCompareView(HistoryCompareDetailView):
+class ReferralHistoryCompareView(InternalHistoryCompareDetailView):
     """
     View for reversion_compare
     """
@@ -86,7 +77,7 @@ class ReferralHistoryCompareView(HistoryCompareDetailView):
     template_name = "commercialoperator/reversion_history.html"
 
 
-class ApprovalHistoryCompareView(HistoryCompareDetailView):
+class ApprovalHistoryCompareView(InternalHistoryCompareDetailView):
     """
     View for reversion_compare
     """
@@ -95,7 +86,7 @@ class ApprovalHistoryCompareView(HistoryCompareDetailView):
     template_name = "commercialoperator/reversion_history.html"
 
 
-class ComplianceHistoryCompareView(HistoryCompareDetailView):
+class ComplianceHistoryCompareView(InternalHistoryCompareDetailView):
     """
     View for reversion_compare
     """
@@ -104,7 +95,7 @@ class ComplianceHistoryCompareView(HistoryCompareDetailView):
     template_name = "commercialoperator/reversion_history.html"
 
 
-class ProposalTypeHistoryCompareView(HistoryCompareDetailView):
+class ProposalTypeHistoryCompareView(InternalHistoryCompareDetailView):
     """
     View for reversion_compare
     """
@@ -113,16 +104,11 @@ class ProposalTypeHistoryCompareView(HistoryCompareDetailView):
     template_name = "commercialoperator/reversion_history.html"
 
 
-class HelpPageHistoryCompareView(HistoryCompareDetailView):
-    """
-    View for reversion_compare
-    """
+class PreviewLicencePDFView(UserPassesTestMixin, View):
 
-    model = HelpPage
-    template_name = "commercialoperator/reversion_history.html"
-
-
-class PreviewLicencePDFView(View):
+    def test_func(self):
+        return is_internal(self.request)
+    
     def post(self, request, *args, **kwargs):
         response = HttpResponse(content_type="application/pdf")
 
@@ -136,7 +122,11 @@ class PreviewLicencePDFView(View):
         return get_object_or_404(Proposal, id=self.kwargs["proposal_pk"])
 
 
-class PreviewDistrictLicencePDFView(View):
+class PreviewDistrictLicencePDFView(UserPassesTestMixin, View):
+
+    def test_func(self):
+        return is_internal(self.request)
+    
     def post(self, request, *args, **kwargs):
         response = HttpResponse(content_type="application/pdf")
 
@@ -154,8 +144,11 @@ class PreviewDistrictLicencePDFView(View):
 
 from commercialoperator.components.proposals.utils import test_proposal_emails
 
+class TestEmailView(UserPassesTestMixin, View):
 
-class TestEmailView(View):
+    def test_func(self):
+        return is_internal(self.request)
+    
     def get(self, request, *args, **kwargs):
         test_proposal_emails(request)
         return HttpResponse("Test Email Script Completed")

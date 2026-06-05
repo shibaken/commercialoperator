@@ -80,6 +80,7 @@ import TextArea from '@/components/forms/text-area.vue';
 import FileField from '@/components/forms/file.vue';
 
 import { helpers, api_endpoints } from '@/utils/hooks.js';
+import $ from 'jquery'
 export default {
     // eslint-disable-next-line vue/component-definition-name-casing
     name: 'proposal-qaofficer',

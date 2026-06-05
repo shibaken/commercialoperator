@@ -9,7 +9,7 @@
                     <div class="card-header">
                         The following invoice(s) are overdue:
                     </div>
-                    <div class="well well-sm card-body">
+                    <div class="card card-body bg-light p-2">
                         <div class="card-text">
                             <div
                                 v-for="invoice in overdue_invoices"
@@ -32,7 +32,7 @@
                             Entry fees apply to passenger
                             <a :href="payment_help_url" target="_blank"
                                 ><i
-                                    class="fa fa-question-circle"
+                                    class="fas fa-circle-question"
                                     style="color: blue"
                                     >&nbsp;</i
                                 ></a
@@ -40,7 +40,6 @@
                         </p>
                     </div>
                 </div>
-                <div class="panel panel-default">
                     <FormSection
                         :form-collapse="false"
                         label="Park Entry Fees (per Park)"
@@ -48,31 +47,6 @@
                         subtitle=""
                     >
                         <div class="row mb-1">
-                            <div class="col-md-3">
-                                <div
-                                    id="select_parkbookings_park_parent"
-                                    class="form-group"
-                                >
-                                    <label for="select_parkbookings_park"
-                                        >Park</label
-                                    >
-                                    <select
-                                        id="select_parkbookings_park"
-                                        ref="select_parkbookings_park"
-                                        v-model="filterProposalPark"
-                                        class="form-control"
-                                    >
-                                        <option value="All">All</option>
-                                        <option
-                                            v-for="p in proposal_parks"
-                                            :key="p.id"
-                                            :value="p.id"
-                                        >
-                                            {{ p.name }}
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
                             <div class="col-md-3">
                                 <div
                                     id="select_parkbooking_status_parent"
@@ -134,8 +108,6 @@
                                     >
                                 </div>
                             </div>
-                        </div>
-                        <div class="row mb-3">
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="input_parkbookings_arrival_to"
@@ -153,10 +125,8 @@
                                             max="2999-12-31"
                                             placeholder="DD/MM/YYYY"
                                         />
-                                        <span class="input-group-addon">
-                                            <span
-                                                class="glyphicon glyphicon-calendar"
-                                            ></span>
+                                        <span class="input-group-text">
+                                            <i class="fas fa-calendar-days"></i>
                                         </span>
                                     </div>
                                 </div>
@@ -178,10 +148,8 @@
                                             max="2999-12-31"
                                             placeholder="DD/MM/YYYY"
                                         />
-                                        <span class="input-group-addon">
-                                            <span
-                                                class="glyphicon glyphicon-calendar"
-                                            ></span>
+                                        <span class="input-group-text">
+                                            <i class="fas fa-calendar-days"></i>
                                         </span>
                                     </div>
                                 </div>
@@ -198,7 +166,6 @@
                             </div>
                         </div>
                     </FormSection>
-                </div>
             </div>
         </div>
     </div>
@@ -208,7 +175,7 @@ import FormSection from '@/components/forms/section_toggle.vue';
 import datatable from '@/utils/vue/datatable.vue';
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import { v4 as uuid } from 'uuid';
-
+import $ from 'jquery'
 export default {
     name: 'ProposalTableDash',
     components: {
@@ -255,8 +222,6 @@ export default {
                 { name: 'Monthly Invoicing', value: '2' },
                 { name: 'Other', value: '3' },
             ],
-            proposal_submitters: [],
-            proposal_parks: [],
             proposal_headers: [
                 'Number',
                 'Licence',
@@ -347,14 +312,20 @@ export default {
                     {
                         data: 'admission_number',
                         name: 'booking__admission_number',
+                        searchable: true,
+                        orderable: true,
                     },
                     {
                         data: 'approval_number',
                         name: 'booking__proposal__approval__lodgement_number',
+                        searchable: true,
+                        orderable: true,
                     },
                     {
                         data: 'trading_name',
                         name: 'booking__proposal__org_applicant__organisation__organisation_trading_name, booking__proposal__org_applicant__organisation__organisation_name',
+                        searchable: false,
+                        orderable: false,
                     },
                     {
                         data: 'arrival',
@@ -366,12 +337,15 @@ export default {
                                     : '';
                             return arrival_dates;
                         },
+                        name: 'arrival',
                         searchable: false,
                         orderable: true,
                     },
                     {
                         data: 'park',
-                        name: 'park__id',
+                        name: 'park__name',
+                        searchable: true,
+                        orderable: true,
                     },
                     {
                         data: 'id',
@@ -401,15 +375,15 @@ export default {
                                     'monthly invoicing' &&
                                     full.invoice_reference !== null)
                             ) {
-                                links += `<a href='/cols/payments/invoice-pdf/${full.invoice_reference}.pdf' target='_blank'><i style='color:red;' class='fa fa-file-pdf'></i></a> &nbsp`;
-                                links += `<a href='/cols/payments/confirmation-pdf/${full.invoice_reference}.pdf' target='_blank'><i style='color:red;' class='fa fa-file-pdf'></i></a><br/>`;
+                                links += `<a href='/cols/payments/invoice-pdf/${full.invoice_reference}.pdf' target='_blank'><i style='color:red;' class='fas fa-file-pdf'></i></a> &nbsp`;
+                                links += `<a href='/cols/payments/confirmation-pdf/${full.invoice_reference}.pdf' target='_blank'><i style='color:red;' class='fas fa-file-pdf'></i></a><br/>`;
                             } else if (
                                 full.payment_method.toLowerCase() ==
                                     'monthly invoicing' &&
                                 full.invoice_reference == null
                             ) {
                                 // running aggregated monthly booking - not yet invoiced
-                                links += `<a href='/cols/payments/monthly-confirmation-pdf/park-booking/${full.id}.pdf' target='_blank' style='padding-left: 52px;'><i style='color:red;' class='fa fa-file-pdf'></i></a><br/>`;
+                                links += `<a href='/cols/payments/monthly-confirmation-pdf/park-booking/${full.id}.pdf' target='_blank' style='padding-left: 52px;'><i style='color:red;' class='fas fa-file-pdf'></i></a><br/>`;
                             }
                             return links;
                         },
@@ -421,6 +395,8 @@ export default {
                         data: 'applicant',
                         name: 'booking__proposal__approval__org_applicant__organisation__name, booking__proposal__approval__proxy_applicant__email, proposal__approval__proxy_applicant__first_name, booking__proposal__approval__proxy_applicant__last_name',
                         visible: this.level == 'internal' ? true : false,
+                        searchable: false,
+                        orderable: false,
                     },
                     {
                         data: 'payment_status',
@@ -543,14 +519,13 @@ export default {
     },
     mounted: function () {
         this.fetchOverdueInvoices();
-        this.fetchFilterLists();
         this.fetchProfile();
         let vm = this;
-        $('a[data-toggle="collapse"]').on('click', function () {
+        $('a[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
                 $(chev).toggleClass(
-                    'glyphicon-chevron-down glyphicon-chevron-up'
+                    'fa-chevron-down fa-chevron-up'
                 );
             }, 100);
         });
@@ -560,33 +535,12 @@ export default {
         });
     },
     methods: {
-        fetchFilterLists: function () {
-            let vm = this;
-
-            helpers.fetchUrl(api_endpoints.filter_list_approvals).then(
-                (response) => {
-                    vm.proposal_submitters = response.submitters;
-                },
-                (error) => {
-                    console.log(error);
-                }
-            );
-
-            helpers.fetchUrl(api_endpoints.filter_list_parks).then(
-                (response) => {
-                    vm.proposal_parks = response;
-                },
-                (error) => {
-                    console.log(error);
-                }
-            );
-        },
         fetchOverdueInvoices: function () {
             let vm = this;
 
             helpers.fetchUrl(api_endpoints.overdue_invoices).then(
                 (response) => {
-                    vm.overdue_invoices = response;
+                    vm.overdue_invoices = response.results;
                 },
                 (error) => {
                     console.log(error);

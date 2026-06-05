@@ -2,7 +2,6 @@
 <template lang="html">
     <div id="activityInfo" class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Filming Details"
@@ -49,10 +48,8 @@
                                                     proposal.is_amendment_proposal
                                                 "
                                             />
-                                            <span class="input-group-addon">
-                                                <span
-                                                    class="glyphicon glyphicon-calendar"
-                                                ></span>
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
                                         <label
@@ -87,10 +84,8 @@
                                                     proposal.is_amendment_proposal
                                                 "
                                             />
-                                            <span class="input-group-addon">
-                                                <span
-                                                    class="glyphicon glyphicon-calendar"
-                                                ></span>
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
                                         <label
@@ -433,7 +428,6 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
     </div>
 </template>
@@ -442,7 +436,7 @@
 import FormSection from '@/components/forms/section_toggle.vue';
 import { helpers } from '@/utils/hooks.js';
 import { v4 as uuid } from 'uuid';
-
+import $ from 'jquery'
 export default {
     name: 'FilmingActivity',
     components: {

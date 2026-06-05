@@ -1,10 +1,10 @@
 {% extends "ledgerui/accounts_base_b5.html" %}
 
 {% load static %}
-
+{% load django_vite %}
 {% block myaccount_nav %}
 
-<button class="nav-link managed-account-nav" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Organisation</button>
+<button class="nav-link managed-account-nav" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Profile</button>
 
 {% endblock %}
 
@@ -24,12 +24,6 @@
     </div>
 </div>
 
-
-<link rel="stylesheet" href="{% static 'commercialoperator/css/base.css' %}?v={{build_tag}}">
-<link rel="stylesheet" href="{% static 'commercialoperator_vue/css/app.css' %}?v={{build_tag}}">
-<link rel="stylesheet" href="{% static 'commercialoperator_vue/css/chunk-vendors.css' %}?v={{build_tag}}">
-
-<script type="text/javascript" src="{% static 'commercialoperator_vue/js/chunk-vendors.js' %}?v={{build_tag}}"></script>
-<script type="text/javascript" src="{% static 'commercialoperator_vue/js/app.js' %}?v={{build_tag}}"></script>
+{% vite_asset vue3_entry_script app='default' %}
 
 {% endblock %}	

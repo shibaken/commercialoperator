@@ -1,7 +1,6 @@
 <template lang="html">
     <div class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Commercial Event Questionnaire"
@@ -166,7 +165,7 @@
                                                 >
                                                     <label style="color: green"
                                                         ><i
-                                                            class="fa fa-check"
+                                                            class="fas fa-check"
                                                         ></i
                                                         >Correct</label
                                                     >
@@ -186,7 +185,7 @@
                                                 >
                                                     <label style="color: red"
                                                         ><i
-                                                            class="fa fa-times"
+                                                            class="fas fa-xmark"
                                                         ></i
                                                         >Incorrect</label
                                                     >
@@ -225,7 +224,6 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
     </div>
 </template>

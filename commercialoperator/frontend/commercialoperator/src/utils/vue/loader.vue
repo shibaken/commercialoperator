@@ -3,7 +3,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-12">
-                    <i class="fa fa-4x fa-spinner fa-spin"></i>
+                    <i class="fas fa-4x fa-spinner fa-spin"></i>
                 </div>
                 <div class="col-lg-12" style="margin-top: 20px">
                     <slot></slot>

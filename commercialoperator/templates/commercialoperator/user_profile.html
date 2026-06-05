@@ -3,7 +3,7 @@
 {% block extra_css %}
 {{ super }}
     <style media="screen">
-        h3.panel-title{
+        h3.card-title{
             font-weight: bold;
             font-size: 25px;
             padding:20px;
@@ -15,7 +15,7 @@
     <div class="container" id="userInfo">
         <div class="row">
             <div class="col-sm-12">
-                <div class="well well-sm">
+                <div class="card card-body bg-light p-2">
                     <p>
                         We have detected that this is the first time you have logged into the system.Please take a moment to provide us with your details
                         (personal details, address details, contact details, and weather you are managing approvals for an organisation).
@@ -26,15 +26,15 @@
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <h3 class="panel-title">Personal Details <small>Provide your personal details</small>
-                        <a href="#pdbody" data-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="pdbody">
-                            <span class="glyphicon glyphicon-chevron-up pull-right "></span>
+                <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Personal Details <small>Provide your personal details</small>
+                        <a href="#pdbody" data-bs-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="pdbody">
+                            <i class="fas fa-chevron-up float-end"></i>
                         </a>
                     </h3>
                   </div>
-                  <div class="panel-body collapse in" id="pdbody">
+                  <div class="collapse show" id="pdbody">
                       <form class="form-horizontal" action="index.html" method="post">
                           <div class="form-group">
                             <label for="" class="col-sm-2 control-label">Given name(s)</label>
@@ -55,15 +55,15 @@
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <h3 class="panel-title">Address Details <small>Provide your address details</small>
-                        <a href="#adbody" data-toggle="collapse" expanded="false"  data-parent="#userInfo" aria-controls="adbody">
-                            <span class="glyphicon glyphicon-chevron-down pull-right "></span>
+                <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Address Details <small>Provide your address details</small>
+                        <a href="#adbody" data-bs-toggle="collapse" expanded="false"  data-parent="#userInfo" aria-controls="adbody">
+                            <i class="fas fa-chevron-down float-end"></i>
                         </a>
                     </h3>
                   </div>
-                  <div class="panel-body collapse" id="adbody">
+                  <div class="collapse" id="adbody">
                       <form class="form-horizontal" action="index.html" method="post">
                           <div class="form-group">
                             <label for="" class="col-sm-2 control-label">Street</label>
@@ -102,15 +102,15 @@
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <h3 class="panel-title">Contact Details <small>Provide your contact details</small>
-                        <a href="#cdbody" data-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="cdbody">
-                            <span class="glyphicon glyphicon-chevron-down pull-right "></span>
+                <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Contact Details <small>Provide your contact details</small>
+                        <a href="#cdbody" data-bs-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="cdbody">
+                            <i class="fas fa-chevron-down float-end"></i>
                         </a>
                     </h3>
                   </div>
-                  <div class="panel-body collapse" id="cdbody">
+                  <div class="collapse" id="cdbody">
                       <form class="form-horizontal" action="index.html" method="post">
                           <div class="form-group">
                             <label for="" class="col-sm-2 control-label">Phone (work)</label>
@@ -137,15 +137,15 @@
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <h3 class="panel-title">Organisation <small>Link to the Organisations you are an employee of and for which you are managing approvals</small>
-                        <a href="#orgbody" data-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="orgbody">
-                            <span class="glyphicon glyphicon-chevron-down pull-right "></span>
+                <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Organisation <small>Link to the Organisations you are an employee of and for which you are managing approvals</small>
+                        <a href="#orgbody" data-bs-toggle="collapse" data-parent="#userInfo" expanded="true" aria-controls="orgbody">
+                            <i class="fas fa-chevron-down float-end"></i>
                         </a>
                     </h3>
                   </div>
-                  <div class="panel-body collapse" id="orgbody">
+                  <div class="collapse" id="orgbody">
                       <form class="form-horizontal" action="index.html" method="post">
                           <div class="form-group">
                             <label for="" class="col-sm-6 control-label">Do you manage approvals on behalf of an organisation?</label>
@@ -182,10 +182,11 @@
 {% block custom_js %}
     {{ super }}
     <script type="text/javascript">
-        $('a[data-toggle="collapse"]').on('click', function () {
+        import $ from 'jquery'
+        $('a[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
-                $(chev).toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
+                $(chev).toggleClass("fa-chevron-down fa-chevron-up");
             },100);
         });
     </script>

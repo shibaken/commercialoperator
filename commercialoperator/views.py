@@ -1,30 +1,33 @@
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
-from django.conf import settings
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
+from django.http import HttpResponse
 
-
-from commercialoperator.helpers import is_internal
+from commercialoperator.helpers import is_internal, is_commercialoperator_admin
 from commercialoperator.forms import *
 from commercialoperator.components.proposals.models import (
     Referral,
     Proposal,
-    HelpPage,
     DistrictProposal,
 )
+
+from commercialoperator.components.proposals.models import Proposal
+from commercialoperator.components.organisations.models import Organisation, OrganisationContact
+from commercialoperator.components.approvals.models import Approval
+from django.db.models import Q
+
 from commercialoperator.components.compliances.models import Compliance
 from commercialoperator.components.proposals.mixins import ReferralOwnerMixin
 
-
 from django.core.management import call_command
-
+from django.conf import settings
 
 import logging
-
 logger = logging.getLogger("payment_checkout")
 
+import os
+import mimetypes
 
 class InternalView(UserPassesTestMixin, TemplateView):
     template_name = "commercialoperator/dash/index.html"
@@ -34,10 +37,6 @@ class InternalView(UserPassesTestMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(InternalView, self).get_context_data(**kwargs)
-        # context["dev"] = settings.DEV_STATIC
-        # context["dev_url"] = settings.DEV_STATIC_URL
-        # if hasattr(settings, "DEV_APP_BUILD_URL") and settings.DEV_APP_BUILD_URL:
-        #     context["app_build_url"] = settings.DEV_APP_BUILD_URL
         return context
 
 
@@ -46,14 +45,7 @@ class ExternalView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(ExternalView, self).get_context_data(**kwargs)
-        # context["dev"] = settings.DEV_STATIC
-        # context["dev_url"] = settings.DEV_STATIC_URL
-        # if hasattr(settings, "DEV_APP_BUILD_URL") and settings.DEV_APP_BUILD_URL:
-        #     context["app_build_url"] = settings.DEV_APP_BUILD_URL
         return context
-
-class AccountView(LoginRequiredMixin, TemplateView):
-    template_name = "commercialoperator/dash/index.html"
 
 
 class ReferralView(ReferralOwnerMixin, DetailView):
@@ -102,80 +94,21 @@ class CommercialOperatorFurtherInformationView(TemplateView):
 
 
 class InternalProposalView(DetailView):
-    # template_name = 'commercialoperator/index.html'
     model = Proposal
     template_name = "commercialoperator/dash/index.html"
 
     def get(self, *args, **kwargs):
         if self.request.user.is_authenticated:
             if is_internal(self.request):
-                # return redirect('internal-proposal-detail')
                 return super(InternalProposalView, self).get(*args, **kwargs)
-            return redirect("external-proposal-detail")
-        kwargs["form"] = LoginForm
-        return super(CommercialOperatorRoutingDetailView, self).get(*args, **kwargs)
 
 
-@login_required(login_url="ds_home")
-def first_time(request):
-    context = {}
-    if request.method == "POST":
-        form = FirstTimeForm(request.POST)
-        redirect_url = form.data["redirect_url"]
-        if not redirect_url:
-            redirect_url = "/"
-        if form.is_valid():
-            # set user attributes
-            request.user.first_name = form.cleaned_data["first_name"]
-            request.user.last_name = form.cleaned_data["last_name"]
-            request.user.dob = form.cleaned_data["dob"]
-            request.user.save()
-            return redirect(redirect_url)
-        context["form"] = form
-        context["redirect_url"] = redirect_url
-        return render(request, "commercialoperator/user_profile.html", context)
-    # GET default
-    if "next" in request.GET:
-        context["redirect_url"] = request.GET["next"]
-    else:
-        context["redirect_url"] = "/"
-    # context["dev"] = settings.DEV_STATIC
-    # context["dev_url"] = settings.DEV_STATIC_URL
-    # if hasattr(settings, "DEV_APP_BUILD_URL") and settings.DEV_APP_BUILD_URL:
-    #     context["app_build_url"] = settings.DEV_APP_BUILD_URL
-    # return render(request, 'commercialoperator/user_profile.html', context)
-    return render(request, "commercialoperator/dash/index.html", context)
-
-
-class HelpView(LoginRequiredMixin, TemplateView):
-    template_name = "commercialoperator/help.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(HelpView, self).get_context_data(**kwargs)
-
-        if self.request.user.is_authenticated:
-            application_type = kwargs.get("application_type", None)
-            if kwargs.get("help_type", None) == "assessor":
-                if is_internal(self.request):
-                    qs = HelpPage.objects.filter(
-                        application_type__name__icontains=application_type,
-                        help_type=HelpPage.HELP_TEXT_INTERNAL,
-                    ).order_by("-version")
-                    context["help"] = qs.first()
-            #                else:
-            #                    return TemplateResponse(self.request, 'commercialoperator/not-permitted.html', context)
-            #                    context['permitted'] = False
-            else:
-                qs = HelpPage.objects.filter(
-                    application_type__name__icontains=application_type,
-                    help_type=HelpPage.HELP_TEXT_EXTERNAL,
-                ).order_by("-version")
-                context["help"] = qs.first()
-        return context
-
-
-class ManagementCommandsView(LoginRequiredMixin, TemplateView):
+#TODO we may need to lock this behind an env var so this is not accessible on prod
+class ManagementCommandsView(UserPassesTestMixin, LoginRequiredMixin, TemplateView):
     template_name = "commercialoperator/mgt-commands.html"
+
+    def test_func(self):
+        return is_commercialoperator_admin(self.request) #TODO check if admin appropriate auth (sys admin may be needed)
 
     def post(self, request):
         data = {}
@@ -186,3 +119,90 @@ class ManagementCommandsView(LoginRequiredMixin, TemplateView):
             data.update({command_script: "true"})
 
         return render(request, self.template_name, data)
+
+
+def is_authorised_to_access_proposal_document(request,document_id):
+    if is_internal(request):
+        return True
+    elif request.user and request.user.is_authenticated:
+        user = request.user
+        user_orgs = [org.id for org in user.commericaloperator_organisations.all()]
+        return Proposal.objects.filter(id=document_id).filter(
+                Q(applicant_id__in=user_orgs) |
+                Q(submitter=user)).exists()
+
+def is_authorised_to_access_approval_document(request,document_id):
+    if is_internal(request):
+        return True
+    elif request.user and request.user.is_authenticated:
+        user = request.user
+        user_orgs = [org.id for org in user.commericaloperator_organisations.all()]
+        return Approval.objects.filter(id=document_id).filter(
+                Q(applicant_id__in = user_orgs) |
+                Q(proxy_applicant_id=user.id)).exists()
+
+def is_authorised_to_access_organisation_document(request,document_id):
+    if is_internal(request):
+        return True
+    elif request.user and request.user.is_authenticated:
+        user = request.user
+        org_contacts = OrganisationContact.objects.filter(is_admin=True).filter(email=user.email)
+        user_admin_orgs = [org.organisation.id for org in org_contacts]
+        return Organisation.objects.filter(id=document_id).filter(id__in=user_admin_orgs).exists()
+
+def get_file_path_id(check_str,file_path):
+    file_name_path_split = file_path.split("/")
+    #if the check_str is in the file path, the next value should be the id
+    if check_str in file_name_path_split:
+        id_index = file_name_path_split.index(check_str)+1
+        if len(file_name_path_split) > id_index and file_name_path_split[id_index].isnumeric():
+            return int(file_name_path_split[id_index])
+        else:
+            return False
+    else:
+        return False
+
+def is_authorised_to_access_document(request):
+    
+    if is_internal(request):
+        return True
+    elif request.user.is_authenticated:
+        p_document_id = get_file_path_id("proposals",request.path)
+        if p_document_id:
+            return is_authorised_to_access_proposal_document(request,p_document_id)
+        
+        a_document_id = get_file_path_id("approvals",request.path)
+        if a_document_id:
+            return is_authorised_to_access_approval_document(request,a_document_id)
+        
+        #for organisation requests, this will fail and they are stored in a request subdir and by date (which is fine for current use cases)
+        o_document_id = get_file_path_id("organisations",request.path)
+        if o_document_id:
+            return is_authorised_to_access_organisation_document(request,o_document_id)
+        return False
+    else:
+        return False
+
+def getPrivateFile(request):
+
+    if is_authorised_to_access_document(request):
+        file_name_path =  request.path
+        #norm path will convert any traversal or repeat / in to its normalised form
+        full_file_path= os.path.normpath(settings.BASE_DIR+file_name_path) 
+        #we then ensure the normalised path is within the BASE_DIR (and the file exists)
+        if full_file_path.startswith(settings.BASE_DIR) and os.path.isfile(full_file_path):
+            extension = file_name_path.split(".")[-1]
+            the_file = open(full_file_path, 'rb')
+            the_data = the_file.read()
+            the_file.close()
+            if extension == 'msg':
+                return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
+            if extension == 'eml':
+                return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
+
+            try:
+                return HttpResponse(the_data, content_type=mimetypes.types_map['.'+str(extension.lower())])
+            except:
+                return HttpResponse(status=500)
+       
+    return HttpResponse(status=403)

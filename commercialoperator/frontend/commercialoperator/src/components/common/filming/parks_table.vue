@@ -39,7 +39,7 @@ import editPark from './edit_park.vue';
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import { v4 as uuid } from 'uuid';
 import _ from 'lodash';
-
+import $ from 'jquery'
 export default {
     name: 'ParkTableDash',
     components: {

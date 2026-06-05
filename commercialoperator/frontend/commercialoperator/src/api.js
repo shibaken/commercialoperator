@@ -10,7 +10,6 @@ export default {
     organisation_requests: '/api/organisation_requests',
     organisation_requests_datatable:
         '/api/organisation_requests/datatable_list/?format=datatables',
-    organisation_contacts: '/api/organisation_contacts.json',
     organisation_access_group_members: '/api/organisation_access_group_members',
     organisation_lookup: '/api/organisations/organisation_lookup',
     users: '/api/users.json',
@@ -23,7 +22,6 @@ export default {
     proposal_type: '/api/proposal_type',
     proposals: '/api/proposal.json',
     proposal_park: '/api/proposal_park.json',
-    proposal_submit: '/api/proposal_submit.json',
     approvals: '/api/approvals.json',
     referrals: '/api/referrals.json',
     compliances: '/api/compliances.json',
@@ -86,7 +84,6 @@ export default {
     filter_list_approvals: '/api/approvals/filter_list.json',
     filter_list_compliances: '/api/compliances/filter_list.json',
     filter_list_referrals: '/api/referrals/filter_list.json',
-    filter_list_parks: '/api/parks/filter_list.json',
     filter_list_district_proposals: '/api/district_proposals/filter_list.json',
     filter_list_organisation_requests:
         '/api/organisation_requests/filter_list.json',

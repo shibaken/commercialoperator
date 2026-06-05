@@ -13,8 +13,7 @@ export default {
     DATATABLE_PROCESSING_HTML:
         '<div class="d-flex justify-content-center"><div class="d-flex spinner-border text-primary my-4" role="status"><span class="visually-hidden">Loading...</span></div></div>',
     DATATABLE_DOM_HTML:
-     "<'d-flex align-items-center'<'me-auto'l>B>" +
-     "<'row'<'col-sm-12'tr>>" +
-     "<'d-flex align-items-center'<'me-auto'i>p>"
-
+    "<'d-flex align-items-center'<'me-auto'l><'ms-auto'f> B>" +
+    "<'row'<'col-sm-12'tr>>" +
+    "<'d-flex align-items-center'<'me-auto'i>p>"
 };

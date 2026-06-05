@@ -79,6 +79,7 @@ import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
 
 import { helpers, api_endpoints } from '@/utils/hooks.js';
+import $ from 'jquery'
 export default {
     // eslint-disable-next-line vue/component-definition-name-casing
     name: 'referral-complete',

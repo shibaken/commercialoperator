@@ -4,12 +4,57 @@ from django.core.cache import cache
 from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.apps import apps
 
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 from django.db.models import JSONField
 
 from commercialoperator.components.segregation.utils import retrieve_email_user
+
+from django.core.files.storage import FileSystemStorage
+
+from commercialoperator.components.main.mixins import SanitiseFileMixin, SanitiseMixin
+
+private_storage = FileSystemStorage(
+    location=settings.PRIVATE_MEDIA_STORAGE_LOCATION,
+    base_url=settings.PRIVATE_MEDIA_BASE_URL,
+)
+
+class FileExtensionWhitelist(models.Model):
+
+    name = models.CharField(
+        max_length=16,
+        help_text="The file extension without the dot, e.g. jpg, pdf, docx, etc",
+    )
+    model = models.CharField(max_length=255, default="all")
+
+    class Meta:
+        app_label = "commercialoperator"
+        unique_together = ("name", "model")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._meta.get_field("model").choices = (
+            (
+                "all",
+                "all",
+            ),
+        ) + tuple(
+            map(
+                lambda m: (m, m),
+                filter(
+                    lambda m: Document
+                    in apps.get_app_config("commercialoperator").models[m].__bases__,
+                    apps.get_app_config("commercialoperator").models,
+                ),
+            )
+        )
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        cache.delete(settings.CACHE_KEY_FILE_EXTENSION_WHITELIST)
+
 
 
 class Region(models.Model):
@@ -22,10 +67,6 @@ class Region(models.Model):
 
     def __str__(self):
         return self.name
-
-    # @property
-    # def districts(self):
-    #     return District.objects.filter(region=self)
 
 
 class District(models.Model):
@@ -121,7 +162,6 @@ class NotificationMonth(models.Model):
 
     class Meta:
         app_label = "commercialoperator"
-        # unique_together = ('licence_period', 'month')
 
     def __str__(self):
         return str(self.month)
@@ -515,7 +555,7 @@ class Question(models.Model):
         return getattr(self, self.correct_answer)
 
 
-class UserAction(models.Model):
+class UserAction(SanitiseMixin):
     who = models.ForeignKey(
         EmailUser, null=False, blank=False, on_delete=models.CASCADE
     )
@@ -533,7 +573,7 @@ class UserAction(models.Model):
         app_label = "commercialoperator"
 
 
-class CommunicationsLogEntry(models.Model):
+class CommunicationsLogEntry(SanitiseMixin):
     TYPE_CHOICES = [
         ("email", "Email"),
         ("phone", "Phone Call"),
@@ -573,7 +613,7 @@ class CommunicationsLogEntry(models.Model):
         app_label = "commercialoperator"
 
 
-class Document(models.Model):
+class Document(SanitiseFileMixin):
     name = models.CharField(
         max_length=255, blank=True, verbose_name="name", help_text=""
     )
@@ -586,9 +626,6 @@ class Document(models.Model):
 
     @property
     def path(self):
-        # return self.file.path
-        # return self._file.path
-        # comment above line to fix the error "The '_file' attribute has no file associated with it." when adding comms log entry.
         if self._file:
             return self._file.path
         else:
@@ -617,6 +654,7 @@ class GlobalSettings(models.Model):
         ("event_traffic_code_of_practice", "Event traffic code of practice"),
         ("trail_section_map", "Trail section map"),
         ("dwer_application_form", "DWER Application Form"),
+        ('tourism_standards_link', 'Tourism Standards Link'),
     )
     key = models.CharField(
         max_length=255,
@@ -702,7 +740,7 @@ reversion.register(Zone, follow=["proposal_zones"])
 reversion.register(Trail, follow=["sections", "proposals"])
 reversion.register(Section, follow=["proposal_trails"])
 reversion.register(RequiredDocument)
-reversion.register(ApplicationType, follow=["tenure_app_types", "helppage_set"])
+reversion.register(ApplicationType, follow=["tenure_app_types"])
 reversion.register(ActivityMatrix)
 reversion.register(Tenure)
 reversion.register(Question)

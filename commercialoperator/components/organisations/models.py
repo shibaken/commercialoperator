@@ -38,18 +38,21 @@ from commercialoperator.components.organisations.emails import (
 from commercialoperator.components.segregation.decorators import basic_exception_handler
 from commercialoperator.components.segregation.mixins import MembersPropertiesMixin
 from commercialoperator.components.segregation.utils import (
-    EmailUserQuerySet,
     retrieve_delegate_organisation_ids,
     retrieve_email_user,
     retrieve_organisation_delegate_ids,
 )
+from commercialoperator.components.main.mixins import SanitiseFileMixin, SanitiseMixin
+
+from django.db.models import JSONField
 
 import logging
 
 logger = logging.getLogger(__name__)
 
+from commercialoperator.components.main.models import private_storage
 
-class Organisation(models.Model):
+class Organisation(SanitiseMixin):
     organisation_id = models.IntegerField(
         unique=True, verbose_name="Ledger Organisation ID"
     )
@@ -100,11 +103,42 @@ class Organisation(models.Model):
         default=0,
     )
 
+    #Property Caches to store Org Name and ABN without having to constantly query ledger - update on save or via management command - use for filtering
+    #NOTE: this is a temporary solution for until we are able to fully migrate ledger organisation tables
+    property_cache = JSONField(null=True, blank=True, default=dict)
+
     class Meta:
         app_label = "commercialoperator"
 
     def __str__(self):
-        return str(f"{self.name} (ABN: {self.abn})")
+
+        return_str = ""
+
+        if 'name' in self.property_cache:
+            return_str = self.property_cache["name"]
+        if 'abn' in self.property_cache:
+            return_str += f" (ABN: {self.property_cache["abn"]})"
+        
+        if not return_str:
+            return str(f"{self.name} (ABN: {self.abn})")
+        
+        return return_str
+
+    def update_property_cache(self, save=True):
+
+        #Update Cache
+        self.property_cache['name'] = self.name
+        self.property_cache['abn'] = self.abn
+
+        if save is True:
+            self.save()
+        
+        return self.property_cache
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            self.update_property_cache(False) #NOTE: very important that this is False to prevent an infinite save loop
+        super(Organisation, self).save(*args, **kwargs)
 
     @classmethod
     def organisations_user_can_admin(cls, user_id):
@@ -131,8 +165,8 @@ class Organisation(models.Model):
             )
         )
 
-    def log_user_action(self, action, request):
-        return OrganisationAction.log_action(self, action, request.user)
+    def log_user_action(self, action, user):
+        return OrganisationAction.log_action(self, action, user)
 
     def validate_pins(self, pin1, pin2, request):
         try:
@@ -205,17 +239,17 @@ class Organisation(models.Model):
             OrganisationAction.ACTION_CONTACT_ADDED.format(
                 "{} {}({})".format(user.first_name, user.last_name, user.email)
             ),
-            request,
+            request.user,
         )
 
     @transaction.atomic
     def update_organisation(self, request):
         # log organisation details updated (eg ../internal/organisations/access/2) - incorrect - this is for OrganisationRequesti not Organisation
         # should be ../internal/organisations/1
-        self.log_user_action(OrganisationAction.ACTION_UPDATE_ORGANISATION, request)
+        self.log_user_action(OrganisationAction.ACTION_UPDATE_ORGANISATION, request.user)
 
     def update_address(self, request):
-        self.log_user_action(OrganisationAction.ACTION_UPDATE_ADDRESS, request)
+        self.log_user_action(OrganisationAction.ACTION_UPDATE_ADDRESS, request.user)
 
     def update_contacts(self, request):
         try:
@@ -226,7 +260,7 @@ class Organisation(models.Model):
                         contact.first_name, contact.last_name, contact.email
                     )
                 ),
-                request,
+                request.user,
             )
         except:
             pass
@@ -256,7 +290,7 @@ class Organisation(models.Model):
 
     @staticmethod
     @basic_exception_handler
-    def existance(name, abn):
+    def existence(name, abn):
         exists = True
         org = None
 
@@ -287,10 +321,6 @@ class Organisation(models.Model):
 
     @transaction.atomic
     def accept_user(self, user, request):
-        # try:
-        #     UserDelegation.objects.get(organisation=self,user=user)
-        #     raise ValidationError('This user has already been linked to {}'.format(str(self.organisation)))
-        # except UserDelegation.DoesNotExist:
         delegate = UserDelegation.objects.create(organisation=self, user=user)
 
         try:
@@ -311,7 +341,7 @@ class Organisation(models.Model):
                     delegate.user.email,
                 )
             ),
-            request,
+            request.user,
         )
         send_organisation_link_email_notification(user, request.user, self, request)
 
@@ -333,7 +363,7 @@ class Organisation(models.Model):
             OrganisationAction.ACTION_CONTACT_DECLINED.format(
                 "{} {}({})".format(user.first_name, user.last_name, user.email)
             ),
-            request,
+            request.user,
         )
         send_organisation_contact_decline_email_notification(
             user, request.user, self, request
@@ -384,7 +414,7 @@ class Organisation(models.Model):
                     delegate.user.email,
                 )
             ),
-            request,
+            request.user,
         )
         # send email
         send_organisation_link_email_notification(user, request.user, self, request)
@@ -426,7 +456,7 @@ class Organisation(models.Model):
                     delegate.user.email,
                 )
             ),
-            request,
+            request.user,
         )
         # send email
         send_organisation_link_email_notification(user, request.user, self, request)
@@ -455,7 +485,7 @@ class Organisation(models.Model):
                     delegate.user.email,
                 )
             ),
-            request,
+            request.user,
         )
         # send email
         send_organisation_reinstate_email_notification(
@@ -510,7 +540,7 @@ class Organisation(models.Model):
                     delegate.user.email,
                 )
             ),
-            request,
+            request.user,
         )
         # send email
         send_organisation_unlink_email_notification(user, request.user, self, request)
@@ -542,7 +572,7 @@ class Organisation(models.Model):
                     delegate.user.email,
                 )
             ),
-            request,
+            request.user,
         )
         # send email
         send_organisation_contact_adminuser_email_notification(
@@ -594,7 +624,7 @@ class Organisation(models.Model):
                     delegate.user.email,
                 )
             ),
-            request,
+            request.user,
         )
         # send email
         send_organisation_contact_user_email_notification(
@@ -627,7 +657,7 @@ class Organisation(models.Model):
                     delegate.user.email,
                 )
             ),
-            request,
+            request.user,
         )
         # send email
         send_organisation_contact_suspend_email_notification(
@@ -660,7 +690,7 @@ class Organisation(models.Model):
                     delegate.user.email,
                 )
             ),
-            request,
+            request.user,
         )
         # send email
         send_organisation_reinstate_email_notification(
@@ -750,7 +780,7 @@ class Organisation(models.Model):
         return [user.email for user in delegates_all if can_admin_org(self, user.id)]
 
 
-class OrganisationContact(models.Model):
+class OrganisationContact(SanitiseMixin):
     USER_STATUS_CHOICES = (
         ("draft", "Draft"),
         ("pending", "Pending"),
@@ -761,7 +791,7 @@ class OrganisationContact(models.Model):
         (
             "contact_form",
             "ContactForm",
-        ),  # status 'contact_form' if org contact was added via 'Contact Details' section in manage.vue (allows Org Contact to be distinguished from Org Delegate)
+        ), 
     )
     USER_ROLE_CHOICES = (
         ("organisation_admin", "Organisation Admin"),
@@ -834,7 +864,6 @@ class OrganisationContact(models.Model):
 class OrganisationContactDeclinedDetails(models.Model):
     request = models.ForeignKey(OrganisationContact, on_delete=models.CASCADE)
     officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
-    # reason = models.TextField(blank=True)
 
     class Meta:
         app_label = "commercialoperator"
@@ -918,7 +947,7 @@ class OrganisationLogDocument(Document):
         "OrganisationLogEntry", related_name="documents", on_delete=models.CASCADE
     )
     _file = models.FileField(
-        upload_to=update_organisation_comms_log_filename, max_length=512
+        upload_to=update_organisation_comms_log_filename, max_length=512, storage=private_storage
     )
 
     class Meta:
@@ -940,8 +969,7 @@ class OrganisationLogEntry(CommunicationsLogEntry):
         app_label = "commercialoperator"
 
 
-class OrganisationRequest(models.Model):
-    objects = EmailUserQuerySet.as_manager()
+class OrganisationRequest(SanitiseFileMixin):
 
     STATUS_CHOICES = (
         ("with_assessor", "With Assessor"),
@@ -960,10 +988,11 @@ class OrganisationRequest(models.Model):
         on_delete=models.CASCADE,
     )
     identification = models.FileField(
-        upload_to="organisation/requests/%Y/%m/%d",
+        upload_to="organisation/requests",
         max_length=512,
         null=True,
         blank=True,
+        storage=private_storage
     )
     status = models.CharField(
         max_length=100, choices=STATUS_CHOICES, default="with_assessor"
@@ -976,14 +1005,13 @@ class OrganisationRequest(models.Model):
         ordering = ["name"]
 
     def accept(self, request):
-        # I moved the __accept method to the top of the method to allow it to gracefully error out
         self.__accept(request)
         # Continue with remaining logic
         self.status = "approved"
         self.save()
         self.log_user_action(
             OrganisationRequestUserAction.ACTION_CONCLUDE_REQUEST.format(self.id),
-            request,
+            request.user,
         )
 
     @transaction.atomic
@@ -997,16 +1025,33 @@ class OrganisationRequest(models.Model):
             # Create a new organisation in ledger
             create_organisation(self.name, self.abn)
             organisation_response = get_search_organisation(self.name, self.abn)
+            ledger_org = None
             response_status = organisation_response.get("status", None)
             if response_status == status.HTTP_200_OK:
-                logger.info(f"Organisation created in ledger: {self.name} ({self.abn})")
+                for organisation in organisation_response.get("data", {}):
+                    if organisation["organisation_abn"] == self.abn:
+                        ledger_org = organisation
+                        break
 
-        if response_status != status.HTTP_200_OK:
-            raise ValidationError(
-                "Failed to retrieve organisation details from the ledger."
-            )
+        elif response_status == status.HTTP_200_OK:
+            ledger_org = None
+            for organisation in organisation_response.get("data", {}):
+                if organisation["organisation_abn"] == self.abn:
+                    ledger_org = organisation
+                    break
 
-        ledger_org = organisation_response.get("data", {})[0]
+            if not ledger_org:
+                create_organisation(self.name, self.abn)
+                organisation_response = get_search_organisation(self.name, self.abn)
+                response_status = organisation_response.get("status", None)
+                if response_status == status.HTTP_200_OK:
+                    for organisation in organisation_response.get("data", {}):
+                        if organisation["organisation_abn"] == self.abn:
+                            ledger_org = organisation
+                            break
+
+        if not ledger_org:
+            raise ValidationError("Unable to create or retrieve organisation.")
 
         # Create Organisation in commercialoperator
         org, created = Organisation.objects.get_or_create(
@@ -1019,7 +1064,7 @@ class OrganisationRequest(models.Model):
         delegate = UserDelegation.objects.create(user=self.requester, organisation=org)
         # log who approved the request
         org.log_user_action(
-            OrganisationAction.ACTION_REQUEST_APPROVED.format(self.id), request
+            OrganisationAction.ACTION_REQUEST_APPROVED.format(self.id), request.user
         )
         # log who created the link
         org.log_user_action(
@@ -1030,7 +1075,7 @@ class OrganisationRequest(models.Model):
                     delegate.user.email,
                 )
             ),
-            request,
+            request.user,
         )
         # Create contact person
         if self.role == "consultant":
@@ -1070,14 +1115,14 @@ class OrganisationRequest(models.Model):
         self.save()
         self.log_user_action(
             OrganisationRequestUserAction.ACTION_ASSIGN_TO.format(user.get_full_name()),
-            request,
+            request.user,
         )
 
     @transaction.atomic
     def unassign(self, request):
         self.assigned_officer = None
         self.save()
-        self.log_user_action(OrganisationRequestUserAction.ACTION_UNASSIGN, request)
+        self.log_user_action(OrganisationRequestUserAction.ACTION_UNASSIGN, request.user)
 
     @transaction.atomic
     def decline(self, reason, request):
@@ -1087,7 +1132,7 @@ class OrganisationRequest(models.Model):
             officer=request.user, reason=reason, request=self
         )
         self.log_user_action(
-            OrganisationRequestUserAction.ACTION_DECLINE_REQUEST, request
+            OrganisationRequestUserAction.ACTION_DECLINE_REQUEST, request.user
         )
         send_organisation_request_decline_email_notification(self, request)
 
@@ -1101,8 +1146,8 @@ class OrganisationRequest(models.Model):
                 self, request, org_access_recipients
             )
 
-    def log_user_action(self, action, request):
-        return OrganisationRequestUserAction.log_action(self, action, request.user)
+    def log_user_action(self, action, user):
+        return OrganisationRequestUserAction.log_action(self, action, user)
 
 
 class OrganisationAccessGroup(models.Model, MembersPropertiesMixin):
@@ -1140,7 +1185,7 @@ class OrganisationRequestUserAction(UserAction):
         app_label = "commercialoperator"
 
 
-class OrganisationRequestDeclinedDetails(models.Model):
+class OrganisationRequestDeclinedDetails(SanitiseMixin):
     request = models.ForeignKey(OrganisationRequest, on_delete=models.CASCADE)
     officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
     reason = models.TextField(blank=True)
@@ -1162,7 +1207,7 @@ class OrganisationRequestLogDocument(Document):
         on_delete=models.CASCADE,
     )
     _file = models.FileField(
-        upload_to=update_organisation_request_comms_log_filename, max_length=512
+        upload_to=update_organisation_request_comms_log_filename, max_length=512, storage=private_storage
     )
 
     class Meta:

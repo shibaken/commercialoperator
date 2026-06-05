@@ -1,7 +1,7 @@
 <template id="proposal_dashboard">
     <div class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <div class="row">
                     <div class="col-md-3">
                         <div
@@ -86,10 +86,8 @@
                                     max="2999-12-31"
                                     placeholder="DD/MM/YYYY"
                                 />
-                                <span class="input-group-addon">
-                                    <span
-                                        class="glyphicon glyphicon-calendar"
-                                    ></span>
+                                <span class="input-group-text">
+                                    <i class="fas fa-calendar-days"></i>
                                 </span>
                             </div>
                         </div>
@@ -109,10 +107,8 @@
                                     max="2999-12-31"
                                     placeholder="DD/MM/YYYY"
                                 />
-                                <span class="input-group-addon">
-                                    <span
-                                        class="glyphicon glyphicon-calendar"
-                                    ></span>
+                                <span class="input-group-text">
+                                    <i class="fas fa-calendar-days"></i>
                                 </span>
                             </div>
                         </div>
@@ -134,10 +130,8 @@
                                     max="2999-12-31"
                                     placeholder="DD/MM/YYYY"
                                 />
-                                <span class="input-group-addon">
-                                    <span
-                                        class="glyphicon glyphicon-calendar"
-                                    ></span>
+                                <span class="input-group-text">
+                                    <i class="fas fa-calendar-days"></i>
                                 </span>
                             </div>
                         </div>
@@ -157,22 +151,19 @@
                                     max="2999-12-31"
                                     placeholder="DD/MM/YYYY"
                                 />
-                                <span class="input-group-addon">
-                                    <span
-                                        class="glyphicon glyphicon-calendar"
-                                    ></span>
+                                <span class="input-group-text">
+                                    <i class="fas fa-calendar-days"></i>
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    <div v-if="is_internal" class="col-md-3">
+                    <div v-if="is_internal" class="col-md-3 ms-md-auto">
                         <div class="form-group">
                             <label />
                             <div>
                                 <button
-                                    style="width: 80%"
-                                    class="btn btn-primary top-buffer-s"
+                                    class="btn btn-primary top-buffer-s float-end"
                                     :disabled="disabled"
                                     @click.prevent="createEClassLicence()"
                                 >
@@ -224,7 +215,7 @@ import EClassLicence from '../internal/approvals/approval_eclass.vue';
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import { v4 as uuid } from 'uuid';
 import _ from 'lodash';
-
+import $ from 'jquery'
 export default {
     name: 'ProposalTableDash',
     components: {
@@ -267,11 +258,9 @@ export default {
             filterStartTo: '',
             filterExpiryFrom: '',
             filterExpiryTo: '',
-            filterProposalSubmitter: 'All',
             dateFormat: 'DD/MM/YYYY',
             application_types: [],
             approval_status: [],
-            proposal_submitters: [],
             proposal_headers: [
                 'Number',
                 'Application',
@@ -334,8 +323,6 @@ export default {
                             vm.filterProposalStatus.toLowerCase();
                         d.datatable_filter_current_proposal__application_type__name =
                             vm.filterApplicationType;
-                        d.search_terms =
-                            'org_applicant__organisation__organisation_name, proxy_applicant__first_name, proxy_applicant__last_name, proxy_applicant__email';
                     },
                 },
                 dom: constants.DATATABLE_DOM_HTML,
@@ -367,7 +354,7 @@ export default {
                                 var message = '';
                                 let icon = '';
                                 icon =
-                                    "<i class='fa fa-exclamation-triangle' style='color:red'></i>";
+                                    "<i class='fas fa-exclamation-triangle' style='color:red'></i>";
                                 result = full.reserved_licence
                                     ? '<span>' +
                                       full.lodgement_number +
@@ -407,6 +394,8 @@ export default {
                             }
                         },
                         name: 'lodgement_number',
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: 'linked_applications',
@@ -419,19 +408,27 @@ export default {
                             return applications;
                         },
                         name: 'current_proposal__lodgement_number',
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: 'application_type',
                         name: 'current_proposal__application_type__name',
+                        orderable: false,
+                        searchable: false,
                     },
                     {
                         data: 'applicant',
                         name: 'org_applicant__organisation__organisation_name, proxy_applicant__first_name, proxy_applicant__last_name, proxy_applicant__email',
                         // Note: Set to non-searchable because for now we can't search in ledger fields (emailuser, organisation)
-                        orderable: true,
-                        searchable: true,
+                        orderable: false,
+                        searchable: false,
                     },
-                    { data: 'status' },
+                    { 
+                        data: 'status', 
+                        orderable: false,
+                        searchable: false,
+                    },
                     {
                         data: 'start_date',
                         // eslint-disable-next-line no-unused-vars
@@ -441,6 +438,7 @@ export default {
                                 : '';
                         },
                         searchable: false,
+                        orderable: true,
                     },
                     {
                         data: 'expiry_date',
@@ -451,6 +449,7 @@ export default {
                                 : '';
                         },
                         searchable: false,
+                        orderable: true,
                     },
                     {
                         data: 'licence_document',
@@ -458,10 +457,10 @@ export default {
                             var result = '';
                             var popTemplate = '';
                             if (!full.migrated) {
-                                result = `<a href="${data}" target="_blank"><i style="color:red" class="fa fa-file-pdf"></i></a>`;
+                                result = `<a href="${data}" target="_blank"><i style="color:red" class="fas fa-file-pdf"></i></a>`;
                             } else if (full.migrated) {
                                 var icon =
-                                    "<i class='fa fa-file-pdf' style='color:red'></i>";
+                                    "<i class='fas fa-file-pdf' style='color:red'></i>";
                                 var message = 'This is a migrated licence';
 
                                 const title = `License ${full.lodgement_number}`;
@@ -486,6 +485,8 @@ export default {
                             return result;
                         },
                         name: 'licence_document__name',
+                        searchable: false,
+                        orderable: false,
                     },
                     {
                         data: 'licence_name',
@@ -620,20 +621,6 @@ export default {
         },
     },
     watch: {
-        filterProposalSubmitter: function () {
-            let vm = this;
-            if (vm.filterProposalSubmitter != 'All') {
-                vm.$refs.proposal_datatable.vmDataTable
-                    .columns(2)
-                    .search(vm.filterProposalSubmitter)
-                    .draw();
-            } else {
-                vm.$refs.proposal_datatable.vmDataTable
-                    .columns(2)
-                    .search('')
-                    .draw();
-            }
-        },
         filterProposalStatus: function () {
             let vm = this;
             if (vm.filterProposalStatus != 'All') {
@@ -691,11 +678,11 @@ export default {
         this.fetchFilterLists();
         this.fetchProfile();
         let vm = this;
-        // $('a[data-toggle="collapse"]').on('click', function () {
+        // $('a[data-bs-toggle="collapse"]').on('click', function () {
         //     var chev = $(this).children()[0];
         //     window.setTimeout(function () {
         //         $(chev).toggleClass(
-        //             'glyphicon-chevron-down glyphicon-chevron-up'
+        //             'fa-chevron-down fa-chevron-up'
         //         );
         //     }, 100);
         // });
@@ -720,7 +707,6 @@ export default {
                 .fetchUrl(api_endpoints.filter_list_approvals)
                 .then(
                     (response) => {
-                        vm.proposal_submitters = response.submitters;
                         vm.approval_status = response.approval_status_choices;
                         vm.application_types = response.application_types;
                     },
@@ -874,18 +860,6 @@ export default {
         initialiseSearch: function () {
             this.dateSearch();
         },
-        submitterSearch: function () {
-            let vm = this;
-            vm.$refs.proposal_datatable.table.dataTableExt.afnFiltering.push(
-                function (settings, data, dataIndex, original) {
-                    let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All') {
-                        return true;
-                    }
-                    return filtered_submitter == original.submitter.email;
-                }
-            );
-        },
         dateSearch: function () {
             let vm = this;
             vm.$refs.proposal_datatable.table.dataTableExt.afnFiltering.push(
@@ -1011,9 +985,9 @@ export default {
                 showCancelButton: true,
                 confirmButtonText: 'Extend licence',
             }).then(
-                () => {
-                    helpers
-                        .fetchUrl(
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        helpers.fetchUrl(
                             helpers.add_endpoint_json(
                                 api_endpoints.approvals,
                                 approval_id + '/approval_extend'
@@ -1025,8 +999,7 @@ export default {
                                     'Content-Type': 'application/json',
                                 },
                             }
-                        )
-                        .then(
+                        ).then(
                             () => {
                                 vm.$router.push({
                                     name: 'internal-proposal',
@@ -1042,8 +1015,8 @@ export default {
                                 });
                             }
                         );
+                    }
                 },
-                () => {}
             );
         },
 
@@ -1061,9 +1034,9 @@ export default {
                 showCancelButton: true,
                 confirmButtonText: 'Reinstate licence',
             }).then(
-                () => {
-                    helpers
-                        .fetchUrl(
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        helpers.fetchUrl(
                             helpers.add_endpoint_json(
                                 api_endpoints.approvals,
                                 approval_id + '/approval_reinstate'
@@ -1094,6 +1067,7 @@ export default {
                                 });
                             }
                         );
+                    }
                 },
                 () => {}
             );
@@ -1108,20 +1082,20 @@ export default {
                 showCancelButton: true,
                 confirmButtonText: 'Renew licence',
             }).then(
-                () => {
-                    swal.fire({
-                        title: 'Loading...',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        didOpen: () => {
-                            swal.showLoading();
-                        },
-                        customClass: {
-                            container: 'swal2-popover',
-                        },
-                    });
-                    helpers
-                        .fetchUrl(
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        swal.fire({
+                            title: 'Loading...',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            didOpen: () => {
+                                swal.showLoading();
+                            },
+                            customClass: {
+                                container: 'swal2-popover',
+                            },
+                        });
+                        helpers.fetchUrl(
                             helpers.add_endpoint_json(
                                 api_endpoints.proposals,
                                 proposal_id + '/renew_approval'
@@ -1147,6 +1121,7 @@ export default {
                                 });
                             }
                         );
+                    }
                 },
                 () => {}
             );

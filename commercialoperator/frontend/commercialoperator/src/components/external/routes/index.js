@@ -4,7 +4,6 @@ import ExternalDashboard from '../dashboard.vue';
 import Proposal from '../proposal.vue';
 import ProposalApply from '../proposal_apply.vue';
 import ProposalSubmit from '../proposal_submit.vue';
-import Organisation from '../organisations/manage.vue';
 import Compliance from '../compliances/access.vue';
 import ComplianceSubmit from '../compliances/submit.vue';
 import Approval from '../approvals/approval.vue';
@@ -19,10 +18,6 @@ export default {
             path: '',
             component: ExternalDashboard,
             name: 'external-proposals-dash',
-        },
-        {
-            path: 'organisations/manage/:org_id',
-            component: Organisation,
         },
         {
             path: 'compliance/:compliance_id',

@@ -16,12 +16,12 @@ from django.db.models import JSONField
 from django.utils import timezone
 from django.conf import settings
 from taggit.models import TaggedItemBase
-from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Basket, Invoice
+from ledger_api_client.ledger_models import EmailUserRO as EmailUser, Invoice
 from ledger_api_client.utils import (
     create_basket_session,
     process_create_future_invoice,
 )
-from commercialoperator.components.main.mixins import RevisionedMixin
+from commercialoperator.components.main.mixins import RevisionedMixin, SanitiseMixin
 
 from commercialoperator import exceptions
 from commercialoperator.components.organisations.models import Organisation
@@ -53,7 +53,6 @@ from commercialoperator.components.proposals.mixins import MembersEmailMixin
 from commercialoperator.components.segregation.decorators import basic_exception_handler
 from commercialoperator.components.segregation.mixins import MembersPropertiesMixin
 from commercialoperator.components.segregation.utils import (
-    EmailUserQuerySet,
     retrieve_email_user,
     retrieve_group_members,
     retrieve_user_groups,
@@ -77,17 +76,17 @@ from commercialoperator.components.proposals.email import (
 )
 import copy
 import subprocess
-from django.db.models import Q, F, When, Case
+from django.db.models import Q
 from reversion.models import Version
 from dirtyfields import DirtyFieldsMixin
 from decimal import Decimal as D
 from multiselectfield import MultiSelectField
 
-
 import logging
 
 logger = logging.getLogger(__name__)
 
+from commercialoperator.components.main.models import private_storage
 
 def update_proposal_doc_filename(instance, filename):
     return "{}/proposals/{}/documents/{}".format(
@@ -165,10 +164,8 @@ def default_proposaltype_schema():
 
 
 class ProposalType(models.Model):
-    # name = models.CharField(verbose_name='Application name (eg. commercialoperator, Apiary)', max_length=24)
-    # application_type = models.ForeignKey(ApplicationType, related_name='aplication_types')
+
     description = models.CharField(max_length=256, blank=True, null=True)
-    # name = models.CharField(verbose_name='Application name (eg. commercialoperator, Apiary)', max_length=24, choices=application_type_choicelist(), default=application_type_choicelist()[0][0])
     name = models.CharField(
         verbose_name="Application name (eg. T Class, Filming, Event, E Class)",
         max_length=64,
@@ -176,12 +173,9 @@ class ProposalType(models.Model):
         default="T Class",
     )
     schema = JSONField(default=default_proposaltype_schema)
-    # activities = TaggableManager(verbose_name="Activities",help_text="A comma-separated list of activities.")
-    # site = models.OneToOneField(Site, default='1')
     replaced_by = models.ForeignKey(
         "self", on_delete=models.PROTECT, blank=True, null=True
     )
-    # replaced_by = models.ForeignKey('self', blank=True, null=True)
     version = models.SmallIntegerField(default=1, blank=False, null=False)
 
     def __str__(self):
@@ -364,7 +358,7 @@ class ProposalDocument(Document):
     proposal = models.ForeignKey(
         "Proposal", related_name="documents", on_delete=models.CASCADE
     )
-    _file = models.FileField(upload_to=update_proposal_doc_filename, max_length=512)
+    _file = models.FileField(upload_to=update_proposal_doc_filename, max_length=512, storage=private_storage)
     input_name = models.CharField(max_length=255, null=True, blank=True)
     can_delete = models.BooleanField(
         default=True
@@ -385,7 +379,7 @@ class OnHoldDocument(Document):
     proposal = models.ForeignKey(
         "Proposal", related_name="onhold_documents", on_delete=models.CASCADE
     )
-    _file = models.FileField(upload_to=update_onhold_doc_filename, max_length=512)
+    _file = models.FileField(upload_to=update_onhold_doc_filename, max_length=512, storage=private_storage)
     input_name = models.CharField(max_length=255, null=True, blank=True)
     can_delete = models.BooleanField(
         default=True
@@ -405,7 +399,7 @@ class ProposalRequiredDocument(Document):
         "Proposal", related_name="required_documents", on_delete=models.CASCADE
     )
     _file = models.FileField(
-        upload_to=update_proposal_required_doc_filename, max_length=512
+        upload_to=update_proposal_required_doc_filename, max_length=512, storage=private_storage
     )
     input_name = models.CharField(max_length=255, null=True, blank=True)
     can_delete = models.BooleanField(
@@ -438,7 +432,7 @@ class QAOfficerDocument(Document):
     proposal = models.ForeignKey(
         "Proposal", related_name="qaofficer_documents", on_delete=models.CASCADE
     )
-    _file = models.FileField(upload_to=update_qaofficer_doc_filename, max_length=512)
+    _file = models.FileField(upload_to=update_qaofficer_doc_filename, max_length=512, storage=private_storage)
     input_name = models.CharField(max_length=255, null=True, blank=True)
     can_delete = models.BooleanField(
         default=True
@@ -464,7 +458,7 @@ class ReferralDocument(Document):
     referral = models.ForeignKey(
         "Referral", related_name="referral_documents", on_delete=models.CASCADE
     )
-    _file = models.FileField(upload_to=update_referral_doc_filename, max_length=512)
+    _file = models.FileField(upload_to=update_referral_doc_filename, max_length=512, storage=private_storage)
     input_name = models.CharField(max_length=255, null=True, blank=True)
     can_delete = models.BooleanField(
         default=True
@@ -489,7 +483,7 @@ class RequirementDocument(Document):
         related_name="requirement_documents",
         on_delete=models.CASCADE,
     )
-    _file = models.FileField(upload_to=update_requirement_doc_filename, max_length=512)
+    _file = models.FileField(upload_to=update_requirement_doc_filename, max_length=512, storage=private_storage)
     input_name = models.CharField(max_length=255, null=True, blank=True)
     can_delete = models.BooleanField(
         default=True
@@ -503,7 +497,7 @@ class RequirementDocument(Document):
             return super(RequirementDocument, self).delete()
 
 
-class ProposalApplicantDetails(models.Model):
+class ProposalApplicantDetails(SanitiseMixin):
     first_name = models.CharField(max_length=24, blank=True, default="")
 
     class Meta:
@@ -581,7 +575,6 @@ class ParkEntry(models.Model):
 
 
 class Proposal(DirtyFieldsMixin, RevisionedMixin):
-    objects = EmailUserQuerySet.as_manager()
 
     APPLICANT_TYPE_ORGANISATION = "ORG"
     APPLICANT_TYPE_PROXY = "PRX"
@@ -1319,7 +1312,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             ProposalUserAction.ACTION_RESET_TRAINING_COMPLETED.format(
                                 self.id
                             ),
-                            request,
+                            request.user,
                         )
 
             elif self.proxy_applicant:
@@ -1341,7 +1334,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             ProposalUserAction.ACTION_RESET_TRAINING_COMPLETED.format(
                                 self.id
                             ),
-                            request,
+                            request.user,
                         )
 
             else:
@@ -1363,7 +1356,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             ProposalUserAction.ACTION_RESET_TRAINING_COMPLETED.format(
                                 self.id
                             ),
-                            request,
+                            request.user,
                         )
 
     @property
@@ -1554,6 +1547,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     def permit(self):
         return self.approval.licence_document._file.url if self.approval else None
 
+    #TODO provided id and name only
     @property
     def allowed_assessors(self):
         if self.processing_status == "with_approver":
@@ -2148,8 +2142,8 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     "proposalassessorgroup", user.id
                 )
 
-    def log_user_action(self, action, request):
-        return ProposalUserAction.log_action(self, action, request.user)
+    def log_user_action(self, action, user):
+        return ProposalUserAction.log_action(self, action, user)
 
     def submit(self, request, viewset):
         from commercialoperator.components.proposals.utils import save_proponent_data
@@ -2177,19 +2171,16 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
                 # Create a log entry for the proposal
                 self.log_user_action(
-                    ProposalUserAction.ACTION_LODGE_APPLICATION.format(self.id), request
+                    ProposalUserAction.ACTION_LODGE_APPLICATION.format(self.id), request.user
                 )
-                # Create a log entry for the organisation
-                # self.applicant.log_user_action(ProposalUserAction.ACTION_LODGE_APPLICATION.format(self.id),request)
                 applicant_field = getattr(self, self.applicant_field)
                 applicant_field.log_user_action(
-                    ProposalUserAction.ACTION_LODGE_APPLICATION.format(self.id), request
+                    ProposalUserAction.ACTION_LODGE_APPLICATION.format(self.id), request.user
                 )
 
                 ret1 = send_submit_email_notification(request, self)
                 ret2 = send_external_submit_email_notification(request, self)
 
-                # self.save_form_tabs(request)
                 if ret1 and ret2:
                     self.processing_status = "with_assessor"
                     self.customer_status = "with_assessor"
@@ -2302,7 +2293,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(
                     referral.id, self.id, "{}".format(referral_group.name)
                 ),
-                request,
+                request.user,
             )
             # Create a log entry for the organisation
             applicant_field = getattr(self, self.applicant_field)
@@ -2310,7 +2301,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 ProposalUserAction.ACTION_SEND_REFERRAL_TO.format(
                     referral.id, self.id, "{}".format(referral_group.name)
                 ),
-                request,
+                request.user,
             )
             # send email
             recipients = referral_group.members_list
@@ -2337,7 +2328,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                 self.id,
                                 "{}({})".format(officer.get_full_name(), officer.email),
                             ),
-                            request,
+                            request.user,
                         )
                         # Create a log entry for the organisation
                         applicant_field = getattr(self, self.applicant_field)
@@ -2346,7 +2337,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                 self.id,
                                 "{}({})".format(officer.get_full_name(), officer.email),
                             ),
-                            request,
+                            request.user,
                         )
                 else:
                     if officer != self.assigned_officer:
@@ -2358,7 +2349,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                 self.id,
                                 "{}({})".format(officer.get_full_name(), officer.email),
                             ),
-                            request,
+                            request.user,
                         )
                         # Create a log entry for the organisation
                         applicant_field = getattr(self, self.applicant_field)
@@ -2367,12 +2358,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                 self.id,
                                 "{}({})".format(officer.get_full_name(), officer.email),
                             ),
-                            request,
+                            request.user,
                         )
             except:
                 raise
 
-    def assing_approval_level_document(self, request):
+    def passing_approval_level_document(self, request):
         with transaction.atomic():
             try:
                 approval_level_document = request.data["approval_level_document"]
@@ -2387,9 +2378,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             name=str(approval_level_document),
                         )[0]
                     document.name = str(approval_level_document)
-                    # commenting out below tow lines - we want to retain all past attachments - reversion can use them
-                    # if document._file and os.path.isfile(document._file.path):
-                    #    os.remove(document._file.path)
                     document._file = approval_level_document
                     document.save()
                     d = ProposalDocument.objects.get(id=document.id)
@@ -2400,19 +2388,19 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     comment = "Approval Level Document Deleted: {}".format(
                         request.data["approval_level_document_name"]
                     )
-                # self.save()
+
                 self.save(
                     version_comment=comment
                 )  # to allow revision to be added to reversion history
                 self.log_user_action(
                     ProposalUserAction.ACTION_APPROVAL_LEVEL_DOCUMENT.format(self.id),
-                    request,
+                    request.user,
                 )
                 # Create a log entry for the organisation
                 applicant_field = getattr(self, self.applicant_field)
                 applicant_field.log_user_action(
                     ProposalUserAction.ACTION_APPROVAL_LEVEL_DOCUMENT.format(self.id),
-                    request,
+                    request.user,
                 )
                 return self
             except:
@@ -2430,13 +2418,13 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         # Create a log entry for the proposal
                         self.log_user_action(
                             ProposalUserAction.ACTION_UNASSIGN_APPROVER.format(self.id),
-                            request,
+                            request.user,
                         )
                         # Create a log entry for the organisation
                         applicant_field = getattr(self, self.applicant_field)
                         applicant_field.log_user_action(
                             ProposalUserAction.ACTION_UNASSIGN_APPROVER.format(self.id),
-                            request,
+                            request.user,
                         )
                 else:
                     if self.assigned_officer:
@@ -2445,13 +2433,13 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         # Create a log entry for the proposal
                         self.log_user_action(
                             ProposalUserAction.ACTION_UNASSIGN_ASSESSOR.format(self.id),
-                            request,
+                            request.user,
                         )
                         # Create a log entry for the organisation
                         applicant_field = getattr(self, self.applicant_field)
                         applicant_field.log_user_action(
                             ProposalUserAction.ACTION_UNASSIGN_ASSESSOR.format(self.id),
-                            request,
+                            request.user,
                         )
             except:
                 raise
@@ -2500,7 +2488,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 if self.processing_status == self.PROCESSING_STATUS_WITH_ASSESSOR:
                     self.log_user_action(
                         ProposalUserAction.ACTION_BACK_TO_PROCESSING.format(self.id),
-                        request,
+                        request.user,
                     )
                 elif (
                     self.processing_status
@@ -2508,7 +2496,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 ):
                     self.log_user_action(
                         ProposalUserAction.ACTION_ENTER_REQUIREMENTS.format(self.id),
-                        request,
+                        request.user,
                     )
         else:
             raise ValidationError("The provided status cannot be found.")
@@ -2544,7 +2532,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     # Create a log entry for the proposal
                     self.log_user_action(
                         ProposalUserAction.ACTION_REISSUE_APPROVAL.format(self.id),
-                        request,
+                        request.user,
                     )
                 else:
                     raise ValidationError(
@@ -2575,7 +2563,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     # Create a log entry for the proposal
                     self.log_user_action(
                         ProposalUserAction.ACTION_REISSUE_APPROVAL.format(self.id),
-                        request,
+                        request.user,
                     )
                 else:
                     raise ValidationError(
@@ -2608,12 +2596,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 self.move_to_status(request, "with_approver", approver_comment)
                 # Log proposal action
                 self.log_user_action(
-                    ProposalUserAction.ACTION_PROPOSED_DECLINE.format(self.id), request
+                    ProposalUserAction.ACTION_PROPOSED_DECLINE.format(self.id), request.user
                 )
                 # Log entry for organisation
                 applicant_field = getattr(self, self.applicant_field)
                 applicant_field.log_user_action(
-                    ProposalUserAction.ACTION_PROPOSED_DECLINE.format(self.id), request
+                    ProposalUserAction.ACTION_PROPOSED_DECLINE.format(self.id), request.user
                 )
 
                 send_approver_decline_email_notification(reason, request, self)
@@ -2646,12 +2634,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 self.save()
                 # Log proposal action
                 self.log_user_action(
-                    ProposalUserAction.ACTION_DECLINE.format(self.id), request
+                    ProposalUserAction.ACTION_DECLINE.format(self.id), request.user
                 )
                 # Log entry for organisation
                 applicant_field = getattr(self, self.applicant_field)
                 applicant_field.log_user_action(
-                    ProposalUserAction.ACTION_DECLINE.format(self.id), request
+                    ProposalUserAction.ACTION_DECLINE.format(self.id), request.user
                 )
                 send_proposal_decline_email_notification(
                     self, request, proposal_decline
@@ -2677,12 +2665,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 self.save()
                 # Log proposal action
                 self.log_user_action(
-                    ProposalUserAction.ACTION_PUT_ONHOLD.format(self.id), request
+                    ProposalUserAction.ACTION_PUT_ONHOLD.format(self.id), request.user
                 )
                 # Log entry for organisation
                 applicant_field = getattr(self, self.applicant_field)
                 applicant_field.log_user_action(
-                    ProposalUserAction.ACTION_PUT_ONHOLD.format(self.id), request
+                    ProposalUserAction.ACTION_PUT_ONHOLD.format(self.id), request.user
                 )
 
                 # send_approver_decline_email_notification(reason, request, self)
@@ -2704,12 +2692,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 self.save()
                 # Log proposal action
                 self.log_user_action(
-                    ProposalUserAction.ACTION_REMOVE_ONHOLD.format(self.id), request
+                    ProposalUserAction.ACTION_REMOVE_ONHOLD.format(self.id), request.user
                 )
                 # Log entry for organisation
                 applicant_field = getattr(self, self.applicant_field)
                 applicant_field.log_user_action(
-                    ProposalUserAction.ACTION_REMOVE_ONHOLD.format(self.id), request
+                    ProposalUserAction.ACTION_REMOVE_ONHOLD.format(self.id), request.user
                 )
 
                 # send_approver_decline_email_notification(reason, request, self)
@@ -2746,12 +2734,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
                 # Log proposal action
                 self.log_user_action(
-                    ProposalUserAction.ACTION_WITH_QA_OFFICER.format(self.id), request
+                    ProposalUserAction.ACTION_WITH_QA_OFFICER.format(self.id), request.user
                 )
                 # Log entry for organisation
                 applicant_field = getattr(self, self.applicant_field)
                 applicant_field.log_user_action(
-                    ProposalUserAction.ACTION_WITH_QA_OFFICER.format(self.id), request
+                    ProposalUserAction.ACTION_WITH_QA_OFFICER.format(self.id), request.user
                 )
 
                 # send_approver_decline_email_notification(reason, request, self)
@@ -2789,13 +2777,13 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 # Log proposal action
                 self.log_user_action(
                     ProposalUserAction.ACTION_QA_OFFICER_COMPLETED.format(self.id),
-                    request,
+                    request.user,
                 )
                 # Log entry for organisation
                 applicant_field = getattr(self, self.applicant_field)
                 applicant_field.log_user_action(
                     ProposalUserAction.ACTION_QA_OFFICER_COMPLETED.format(self.id),
-                    request,
+                    request.user,
                 )
 
                 # send_approver_decline_email_notification(reason, request, self)
@@ -2826,12 +2814,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 self.save()
                 # Log proposal action
                 self.log_user_action(
-                    ProposalUserAction.ACTION_PROPOSED_APPROVAL.format(self.id), request
+                    ProposalUserAction.ACTION_PROPOSED_APPROVAL.format(self.id), request.user
                 )
                 # Log entry for organisation
                 applicant_field = getattr(self, self.applicant_field)
                 applicant_field.log_user_action(
-                    ProposalUserAction.ACTION_PROPOSED_APPROVAL.format(self.id), request
+                    ProposalUserAction.ACTION_PROPOSED_APPROVAL.format(self.id), request.user
                 )
 
                 send_approver_approve_email_notification(request, self)
@@ -2865,12 +2853,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 self.customer_status = "approved"
                 # Log proposal action
                 self.log_user_action(
-                    ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id), request
+                    ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id), request.user
                 )
                 # Log entry for organisation
                 applicant_field = getattr(self, self.applicant_field)
                 applicant_field.log_user_action(
-                    ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id), request
+                    ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id), request.user
                 )
 
                 if self.proposal_type == "renewal":
@@ -2952,20 +2940,18 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
         return licence_buffer
 
     @transaction.atomic
-    def final_approval(self, request, details):
+    def final_approval(self, request=None, details=None):
         from commercialoperator.components.approvals.models import Approval
-        from commercialoperator.helpers import is_departmentUser
+        from commercialoperator.helpers import is_internal
 
         try:
             self.proposed_decline_status = False
 
-            if (
+            if request and not ((
                 self.processing_status == Proposal.PROCESSING_STATUS_AWAITING_PAYMENT
                 and self.fee_paid
-            ) or (self.proposal_type == "amendment"):
-                # for 'Awaiting Payment' approval. External/Internal user fires this method after full payment via Make/Record Payment
-                pass
-            else:
+            ) or (self.proposal_type == "amendment")):
+
                 if not self.can_assess(request.user):
                     raise exceptions.ProposalNotAuthorized()
                 if self.processing_status != "with_approver":
@@ -2985,11 +2971,11 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     "cc_email": details.get("cc_email"),
                 }
 
-                if is_departmentUser(request):
+                if is_internal(request):
                     # needed because external users come through this workflow following 'awaiting_payment; status
                     self.approved_by = request.user
 
-            if (
+            if request and (
                 (
                     self.application_type.name == ApplicationType.FILMING
                     and self.filming_approval_type == self.LICENCE
@@ -3014,7 +3000,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         ProposalUserAction.ACTION_AWAITING_PAYMENT_APPROVAL_.format(
                             self.id
                         ),
-                        request,
+                        request.user,
                     )
 
                     # Log entry for organisation
@@ -3023,7 +3009,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         ProposalUserAction.ACTION_AWAITING_PAYMENT_APPROVAL_.format(
                             self.id
                         ),
-                        request,
+                        request.user,
                     )
                     self.save(
                         version_comment="Final Approval - Awaiting Payment, Proposal: {}".format(
@@ -3040,16 +3026,17 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
             else:
                 self.processing_status = "approved"
                 self.customer_status = "approved"
+
                 # Log proposal action
                 self.log_user_action(
                     ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id),
-                    request,
+                    request.user if request else self.submitter,
                 )
                 # Log entry for organisation
                 applicant_field = getattr(self, self.applicant_field)
                 applicant_field.log_user_action(
                     ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id),
-                    request,
+                    request.user if request else self.submitter,
                 )
 
             if self.processing_status == self.PROCESSING_STATUS_APPROVED:
@@ -3081,7 +3068,9 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             previous_approval.replaced_by = approval
                             previous_approval.save()
 
-                        self.reset_licence_discount(request.user)
+                        #NOTE this function originally used request.user - meaning if a user pays on behalf of the actual applicant then the function would be misapplied
+                        #now it uses submitter - in COLS that may be acceptable but at some stage the applicant and the submitter should be distinguised in case an application is submitted on someone's behalf
+                        self.reset_licence_discount(self.submitter) 
 
                 elif self.proposal_type == "amendment":
                     if self.previous_application:
@@ -3130,7 +3119,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             #'extracted_fields' = JSONField(blank=True, null=True)
                         },
                     )
-                    self.reset_licence_discount(request.user)
+                    self.reset_licence_discount(self.submitter) 
                 # Generate compliances
                 from commercialoperator.components.compliances.models import (
                     Compliance,
@@ -3149,12 +3138,14 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                 c.delete()
                     # Log creation
                     # Generate the document
-                    approval.generate_doc(request.user)
+                    #NOTE this function originally used request.user - meaning if a user pays on behalf of the actual applicant then the function would be misapplied
+                    #now it uses submitter - in COLS that may be acceptable but at some stage the applicant and the submitter should be distinguised in case an application is submitted on someone's behalf
+                    approval.generate_doc(self.submitter)
                     self.generate_compliances(approval, request)
                     # send the doc and log in approval and org
                 else:
                     # Generate the document
-                    approval.generate_doc(request.user)
+                    approval.generate_doc(self.submitter)
                     # Delete the future compliances if Approval is reissued and generate the compliances again.
                     approval_compliances = Compliance.objects.filter(
                         approval=approval, proposal=self, processing_status="future"
@@ -3166,13 +3157,13 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     # Log proposal action
                     self.log_user_action(
                         ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(self.id),
-                        request,
+                        request.user if request else self.submitter,
                     )
                     # Log entry for organisation
                     applicant_field = getattr(self, self.applicant_field)
                     applicant_field.log_user_action(
                         ProposalUserAction.ACTION_UPDATE_APPROVAL_.format(self.id),
-                        request,
+                        request.user if request else self.submitter,
                     )
                 self.approval = approval
 
@@ -3192,7 +3183,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
     def __create_filming_fee_invoice(
         self,
         request,
-        return_preload_url_ns="filming_fee_success",
+        return_preload_url_ns="filming_fee_success_preload",
     ):
 
         from dateutil.relativedelta import relativedelta
@@ -3213,9 +3204,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                 logger.info("Creating filming fee invoice")
 
                 deferred_payment_date = timezone.now() + relativedelta(months=1)
-
-                # basket = createCustomBasket(lines, request.user, settings.PAYMENT_SYSTEM_ID)
-
+                
                 reference = self.lodgement_number
 
                 basket_params = {
@@ -3226,22 +3215,21 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     "booking_reference": reference,
                     "booking_reference_link": reference,
                     "fallback_url": request.build_absolute_uri("/"),
+                    'no_payment': False,
                 }
+                
                 basket_hash = create_basket_session(
                     request, request.user.id, basket_params
                 )
 
-                basket = Basket.objects.filter(
-                    status="Open", owner=request.user
-                ).order_by("-id")[:1]
+                basket_hash_split = basket_hash.split("|")
 
                 invoice_name = self.applicant_obj.name
-                return_preload_url = request.build_absolute_uri(
-                    reverse(return_preload_url_ns)
-                )
+                return_preload_url = settings.COMMERCIALOPERATOR_EXTERNAL_URL + reverse(return_preload_url_ns,kwargs={"reference": self.lodgement_number})
+                
                 due_date = None
                 future_invoice_response = process_create_future_invoice(
-                    basket[0].id,
+                    basket_hash_split[0],
                     invoice_text="Payment Invoice",
                     return_preload_url=return_preload_url,
                     invoice_name=invoice_name,
@@ -3273,7 +3261,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
         return filming_fee
 
-    def generate_compliances(self, approval, request):
+    def generate_compliances(self, approval, request=None):
         today = timezone.now().date()
         timedelta = datetime.timedelta
         from commercialoperator.components.compliances.models import (
@@ -3328,9 +3316,9 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                             approval=approval,
                             requirement=req,
                         )
-                        compliance.log_user_action(
+                        compliance.log_user_action( 
                             ComplianceUserAction.ACTION_CREATE.format(compliance.id),
-                            request,
+                            request.user if request else self.submitter,
                         )
                     if req.recurrence:
                         while current_date < approval.expiry_date:
@@ -3363,7 +3351,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                                         ComplianceUserAction.ACTION_CREATE.format(
                                             compliance.id
                                         ),
-                                        request,
+                                        request.user if request else self.submitter,
                                     )
             except:
                 raise
@@ -3376,19 +3364,22 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     "previous_application": previous_proposal,
                     "customer_status": "with_assessor",
                 }
-                # proposal=Proposal.objects.get(previous_application = previous_proposal)
                 proposal = Proposal.objects.get(**renew_conditions)
-                # if proposal.customer_status=='with_assessor':
                 if proposal:
                     raise ValidationError(
                         "A renewal/ amendment for this licence has already been lodged and is awaiting review."
                     )
             except Proposal.DoesNotExist:
+
+                if not (self.approval and self.approval.renewal_document and self.approval.renewal_sent and self.approval.can_renew):
+                    raise ValidationError(
+                        "The licence cannot be renewed yet."
+                    )
+
                 previous_proposal = Proposal.objects.get(id=self.id)
                 proposal = clone_proposal_with_status_reset(previous_proposal)
                 proposal.proposal_type = "renewal"
                 proposal.training_completed = False
-                # proposal.schema = ProposalType.objects.first().schema
                 ptype = ProposalType.objects.filter(
                     name=proposal.application_type
                 ).latest("version")
@@ -3484,12 +3475,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         requirement_document.save()
                         # Create a log entry for the proposal
                 self.log_user_action(
-                    ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.id), request
+                    ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.id), request.user
                 )
                 # Create a log entry for the organisation
                 applicant_field = getattr(self, self.applicant_field)
                 applicant_field.log_user_action(
-                    ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.id), request
+                    ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.id), request.user
                 )
                 # Log entry for approval
                 from commercialoperator.components.approvals.models import (
@@ -3498,7 +3489,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
                 self.approval.log_user_action(
                     ApprovalUserAction.ACTION_RENEW_APPROVAL.format(self.approval.id),
-                    request,
+                    request.user,
                 )
                 proposal.save(
                     version_comment="New Amendment/Renewal Application created, from origin {}".format(
@@ -3522,6 +3513,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         "An amendment for this licence has already been lodged and is awaiting review."
                     )
             except Proposal.DoesNotExist:
+
+                if not (self.approval and self.approval.can_amend):
+                    raise ValidationError(
+                        "The licence cannot be amended at this time."
+                    )
+                
                 previous_proposal = Proposal.objects.get(id=self.id)
                 proposal = clone_proposal_with_status_reset(previous_proposal)
                 proposal.proposal_type = "amendment"
@@ -3572,12 +3569,12 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         requirement_document.save()
                         # Create a log entry for the proposal
                 self.log_user_action(
-                    ProposalUserAction.ACTION_AMEND_PROPOSAL.format(self.id), request
+                    ProposalUserAction.ACTION_AMEND_PROPOSAL.format(self.id), request.user
                 )
                 # Create a log entry for the organisation
                 applicant_field = getattr(self, self.applicant_field)
                 applicant_field.log_user_action(
-                    ProposalUserAction.ACTION_AMEND_PROPOSAL.format(self.id), request
+                    ProposalUserAction.ACTION_AMEND_PROPOSAL.format(self.id), request.user
                 )
                 # Log entry for approval
                 from commercialoperator.components.approvals.models import (
@@ -3586,7 +3583,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
 
                 self.approval.log_user_action(
                     ApprovalUserAction.ACTION_AMEND_APPROVAL.format(self.approval.id),
-                    request,
+                    request.user,
                 )
                 proposal.save(
                     version_comment="New Amendment/Renewal Application created, from origin {}".format(
@@ -3642,7 +3639,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         self.save()
                         self.log_user_action(
                             ProposalUserAction.SEND_TO_DISTRICTS.format(self.id),
-                            request,
+                            request.user,
                         )
 
                     # for Amendment Proposal, Find the Requirements copied from previous application and assign to district Proposal according to distrcit
@@ -3732,7 +3729,7 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                         self.save()
                         self.log_user_action(
                             ProposalUserAction.SEND_TO_DISTRICTS.format(self.id),
-                            request,
+                            request.user,
                         )
 
                         # for Amendment Proposal, Find the Requirements copied from previous application and assign to district Proposal according to distrcit
@@ -3881,16 +3878,6 @@ class Proposal(DirtyFieldsMixin, RevisionedMixin):
                     )
                     requirement_document.can_delete = True
                     requirement_document.save()
-                    # Create a log entry for the proposal
-            # self.log_user_action(ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.id),request)
-            # Create a log entry for the organisation
-            # applicant_field=getattr(self, self.applicant_field)
-            # applicant_field.log_user_action(ProposalUserAction.ACTION_RENEW_PROPOSAL.format(self.id),request)
-            # Log entry for approval
-            # from commercialoperator.components.approvals.models import ApprovalUserAction
-            # self.approval.log_user_action(ApprovalUserAction.ACTION_RENEW_APPROVAL.format(self.approval.id),request)
-            # proposal.save(version_comment='New Amendment/Renewal Application created, from origin {}'.format(proposal.previous_application_id))
-            # proposal.save()
             return proposal
 
 
@@ -3944,7 +3931,7 @@ class ProposalLogDocument(Document):
         "ProposalLogEntry", related_name="documents", on_delete=models.CASCADE
     )
     _file = models.FileField(
-        upload_to=update_proposal_comms_log_filename, max_length=512
+        upload_to=update_proposal_comms_log_filename, max_length=512, storage=private_storage
     )
 
     class Meta:
@@ -3973,7 +3960,7 @@ def default_proposalotherdetails_mooring():
     return [""]
 
 
-class ProposalOtherDetails(models.Model):
+class ProposalOtherDetails(SanitiseMixin):
     preferred_licence_period = models.CharField(
         "Preferred licence period",
         max_length=40,
@@ -4054,13 +4041,13 @@ class ProposalOtherDetails(models.Model):
         ).notification_months_tolist
 
 
-class ProposalAccreditation(models.Model):
-    # activities_land = models.CharField(max_length=24, blank=True, default='')
+class ProposalAccreditation(SanitiseMixin):
+
     ACCREDITATION_TYPE_CHOICES = (
         ("no", "None"),
         ("atap", "QTA"),
         ("eco_certification", "Eco Certification"),
-        ("narta", "NARTA"),
+        #("narta", "NARTA"),
         ("other", "Other"),
     )
 
@@ -4088,6 +4075,45 @@ class ProposalAccreditation(models.Model):
     def save(self, *args, **kwargs):
         super(ProposalAccreditation, self).save(*args, **kwargs)
         cache.delete(settings.CACHE_KEY_ACCREDITATION_CHOICES)
+
+class ProposalInformationStandard(models.Model):
+    INFORMATION_STANDARD_TYPE_CHOICES = (
+        ('no', 'None'),
+        ('tourism_council', 'Tourism Council WA'),
+        ('eco_tourism', 'Eco Tourism Australia'),
+        ('other', 'Other')
+    )
+
+    information_standard_type = models.CharField('Information Standard', max_length=40, choices=INFORMATION_STANDARD_TYPE_CHOICES,
+                                       default=INFORMATION_STANDARD_TYPE_CHOICES[0][0])
+    information_comments=models.TextField(blank=True)
+    proposal_other_details = models.ForeignKey(ProposalOtherDetails, related_name='information_standards', null=True, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '{} - {}'.format(self.information_standard_type, self.information_comments)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+class ProposalEmissionStandard(models.Model):
+    EMISSION_STANDARD_TYPE_CHOICES = (
+        ('no', 'None'),
+        ('tourism_council', 'Tourism Council WA'),
+        ('eco_tourism', 'Eco Tourism Australia'),
+        ('other', 'Other')
+    )
+
+    emission_standard_type = models.CharField('Emission Standard', max_length=40, choices=EMISSION_STANDARD_TYPE_CHOICES,
+                                       default=EMISSION_STANDARD_TYPE_CHOICES[0][0])
+    emission_comments=models.TextField(blank=True)
+    proposal_other_details = models.ForeignKey(ProposalOtherDetails, related_name='emission_standards', null=True, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '{} - {}'.format(self.emission_standard_type, self.emission_comments)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
 
 
 class ProposalPark(models.Model):
@@ -4171,7 +4197,7 @@ class ProposalParkAccess(models.Model):
 
 
 # To store Park zones related to Proposal T class marine parks
-class ProposalParkZone(models.Model):
+class ProposalParkZone(SanitiseMixin):
     proposal_park = models.ForeignKey(
         ProposalPark,
         blank=True,
@@ -4207,7 +4233,6 @@ class ProposalParkZoneActivity(models.Model):
     activity = models.ForeignKey(
         Activity, blank=True, null=True, on_delete=models.CASCADE
     )
-    # section=models.ForeignKey(Section, blank=True, null= True)
 
     def __str__(self):
         return "{} - {}".format(self.activity.name, self.park_zone.zone.name)
@@ -4272,7 +4297,6 @@ class ProposalTrailSectionActivity(models.Model):
     activity = models.ForeignKey(
         Activity, blank=True, null=True, on_delete=models.CASCADE
     )
-    # section=models.ForeignKey(Section, blank=True, null= True)
 
     def __str__(self):
         return "{} - {}".format(self.trail_section, self.activity.name)
@@ -4286,7 +4310,7 @@ class ProposalTrailSectionActivity(models.Model):
         return self.activity.name
 
 
-class Vehicle(models.Model):
+class Vehicle(SanitiseMixin):
     capacity = models.CharField(max_length=200, blank=True)
     rego = models.CharField(max_length=200, blank=True)
     license = models.CharField(max_length=200, blank=True)
@@ -4308,7 +4332,7 @@ class Vehicle(models.Model):
         return self.rego
 
 
-class Vessel(models.Model):
+class Vessel(SanitiseMixin):
     nominated_vessel = models.CharField(max_length=200, blank=True)
     spv_no = models.CharField(max_length=200, blank=True)
     hire_rego = models.CharField(max_length=200, blank=True)
@@ -4329,7 +4353,7 @@ class Vessel(models.Model):
         return self.nominated_vessel
 
 
-class ProposalRequest(models.Model):
+class ProposalRequest(SanitiseMixin):
     proposal = models.ForeignKey(
         Proposal, related_name="proposalrequest_set", on_delete=models.CASCADE
     )
@@ -4360,7 +4384,7 @@ class ComplianceRequest(ProposalRequest):
         app_label = "commercialoperator"
 
 
-class AmendmentReason(models.Model):
+class AmendmentReason(SanitiseMixin):
     reason = models.CharField("Reason", max_length=125)
 
     class Meta:
@@ -4378,20 +4402,6 @@ class AmendmentReason(models.Model):
 
 class AmendmentRequest(ProposalRequest):
     STATUS_CHOICES = (("requested", "Requested"), ("amended", "Amended"))
-    # REASON_CHOICES = (('insufficient_detail', 'The information provided was insufficient'),
-    #                  ('missing_information', 'There was missing information'),
-    #                  ('other', 'Other'))
-    # try:
-    #     # model requires some choices if AmendmentReason does not yet exist or is empty
-    #     REASON_CHOICES = list(AmendmentReason.objects.values_list('id', 'reason'))
-    #     if not REASON_CHOICES:
-    #         REASON_CHOICES = ((0, 'The information provided was insufficient'),
-    #                           (1, 'There was missing information'),
-    #                           (2, 'Other'))
-    # except:
-    #     REASON_CHOICES = ((0, 'The information provided was insufficient'),
-    #                       (1, 'There was missing information'),
-    #                       (2, 'Other'))
 
     status = models.CharField(
         "Status", max_length=30, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0]
@@ -4420,12 +4430,12 @@ class AmendmentRequest(ProposalRequest):
                         proposal.required_documents.all().update(can_hide=True)
                     # Create a log entry for the proposal
                     proposal.log_user_action(
-                        ProposalUserAction.ACTION_ID_REQUEST_AMENDMENTS, request
+                        ProposalUserAction.ACTION_ID_REQUEST_AMENDMENTS, request.user
                     )
                     # Create a log entry for the organisation
                     applicant_field = getattr(proposal, proposal.applicant_field)
                     applicant_field.log_user_action(
-                        ProposalUserAction.ACTION_ID_REQUEST_AMENDMENTS, request
+                        ProposalUserAction.ACTION_ID_REQUEST_AMENDMENTS, request.user
                     )
 
                     # send email
@@ -4458,8 +4468,7 @@ class Assessment(ProposalRequest):
         app_label = "commercialoperator"
 
 
-class ProposalDeclinedDetails(models.Model):
-    # proposal = models.OneToOneField(Proposal, related_name='declined_details')
+class ProposalDeclinedDetails(SanitiseMixin):
     proposal = models.OneToOneField(Proposal, on_delete=models.CASCADE)
     officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
     reason = models.TextField(blank=True)
@@ -4469,8 +4478,7 @@ class ProposalDeclinedDetails(models.Model):
         app_label = "commercialoperator"
 
 
-class ProposalOnHold(models.Model):
-    # proposal = models.OneToOneField(Proposal, related_name='onhold')
+class ProposalOnHold(SanitiseMixin):
     proposal = models.OneToOneField(Proposal, on_delete=models.CASCADE)
     officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
     comment = models.TextField(blank=True)
@@ -4486,7 +4494,6 @@ class ProposalOnHold(models.Model):
         app_label = "commercialoperator"
 
 
-# class ProposalStandardRequirement(models.Model):
 class ProposalStandardRequirement(RevisionedMixin):
     text = models.TextField()
     code = models.CharField(max_length=10, unique=True)
@@ -4505,18 +4512,6 @@ class ProposalStandardRequirement(RevisionedMixin):
         app_label = "commercialoperator"
         verbose_name = "Application Standard Requirement"
         verbose_name_plural = "Application Standard Requirements"
-
-    # def clean(self):
-    #     if self.application_type:
-    #         try:
-    #             default = ProposalStandardRequirement.objects.get(default=True, application_type=self.application_type)
-    #         except ProposalStandardRequirement.DoesNotExist:
-    #             default = None
-
-    #     if not self.pk:
-    #         if default and self.default:
-    #             raise ValidationError('There can only be one default Standard requirement per Application type')
-
 
 class ProposalUserAction(UserAction):
     ACTION_CREATE_CUSTOMER_ = "Create customer {}"
@@ -4720,7 +4715,6 @@ class QAOfficerGroup(models.Model, MembersPropertiesMixin):
 
 
 class Referral(RevisionedMixin):
-    objects = EmailUserQuerySet.as_manager()
 
     SENT_CHOICES = ((1, "Sent From Assessor"), (2, "Sent From Referral"))
     PROCESSING_STATUS_CHOICES = (
@@ -4806,6 +4800,7 @@ class Referral(RevisionedMixin):
         else:
             return None
 
+    #TODO refactor or remove this (always returns True)
     @property
     def can_be_completed(self):
         return True
@@ -4855,7 +4850,7 @@ class Referral(RevisionedMixin):
                             self.proposal.id,
                             "{}({})".format(officer.get_full_name(), officer.email),
                         ),
-                        request,
+                        request.user,
                     )
             except:
                 raise
@@ -4873,7 +4868,7 @@ class Referral(RevisionedMixin):
                         ProposalUserAction.ACTION_REFERRAL_UNASSIGN_ASSESSOR.format(
                             self.id, self.proposal.id
                         ),
-                        request,
+                        request.user,
                     )
                     # Create a log entry for the organisation
                     applicant_field = getattr(
@@ -4883,7 +4878,7 @@ class Referral(RevisionedMixin):
                         ProposalUserAction.ACTION_REFERRAL_UNASSIGN_ASSESSOR.format(
                             self.id, self.proposal.id
                         ),
-                        request,
+                        request.user,
                     )
             except:
                 raise
@@ -4896,12 +4891,12 @@ class Referral(RevisionedMixin):
             self.save()
             self.proposal.log_user_action(
                 ProposalUserAction.RECALL_REFERRAL.format(self.id, self.proposal.id),
-                request,
+                request.user,
             )
             applicant_field = getattr(self.proposal, self.proposal.applicant_field)
             applicant_field.log_user_action(
                 ProposalUserAction.RECALL_REFERRAL.format(self.id, self.proposal.id),
-                request,
+                request.user,
             )
 
     def remind(self, request):
@@ -4909,12 +4904,11 @@ class Referral(RevisionedMixin):
             if not self.proposal.can_assess(request.user):
                 raise exceptions.ProposalNotAuthorized()
             # Create a log entry for the proposal
-            # self.proposal.log_user_action(ProposalUserAction.ACTION_REMIND_REFERRAL.format(self.id,self.proposal.id,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
             self.proposal.log_user_action(
                 ProposalUserAction.ACTION_REMIND_REFERRAL.format(
                     self.id, self.proposal.id, "{}".format(self.referral_group.name)
                 ),
-                request,
+                request.user,
             )
             # Create a log entry for the organisation
             applicant_field = getattr(self.proposal, self.proposal.applicant_field)
@@ -4922,7 +4916,7 @@ class Referral(RevisionedMixin):
                 ProposalUserAction.ACTION_REMIND_REFERRAL.format(
                     self.id, self.proposal.id, "{}".format(self.referral_group.name)
                 ),
-                request,
+                request.user,
             )
             # send email
             recipients = self.referral_group.members_list
@@ -4942,7 +4936,7 @@ class Referral(RevisionedMixin):
             ProposalUserAction.ACTION_RESEND_REFERRAL_TO.format(
                 self.id, self.proposal.id, "{}".format(self.referral_group.name)
             ),
-            request,
+            request.user,
         )
         # Create a log entry for the organisation
         applicant_field = getattr(self.proposal, self.proposal.applicant_field)
@@ -4950,7 +4944,7 @@ class Referral(RevisionedMixin):
             ProposalUserAction.ACTION_RESEND_REFERRAL_TO.format(
                 self.id, self.proposal.id, "{}".format(self.referral_group.name)
             ),
-            request,
+            request.user,
         )
         # send email
         recipients = self.referral_group.members_list
@@ -4974,7 +4968,6 @@ class Referral(RevisionedMixin):
         )
         self.add_referral_document(request)
         self.save()
-        # self.proposal.log_user_action(ProposalUserAction.CONCLUDE_REFERRAL.format(self.id,self.proposal.id,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
         self.proposal.log_user_action(
             ProposalUserAction.CONCLUDE_REFERRAL.format(
                 request.user.get_full_name(),
@@ -4982,9 +4975,8 @@ class Referral(RevisionedMixin):
                 self.proposal.id,
                 "{}".format(self.referral_group.name),
             ),
-            request,
+            request.user,
         )
-        # self.proposal.applicant.log_user_action(ProposalUserAction.CONCLUDE_REFERRAL.format(self.id,self.proposal.id,'{}({})'.format(self.referral.get_full_name(),self.referral.email)),request)
         applicant_field = getattr(self.proposal, self.proposal.applicant_field)
         applicant_field.log_user_action(
             ProposalUserAction.CONCLUDE_REFERRAL.format(
@@ -4993,7 +4985,7 @@ class Referral(RevisionedMixin):
                 self.proposal.id,
                 "{}".format(self.referral_group.name),
             ),
-            request,
+            request.user,
         )
         send_referral_complete_email_notification(self, request)
 
@@ -5035,7 +5027,7 @@ class Referral(RevisionedMixin):
                     )  # to allow revision to be added to reversion history
                     self.proposal.log_user_action(
                         ProposalUserAction.ACTION_REFERRAL_DOCUMENT.format(self.id),
-                        request,
+                        request.user,
                     )
                     # Create a log entry for the organisation
                     applicant_field = getattr(
@@ -5043,7 +5035,7 @@ class Referral(RevisionedMixin):
                     )
                     applicant_field.log_user_action(
                         ProposalUserAction.ACTION_REFERRAL_DOCUMENT.format(self.id),
-                        request,
+                        request.user,
                     )
                 return self
             except:
@@ -5115,7 +5107,7 @@ class Referral(RevisionedMixin):
                             self.proposal.id,
                             "{}({})".format(user.get_full_name(), user.email),
                         ),
-                        request,
+                        request.user,
                     )
                     # Create a log entry for the organisation
                     applicant_field = getattr(
@@ -5127,7 +5119,7 @@ class Referral(RevisionedMixin):
                             self.proposal.id,
                             "{}({})".format(user.get_full_name(), user.email),
                         ),
-                        request,
+                        request.user,
                     )
                     # send email
                     recipients = self.email_group.members_list
@@ -5282,7 +5274,6 @@ class ProposalRequirement(OrderedModel):
         return
 
 
-# class ProposalStandardRequirement(models.Model):
 class ChecklistQuestion(RevisionedMixin):
     TYPE_CHOICES = (
         ("assessor_list", "Assessor Checklist"),
@@ -6117,35 +6108,10 @@ def search_reference(reference_number):
     else:
         raise ValidationError("Record with provided reference number does not exist")
 
-
-from django_ckeditor_5.fields import CKEditor5Field as RichTextField
-
-
-class HelpPage(models.Model):
-    HELP_TEXT_EXTERNAL = 1
-    HELP_TEXT_INTERNAL = 2
-    HELP_TYPE_CHOICES = (
-        (HELP_TEXT_EXTERNAL, "External"),
-        (HELP_TEXT_INTERNAL, "Internal"),
-    )
-
-    application_type = models.ForeignKey(ApplicationType, on_delete=models.CASCADE)
-    content = RichTextField()
-    description = models.CharField(max_length=256, blank=True, null=True)
-    help_type = models.SmallIntegerField(
-        "Help Type", choices=HELP_TYPE_CHOICES, default=HELP_TEXT_EXTERNAL
-    )
-    version = models.SmallIntegerField(default=1, blank=False, null=False)
-
-    class Meta:
-        app_label = "commercialoperator"
-        unique_together = ("application_type", "help_type", "version")
-
-
 # --------------------------------------------------------------------------------------
 # Filming Models Start
 # --------------------------------------------------------------------------------------
-class ProposalFilmingActivity(models.Model):
+class ProposalFilmingActivity(SanitiseMixin):
     MOTION_FILM = "motion_film"
     PHOTOGRAPHY = "photography"
     EDUCATION = "education"
@@ -6248,7 +6214,7 @@ class ProposalFilmingActivity(models.Model):
         return (self.completion_date - self.commencement_date).days + 1
 
 
-class ProposalFilmingAccess(models.Model):
+class ProposalFilmingAccess(SanitiseMixin):
     proposal = models.OneToOneField(
         Proposal, related_name="filming_access", null=True, on_delete=models.CASCADE
     )
@@ -6287,7 +6253,7 @@ class ProposalFilmingAccess(models.Model):
         app_label = "commercialoperator"
 
 
-class ProposalFilmingEquipment(models.Model):
+class ProposalFilmingEquipment(SanitiseMixin):
     vehicle_owned = models.BooleanField("Vehicle Hired on owned", default=False)
     rps_used = models.BooleanField("Use of RPS for filming", default=False)
     rps_used_details = models.TextField("RPA used details", blank=True, null=True)
@@ -6313,7 +6279,7 @@ class ProposalFilmingEquipment(models.Model):
         app_label = "commercialoperator"
 
 
-class ProposalFilmingOtherDetails(models.Model):
+class ProposalFilmingOtherDetails(SanitiseMixin):
     safety_details = models.TextField(
         "Steps taken to ensure safety of others", blank=True, null=True
     )
@@ -6337,8 +6303,8 @@ class ProposalFilmingOtherDetails(models.Model):
         app_label = "commercialoperator"
 
 
-class ProposalFilmingParks(models.Model):
-    # proposal = models.OneToOneField(Proposal, related_name='filming_parks', null=True)
+class ProposalFilmingParks(SanitiseMixin):
+
     proposal = models.ForeignKey(
         Proposal, related_name="filming_parks", null=True, on_delete=models.CASCADE
     )
@@ -6470,7 +6436,7 @@ class FilmingParkDocument(Document):
         related_name="filming_park_documents",
         on_delete=models.CASCADE,
     )
-    _file = models.FileField(upload_to=update_filming_park_doc_filename, max_length=512)
+    _file = models.FileField(upload_to=update_filming_park_doc_filename, max_length=512, storage=private_storage)
     input_name = models.CharField(max_length=255, null=True, blank=True)
     can_delete = models.BooleanField(
         default=True
@@ -6557,46 +6523,7 @@ class DistrictProposalApproverGroup(models.Model, MembersEmailMixin):
                 )
 
 
-class DistrictProposalQuerySet(EmailUserQuerySet):
-    def with_approver_group_id(self):
-        try:
-            default_group = DistrictProposalApproverGroup.objects.get(default=True)
-        except DistrictProposalApproverGroup.DoesNotExist:
-            default_group_id = None
-        else:
-            default_group_id = default_group.id
-
-        return self.annotate(
-            approver_group_id=Case(
-                When(
-                    district__isnull=False,
-                    then=F("district__districtproposalapprovergroup"),
-                ),
-                default=default_group_id,
-            )
-        )
-
-    def with_assessor_group_id(self):
-        try:
-            default_group = DistrictProposalAssessorGroup.objects.get(default=True)
-        except DistrictProposalAssessorGroup.DoesNotExist:
-            default_group_id = None
-        else:
-            default_group_id = default_group.id
-
-        return self.annotate(
-            assessor_group_id=Case(
-                When(
-                    district__isnull=False,
-                    then=F("district__districtproposalassessorgroup"),
-                ),
-                default=default_group_id,
-            )
-        )
-
-
-class DistrictProposal(models.Model):
-    objects = DistrictProposalQuerySet.as_manager()
+class DistrictProposal(SanitiseMixin):
 
     PROCESSING_STATUS_WITH_ASSESSOR = "with_assessor"
     PROCESSING_STATUS_WITH_REFERRAL = "with_referral"
@@ -6837,11 +6764,8 @@ class DistrictProposal(models.Model):
                                 self.proposal.id,
                                 "{}({})".format(officer.get_full_name(), officer.email),
                             ),
-                            request,
+                            request.user,
                         )
-                        # Create a log entry for the organisation
-                        # applicant_field=getattr(self, self.applicant_field)
-                        # applicant_field.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_APPROVER.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
                 else:
                     if officer != self.assigned_officer:
                         self.assigned_officer = officer
@@ -6853,11 +6777,8 @@ class DistrictProposal(models.Model):
                                 self.proposal.id,
                                 "{}({})".format(officer.get_full_name(), officer.email),
                             ),
-                            request,
+                            request.user,
                         )
-                        # Create a log entry for the organisation
-                        # applicant_field=getattr(self, self.applicant_field)
-                        # applicant_field.log_user_action(ProposalUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(self.id,'{}({})'.format(officer.get_full_name(),officer.email)),request)
             except:
                 raise
 
@@ -6875,7 +6796,7 @@ class DistrictProposal(models.Model):
                             ProposalUserAction.ACTION_UNASSIGN_DISTRICT_APPROVER.format(
                                 self.id
                             ),
-                            request,
+                            request.user,
                         )
                         # Create a log entry for the organisation
                         applicant_field = getattr(
@@ -6885,7 +6806,7 @@ class DistrictProposal(models.Model):
                             ProposalUserAction.ACTION_UNASSIGN_DISTRICT_APPROVER.format(
                                 self.id, self.proposal.id
                             ),
-                            request,
+                            request.user,
                         )
                 else:
                     if self.assigned_officer:
@@ -6896,7 +6817,7 @@ class DistrictProposal(models.Model):
                             ProposalUserAction.ACTION_UNASSIGN_DISTRICT_ASSESSOR.format(
                                 self.id, self.proposal.id
                             ),
-                            request,
+                            request.user,
                         )
                         # Create a log entry for the organisation
                         applicant_field = getattr(
@@ -6906,7 +6827,7 @@ class DistrictProposal(models.Model):
                             ProposalUserAction.ACTION_UNASSIGN_DISTRICT_ASSESSOR.format(
                                 self.id, self.proposal.id
                             ),
-                            request,
+                            request.user,
                         )
             except:
                 raise
@@ -6939,7 +6860,7 @@ class DistrictProposal(models.Model):
                         ProposalUserAction.ACTION_BACK_TO_PROCESSING_DISTRICT.format(
                             self.id, self.proposal.id
                         ),
-                        request,
+                        request.user,
                     )
                 elif (
                     self.processing_status
@@ -6949,7 +6870,7 @@ class DistrictProposal(models.Model):
                         ProposalUserAction.ACTION_ENTER_REQUIREMENTS_DISTRICT.format(
                             self.id, self.proposal.id
                         ),
-                        request,
+                        request.user,
                     )
         else:
             raise ValidationError("The provided status cannot be found.")
@@ -6981,7 +6902,7 @@ class DistrictProposal(models.Model):
                     ProposalUserAction.ACTION_DISTRICT_PROPOSED_DECLINE.format(
                         self.id, self.proposal.id
                     ),
-                    request,
+                    request.user,
                 )
                 # Log entry for organisation
                 applicant_field = getattr(self.proposal, self.proposal.applicant_field)
@@ -6989,7 +6910,7 @@ class DistrictProposal(models.Model):
                     ProposalUserAction.ACTION_DISTRICT_PROPOSED_DECLINE.format(
                         self.id, self.proposal.id
                     ),
-                    request,
+                    request.user,
                 )
 
                 send_district_approver_decline_email_notification(reason, request, self)
@@ -7047,7 +6968,7 @@ class DistrictProposal(models.Model):
                     ProposalUserAction.ACTION_DISTRICT_DECLINE.format(
                         self.id, self.proposal.id
                     ),
-                    request,
+                    request.user,
                 )
                 # Log entry for organisation
                 applicant_field = getattr(self.proposal, self.proposal.applicant_field)
@@ -7055,7 +6976,7 @@ class DistrictProposal(models.Model):
                     ProposalUserAction.ACTION_DISTRICT_DECLINE.format(
                         self.id, self.proposal.id
                     ),
-                    request,
+                    request.user,
                 )
 
                 send_district_proposal_decline_email_notification(
@@ -7089,7 +7010,7 @@ class DistrictProposal(models.Model):
                     ProposalUserAction.ACTION_DISTRICT_PROPOSED_APPROVAL.format(
                         self.id, self.proposal.id
                     ),
-                    request,
+                    request.user,
                 )
                 # Log entry for organisation
                 applicant_field = getattr(self.proposal, self.proposal.applicant_field)
@@ -7097,7 +7018,7 @@ class DistrictProposal(models.Model):
                     ProposalUserAction.ACTION_DISTRICT_PROPOSED_APPROVAL.format(
                         self.id, self.proposal.id
                     ),
-                    request,
+                    request.user,
                 )
 
                 send_district_approver_approve_email_notification(request, self)
@@ -7193,7 +7114,7 @@ class DistrictProposal(models.Model):
                     ProposalUserAction.ACTION_ISSUE_APPROVAL_DISTRICT.format(
                         self.id, self.proposal.id
                     ),
-                    request,
+                    request.user,
                 )
                 # Log entry for organisation
                 applicant_field = getattr(self.proposal, self.proposal.applicant_field)
@@ -7201,7 +7122,7 @@ class DistrictProposal(models.Model):
                     ProposalUserAction.ACTION_ISSUE_APPROVAL_DISTRICT.format(
                         self.id, self.proposal.id
                     ),
-                    request,
+                    request.user,
                 )
 
                 if self.processing_status == "approved":
@@ -7334,7 +7255,7 @@ class DistrictProposal(models.Model):
                             ProposalUserAction.ACTION_UPDATE_APPROVAL_DISTRICT.format(
                                 self.id, self.proposal.id
                             ),
-                            request,
+                            request.user,
                         )
                         # Log entry for organisation
                         applicant_field = getattr(
@@ -7344,7 +7265,7 @@ class DistrictProposal(models.Model):
                             ProposalUserAction.ACTION_UPDATE_APPROVAL_DISTRICT.format(
                                 self.id, self.proposal.id
                             ),
-                            request,
+                            request.user,
                         )
                     self.proposal.approval = approval
                     self.district_approval = district_approval
@@ -7482,7 +7403,7 @@ class DistrictProposal(models.Model):
                         )
                         compliance.log_user_action(
                             ComplianceUserAction.ACTION_CREATE.format(compliance.id),
-                            request,
+                            request.user,
                         )
                     if req.recurrence:
                         while current_date < approval.expiry_date:
@@ -7517,14 +7438,13 @@ class DistrictProposal(models.Model):
                                         ComplianceUserAction.ACTION_CREATE.format(
                                             compliance.id
                                         ),
-                                        request,
+                                        request.user,
                                     )
             except:
                 raise
 
 
-class DistrictProposalDeclinedDetails(models.Model):
-    # proposal = models.OneToOneField(Proposal, related_name='declined_details')
+class DistrictProposalDeclinedDetails(SanitiseMixin):
     district_proposal = models.OneToOneField(DistrictProposal, on_delete=models.CASCADE)
     officer = models.ForeignKey(EmailUser, null=False, on_delete=models.CASCADE)
     reason = models.TextField(blank=True)
@@ -7544,7 +7464,7 @@ class DistrictProposalDeclinedDetails(models.Model):
 # --------------------------------------------------------------------------------------
 
 
-class ProposalEventActivities(models.Model):
+class ProposalEventActivities(SanitiseMixin):
     event_name = models.CharField("Event name", max_length=100, blank=True, null=True)
     proposal = models.OneToOneField(
         Proposal, related_name="event_activity", null=True, on_delete=models.CASCADE
@@ -7577,7 +7497,7 @@ class ProposalEventActivities(models.Model):
         return False
 
 
-class ProposalEventManagement(models.Model):
+class ProposalEventManagement(SanitiseMixin):
     num_participants = models.SmallIntegerField(
         "Number of participants expected", blank=True, null=True
     )
@@ -7621,7 +7541,6 @@ class ProposalEventManagement(models.Model):
 
 
 class ProposalEventVehiclesVessels(models.Model):
-    # hired_or_owned = models.NullBooleanField(null=True)
     hired_or_owned = models.BooleanField(null=True, blank=True)
     proposal = models.OneToOneField(
         Proposal,
@@ -7637,7 +7556,7 @@ class ProposalEventVehiclesVessels(models.Model):
         app_label = "commercialoperator"
 
 
-class ProposalEventOtherDetails(models.Model):
+class ProposalEventOtherDetails(SanitiseMixin):
     training_date = models.DateField(blank=True, null=True)
     insurance_expiry = models.DateField(blank=True, null=True)
     proposal = models.OneToOneField(
@@ -7658,8 +7577,8 @@ class ProposalEventOtherDetails(models.Model):
         app_label = "commercialoperator"
 
 
-class ProposalEventsParks(models.Model):
-    # proposal = models.OneToOneField(Proposal, related_name='filming_parks', null=True)
+class ProposalEventsParks(SanitiseMixin):
+
     proposal = models.ForeignKey(
         Proposal, related_name="events_parks", null=True, on_delete=models.CASCADE
     )
@@ -7675,9 +7594,6 @@ class ProposalEventsParks(models.Model):
     class Meta:
         app_label = "commercialoperator"
 
-    # @property
-    # def activities_names(self):
-    #     return [a.name for a in self.activities.all()]
     @property
     def activities_assessor_names(self):
         """Return the names of activities that are allowed in the park."""
@@ -7716,7 +7632,7 @@ class ProposalEventsParks(models.Model):
         return
 
 
-class AbseilingClimbingActivity(models.Model):
+class AbseilingClimbingActivity(SanitiseMixin):
     proposal = models.ForeignKey(
         Proposal,
         related_name="event_abseiling_climbing_activity",
@@ -7742,7 +7658,7 @@ class EventsParkDocument(Document):
         related_name="events_park_documents",
         on_delete=models.CASCADE,
     )
-    _file = models.FileField(upload_to=update_events_park_doc_filename, max_length=512)
+    _file = models.FileField(upload_to=update_events_park_doc_filename, max_length=512, storage=private_storage)
     input_name = models.CharField(max_length=255, null=True, blank=True)
     can_delete = models.BooleanField(
         default=True
@@ -7759,8 +7675,8 @@ class EventsParkDocument(Document):
             return super(EventsParkDocument, self).delete()
 
 
-class ProposalPreEventsParks(models.Model):
-    # proposal = models.OneToOneField(Proposal, related_name='filming_parks', null=True)
+class ProposalPreEventsParks(SanitiseMixin):
+    
     proposal = models.ForeignKey(
         Proposal, related_name="pre_event_parks", null=True, on_delete=models.CASCADE
     )
@@ -7774,10 +7690,6 @@ class ProposalPreEventsParks(models.Model):
 
     class Meta:
         app_label = "commercialoperator"
-
-    # @property
-    # def activities_names(self):
-    #     return [a.name for a in self.activities.all()]
 
     def add_documents(self, request):
         with transaction.atomic():
@@ -7811,7 +7723,7 @@ class PreEventsParkDocument(Document):
         on_delete=models.CASCADE,
     )
     _file = models.FileField(
-        upload_to=update_pre_event_park_doc_filename, max_length=512
+        upload_to=update_pre_event_park_doc_filename, max_length=512, storage=private_storage
     )
     input_name = models.CharField(max_length=255, null=True, blank=True)
     can_delete = models.BooleanField(
@@ -7829,8 +7741,8 @@ class PreEventsParkDocument(Document):
             return super(PreEventsParkDocument, self).delete()
 
 
-class ProposalEventsTrails(models.Model):
-    # proposal = models.OneToOneField(Proposal, related_name='filming_parks', null=True)
+class ProposalEventsTrails(SanitiseMixin):
+
     proposal = models.ForeignKey(
         Proposal, related_name="events_trails", null=True, on_delete=models.CASCADE
     )
@@ -7967,7 +7879,6 @@ reversion.register(QAOfficerGroup, follow=["qaofficer_groups"], exclude=["member
 reversion.register(QAOfficerReferral)
 reversion.register(QAOfficerDocument, follow=["qaofficer_referral_document"])
 reversion.register(ProposalAccreditation)
-reversion.register(HelpPage)
 reversion.register(ChecklistQuestion, follow=["answers"])
 reversion.register(ProposalAssessment, follow=["answers"])
 reversion.register(ProposalAssessmentAnswer)

@@ -17,10 +17,10 @@
                                     "
                                 >
                                     <i
-                                        class="fa fa-info-circle"
+                                        class="fas fa-circle-info"
                                         aria-hidden="true"
                                         title="If a tour is entering multiple parks with entry fees on the same day, only one entry fee applies per passenger. When adding additional parks to a payment, check the ‘same tour group’ box which will reduce the fee to zero dollars for passengers who have already paid an entry fee on that date. If a tour is visiting Nambung and Yanchep National parks on the same day, a per passenger fee will be charged for both parks."
-                                        style="cursor: pointer; color: blue"
+                                        style="cursor: pointer;  color: blue"
                                     ></i>
                                 </span>
                             </th>
@@ -39,7 +39,6 @@
                                 "
                                 width="30%"
                             >
-                                <!-- NOTE: [Invoice and InvoiceBooking] See that the table logic works with all the dependent disabled logic and then continue investigating into make payment view and creation of booking and bookinginvoice models -->
                                 <div
                                     v-if="col_types[col_idx] == 'select'"
                                     id="select_order_table_park_parent"
@@ -79,6 +78,7 @@
                                 <template v-if="col_types[col_idx] == 'date'">
                                     <input
                                         id="id_arrival_date"
+                                        style="width:100%"
                                         v-model="row[col_idx]"
                                         class="tbl_input form-control"
                                         :type="col_types[col_idx]"
@@ -146,11 +146,10 @@
                                         :class="`row-input row-${row_idx}-input`"
                                         :type="col_types[col_idx]"
                                         min="0"
-                                        value="0"
                                         :required="true"
                                         :onclick="isClickable"
                                         :disabled="row[1] == ''"
-                                        @change="calcPrice(row, row_idx)"
+                                        @change="tour_group_change(row, row_idx)"
                                     />
                                 </template>
                                 <template v-if="col_types[col_idx] == 'total'">
@@ -160,7 +159,6 @@
                                             class="tbl_input form-control"
                                             :type="col_types[col_idx]"
                                             min="0"
-                                            value="0"
                                             disabled
                                         />
                                     </div>
@@ -173,7 +171,7 @@
                                     @click="deleteRow(row, row_idx)"
                                 >
                                     <i
-                                        class="fa fa-trash"
+                                        class="fas fa-trash"
                                         style="cursor: pointer; color: red"
                                     ></i>
                                 </a>
@@ -223,7 +221,7 @@
 <script>
 import { helpers } from '@/utils/hooks';
 import _ from 'lodash';
-
+import $ from 'jquery'
 export default {
     components: {},
     filters: {
@@ -291,33 +289,7 @@ export default {
             },
         },
     },
-    /* Example schema config
-       {
-        "type": "table",
-        "headers": "{\"Species\": \"text\", \"Quantity\": \"number\", \"Date\": \"date\", \"Taken\": \"checkbox\"}",
-        "name": "Section2-0",
-        "label": "The first table in section 2"
-       }
-    */
     data() {
-        /*
-        [
-          {
-            "arrival": "2019-11-26",
-            "region": [
-              {
-                "region_id": 4,
-                "total_adults": 4,
-                "total_children": 4,
-              },
-              {
-                "region_id": 5,
-                "total_adults": 5,
-                "total_children": 5,
-              }
-            ]
-          },
-*/
         return {
             idx_park: 0,
             idx_arrival_date: 1,
@@ -583,10 +555,6 @@ export default {
             return row[this.idx_park] ? options.prices.child : '';
         },
         // eslint-disable-next-line no-unused-vars
-        check: function (selected_park, row, row_idx) {
-            console.log('check');
-        },
-        // eslint-disable-next-line no-unused-vars
         tooltip_same_group_tour: function (row, row_idx) {
             let vm = this;
             var selected_arrival = row[vm.idx_arrival_date];
@@ -633,6 +601,7 @@ export default {
         },
         // eslint-disable-next-line no-unused-vars
         calcPrice: function (row, row_idx, col_idx) {
+            
             let vm = this;
 
             var total_adults_same_group = 0;
@@ -648,7 +617,6 @@ export default {
 
             var selected_arrival_date = row[vm.idx_arrival_date];
 
-            console.log('check');
             if (selected_arrival_date !== '') {
                 for (var i = 0; i < vm.regions.length; i++) {
                     for (var j = 0; j < vm.arrival_dates.length; j++) {
@@ -671,16 +639,11 @@ export default {
                                 region_id == park_region_id &&
                                 arrival == row[vm.idx_arrival_date]
                             ) {
-                                selected_adults = isNaN(
-                                    parseInt(row[vm.idx_adult])
-                                )
-                                    ? 0
-                                    : parseInt(row[vm.idx_adult]);
-                                selected_children = isNaN(
-                                    parseInt(row[vm.idx_child])
-                                )
-                                    ? 0
-                                    : parseInt(row[vm.idx_child]);
+                                console.log(row)
+                                selected_adults = isNaN(parseInt(row[vm.idx_adult]))? 0: parseInt(row[vm.idx_adult]);
+                                selected_children = isNaN(parseInt(row[vm.idx_child]))? 0: parseInt(row[vm.idx_child]);
+
+                                console.log(selected_adults,selected_children)
 
                                 if (same_tour_group_checked) {
                                     if (count == 0) {
@@ -970,6 +933,15 @@ export default {
                 vm.same_tour_group_checkbox[row_idx].disabled = is_disabled;
             }
         },
+        
+        tour_group_change: function (row, row_idx) {
+            let vm = this;   
+            console.log(vm.table.tbody[row_idx], row)         
+            vm.table.tbody[row_idx] = row;
+            vm.updateTableJSON();
+            vm.calcPrice(row, row_idx);
+        },
+
         date_change: function (selected_date, row, row_idx) {
             let vm = this;
 

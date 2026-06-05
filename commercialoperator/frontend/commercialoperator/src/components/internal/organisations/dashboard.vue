@@ -7,74 +7,8 @@
                     label="Organisation Access Requests"
                     index="organisation_access_requests"
                 >
-                    <div class="panel panel-default">
+                    <div class="card">
                         <div class="row mb-1">
-                            <div class="col-md-3 mb-3">
-                                <div
-                                    id="select_organisation_access_organisation_parent"
-                                    class="form-group"
-                                >
-                                    <label
-                                        for="select_organisation_access_organisation"
-                                        >Organisation</label
-                                    >
-                                    <div v-show="isLoading">
-                                        <select class="form-control">
-                                            <option value="">Loading...</option>
-                                        </select>
-                                    </div>
-                                    <div v-show="!isLoading">
-                                        <select
-                                            id="select_organisation_access_organisation"
-                                            ref="select_organisation_access_organisation"
-                                            v-model="filterOrganisation"
-                                            class="form-control"
-                                        >
-                                            <option value="All">All</option>
-                                            <option
-                                                v-for="o in organisationChoices"
-                                                :key="o"
-                                                :value="o"
-                                            >
-                                                {{ o }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div
-                                    id="select_organisation_access_applicant_parent"
-                                    class="form-group"
-                                >
-                                    <label
-                                        for="select_organisation_access_applicant"
-                                        >Applicant</label
-                                    >
-                                    <div v-show="isLoading">
-                                        <select class="form-control">
-                                            <option value="">Loading...</option>
-                                        </select>
-                                    </div>
-                                    <div v-show="!isLoading">
-                                        <select
-                                            id="select_organisation_access_applicant"
-                                            ref="select_organisation_access_applicant"
-                                            v-model="filterApplicant"
-                                            class="form-control"
-                                        >
-                                            <option value="All">All</option>
-                                            <option
-                                                v-for="a in applicantChoices"
-                                                :key="a.search_term"
-                                                :value="a.search_term"
-                                            >
-                                                {{ a.search_term }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
                             <div class="col-md-3">
                                 <div
                                     id="select_organisation_access_role_parent"
@@ -174,12 +108,8 @@ export default {
         return {
             // Filters
             pBody: 'pBody' + uuid(),
-            filterOrganisation: 'All',
-            filterApplicant: 'All',
             filterRole: 'All',
             filterStatus: 'All',
-            organisationChoices: [],
-            applicantChoices: [],
             statusChoices: [],
             roleChoices: [],
             members: [],
@@ -203,13 +133,8 @@ export default {
                     url: api_endpoints.organisation_requests_datatable,
                     dataSrc: 'data',
                     data: function (d) {
-                        d.datatable_filter_name = vm.filterOrganisation;
-                        d.datatable_filter_full_name = vm.filterApplicant;
                         d.datatable_filter_role = vm.filterRole.toLowerCase();
                         d.datatable_filter_status = vm.filterStatus;
-                        d.search_terms =
-                            'requester__first_name, requester__last_name, assigned_officer__first_name, assigned_officer__last_name';
-
                         return d;
                     },
                 },
@@ -287,34 +212,6 @@ export default {
         };
     },
     watch: {
-        filterOrganisation: function () {
-            let vm = this;
-            if (vm.filterOrganisation != 'All') {
-                vm.$refs.org_access_table.vmDataTable
-                    .columns(1)
-                    .search(vm.filterOrganisation)
-                    .draw();
-            } else {
-                vm.$refs.org_access_table.vmDataTable
-                    .columns(1)
-                    .search('')
-                    .draw();
-            }
-        },
-        filterApplicant: function () {
-            let vm = this;
-            if (vm.filterApplicant != 'All') {
-                vm.$refs.org_access_table.vmDataTable
-                    .columns(2)
-                    .search(vm.filterApplicant)
-                    .draw();
-            } else {
-                vm.$refs.org_access_table.vmDataTable
-                    .columns(2)
-                    .search('')
-                    .draw();
-            }
-        },
         filterRole: function () {
             let vm = this;
             if (vm.filterRole != 'All') {
@@ -392,20 +289,6 @@ export default {
         },
         addEventListeners: function () {
             helpers.initialiseSelect2.bind(this)(
-                'select_organisation_access_organisation',
-                'select_organisation_access_organisation_parent',
-                'filterOrganisation',
-                'Select Organisation',
-                false
-            );
-            helpers.initialiseSelect2.bind(this)(
-                'select_organisation_access_applicant',
-                'select_organisation_access_applicant_parent',
-                'filterApplicant',
-                'Select Applicant',
-                false
-            );
-            helpers.initialiseSelect2.bind(this)(
                 'select_organisation_access_role',
                 'select_organisation_access_role_parent',
                 'filterRole',
@@ -428,8 +311,6 @@ export default {
                 .fetchUrl(api_endpoints.filter_list_organisation_requests)
                 .then(
                     (response) => {
-                        vm.organisationChoices = response.organisation_choices;
-                        vm.applicantChoices = response.applicant_choices;
                         vm.roleChoices = response.role_choices;
                         vm.statusChoices = response.status_choices;
                     },

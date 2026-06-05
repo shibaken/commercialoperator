@@ -44,10 +44,8 @@
                                             <div class="invalid-feedback">
                                                 Please enter a valid date
                                             </div>
-                                            <span class="input-group-addon">
-                                                <span
-                                                    class="glyphicon glyphicon-calendar"
-                                                ></span>
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
                                     </div>
@@ -81,10 +79,8 @@
                                             <div class="invalid-feedback">
                                                 Please enter a valid date
                                             </div>
-                                            <span class="input-group-addon">
-                                                <span
-                                                    class="glyphicon glyphicon-calendar"
-                                                ></span>
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
                                     </div>
@@ -125,20 +121,20 @@
                     v-if="issuingApproval"
                     type="button"
                     disabled
-                    class="btn btn-default"
+                    class="btn btn-primary"
                     @click="ok"
                 >
-                    <i class="fa fa-spinner fa-spin"></i> Processing
+                    <i class="fas fa-spinner fa-spin"></i> Processing
                 </button>
                 <button
                     v-else
                     type="button"
-                    class="btn btn-default"
+                    class="btn btn-primary"
                     @click="ok"
                 >
                     Ok
                 </button>
-                <button type="button" class="btn btn-default" @click="cancel">
+                <button type="button" class="btn btn-secondary" @click="cancel">
                     Cancel
                 </button>
             </template>
@@ -147,7 +143,7 @@
 </template>
 
 <script>
-//import $ from 'jquery'
+import $ from 'jquery'
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
 import { helpers, api_endpoints } from '@/utils/hooks.js';

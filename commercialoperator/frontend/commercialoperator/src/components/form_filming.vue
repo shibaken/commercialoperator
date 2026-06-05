@@ -211,7 +211,7 @@
 
 <script>
 import Account from '@/components/user/account.vue';
-import Organisation from '@/components/external/organisations/manage.vue';
+import Organisation from '@/components/external/organisations//organisation_details.vue';
 import Applicant from '@/components/common/tclass/applicant.vue';
 import Assessment from '@/components/common/tclass/assessment.vue';
 import ApprovalType from '@/components/common/filming/approval_type.vue';
@@ -220,6 +220,7 @@ import Access from '@/components/common/filming/access.vue';
 import Equipment from '@/components/common/filming/equipment.vue';
 import OtherDetails from '@/components/common/filming/other_details.vue';
 import Confirmation from '@/components/common/filming/confirmation.vue';
+import $ from 'jquery';
 export default {
     components: {
         Account,

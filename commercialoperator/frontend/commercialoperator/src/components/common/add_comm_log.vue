@@ -206,7 +206,7 @@
                                             href=""
                                             @click.prevent="attachAnother"
                                             ><i
-                                                class="fa fa-lg fa-plus top-buffer-2x"
+                                                class="fas fa-lg fa-plus top-buffer-2x"
                                             ></i
                                         ></a>
                                     </div>
@@ -221,20 +221,20 @@
                     v-if="addingComms"
                     type="button"
                     disabled
-                    class="btn btn-default"
+                    class="btn btn-primary"
                     @click="ok"
                 >
-                    <i class="fa fa-spinner fa-spin"></i> Adding
+                    <i class="fas fa-spinner fa-spin"></i> Adding
                 </button>
                 <button
                     v-else
                     type="button"
-                    class="btn btn-default"
+                    class="btn btn-primary"
                     @click="ok"
                 >
                     Add
                 </button>
-                <button type="button" class="btn btn-default" @click="cancel">
+                <button type="button" class="btn btn-secondary" @click="cancel">
                     Cancel
                 </button>
             </template>
@@ -243,7 +243,7 @@
 </template>
 
 <script>
-//import $ from 'jquery'
+import $ from 'jquery'
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
 import { helpers } from '@/utils/hooks.js';
@@ -272,12 +272,12 @@ export default {
             errorString: '',
             successString: '',
             success: false,
-            files: [
-                {
-                    file: null,
-                    name: '',
-                },
-            ],
+            to: "",
+            from: "",
+            log_type: "",
+            subject: "",
+            text: "",
+            files: [],
         };
     },
     computed: {
@@ -362,7 +362,17 @@ export default {
         sendData: function () {
             let vm = this;
             vm.hasErrors = false;
-            let comms = new FormData(vm.form);
+            let comms = new FormData(); 
+            comms.append('to',this.to);
+            comms.append('fromm',this.from);
+            comms.append('type',this.log_type);
+            comms.append('subject',this.subject);
+            comms.append('text',this.text);
+            comms.append('files',this.files);
+            for (let i = 0; i < vm.files.length; i++) {
+                comms.append('files', vm.files[i].file);
+            }
+            console.log(comms)
             vm.addingComms = true;
             helpers
                 .fetchUrl(vm.url, {

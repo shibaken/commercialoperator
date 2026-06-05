@@ -34,6 +34,8 @@ from commercialoperator.components.proposals.models import (
     RequirementDocument,
     DistrictProposal,
     DistrictProposalDeclinedDetails,
+    ProposalInformationStandard,
+    ProposalEmissionStandard,
 )
 from commercialoperator.components.organisations.models import Organisation
 from commercialoperator.components.main.serializers import (
@@ -302,12 +304,44 @@ class ProposalAccreditationSerializer(serializers.ModelSerializer):
 
     def get_accreditation_type_value(self, obj):
         return obj.get_accreditation_type_display()
+    
+class ProposalInformationStandardSerializer(serializers.ModelSerializer):
+    information_standard_type_value= serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProposalInformationStandard
+        fields=('id',
+                'information_standard_type',
+                'proposal_other_details',
+                'information_standard_type_value',
+                'information_comments',
+                )
+
+    def get_information_standard_type_value(self,obj):
+        return obj.get_information_standard_type_display()
+    
+class ProposalEmissionStandardSerializer(serializers.ModelSerializer):
+    emission_standard_type_value= serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProposalEmissionStandard
+        fields=('id',
+                'emission_standard_type',
+                'proposal_other_details',
+                'emission_standard_type_value',
+                'emission_comments',
+                )
+
+    def get_emission_standard_type_value(self,obj):
+        return obj.get_emission_standard_type_display()
 
 
 class ProposalOtherDetailsSerializer(serializers.ModelSerializer):
     nominated_start_date = serializers.DateField(required=False, allow_null=True)
     insurance_expiry = serializers.DateField(required=False, allow_null=True)
     accreditations = ProposalAccreditationSerializer(many=True, read_only=True)
+    information_standards = ProposalInformationStandardSerializer(many=True, read_only=True)
+    emission_standards = ProposalEmissionStandardSerializer(many=True, read_only=True)
     preferred_licence_period = serializers.CharField(allow_blank=True, allow_null=True)
     proposed_end_date = serializers.DateField(read_only=True)
 
@@ -324,6 +358,8 @@ class ProposalOtherDetailsSerializer(serializers.ModelSerializer):
             "credit_docket_books",
             "docket_books_number",
             "mooring",
+            "information_standards",
+            "emission_standards",
             "proposed_end_date",
         )
 
@@ -402,7 +438,7 @@ class ParksAndTrailSerializer(serializers.ModelSerializer):
         fields = ("land_parks", "marine_parks", "trails")
 
 
-class BaseProposalSerializer(SegregationBaseSerializer):
+class BaseProposalSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     documents_url = serializers.SerializerMethodField()
     proposal_type = serializers.SerializerMethodField()
@@ -458,7 +494,7 @@ class BaseProposalSerializer(SegregationBaseSerializer):
             "lodgement_number",
             "lodgement_sequence",
             "can_officer_process",
-            "allowed_assessors",
+            #"allowed_assessors",
             "proposal_type",
             "is_qa_officer",
             "qaofficer_referrals",
@@ -557,28 +593,8 @@ class BaseProposalSerializer(SegregationBaseSerializer):
             and obj.allow_full_discount
             else False
         )
-
-
-# Not used anymore
-class DTProposalSerializer(BaseProposalSerializer):
-    submitter = EmailUserSerializer()
-    applicant = serializers.CharField(source="applicant.organisation.name")
-    processing_status = serializers.SerializerMethodField(read_only=True)
-    review_status = serializers.SerializerMethodField(read_only=True)
-    customer_status = serializers.SerializerMethodField(read_only=True)
-    assigned_officer = serializers.CharField(
-        source="assigned_officer.get_full_name", allow_null=True
-    )
-
-    application_type = serializers.CharField(
-        source="application_type.name", read_only=True
-    )
-    region = serializers.CharField(source="region.name", read_only=True)
-    district = serializers.CharField(source="district.name", read_only=True)
-    # tenure = serializers.CharField(source='tenure.name', read_only=True)
-
-
-class ListProposalSerializer(BaseProposalSerializer):
+    
+class ListProposalSerializer(serializers.ModelSerializer):
     submitter = EmailUserSerializer(source="submitter_id")
     applicant = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
@@ -600,41 +616,31 @@ class ListProposalSerializer(BaseProposalSerializer):
         model = Proposal
         fields = (
             "id",
-            "application_type",
             "proposal_type",
             "activity",
-            "approval_level",
             "title",
             "region",
-            "district",
-            "tenure",
             "customer_status",
             "processing_status",
-            "review_status",
             "applicant",
-            "proxy_applicant",
             "submitter",
             "assigned_officer",
-            "previous_application",
-            "get_history",
             "lodgement_date",
-            "modified_date",
-            "readonly",
             "can_user_edit",
             "can_user_view",
             "reference",
             "lodgement_number",
-            "lodgement_sequence",
             "can_officer_process",
             "assessor_process",
             "allowed_assessors",
-            "proposal_type",
-            "qaofficer_referrals",
-            "is_qa_officer",
             "fee_invoice_url",
             "fee_invoice_reference",
             "fee_paid",
             "event_name",
+            "qaofficer_referrals",
+            "application_type",
+            "review_status",
+            "district",
         )
         # the serverSide functionality of datatables is such that only columns that have field 'data' defined are requested from the serializer. We
         # also require the following additional fields for some of the mRender functions
@@ -698,12 +704,7 @@ class ListProposalSerializer(BaseProposalSerializer):
             """if (obj.assigned_officer and obj.assigned_officer == user) or (user in obj.allowed_assessors):
             return True"""
             if obj.assigned_officer_id:
-                assigned_officer = (
-                    retrieve_email_user(obj.assigned_approver_id)
-                    if obj.assigned_approver_id
-                    else None
-                )
-                if assigned_officer == user:
+                if obj.assigned_officer_id == user.id:
                     return True
             elif user.id in obj.allowed_assessors:
                 return True
@@ -729,6 +730,14 @@ class ListProposalSerializer(BaseProposalSerializer):
             return f"{emailuser.first_name} {emailuser.last_name}"
         return None
 
+    def get_processing_status(self, obj):
+        return obj.get_processing_status_display()
+
+    def get_customer_status(self, obj):
+        return obj.get_customer_status_display()
+    
+    def get_review_status(self, obj):
+        return obj.get_review_status_display()
 
 class ProposalSerializer(BaseProposalSerializer):
     submitter = serializers.CharField(source="submitter.get_full_name")
@@ -744,17 +753,6 @@ class ProposalSerializer(BaseProposalSerializer):
 
     def get_readonly(self, obj):
         return obj.can_user_view
-
-
-# class ProposalApplicantDetailsSerializer(serializers.ModelSerializer):
-#
-#    class Meta:
-#        model = ProposalApplicantDetails
-#        fields = (
-#                'id',
-#                'first_name',
-#                )
-
 
 class SaveProposalSerializer(BaseProposalSerializer):
     assessor_data = serializers.JSONField(required=False)

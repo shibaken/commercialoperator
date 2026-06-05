@@ -2,7 +2,7 @@ import 'vite/modulepreload-polyfill';
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 
-import $ from 'jquery';
+//import $ from 'jquery';
 import moment from 'moment';
 import swal from 'sweetalert2';
 import jsZip from 'jszip';
@@ -39,14 +39,12 @@ import 'datatables.net-buttons/js/buttons.html5.js';
 import 'jquery-validation';
 
 import 'sweetalert2/dist/sweetalert2.css';
-import '@/../node_modules/@fortawesome/fontawesome-free/css/all.min.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'select2/dist/css/select2.min.css';
 import 'select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css';
 import '@/../node_modules/datatables.net-bs5/css/dataTables.bootstrap5.min.css';
 import '@/../node_modules/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css';
 
-import '@/../node_modules/@fortawesome/fontawesome-free/css/all.min.css';
-import '@/../node_modules/datatables.net-bs5/css/dataTables.bootstrap5.min.css';
 
 extendMoment(moment);
 window.helpers = helpers;
@@ -127,3 +125,13 @@ configureCompat({
 // eslint-disable-next-line vue/component-definition-name-casing
 app.component('v-select', VueSelect).use(router);
 router.isReady().then(() => app.mount('#app'));
+
+queueMicrotask(() => {
+  const btn = document.getElementById('navbarScrollingDropdown');
+  if (btn) {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      bootstrap.Dropdown.getOrCreateInstance(btn).toggle();
+    });
+  }
+});

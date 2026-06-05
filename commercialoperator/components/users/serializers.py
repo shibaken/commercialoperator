@@ -26,11 +26,10 @@ from commercialoperator.components.segregation.utils import (
     retrieve_cols_organisations_from_ledger_org_ids,
     retrieve_ledger_user_info_by_id,
 )
-from commercialoperator.helpers import in_dbca_domain, is_commercialoperator_admin
+from commercialoperator.helpers import in_dbca_domain, is_commercialoperator_admin, is_payment_admin
 from commercialoperator.components.approvals.models import Approval
 from rest_framework import serializers, status
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from ledger_api_client.helpers import is_payment_admin
 from django.utils import timezone
 from datetime import timedelta
 
@@ -210,7 +209,6 @@ class UserSerializer(serializers.ModelSerializer):
     is_department_user = serializers.SerializerMethodField()
     is_payment_admin = serializers.SerializerMethodField()
     system_settings = serializers.SerializerMethodField()
-    is_payment_admin = serializers.SerializerMethodField()
     is_commercialoperator_admin = serializers.SerializerMethodField()
     is_org_access_member = serializers.SerializerMethodField()
 

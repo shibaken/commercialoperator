@@ -19,7 +19,7 @@
 
 <script>
 import { v4 as uuid } from 'uuid';
-
+import $ from 'jquery'
 export default {
     name: 'Select2SearchOrganisation',
     props: {
@@ -43,7 +43,6 @@ export default {
             uuid: uuid(),
             term: null,
             index: 'search-' + this.label.toLowerCase().replace(' ', '-'),
-            // filtered_org_url: api_endpoints.filtered_organisations + '?search=',
         };
     },
     mounted: function () {

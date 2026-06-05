@@ -34,9 +34,6 @@ from commercialoperator.components.segregation.models import (
     QAOfficerGroupMembers,
     ReferralRecipientGroupMembers,
 )
-from commercialoperator.utils import create_helppage_object
-
-
 # Commented since COLS does not use schema - so will not require direct editing by user in Admin (although a ProposalType is still required for ApplicationType)
 # @admin.register(models.ProposalType)
 class ProposalTypeAdmin(admin.ModelAdmin):
@@ -69,12 +66,14 @@ class ProposalAdmin(VersionAdmin):
     inlines = [
         ProposalDocumentInline,
     ]
+    list_display = ["id", "lodgement_number", "application_type", "processing_status", "applicant", "submitter"]
+    search_fields = ["id", "lodgement_number", "processing_status"]
 
 
 class ProposalAssessorGroupMembersInline(admin.TabularInline):
     model = ProposalAssessorGroupMembers
     extra = 0
-    can_delete = False
+    #can_delete = False
     raw_id_fields = ("emailuser",)
     verbose_name = "Proposal Assessor Group Member"
     verbose_name_plural = "Proposal Assessor Group Members"
@@ -120,7 +119,7 @@ class ProposalAssessorGroupAdmin(admin.ModelAdmin):
 class ProposalApproverGroupMembersInline(admin.TabularInline):
     model = ProposalApproverGroupMembers
     extra = 0
-    can_delete = False
+    #can_delete = False
     raw_id_fields = ("emailuser",)
     verbose_name = "Proposal Approver Group Member"
     verbose_name_plural = "Proposal Approver Group Members"
@@ -170,43 +169,6 @@ class ProposalStandardRequirementAdmin(admin.ModelAdmin):
         "participant_number_required",
         "default",
     ]
-
-
-# @admin.register(models.HelpPage)
-class HelpPageAdmin(admin.ModelAdmin):
-    list_display = ["application_type", "help_type", "description", "version"]
-    form = forms.CommercialOperatorHelpPageAdminForm
-    change_list_template = "commercialoperator/help_page_changelist.html"
-    ordering = ("application_type", "help_type", "-version")
-    list_filter = ("application_type", "help_type")
-
-    def get_urls(self):
-        urls = super(HelpPageAdmin, self).get_urls()
-        my_urls = [
-            url(
-                "create_commercialoperator_help/",
-                self.admin_site.admin_view(self.create_commercialoperator_help),
-            ),
-            url(
-                "create_commercialoperator_help_assessor/",
-                self.admin_site.admin_view(
-                    self.create_commercialoperator_help_assessor
-                ),
-            ),
-        ]
-        return my_urls + urls
-
-    def create_commercialoperator_help(self, request):
-        create_helppage_object(
-            application_type="T Class", help_type=models.HelpPage.HELP_TEXT_EXTERNAL
-        )
-        return HttpResponseRedirect("../")
-
-    def create_commercialoperator_help_assessor(self, request):
-        create_helppage_object(
-            application_type="T Class", help_type=models.HelpPage.HELP_TEXT_INTERNAL
-        )
-        return HttpResponseRedirect("../")
 
 
 @admin.register(models.ChecklistQuestion)
@@ -336,7 +298,7 @@ class OracleCodeInline(admin.TabularInline):
     exclude = ["archive_date"]
     extra = 3
     max_num = 3
-    can_delete = False
+    #can_delete = False
 
 
 @admin.register(Park)
@@ -344,8 +306,8 @@ class ParkAdmin(admin.ModelAdmin):
     inlines = [
         OracleCodeInline,
     ]
-    list_display = ["name", "district"]
-    # filter_horizontal = ('allowed_activities',)
+    list_display = ["name", "district", "park_type", "adult_price", "child_price"]
+    search_fields = ["name", "district__name"]
     filter_horizontal = ("allowed_activities", "allowed_access")
     ordering = ("name",)
 
@@ -373,6 +335,7 @@ class ZoneAdmin(admin.ModelAdmin):
 @admin.register(models.Vehicle)
 class VehicleAdmin(admin.ModelAdmin):
     list_display = ["access_type", "capacity", "rego", "license", "rego_expiry"]
+    search_fields = ["access_type__name", "rego", "license"]
     ordering = ("access_type",)
 
 
@@ -384,7 +347,14 @@ class VesselAdmin(admin.ModelAdmin):
         "hire_rego",
         "craft_no",
         "size",
-        "proposal",
+        "proposal__lodgement_number",
+    ]
+    search_fields = [
+        "nominated_vessel",
+        "spv_no",
+        "hire_rego",
+        "craft_no",
+        "proposal__lodgement_number",
     ]
     ordering = ("nominated_vessel",)
 
@@ -423,7 +393,7 @@ class GlobalSettingsAdmin(admin.ModelAdmin):
 class ReferralRecipientGroupMembersInline(admin.TabularInline):
     model = ReferralRecipientGroupMembers
     extra = 0
-    can_delete = False
+    #can_delete = False
     raw_id_fields = ("emailuser",)
     verbose_name = "Referral Recipient Group Member"
     verbose_name_plural = "Referral Recipient Group Members"
@@ -452,7 +422,7 @@ class ReferralRecipientGroupAdmin(admin.ModelAdmin):
 class QAOfficerGroupMembersInline(admin.TabularInline):
     model = QAOfficerGroupMembers
     extra = 0
-    can_delete = False
+    #can_delete = False
     raw_id_fields = ("emailuser",)
     verbose_name = "QA Officer Group Member"
     verbose_name_plural = "QA Officer Group Members"
@@ -498,18 +468,20 @@ class QuestionAdmin(admin.ModelAdmin):
 @admin.register(ApplicationFee)
 class ApplicationFeeAdmin(admin.ModelAdmin):
     raw_id_fields = ("proposal", "created_by")
-
+    list_display = ("id", "proposal__lodgement_number", "created_by", "payment_type", "cost")
+    search_fields = ("id", "proposal__lodgement_number")
 
 @admin.register(ApplicationFeeInvoice)
 class SectionAdmin(admin.ModelAdmin):
     list_display = [f.name for f in ApplicationFeeInvoice._meta.fields]
     raw_id_fields = ("application_fee",)
+    search_fields = ("id","invoice_reference",)
 
 
 class DistrictProposalAssessorGroupMembersInline(admin.TabularInline):
     model = DistrictProposalAssessorGroupMembers
     extra = 0
-    can_delete = False
+    #can_delete = False
     raw_id_fields = ("emailuser",)
     verbose_name = "District Proposal Assessor Group Member"
     verbose_name_plural = "District Proposal Assessor Group Members"
@@ -546,7 +518,7 @@ class DistrictProposalAssessorGroupAdmin(admin.ModelAdmin):
 class DistrictProposalApproverGroupMembersInline(admin.TabularInline):
     model = DistrictProposalApproverGroupMembers
     extra = 0
-    can_delete = False
+    #can_delete = False
     raw_id_fields = ("emailuser",)
     verbose_name = "District Proposal Approver Group Member"
     verbose_name_plural = "District Proposal Approver Group Members"

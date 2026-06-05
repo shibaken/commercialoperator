@@ -203,7 +203,7 @@ import DateField from '@/components/forms/date-field.vue';
 import TextFilteredField from '@/components/forms/text-filtered.vue';
 
 import { helpers, api_endpoints } from '@/utils/hooks.js';
-
+import $ from 'jquery'
 export default {
     // eslint-disable-next-line vue/component-definition-name-casing
     name: 'proposal-onhold',

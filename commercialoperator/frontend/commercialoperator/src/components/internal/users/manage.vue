@@ -21,7 +21,6 @@
                             <li class="nav-item">
                                 <a
                                     id="pills-details-tab"
-                                    data-toggle="tab"
                                     class="nav-link active"
                                     data-bs-toggle="pill"
                                     :href="'#' + dTab"
@@ -34,7 +33,6 @@
                             <li class="nav-item">
                                 <a
                                     id="pills-other-tab"
-                                    data-toggle="tab"
                                     class="nav-link"
                                     data-bs-toggle="pill"
                                     :href="'#' + oTab"
@@ -54,7 +52,6 @@
                             >
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <div class="panel panel-default">
                                             <FormSection
                                                 :form-collapse="false"
                                                 label="Personal Details"
@@ -133,12 +130,10 @@
                                                     </div>
                                                 </form>
                                             </FormSection>
-                                        </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <div class="panel panel-default">
                                             <FormSection
                                                 :form-collapse="false"
                                                 label="Address Details"
@@ -290,7 +285,7 @@
                                                                 class="btn btn-primary float-end"
                                                             >
                                                                 <i
-                                                                    class="fa fa-spin fa-spinner"
+                                                                    class="fas fa-spin fa-spinner"
                                                                 ></i
                                                                 >&nbsp;Updating
                                                             </button>
@@ -298,12 +293,10 @@
                                                     </div>
                                                 </form>
                                             </FormSection>
-                                        </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <div class="panel panel-default">
                                             <FormSection
                                                 :form-collapse="false"
                                                 label="Contact Details"
@@ -395,7 +388,7 @@
                                                                 class="btn btn-primary float-end"
                                                             >
                                                                 <i
-                                                                    class="fa fa-spin fa-spinner"
+                                                                    class="fas fa-spin fa-spinner"
                                                                 ></i
                                                                 >&nbsp;Updating
                                                             </button>
@@ -403,12 +396,10 @@
                                                     </div>
                                                 </form>
                                             </FormSection>
-                                        </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <div class="panel panel-default">
                                             <FormSection
                                                 :form-collapse="false"
                                                 label="Organisations"
@@ -468,7 +459,7 @@
                                                                     )
                                                                 "
                                                                 ><i
-                                                                    class="fa fa-chain-broken fa-2x"
+                                                                    class="fas fa-link-slash fa-2x"
                                                                 ></i
                                                                 >&nbsp;Unlink</a
                                                             >
@@ -525,7 +516,6 @@
                                                     </div>
                                                 </div>
                                             </FormSection>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -578,6 +568,9 @@
 </template>
 
 <script>
+
+//TODO make address and contact details readonly, remove/replace action log and comms log
+
 import { api_endpoints, helpers } from '@/utils/hooks';
 import FormSection from '@/components/forms/section_toggle.vue';
 import ProposalDashTable from '@common-utils/proposals_dashboard.vue';
@@ -586,7 +579,7 @@ import ComplianceDashTable from '@common-utils/compliances_dashboard.vue';
 import CommsLogs from '@common-utils/comms_logs.vue';
 import utils from '../utils';
 import { v4 as uuid } from 'uuid';
-
+import $ from 'jquery'
 export default {
     // eslint-disable-next-line vue/multi-word-component-names
     name: 'User',
@@ -648,7 +641,6 @@ export default {
             updatingContact: false,
             uploadingID: false,
             uploadedID: null,
-            empty_list: '/api/empty_list',
             logsTable: null,
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             activate_tables: false,
@@ -716,90 +708,6 @@ export default {
                 'Select a Country'
             );
         },
-        updateContact: function () {
-            let vm = this;
-            vm.updatingContact = true;
-            helpers
-                .fetchUrl(
-                    helpers.add_endpoint_json(
-                        api_endpoints.users,
-                        vm.user.id + '/update_contact'
-                    ),
-                    {
-                        method: 'POST',
-                        body: JSON.stringify(vm.user),
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    }
-                )
-                .then(
-                    (response) => {
-                        vm.updatingContact = false;
-                        vm.user = response;
-                        if (vm.user.residential_address == null) {
-                            vm.user.residential_address = {};
-                        }
-                        swal.fire({
-                            title: 'Update Contact Details',
-                            html: 'User contact details has been successfully updated.',
-                            icon: 'success',
-                        });
-                    },
-                    (error) => {
-                        vm.updatingContact = false;
-                        swal.fire({
-                            title: 'Update Contact Details',
-                            html:
-                                'There was an error updating the user contact details.<br/>' +
-                                error,
-                            icon: 'error',
-                        });
-                    }
-                );
-        },
-        updateAddress: function () {
-            let vm = this;
-            vm.updatingAddress = true;
-            helpers
-                .fetchUrl(
-                    helpers.add_endpoint_json(
-                        api_endpoints.users,
-                        vm.user.id + '/update_address'
-                    ),
-                    {
-                        method: 'POST',
-                        body: JSON.stringify(vm.user.residential_address),
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    }
-                )
-                .then(
-                    (response) => {
-                        vm.updatingAddress = false;
-                        vm.user = response;
-                        if (vm.user.residential_address == null) {
-                            vm.user.residential_address = {};
-                        }
-                        swal.fire({
-                            title: 'Update Address Details',
-                            html: 'User address details has been successfully updated.',
-                            icon: 'success',
-                        });
-                    },
-                    (error) => {
-                        vm.updatingAddress = false;
-                        swal.fire({
-                            title: 'Update Address Details',
-                            html:
-                                'There was an error updating the user address details.<br/>' +
-                                error,
-                            icon: 'error',
-                        });
-                    }
-                );
-        },
         unlinkUser: function (org) {
             let vm = this;
             let org_name = org.name;
@@ -814,7 +722,7 @@ export default {
                 confirmButtonText: 'Accept',
             }).then(
                 (result) => {
-                    if (result.value) {
+                    if (result.isConfirmed) {
                         helpers
                             .fetchUrl(
                                 helpers.add_endpoint_json(
@@ -899,61 +807,6 @@ export default {
                 _file = input.files[0];
             }
             vm.uploadedID = _file;
-        },
-        uploadID: function () {
-            let vm = this;
-            console.log('uploading id');
-            vm.uploadingID = true;
-            let data = new FormData();
-            data.append('identification', vm.uploadedID);
-            console.log(data);
-            if (vm.uploadedID == null) {
-                vm.uploadingID = false;
-                swal.fire({
-                    title: 'Upload ID',
-                    html: 'Please select a file to upload.',
-                    icon: 'error',
-                });
-            } else {
-                helpers
-                    .fetchUrl(
-                        helpers.add_endpoint_json(
-                            api_endpoints.users,
-                            vm.user.id + '/upload_id'
-                        ),
-                        {
-                            method: 'POST',
-                            body: data,
-                            headers: {
-                                'Content-Type': 'multipart/form-data',
-                            },
-                        }
-                    )
-                    .then(
-                        () => {
-                            vm.uploadingID = false;
-                            vm.uploadedID = null;
-                            swal.fire({
-                                title: 'Upload ID',
-                                html: 'The user ID has been successfully uploaded.',
-                                icon: 'success',
-                            }).then(() => {
-                                window.location.reload(true);
-                            });
-                        },
-                        (error) => {
-                            console.log(error);
-                            vm.uploadingID = false;
-                            swal.fire({
-                                title: 'Upload ID',
-                                html:
-                                    'There was an error uploading the user ID.<br/>' +
-                                    error,
-                                icon: 'error',
-                            });
-                        }
-                    );
-            }
         },
     },
 };

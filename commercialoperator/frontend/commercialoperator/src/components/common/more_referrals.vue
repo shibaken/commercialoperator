@@ -14,7 +14,7 @@
 import { v4 as uuid } from 'uuid';
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import _ from 'lodash';
-
+import $ from 'jquery'
 export default {
     name: 'MoreReferrals',
     props: {

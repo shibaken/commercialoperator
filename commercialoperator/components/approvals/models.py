@@ -33,17 +33,15 @@ from commercialoperator.components.approvals.email import (
     send_approval_surrender_email_notification,
 )
 from commercialoperator.components.segregation.utils import (
-    EmailUserQuerySet,
     retrieve_email_user,
     retrieve_organisation_delegate_ids,
 )
 from commercialoperator.utils import search_keys, search_multiple_keys
-from commercialoperator.helpers import is_customer
-
-# from commercialoperator.components.approvals.email import send_referral_email_notification
 
 import logging
 logger = logging.getLogger(__name__)
+
+from commercialoperator.components.main.models import private_storage
 
 
 def update_approval_doc_filename(instance, filename):
@@ -64,7 +62,7 @@ class ApprovalDocument(Document):
     approval = models.ForeignKey(
         "Approval", related_name="documents", on_delete=models.CASCADE
     )
-    _file = models.FileField(upload_to=update_approval_doc_filename, max_length=512)
+    _file = models.FileField(upload_to=update_approval_doc_filename, max_length=512, storage=private_storage)
     can_delete = models.BooleanField(
         default=True
     )  # after initial submit prevent document from being deleted
@@ -98,9 +96,7 @@ class NotificationPeriod(RevisionedMixin):
         unique_together = ("approval", "notification_date")
 
 
-# class Approval(models.Model):
 class Approval(RevisionedMixin):
-    objects = EmailUserQuerySet.as_manager()
 
     APPROVAL_STATUS_CURRENT = "current"
     APPROVAL_STATUS_EXPIRED = "expired"
@@ -116,7 +112,7 @@ class Approval(RevisionedMixin):
         (APPROVAL_STATUS_CANCELLED, "Cancelled"),
         (APPROVAL_STATUS_SURRENDERED, "Surrendered"),
         (APPROVAL_STATUS_SUSPENDED, "Suspended"),
-        (APPROVAL_STATUS_EXTENDED, "extended"),
+        (APPROVAL_STATUS_EXTENDED, "Extended"),
         (APPROVAL_STATUS_AWAITING_PAYMENT, "Awaiting Payment"),
     )
     lodgement_number = models.CharField(max_length=9, blank=True, default="")
@@ -140,14 +136,9 @@ class Approval(RevisionedMixin):
     replaced_by = models.ForeignKey(
         "self", blank=True, null=True, on_delete=models.CASCADE
     )
-    # current_proposal = models.ForeignKey(Proposal,related_name = '+')
     current_proposal = models.ForeignKey(
         Proposal, related_name="approvals", null=True, on_delete=models.CASCADE
     )
-    #    activity = models.CharField(max_length=255)
-    #    region = models.CharField(max_length=255)
-    #    tenure = models.CharField(max_length=255,null=True)
-    #    title = models.CharField(max_length=255)
     renewal_document = models.ForeignKey(
         ApprovalDocument,
         blank=True,
@@ -191,7 +182,6 @@ class Approval(RevisionedMixin):
     set_to_suspend = models.BooleanField(default=False)
     set_to_surrender = models.BooleanField(default=False)
 
-    # application_type = models.ForeignKey(ApplicationType, null=True, blank=True)
     renewal_count = models.PositiveSmallIntegerField(
         "Number of times an Approval has been renewed", default=0
     )
@@ -207,7 +197,6 @@ class Approval(RevisionedMixin):
 
     def _notification_dates(self, _date):
         notification_dates = []
-        # _date = datetime.datetime.now().date()
         preferred_licence_period = (
             self.current_proposal.other_details.preferred_licence_period
         )
@@ -423,6 +412,7 @@ class Approval(RevisionedMixin):
             or self.status == "surrendered"
         ) and self.can_action
 
+    #TODO provided id and name only
     @property
     def allowed_assessors(self):
         # return self.current_proposal.allowed_assessors
@@ -460,11 +450,6 @@ class Approval(RevisionedMixin):
     @property
     def can_renew(self):
         try:
-            #            if self.current_proposal.application_type.name == 'E Class':
-            #                #return (self.current_proposal.application_type.max_renewals is not None and self.current_proposal.application_type.max_renewals > self.renewal_count)
-            #                return self.current_proposal.application_type.max_renewals > self.renewal_count
-            #                #pass
-            #            else:
             renew_conditions = {
                 "previous_application": self.current_proposal,
                 "proposal_type": "renewal",
@@ -636,8 +621,8 @@ class Approval(RevisionedMixin):
                     raise
         return copied_data
 
-    def log_user_action(self, action, request):
-        return ApprovalUserAction.log_action(self, action, request.user)
+    def log_user_action(self, action, user):
+        return ApprovalUserAction.log_action(self, action, user)
 
     def expire_approval(self, user):
         with transaction.atomic():
@@ -687,14 +672,14 @@ class Approval(RevisionedMixin):
                 self.save()
                 # Log proposal action
                 self.log_user_action(
-                    ApprovalUserAction.ACTION_EXTEND_APPROVAL.format(self.id), request
+                    ApprovalUserAction.ACTION_EXTEND_APPROVAL.format(self.id), request.user
                 )
                 # Log entry for organisation
                 self.current_proposal.log_user_action(
                     ProposalUserAction.ACTION_EXTEND_APPROVAL.format(
                         self.current_proposal.id
                     ),
-                    request,
+                    request.user,
                 )
             except:
                 raise
@@ -730,14 +715,14 @@ class Approval(RevisionedMixin):
                 self.save()
                 # Log proposal action
                 self.log_user_action(
-                    ApprovalUserAction.ACTION_CANCEL_APPROVAL.format(self.id), request
+                    ApprovalUserAction.ACTION_CANCEL_APPROVAL.format(self.id), request.user
                 )
                 # Log entry for organisation
                 self.current_proposal.log_user_action(
                     ProposalUserAction.ACTION_CANCEL_APPROVAL.format(
                         self.current_proposal.id
                     ),
-                    request,
+                    request.user,
                 )
             except:
                 raise
@@ -778,14 +763,14 @@ class Approval(RevisionedMixin):
                 self.save()
                 # Log approval action
                 self.log_user_action(
-                    ApprovalUserAction.ACTION_SUSPEND_APPROVAL.format(self.id), request
+                    ApprovalUserAction.ACTION_SUSPEND_APPROVAL.format(self.id), request.user
                 )
                 # Log entry for proposal
                 self.current_proposal.log_user_action(
                     ProposalUserAction.ACTION_SUSPEND_APPROVAL.format(
                         self.current_proposal.id
                     ),
-                    request,
+                    request.user,
                 )
             except:
                 raise
@@ -819,14 +804,14 @@ class Approval(RevisionedMixin):
                 # Log approval action
                 self.log_user_action(
                     ApprovalUserAction.ACTION_REINSTATE_APPROVAL.format(self.id),
-                    request,
+                    request.user,
                 )
                 # Log entry for proposal
                 self.current_proposal.log_user_action(
                     ProposalUserAction.ACTION_REINSTATE_APPROVAL.format(
                         self.current_proposal.id
                     ),
-                    request,
+                    request.user,
                 )
             except:
                 raise
@@ -843,13 +828,10 @@ class Approval(RevisionedMixin):
             .first()
         )
 
-        if not retrieve_organisation_delegate_ids(organisation_pk).filter(
-            user_id=request.user.id
-        ):
-            if request.user not in self.allowed_assessors and not is_customer(request):
-                raise ValidationError(
-                    "You do not have access to surrender this approval"
-                )
+        if not retrieve_organisation_delegate_ids(organisation_pk).filter(user_id=request.user.id) and request.user not in self.allowed_assessors:
+            raise ValidationError(
+                "You do not have access to surrender this approval"
+            )
         if not self.can_reissue and self.can_action:
             raise ValidationError(
                 "You cannot surrender approval if it is not current or suspended"
@@ -875,21 +857,20 @@ class Approval(RevisionedMixin):
         # Log approval action
         self.log_user_action(
             ApprovalUserAction.ACTION_SURRENDER_APPROVAL.format(self.id),
-            request,
+            request.user,
         )
         # Log entry for proposal
         self.current_proposal.log_user_action(
             ProposalUserAction.ACTION_SURRENDER_APPROVAL.format(
                 self.current_proposal.id
             ),
-            request,
+            request.user,
         )
 
 
 class PreviewTempApproval(Approval):
     class Meta:
         app_label = "commercialoperator"
-        # unique_together= ('lodgement_number', 'issue_date')
 
 
 class ApprovalLogEntry(CommunicationsLogEntry):
@@ -915,7 +896,7 @@ class ApprovalLogDocument(Document):
         on_delete=models.CASCADE,
     )
     _file = models.FileField(
-        upload_to=update_approval_comms_log_filename, null=True, max_length=512
+        upload_to=update_approval_comms_log_filename, null=True, max_length=512, storage=private_storage
     )
 
     class Meta:
@@ -1020,13 +1001,6 @@ class DistrictApproval(RevisionedMixin):
         app_label = "commercialoperator"
         unique_together = ("lodgement_number", "issue_date")
 
-
-# import reversion
-# reversion.register(Approval, follow=['documents', 'approval_set', 'action_logs'])
-# reversion.register(ApprovalDocument)
-# reversion.register(ApprovalLogDocument, follow=['documents'])
-# reversion.register(ApprovalLogEntry)
-# reversion.register(ApprovalUserAction)
 
 import reversion
 

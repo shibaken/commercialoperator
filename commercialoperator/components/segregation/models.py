@@ -6,6 +6,8 @@ from django.db import models
 
 from commercialoperator.components.main.models import CommunicationsLogEntry, UserAction
 
+from commercialoperator.components.main.mixins import SanitiseMixin
+
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 from commercialoperator.components.segregation.utils import retrieve_email_user
@@ -51,7 +53,7 @@ class EmailUserAction(UserAction):
         app_label = "commercialoperator"
 
 
-class LedgerOrganisation(models.Model):
+class LedgerOrganisation(SanitiseMixin):
     organisation_id = models.IntegerField(
         unique=True, verbose_name="Ledger Organisation ID"
     )  # Ledger Organisation

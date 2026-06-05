@@ -25,7 +25,7 @@
                                     }}</a>
                                     &nbsp;
                                     <a
-                                        class="fa fa-trash"
+                                        class="fas fa-trash"
                                         title="Remove file"
                                         :filename="v.name"
                                         style="cursor: pointer; color: red"
@@ -74,7 +74,7 @@
                                 <p>
                                     File:{{ v.name }} &nbsp;
                                     <a
-                                        class="fa fa-trash"
+                                        class="fas fa-trash"
                                         title="Remove file"
                                         :filename="v.name"
                                         style="cursor: pointer; color: red"
@@ -88,7 +88,7 @@
             </div>
 
             <span v-if="show_spinner"
-                ><i class="fa fa-2x fa-spinner fa-spin"></i
+                ><i class="fas fa-2x fa-spinner fa-spin"></i
             ></span>
         </div>
     </div>
@@ -96,7 +96,7 @@
 
 <script>
 import { helpers } from '@/utils/hooks';
-
+import $ from 'jquery'
 export default {
     name: 'FileField2',
     components: {},
@@ -248,9 +248,9 @@ export default {
                 confirmButtonText: 'Delete Document',
                 confirmButtonColor: '#d9534f',
             }).then(
-                () => {
-                    helpers
-                        .fetchUrl(vm.delete_url, {
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        helpers.fetchUrl(vm.delete_url, {
                             method: 'POST',
                             body: JSON.stringify(data),
                             headers: {
@@ -267,8 +267,8 @@ export default {
                                 console.log(err);
                             }
                         );
+                    }
                 },
-                () => {}
             );
         },
         num_documents: function () {

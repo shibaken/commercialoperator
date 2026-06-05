@@ -38,20 +38,6 @@ export default {
             );
         });
     },
-    fetchOrganisationPermissions: function (id) {
-        return new Promise((resolve, reject) => {
-            helpers
-                .fetchUrl(helpers.add_endpoint_json(api.my_organisations, id))
-                .then(
-                    (response) => {
-                        resolve(response);
-                    },
-                    (error) => {
-                        reject(error);
-                    }
-                );
-        });
-    },
     fetchOrganisation: function (id) {
         return new Promise((resolve, reject) => {
             helpers

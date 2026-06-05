@@ -35,7 +35,7 @@ import datatable from '@/utils/vue/datatable.vue';
 import editVessel from './edit_vessel.vue';
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import { v4 as uuid } from 'uuid';
-
+import $ from 'jquery'
 export default {
     name: 'VesselTableDash',
     components: {

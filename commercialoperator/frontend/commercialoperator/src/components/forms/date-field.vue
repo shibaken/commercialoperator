@@ -35,16 +35,16 @@
                         "
                         href=""
                         @click.prevent="toggleComment"
-                        ><i style="color: red" class="fa fa-comment-o"
+                        ><i style="color: red" class="far fa-comment"
                             >&nbsp;</i
                         ></a
                     >
                     <a v-else href="" @click.prevent="toggleComment"
-                        ><i class="fa fa-comment-o">&nbsp;</i></a
+                        ><i class="far fa-comment">&nbsp;</i></a
                     >
                 </template>
                 <a v-else href="" @click.prevent="toggleComment"
-                    ><i class="fa fa-ban">&nbsp;</i></a
+                    ><i class="fas fa-ban">&nbsp;</i></a
                 >
             </template>
             <div class="input-group date">
@@ -58,8 +58,8 @@
                     :value="value"
                     :required="isRequired"
                 />
-                <span class="input-group-addon">
-                    <span class="glyphicon glyphicon-calendar"></span>
+                <span class="input-group-text">
+                    <i class="fas fa-calendar-days"></i>
                 </span>
             </div>
         </div>
