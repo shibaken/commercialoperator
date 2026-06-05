@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import $ from 'jquery'
 const ERRORS = {
     NETWORK_ERROR: `NETWORK ERROR: Please check your internet connection and try again.`,
 };

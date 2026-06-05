@@ -1,7 +1,6 @@
 <template id="proposal_requirements">
     <div class="col-md-12">
         <div class="row">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Requirements"
@@ -59,7 +58,6 @@
                         />
                     </form>
                 </FormSection>
-            </div>
         </div>
         <RequirementDetail
             ref="requirement_detail"
@@ -81,7 +79,7 @@ import FormSection from '@/components/forms/section_toggle.vue';
 import '@/../../../static/commercialoperator/css/extra.css';
 import { v4 as uuid } from 'uuid';
 import _ from 'lodash';
-
+import $ from 'jquery'
 export default {
     name: 'InternalProposalRequirements',
     components: {
@@ -264,21 +262,21 @@ export default {
                         mRender: function (data, type, full) {
                             let links = '';
                             if (vm.proposal.assessor_mode.has_assessor_mode) {
-                                links += `<a class="dtMoveUp" data-id="${full.id}" href='#'><i class="fa fa-angle-up fa-2x"></i></a><br/>`;
-                                links += `<a class="dtMoveDown" data-id="${full.id}" href='#'><i class="fa fa-angle-down fa-2x"></i></a><br/>`;
+                                links += `<a class="dtMoveUp" data-id="${full.id}" href='#'><i class="fas fa-angle-up fa-2x"></i></a><br/>`;
+                                links += `<a class="dtMoveDown" data-id="${full.id}" href='#'><i class="fas fa-angle-down fa-2x"></i></a><br/>`;
                             } else {
                                 if (
                                     vm.hasReferralMode &&
                                     full.can_referral_edit
                                 ) {
-                                    links += `<a class="dtMoveUp" data-id="${full.id}" href='#'><i class="fa fa-angle-up fa-2x"></i></a><br/>`;
-                                    links += `<a class="dtMoveDown" data-id="${full.id}" href='#'><i class="fa fa-angle-down fa-2x"></i></a><br/>`;
+                                    links += `<a class="dtMoveUp" data-id="${full.id}" href='#'><i class="fas fa-angle-up fa-2x"></i></a><br/>`;
+                                    links += `<a class="dtMoveDown" data-id="${full.id}" href='#'><i class="fas fa-angle-down fa-2x"></i></a><br/>`;
                                 } else if (
                                     vm.hasDistrictAssessorMode &&
                                     full.can_district_assessor_edit
                                 ) {
-                                    links += `<a class="dtMoveUp" data-id="${full.id}" href='#'><i class="fa fa-angle-up fa-2x"></i></a><br/>`;
-                                    links += `<a class="dtMoveDown" data-id="${full.id}" href='#'><i class="fa fa-angle-down fa-2x"></i></a><br/>`;
+                                    links += `<a class="dtMoveUp" data-id="${full.id}" href='#'><i class="fas fa-angle-up fa-2x"></i></a><br/>`;
+                                    links += `<a class="dtMoveDown" data-id="${full.id}" href='#'><i class="fas fa-angle-down fa-2x"></i></a><br/>`;
                                 }
                             }
                             return links;

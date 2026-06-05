@@ -264,6 +264,7 @@ def send_application_fee_confirmation_tclass_email_notification(
         _log_user_email(msg, proposal.submitter, proposal.submitter, sender=sender)
 
 
+#TODO default sender should be no-reply - consider refactoring all email functions to not use the request user email 
 def send_invoice_tclass_email_notification(
     sender, booking, invoice, recipients, is_test=False
 ):

@@ -2,7 +2,7 @@ import traceback
 import json
 from django.db.models import Q
 from django.core.exceptions import ValidationError
-from rest_framework import viewsets, serializers
+from rest_framework import viewsets, serializers, mixins
 from rest_framework.decorators import renderer_classes, action
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
@@ -14,6 +14,7 @@ from commercialoperator.components.proposals.models import (
     PreEventsParkDocument,
     ProposalPreEventsParks,
     ProposalEventsTrails,
+    Proposal,
 )
 from commercialoperator.components.proposals.serializers_event import (
     ProposalEventsParksSerializer,
@@ -26,14 +27,16 @@ from commercialoperator.components.proposals.serializers_event import (
 )
 
 from commercialoperator.components.segregation.utils import retrieve_delegate_organisation_ids
-from commercialoperator.helpers import is_customer, is_internal
+from commercialoperator.helpers import is_internal
+from django.core.exceptions import PermissionDenied
 
 import logging
 
 logger = logging.getLogger(__name__)
 
+from commercialoperator.components.proposals.api import user_can_edit
 
-class ProposalEventsParksViewSet(viewsets.ModelViewSet):
+class ProposalEventsParksViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = ProposalEventsParks.objects.none()
     serializer_class = ProposalEventsParksSerializer
 
@@ -41,18 +44,21 @@ class ProposalEventsParksViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return ProposalEventsParks.objects.all().order_by("id")
-        elif is_customer(self.request):
+        else:
             user_orgs = retrieve_delegate_organisation_ids(user.id)
             return ProposalEventsParks.objects.filter(
                 Q(proposal_id__org_applicant_id__in=user_orgs)
                 | Q(proposal_id__submitter_id=user.id)
             ).order_by("id")
-        return ProposalEventsParks.objects.none()
 
     @action(methods=["post"], detail=True)
     def edit_park(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+
+            if not instance.proposal or not user_can_edit(request, instance.proposal):
+                raise PermissionDenied
+            
             serializer = SaveProposalEventsParksSerializer(
                 instance, data=json.loads(request.data.get("data"))
             )
@@ -60,7 +66,7 @@ class ProposalEventsParksViewSet(viewsets.ModelViewSet):
             serializer.save()
             # instance.add_documents(request)
             instance.proposal.log_user_action(
-                ProposalUserAction.ACTION_EDIT_EVENT_PARK.format(instance.id), request
+                ProposalUserAction.ACTION_EDIT_EVENT_PARK.format(instance.id), request.user
             )
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -75,10 +81,20 @@ class ProposalEventsParksViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+        
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.proposal or not user_can_edit(request, instance.proposal):
+            raise PermissionDenied
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def create(self, request, *args, **kwargs):
         try:
-            # instance = self.get_object()
+            proposal = Proposal.objects.get(id=json.loads(request.data.get("data"))["proposal"])
+            if not proposal or not user_can_edit(request, proposal):
+                raise PermissionDenied
+            
             serializer = SaveProposalEventsParksSerializer(
                 data=json.loads(request.data.get("data"))
             )
@@ -86,7 +102,7 @@ class ProposalEventsParksViewSet(viewsets.ModelViewSet):
             instance = serializer.save()
             # instance.add_documents(request)
             instance.proposal.log_user_action(
-                ProposalUserAction.ACTION_CREATE_EVENT_PARK.format(instance.id), request
+                ProposalUserAction.ACTION_CREATE_EVENT_PARK.format(instance.id), request.user
             )
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -112,6 +128,8 @@ class ProposalEventsParksViewSet(viewsets.ModelViewSet):
     def delete_document(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+            if not instance.proposal or not user_can_edit(request, instance.proposal):
+                raise PermissionDenied
             EventsParkDocument.objects.get(id=request.data.get("id")).delete()
             return Response(
                 [
@@ -130,7 +148,7 @@ class ProposalEventsParksViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-class AbseilingClimbingActivityViewSet(viewsets.ModelViewSet):
+class AbseilingClimbingActivityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = AbseilingClimbingActivity.objects.none()
     serializer_class = AbseilingClimbingActivitySerializer
 
@@ -138,18 +156,20 @@ class AbseilingClimbingActivityViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return AbseilingClimbingActivity.objects.all().order_by("id")
-        elif is_customer(self.request):
+        else:
             user_orgs = retrieve_delegate_organisation_ids(user.id)
             return AbseilingClimbingActivity.objects.filter(
                 Q(proposal_id__org_applicant_id__in=user_orgs)
                 | Q(proposal_id__submitter_id=user.id)
             ).order_by("id")
-        return AbseilingClimbingActivity.objects.none()
 
     @action(methods=["post"], detail=True)
     def edit_abseiling_climbing(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+            if not instance.proposal or not user_can_edit(request, instance.proposal):
+                raise PermissionDenied
+            
             serializer = AbseilingClimbingActivitySerializer(
                 instance, data=request.data
             )
@@ -159,7 +179,7 @@ class AbseilingClimbingActivityViewSet(viewsets.ModelViewSet):
                 ProposalUserAction.ACTION_EDIT_ABSEILING_CLIMBING_ACTIVITY.format(
                     instance.id
                 ),
-                request,
+                request.user,
             )
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -174,9 +194,16 @@ class AbseilingClimbingActivityViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+        
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.proposal or not user_can_edit(request, instance.proposal):
+            raise PermissionDenied
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ProposalPreEventsParksViewSet(viewsets.ModelViewSet):
+class ProposalPreEventsParksViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = ProposalPreEventsParks.objects.none()
     serializer_class = ProposalPreEventsParksSerializer
 
@@ -184,18 +211,19 @@ class ProposalPreEventsParksViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return ProposalPreEventsParks.objects.all().order_by("id")
-        elif is_customer(self.request):
+        else:
             user_orgs = retrieve_delegate_organisation_ids(user.id)
             return ProposalPreEventsParks.objects.filter(
                 Q(proposal_id__org_applicant_id__in=user_orgs)
                 | Q(proposal_id__submitter_id=user.id)
             ).order_by("id")
-        return ProposalPreEventsParks.objects.none()
 
     @action(methods=["post"], detail=True)
     def edit_park(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+            if not instance.proposal or not user_can_edit(request, instance.proposal):
+                raise PermissionDenied
             serializer = SaveProposalPreEventsParksSerializer(
                 instance, data=json.loads(request.data.get("data"))
             )
@@ -204,7 +232,7 @@ class ProposalPreEventsParksViewSet(viewsets.ModelViewSet):
             instance.add_documents(request)
             instance.proposal.log_user_action(
                 ProposalUserAction.ACTION_EDIT_PRE_EVENT_PARK.format(instance.id),
-                request,
+                request.user,
             )
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -220,9 +248,19 @@ class ProposalPreEventsParksViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.proposal or not user_can_edit(request, instance.proposal):
+            raise PermissionDenied
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     def create(self, request, *args, **kwargs):
         try:
-            # instance = self.get_object()
+            proposal = Proposal.objects.get(id=json.loads(request.data.get("data"))["proposal"])
+            if not proposal or not user_can_edit(request, proposal):
+                raise PermissionDenied
+            
             serializer = SaveProposalPreEventsParksSerializer(
                 data=json.loads(request.data.get("data"))
             )
@@ -231,7 +269,7 @@ class ProposalPreEventsParksViewSet(viewsets.ModelViewSet):
             instance.add_documents(request)
             instance.proposal.log_user_action(
                 ProposalUserAction.ACTION_CREATE_PRE_EVENT_PARK.format(instance.id),
-                request,
+                request.user,
             )
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -257,6 +295,9 @@ class ProposalPreEventsParksViewSet(viewsets.ModelViewSet):
     def delete_document(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+            if not instance.proposal or not user_can_edit(request, instance.proposal):
+                raise PermissionDenied
+            
             PreEventsParkDocument.objects.get(id=request.data.get("id")).delete()
             return Response(
                 [
@@ -275,7 +316,7 @@ class ProposalPreEventsParksViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
 
-class ProposalEventsTrailsViewSet(viewsets.ModelViewSet):
+class ProposalEventsTrailsViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = ProposalEventsTrails.objects.none()
     serializer_class = ProposalEventsTrailsSerializer
 
@@ -283,18 +324,20 @@ class ProposalEventsTrailsViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return ProposalEventsTrails.objects.all().order_by("id")
-        elif is_customer(self.request):
+        else:
             user_orgs = retrieve_delegate_organisation_ids(user.id)
             return ProposalEventsTrails.objects.filter(
                 Q(proposal_id__org_applicant_id__in=user_orgs)
                 | Q(proposal_id__submitter_id=user.id)
             ).order_by("id")
-        return ProposalEventsTrails.objects.none()
 
     @action(methods=["post"], detail=True)
     def edit_trail(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+            if not instance.proposal or not user_can_edit(request, instance.proposal):
+                raise PermissionDenied
+            
             serializer = SaveProposalEventsTrailsSerializer(
                 instance, data=json.loads(request.data.get("data"))
             )
@@ -302,7 +345,7 @@ class ProposalEventsTrailsViewSet(viewsets.ModelViewSet):
             serializer.save()
             # instance.add_documents(request)
             instance.proposal.log_user_action(
-                ProposalUserAction.ACTION_EDIT_EVENT_PARK.format(instance.id), request
+                ProposalUserAction.ACTION_EDIT_EVENT_PARK.format(instance.id), request.user
             )
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -317,10 +360,20 @@ class ProposalEventsTrailsViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
+        
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.proposal or not user_can_edit(request, instance.proposal):
+            raise PermissionDenied
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def create(self, request, *args, **kwargs):
         try:
-            # instance = self.get_object()
+            proposal = Proposal.objects.get(id=json.loads(request.data.get("data"))["proposal"])
+            if not proposal or not user_can_edit(request, proposal):
+                raise PermissionDenied
+            
             serializer = SaveProposalEventsTrailsSerializer(
                 data=json.loads(request.data.get("data"))
             )
@@ -328,7 +381,7 @@ class ProposalEventsTrailsViewSet(viewsets.ModelViewSet):
             instance = serializer.save()
             # instance.add_documents(request)
             instance.proposal.log_user_action(
-                ProposalUserAction.ACTION_CREATE_EVENT_PARK.format(instance.id), request
+                ProposalUserAction.ACTION_CREATE_EVENT_PARK.format(instance.id), request.user
             )
             return Response(serializer.data)
         except serializers.ValidationError:

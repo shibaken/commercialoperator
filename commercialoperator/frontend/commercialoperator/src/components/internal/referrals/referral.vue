@@ -373,7 +373,7 @@ import Requirements from '@/components/internal/proposals/proposal_requirements.
 import Assessment from '@/components/common/tclass/assessment.vue';
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import { v4 as uuid } from 'uuid';
-
+import $ from 'jquery'
 export default {
     // eslint-disable-next-line vue/multi-word-component-names
     name: 'Referral',
@@ -612,11 +612,11 @@ export default {
     updated: function () {
         let vm = this;
         if (!vm.panelClickersInitialised) {
-            $('.panelClicker[data-toggle="collapse"]').on('click', function () {
+            $('.panelClicker[data-bs-toggle="collapse"]').on('click', function () {
                 var chev = $(this).children()[0];
                 window.setTimeout(function () {
                     $(chev).toggleClass(
-                        'glyphicon-chevron-down glyphicon-chevron-up'
+                        'fa-chevron-down fa-chevron-up'
                     );
                 }, 100);
             });
@@ -1077,9 +1077,9 @@ export default {
                 showCancelButton: true,
                 confirmButtonText: 'Submit',
             }).then(
-                () => {
-                    helpers
-                        .fetchUrl(
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        helpers.fetchUrl(
                             helpers.add_endpoint_json(
                                 api_endpoints.referrals,
                                 vm.$route.params.referral_id + '/complete'
@@ -1102,8 +1102,8 @@ export default {
                                 });
                             }
                         );
+                    }
                 },
-                () => {}
             );
         },
         formatDate: function (data) {

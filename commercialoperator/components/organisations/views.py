@@ -1,8 +1,7 @@
 from commercialoperator.components.organisations.models import Organisation
-from reversion_compare.views import HistoryCompareDetailView
+from commercialoperator.components.proposals.views import InternalHistoryCompareDetailView
 
-
-class OrganisationHistoryCompareView(HistoryCompareDetailView):
+class OrganisationHistoryCompareView(InternalHistoryCompareDetailView):
     """
     View for reversion_compare
     """

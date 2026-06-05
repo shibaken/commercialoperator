@@ -33,7 +33,7 @@
                             v-else-if="isShowComment"
                             href=""
                             @click.prevent="toggleComment"
-                            ><i class="fa fa-ban">&nbsp;</i></a
+                            ><i class="fas fa-ban">&nbsp;</i></a
                         >
                     </template>
                 </div>
@@ -59,7 +59,7 @@
 
 <script>
 import { v4 as uuid } from 'uuid';
-
+import $ from 'jquery'
 export default {
     name: 'FormSection',
     props: {

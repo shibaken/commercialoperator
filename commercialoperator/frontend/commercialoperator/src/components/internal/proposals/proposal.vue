@@ -178,7 +178,7 @@
                                                 >
                                                     Sending Referral&nbsp;
                                                     <i
-                                                        class="fa fa-circle-o-notch fa-spin fa-fw"
+                                                        class="fas fa-circle-notch fa-spin fa-fw"
                                                     ></i>
                                                 </span>
                                             </template>
@@ -449,7 +449,7 @@
                                                 >
                                                     Send to Districts&nbsp;
                                                     <i
-                                                        class="fa fa-circle-o-notch fa-spin fa-fw"
+                                                        class="fas fa-circle-notch fa-spin fa-fw"
                                                     ></i>
                                                 </button>
                                                 <button
@@ -473,7 +473,7 @@
                                                 >
                                                     Send to Kensington&nbsp;
                                                     <i
-                                                        class="fa fa-circle-o-notch fa-spin fa-fw"
+                                                        class="fas fa-circle-notch fa-spin fa-fw"
                                                     ></i>
                                                 </button>
                                                 <button
@@ -501,7 +501,7 @@
                                                 >
                                                     Enter Requirements&nbsp;
                                                     <i
-                                                        class="fa fa-circle-o-notch fa-spin fa-fw"
+                                                        class="fas fa-circle-notch fa-spin fa-fw"
                                                     ></i>
                                                 </button>
                                                 <button
@@ -669,7 +669,7 @@
                                                 >
                                                     Back To Processing&nbsp;
                                                     <i
-                                                        class="fa fa-circle-o-notch fa-spin fa-fw"
+                                                        class="fas fa-circle-notch fa-spin fa-fw"
                                                     ></i>
                                                 </button>
                                                 <button
@@ -1004,7 +1004,7 @@
                                                     >
                                                         Save Changes&nbsp;
                                                         <i
-                                                            class="fa fa-circle-o-notch fa-spin fa-fw"
+                                                            class="fas fa-circle-notch fa-spin fa-fw"
                                                         ></i>
                                                     </button>
                                                     <button
@@ -1074,7 +1074,7 @@ import WithQAOfficer from './proposal_qaofficer.vue';
 import FilmingDistrictProposalsTable from '@common-utils/filming_district_proposals_table.vue';
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import { v4 as uuid } from 'uuid';
-
+import $ from 'jquery'
 export default {
     name: 'InternalProposal',
     components: {

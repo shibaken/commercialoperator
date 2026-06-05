@@ -40,11 +40,11 @@
                                 v-if="is_checked(node)"
                                 @mousedown.stop="edit_activities($event, node)"
                                 >{{ edit_display_text(node) }}
-                                <i class="fa fa-edit"></i
+                                <i class="fas fa-pen-to-square"></i
                             ></a>
                             <a v-else style="color: grey">
                                 {{ edit_display_text(node) }}
-                                <i class="fa fa-edit"></i>
+                                <i class="fas fa-pen-to-square"></i>
                             </a>
                         </div>
                     </div>

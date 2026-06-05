@@ -168,13 +168,6 @@
                 </div>
             </div>
         </div>
-        <AddCommLog
-            id="org_comms1"
-            ref="add_comm_org"
-            :url="comms_add_url"
-            :action="user_action"
-            @refreshActionFromResponse="refreshActionFromResponse"
-        />
     </div>
     <div v-else>
         <div class="d-flex justify-content-center align-items-center mt-5">
@@ -194,7 +187,7 @@ import alert from '@vue-utils/alert.vue';
 import datatable from '@vue-utils/datatable.vue';
 import AddCommLog from '@common-utils/add_comm_log_org.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
-
+import $ from 'jquery'
 export default {
     name: 'OrganisationComponent',
     components: {
@@ -203,32 +196,6 @@ export default {
         AddCommLog,
         FormSection,
     },
-    // beforeRouteEnter: function (to, from, next) {
-    // let initialisers = [
-    //     utils.fetchCountries(),
-    //     utils.fetchLinkedOrganisation(to.params.org_id),
-    //     utils.fetchProfile(),
-    // ];
-    // Promise.all(initialisers).then((data) => {
-    //     next((vm) => {
-    //         vm.countries = data[0];
-    //         vm.org = data[1];
-    //         vm.profile = data[2];
-    //         vm.org.organisation_address =
-    //             vm.org.organisation_address != null
-    //                 ? vm.org.organisation_address
-    //                 : {};
-    //         vm.org.pins = vm.org.pins != null ? vm.org.pins : {};
-    //         vm.is_commercialoperator_admin =
-    //             vm.profile.is_commercialoperator_admin;
-    //         vm.is_org_access_member = vm.profile.is_org_access_member;
-
-    //         console.log('countries', vm.countries);
-    //         console.log('profile', vm.profile);
-    //         console.log('org', vm.org);
-    //     });
-    // });
-    // },
     data() {
         const vm = this;
         return {
@@ -249,6 +216,7 @@ export default {
             },
             helpers: helpers,
             org: null,
+            is_org_admin: false,
             contacts_headers_ref: ['Name', 'Role', 'Email', 'Status', 'Action'],
             contacts_options_ref: {
                 language: {
@@ -290,13 +258,13 @@ export default {
                             if (full.user_status == 'Pending') {
                                 links += `<span class='badge bg-warning me-1 p-2'>${full.user_status}</span>`;
                             } else if (full.user_status == 'Active') {
-                                links += `<span class='badge bg-success me-1 p-2'><i class="fa fa-chain"></i> ${full.user_status}</span>`;
+                                links += `<span class='badge bg-success me-1 p-2'><i class="fas fa-link"></i> ${full.user_status}</span>`;
                             } else if (full.user_status == 'Declined') {
                                 links += `<span class='badge bg-danger me-1 p-2'>${full.user_status}</span>`;
                             } else if (full.user_status == 'Suspended') {
                                 links += `<span class='badge bg-danger me-1 p-2'>${full.user_status}</span>`;
                             } else if (full.user_status == 'Unlinked') {
-                                links += `<span class='badge bg-secondary me-1 p-2'><i class="fa fa-chain-broken"></i> ${full.user_status}</span>`;
+                                links += `<span class='badge bg-secondary me-1 p-2'><i class="fas fa-link-slash"></i> ${full.user_status}</span>`;
                             } else if (full.user_status == 'ContactForm') {
                                 links += `<span class='badge bg-info me-1 p-2'>${full.user_status}</span>`;
                             } else {
@@ -309,14 +277,14 @@ export default {
                         data: 'id',
                         mRender: function (data, type, full) {
                             let links = '';
-                            if (vm.is_commercialoperator_admin) {
+                            if (vm.is_commercialoperator_admin || vm.is_org_admin) {
                                 if (full.user_status == 'Pending') {
                                     links += `<a data-email='${full.email}' data-firstname='${full.first_name}' data-lastname='${full.last_name}' data-id='${full.id}' data-mobile='${full.mobile_number}' data-phone='${full.phone_number}' class="accept_contact">Accept</a><br/>`;
                                     links += `<a data-email='${full.email}'  data-firstname='${full.first_name}' data-lastname='${full.last_name}' data-id='${full.id}' data-mobile='${full.mobile_number}' data-phone='${full.phone_number}' class="decline_contact">Decline</a><br/>`;
                                 } else if (full.user_status == 'Suspended') {
                                     links += `<a data-email='${full.email}' data-firstname='${full.first_name}' data-lastname='${full.last_name}' data-id='${full.id}' data-mobile='${full.mobile_number}' data-phone='${full.phone_number}' class="reinstate_contact">Reinstate</a><br/>`;
                                 } else if (full.user_status == 'Active') {
-                                    links += `<button class='btn btn-danger btn-sm btn-status unlink_contact' role='button' data-email='${full.email}' data-firstname='${full.first_name}' data-lastname='${full.last_name}' data-id='${full.id}' data-mobile='${full.mobile_number}' data-phone='${full.phone_number}'><i class="fa fa-chain-broken"></i> Unlink</button><br/>`;
+                                    links += `<button class='btn btn-danger btn-sm btn-status unlink_contact' role='button' data-email='${full.email}' data-firstname='${full.first_name}' data-lastname='${full.last_name}' data-id='${full.id}' data-mobile='${full.mobile_number}' data-phone='${full.phone_number}'><i class="fas fa-link-slash"></i> Unlink</button><br/>`;
                                     links += `<a data-email='${full.email}'  data-firstname='${full.first_name}' data-lastname='${full.last_name}' data-id='${full.id}' data-mobile='${full.mobile_number}' data-phone='${full.phone_number}' class="suspend_contact">Suspend</a><br/>`;
                                     if (full.user_role == 'Organisation User') {
                                         links += `<a data-email='${full.email}'  data-firstname='${full.first_name}' data-lastname='${full.last_name}' data-id='${full.id}' data-mobile='${full.mobile_number}' data-phone='${full.phone_number}' class="make_admin_contact">Make Organisation Admin</a><br/>`;
@@ -375,9 +343,9 @@ export default {
         });
     },
     methods: {
-        refreshActionFromResponse: function (action) {
+        orgAction: function (action) {
             let vm = this;
-            if (action && this.action === action) {
+            if (action) {
                 if (action == 'unlink') {
                     helpers
                         .fetchUrl(
@@ -407,6 +375,9 @@ export default {
                                 }).then(
                                     () => {
                                         vm.$refs.contacts_datatable_user.vmDataTable.ajax.reload();
+                                        if (vm.contact_user.email == vm.profile.email) {
+                                            this.$router.push('/external')
+                                        }
                                     },
                                     () => {}
                                 );
@@ -504,6 +475,9 @@ export default {
                                 }).then(
                                     () => {
                                         vm.$refs.contacts_datatable_user.vmDataTable.ajax.reload();
+                                        if (vm.contact_user.email == vm.profile.email) {
+                                            this.$router.push('/external')
+                                        }
                                     },
                                     () => {}
                                 );
@@ -602,10 +576,7 @@ export default {
                                 // Note: The alert text seems to indicate to display the user name, but the name is not retrieved from the error response
                                 swal.fire({
                                     title: 'Organisation Admin',
-                                    text:
-                                        'There was an error making ' +
-                                        error +
-                                        ' an Organisation Admin.',
+                                    text: error,
                                     icon: 'error',
                                 });
                             }
@@ -639,6 +610,9 @@ export default {
                                 }).then(
                                     () => {
                                         vm.$refs.contacts_datatable_user.vmDataTable.ajax.reload();
+                                        if (vm.contact_user.email == vm.profile.email) {
+                                            this.$router.push('/external')
+                                        }
                                     },
                                     () => {}
                                 );
@@ -649,11 +623,7 @@ export default {
                                 var text = helpers.apiVueResourceError(error);
                                 swal.fire({
                                     title: 'Company Admin',
-                                    text:
-                                        'There was an error making ' +
-                                        error +
-                                        ' an Organisation User.' +
-                                        text,
+                                    text: error,
                                     icon: 'error',
                                 });
                             }
@@ -798,45 +768,7 @@ export default {
         },
         eventListeners: function () {
             const vm = this;
-            // vm.$refs.contacts_datatable.vmDataTable.on(
-            //     'click',
-            //     '.remove-contact',
-            //     (e) => {
-            //         e.preventDefault();
-
-            //         let name = $(e.target).data('name');
-            //         let email = $(e.target).data('email');
-            //         let id = $(e.target).data('id');
-            //         swal.fire({
-            //             title: 'Delete Contact',
-            //             text:
-            //                 'Are you sure you want to remove ' +
-            //                 name +
-            //                 '(' +
-            //                 email +
-            //                 ') as a contact  ?',
-            //             icon: 'error',
-            //             showCancelButton: true,
-            //             confirmButtonText: 'Accept',
-            //         }).then(
-            //             () => {
-            //                 vm.deleteContact(id);
-            //             },
-            //             () => {}
-            //         );
-            //     }
-            // );
-
-            // vm.$refs.contacts_datatable.vmDataTable.on(
-            //     'click',
-            //     '.edit-contact',
-            //     (e) => {
-            //         e.preventDefault();
-            //         let id = $(e.target).attr('data-edit-id');
-            //         vm.editContact(id);
-            //     }
-            // );
-
+            
             vm.$refs.contacts_datatable_user.vmDataTable.on(
                 'click',
                 '.unlink_contact',
@@ -861,10 +793,7 @@ export default {
                                 return;
                             }
                             if (result) {
-                                this.action = 'unlink';
-                                this.$refs.add_comm_org.localAction =
-                                    this.action;
-                                this.addComm();
+                                this.orgAction('unlink');
                             }
                         },
                         () => {}
@@ -896,10 +825,7 @@ export default {
                                 return;
                             }
                             if (result) {
-                                this.action = 'reinstate';
-                                this.$refs.add_comm_org.localAction =
-                                    this.action;
-                                this.addComm();
+                                this.orgAction('reinstate');
                             }
                         },
                         () => {}
@@ -931,10 +857,7 @@ export default {
                                 if (!result.isConfirmed) {
                                     return;
                                 }
-                                this.action = 'relink';
-                                this.$refs.add_comm_org.localAction =
-                                    this.action;
-                                this.addComm();
+                                this.orgAction('relink');
                             }
                         },
                         () => {}
@@ -966,10 +889,7 @@ export default {
                                 if (!result.isConfirmed) {
                                     return;
                                 }
-                                this.action = 'suspend';
-                                this.$refs.add_comm_org.localAction =
-                                    this.action;
-                                this.addComm();
+                                this.orgAction('suspend');
                             }
                         },
                         () => {}
@@ -1001,10 +921,7 @@ export default {
                                 if (!result.isConfirmed) {
                                     return;
                                 }
-                                this.action = 'make_admin_contact';
-                                this.$refs.add_comm_org.localAction =
-                                    this.action;
-                                this.addComm();
+                                this.orgAction('make_admin_contact');
                             }
                         },
                         () => {}
@@ -1036,10 +953,7 @@ export default {
                                 if (!result.isConfirmed) {
                                     return;
                                 }
-                                this.action = 'make_user_contact';
-                                this.$refs.add_comm_org.localAction =
-                                    this.action;
-                                this.addComm();
+                                this.orgAction('make_user_contact');
                             }
                         },
                         () => {}
@@ -1071,10 +985,7 @@ export default {
                                 if (!result.isConfirmed) {
                                     return;
                                 }
-                                this.action = 'accept';
-                                this.$refs.add_comm_org.localAction =
-                                    this.action;
-                                this.addComm();
+                                this.orgAction('accept');
                             }
                         },
                         () => {}
@@ -1106,10 +1017,7 @@ export default {
                                 if (!result.isConfirmed) {
                                     return;
                                 }
-                                this.action = 'decline';
-                                this.$refs.add_comm_org.localAction =
-                                    this.action;
-                                this.addComm();
+                                this.orgAction('decline');
                             }
                         },
                         () => {}
@@ -1141,10 +1049,7 @@ export default {
                                 if (!result.isConfirmed) {
                                     return;
                                 }
-                                this.action = 'accept_declined';
-                                this.$refs.add_comm_org.localAction =
-                                    this.action;
-                                this.addComm();
+                                this.orgAction('accept_declined');
                             }
                         },
                         () => {}
@@ -1183,6 +1088,13 @@ export default {
                 vm.is_commercialoperator_admin =
                     vm.profile.is_commercialoperator_admin;
                 vm.is_org_access_member = vm.profile.is_org_access_member;
+                var profile_org;
+                vm.profile.commercialoperator_organisations.forEach(org => {
+                    if (org.id == vm.org.id) {
+                        profile_org = org;
+                    }
+                });
+                vm.is_org_admin = profile_org.is_admin;
 
                 return { success: true };
             });
@@ -1203,10 +1115,6 @@ export default {
             };
 
             this.contact_user = { ...new_user };
-        },
-        addComm: function () {
-            this.$refs.add_comm_org.isLedgerOrgQuery = true;
-            this.$refs.add_comm_org.isModalOpen = true;
         },
     },
 };

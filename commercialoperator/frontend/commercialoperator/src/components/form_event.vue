@@ -244,7 +244,7 @@
 
 <script>
 import Account from '@/components/user/account.vue';
-import Organisation from '@/components/external/organisations/manage.vue';
+import Organisation from '@/components/external/organisations/organisation_details.vue';
 import Applicant from '@/components/common/tclass/applicant.vue';
 import Assessment from '@/components/common/tclass/assessment.vue';
 import Activities from '@/components/common/event/activities.vue';
@@ -253,6 +253,7 @@ import VehiclesVessels from '@/components/common/event/vehicles_vessels.vue';
 import OtherDetails from '@/components/common/event/other_details.vue';
 import OnlineTraining from '@/components/common/event/online_training.vue';
 import Confirmation from '@/components/common/event/confirmation.vue';
+import $ from 'jquery';
 export default {
     components: {
         Account,

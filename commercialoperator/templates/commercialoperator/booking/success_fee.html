@@ -2,7 +2,7 @@
 {% load static %}
 {% block content %}
     <div class="container">
-        <div class="well">
+        <div class="card card-body bg-light">
             <div class="row">
                 <div class="col-sm-12">
                     <h2>Success!</h2>
@@ -79,11 +79,11 @@
                     {% if request.user.is_authenticated %}
                         <span>
                             {% if proposal and proposal.application_type.name == proposal.application_type.FILMING %}
-                                <a href="{% url 'cols-invoice-filmingfee-pdf' fee_invoice.invoice_reference %}"
+                                <a href="{% url 'cols-invoice-filmingfee-pdf' fee_invoice.reference %}"
                                    class="btn btn-info btn-lg"
                                    target="_blank">Invoice</a>
                             {% else %}
-                                <a href="{% url 'cols-invoice-pdf' fee_invoice.invoice_reference %}"
+                                <a href="{% url 'cols-invoice-pdf' fee_invoice.reference %}"
                                    class="btn btn-info btn-lg"
                                    target="_blank">Invoice</a>
                             {% endif %}

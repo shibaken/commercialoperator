@@ -1,17 +1,17 @@
 {% extends "ledgerui/organisation.html" %}
 
 {% load static %}
-
+{% load django_vite %}
 {% block myorganisation_nav %}
 
-<button class="nav-link managed-organisation-nav" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Organisations</button>
+<button class="nav-link managed-organisation-nav" id="nav-organisation-tab" data-bs-toggle="tab" data-bs-target="#nav-organisation" type="button" role="tab" aria-controls="nav-organisation" aria-selected="false">Organisations</button>
 
 {% endblock %}
 
 {% block additional_content %}
 
  
-<div id="nav-profile-tab-page" style="display:none;">
+<div id="nav-organisation-tab-page" style="display:none;">
     <div id="app">
         <!-- Display a spinner while waiting for the component to load -->
         <div class="d-flex justify-content-center align-items-center mt-5">
@@ -25,12 +25,6 @@
     </div>
 </div>
 
-
-<link rel="stylesheet" href="{% static 'commercialoperator/css/base.css' %}?v={{build_tag}}">
-<link rel="stylesheet" href="{% static 'commercialoperator_vue/css/app.css' %}?v={{build_tag}}">
-<link rel="stylesheet" href="{% static 'commercialoperator_vue/css/chunk-vendors.css' %}?v={{build_tag}}">
-
-<script type="text/javascript" src="{% static 'commercialoperator_vue/js/chunk-vendors.js' %}?v={{build_tag}}"></script>
-<script type="text/javascript" src="{% static 'commercialoperator_vue/js/app.js' %}?v={{build_tag}}"></script>
+{% vite_asset vue3_entry_script app='default' %}
 
 {% endblock %}

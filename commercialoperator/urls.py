@@ -36,9 +36,6 @@ router.register(r"organisations", org_api.OrganisationViewSet, "organisations")
 router.register(r"proposal", proposal_api.ProposalViewSet, "proposal")
 router.register(r"proposal_park", proposal_api.ProposalParkViewSet, "proposal_park")
 router.register(
-    r"proposal_submit", proposal_api.ProposalSubmitViewSet, "proposal_submit"
-)
-router.register(
     r"proposal_paginated", proposal_api.ProposalPaginatedViewSet, "proposal_paginated"
 )
 router.register(
@@ -59,8 +56,6 @@ router.register(
 )
 router.register(r"referrals", proposal_api.ReferralViewSet, "referrals")
 router.register(r"approvals", approval_api.ApprovalViewSet, "approvals")
-router.register(r"bookings", booking_api.BookingViewSet, "bookings")
-router.register(r"park_bookings", booking_api.ParkBookingViewSet, "park_bookings")
 router.register(
     r"overdue_invoices", booking_api.OverdueBookingInvoiceViewSet, "overdue_invoices"
 )
@@ -80,12 +75,6 @@ router.register(
     org_api.OrganisationRequestsViewSet,
     "organisation_requests",
 )
-router.register(
-    r"organisation_contacts",
-    org_api.OrganisationContactViewSet,
-    "organisation_contacts",
-)
-router.register(r"my_organisations", org_api.MyOrganisationsViewSet, "my_organisations")
 router.register(r"users", users_api.UserViewSet)
 router.register(
     r"amendment_request", proposal_api.AmendmentRequestViewSet, "amendment_request"
@@ -126,7 +115,6 @@ router.register(
     r"required_documents", main_api.RequiredDocumentViewSet, "required_documents"
 )
 router.register(r"questions", main_api.QuestionViewSet, "questions")
-router.register(r"payment", main_api.PaymentViewSet, "payment")
 router.register(
     r"event_trail_container", main_api.TrailTabViewSet, basename="event_trail_container"
 )
@@ -208,14 +196,6 @@ api_patterns = [
         name="filtered_payments",
     ),
     url(
-        r"^api/proposal_type$",
-        proposal_api.GetProposalType.as_view(),
-        name="get-proposal-type",
-    ),
-    url(
-        r"^api/empty_list$", proposal_api.GetEmptyList.as_view(), name="get-empty-list"
-    ),
-    url(
         r"^api/organisation_access_group_members",
         org_api.OrganisationAccessGroupMembersView.as_view(),
         name="organisation-access-group-members",
@@ -247,6 +227,10 @@ api_patterns = [
         name="accreditation_choices",
     ),
     url(
+        r'^api/tourism_standard_choices',
+        proposal_api.TourismStandardsView.as_view(),
+        name='tourism_standard_choices',),
+    url(
         r"^api/licence_period_choices",
         proposal_api.LicencePeriodChoicesView.as_view(),
         name="licence_period_choices",
@@ -256,7 +240,6 @@ api_patterns = [
         proposal_api.FilmingLicenceChargeView.as_view(),
         name="filming_licence_charge_choices ",
     ),
-    url(r"^api/oracle_job$", main_api.OracleJob.as_view(), name="get-oracle"),
     # Filming
     url(
         r"^api/filming_activity_tab",
@@ -271,7 +254,6 @@ urlpatterns = (
         url(r"^admin/", admin.site.urls, name="admin"),
         url(r"", include(api_patterns)),
         url(r"^$", views.CommercialOperatorRoutingView.as_view(), name="home"),
-        url(r"^$", views.CommercialOperatorRoutingView.as_view(), name="ds_home"),
         url(
             r"^contact/",
             views.CommercialOperatorContactView.as_view(),
@@ -289,13 +271,7 @@ urlpatterns = (
             name="internal-referral-detail",
         ),
         url(r"^external/", views.ExternalView.as_view(), name="external"),
-        # url(r"^account/", views.AccountView.as_view(), name="manage-account"), # Commented out in favor of ledger-ui/accounts
         url(r"^profiles/", views.ExternalView.as_view(), name="manage-profiles"),
-        url(
-            r"^help/(?P<application_type>[^/]+)/(?P<help_type>[^/]+)/$",
-            views.HelpView.as_view(),
-            name="help",
-        ),
         url(
             r"^mgt-commands/$",
             views.ManagementCommandsView.as_view(),
@@ -304,8 +280,6 @@ urlpatterns = (
         url(
             r"test-emails/$", proposal_views.TestEmailView.as_view(), name="test-emails"
         ),
-        # following url is used to include url path when sending Proposal amendment request to user.
-        url(r"^proposal/$", proposal_views.ProposalView.as_view(), name="proposal"),
         url(
             r"^preview/licence-pdf/(?P<proposal_pk>\d+)",
             proposal_views.PreviewLicencePDFView.as_view(),
@@ -338,11 +312,6 @@ urlpatterns = (
             name="make_payment",
         ),
         url(
-            r"^zero_fee_success/",
-            booking_views.ZeroApplicationFeeView.as_view(),
-            name="zero_fee_success",
-        ),
-        url(
             r"^payment_deferred/(?P<proposal_pk>\d+)/$",
             booking_views.DeferredInvoicingView.as_view(),
             name="deferred_invoicing",
@@ -353,22 +322,42 @@ urlpatterns = (
             name="preview_deferred_invoicing",
         ),
         url(
-            r"^success/booking/$",
+            r"^success/booking_preload/(?P<reference>.+)/",
+            booking_views.BookingSuccessViewPreload.as_view(),
+            name="public_booking_success_preload",
+        ),
+        url(
+            r"^success/booking/(?P<reference>.+)/",
             booking_views.BookingSuccessView.as_view(),
             name="public_booking_success",
         ),
         url(
-            r"^success/fee/$",
+            r"^success_preload/fee/(?P<reference>.+)/",
+            booking_views.ApplicationFeeSuccessViewPreload.as_view(),
+            name="fee_success_preload",
+        ),
+        url(
+            r"^success/fee/(?P<reference>.+)/",
             booking_views.ApplicationFeeSuccessView.as_view(),
             name="fee_success",
         ),
         url(
-            r"^success/compliance_fee/$",
+            r"^success_preload/compliance_fee/(?P<reference>.+)/",
+            booking_views.ComplianceFeeSuccessViewPreload.as_view(),
+            name="compliance_success_preload",
+        ),
+        url(
+            r"^success/compliance_fee/(?P<reference>.+)/",
             booking_views.ComplianceFeeSuccessView.as_view(),
             name="compliance_fee_success",
         ),
         url(
-            r"^success/filming_fee/$",
+            r"^success_preload/filming_fee/(?P<reference>.+)/",
+            booking_views.FilmingFeeSuccessViewPreload.as_view(),
+            name="filming_fee_success_preload",
+        ),
+        url(
+            r"^success/filming_fee/(?P<reference>.+)/",
             booking_views.FilmingFeeSuccessView.as_view(),
             name="filming_fee_success",
         ),
@@ -471,21 +460,16 @@ urlpatterns = (
             name="proposaltype_history",
         ),
         url(
-            r"^history/helppage/(?P<pk>\d+)/$",
-            proposal_views.HelpPageHistoryCompareView.as_view(),
-            name="helppage_history",
-        ),
-        url(
             r"^history/organisation/(?P<pk>\d+)/$",
             organisation_views.OrganisationHistoryCompareView.as_view(),
             name="organisation_history",
         ),
-        url("ckeditor5/", include("django_ckeditor_5.urls")),
         url(
             r"^booking-session/abort-redirect$",
             booking_views.SessionAbortRedirectView.as_view(),
             name="booking-session-abort-redirect",
         ),
+        url(r'^private-media/', views.getPrivateFile, name='view_private_file'),
     ]
     + ledger_patterns
     + media_serv_patterns

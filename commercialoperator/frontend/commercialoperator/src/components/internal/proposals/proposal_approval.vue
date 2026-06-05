@@ -36,7 +36,6 @@
         </template>
         <div class="col-md-12">
             <div class="row">
-                <div class="panel panel-default">
                     <FormSection
                         :form-collapse="false"
                         :label="!isFinalised ? 'Proposed Decision' : 'Decision'"
@@ -137,7 +136,6 @@
                             </div>
                         </div>
                     </FormSection>
-                </div>
             </div>
         </div>
     </div>
@@ -146,7 +144,7 @@
 import { api_endpoints, helpers } from '@/utils/hooks';
 import FormSection from '@/components/forms/section_toggle.vue';
 import { v4 as uuid } from 'uuid';
-
+import $ from 'jquery'
 export default {
     name: 'InternalProposalRequirements',
     components: {
@@ -254,9 +252,9 @@ export default {
                 confirmButtonText: 'Remove Requirement',
                 confirmButtonColor: '#d9534f',
             }).then(
-                () => {
-                    helpers
-                        .fetchUrl(
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        helpers.fetchUrl(
                             helpers.add_endpoint_json(
                                 api_endpoints.proposal_requirements,
                                 _id
@@ -276,8 +274,8 @@ export default {
                                 console.log(error);
                             }
                         );
+                    }
                 },
-                () => {}
             );
         },
     },

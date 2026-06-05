@@ -222,7 +222,7 @@
                                                 >
                                                     Enter Requirements&nbsp;
                                                     <i
-                                                        class="fa fa-circle-o-notch fa-spin fa-fw"
+                                                        class="fas fa-circle-notch fa-spin fa-fw"
                                                     ></i>
                                                 </button>
                                                 <button
@@ -282,7 +282,7 @@
                                                 >
                                                     Back To Processing&nbsp;
                                                     <i
-                                                        class="fa fa-circle-o-notch fa-spin fa-fw"
+                                                        class="fas fa-circle-notch fa-spin fa-fw"
                                                     ></i>
                                                 </button>
                                                 <button
@@ -593,7 +593,7 @@ import ApprovalScreen from './district_proposal_approval.vue';
 import ProposedApproval from './district_proposed_issuance.vue';
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import { v4 as uuid } from 'uuid';
-
+import $ from 'jquery'
 export default {
     name: 'DistrictProposal',
     components: {
@@ -860,11 +860,11 @@ export default {
     updated: function () {
         let vm = this;
         if (!vm.panelClickersInitialised) {
-            $('.panelClicker[data-toggle="collapse"]').on('click', function () {
+            $('.panelClicker[data-bs-toggle="collapse"]').on('click', function () {
                 var chev = $(this).children()[0];
                 window.setTimeout(function () {
                     $(chev).toggleClass(
-                        'glyphicon-chevron-down glyphicon-chevron-up'
+                        'fa-chevron-down fa-chevron-up'
                     );
                 }, 100);
             });
@@ -1563,9 +1563,9 @@ export default {
                 showCancelButton: true,
                 confirmButtonText: 'Submit',
             }).then(
-                () => {
-                    helpers
-                        .fetchUrl(
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        helpers.fetchUrl(
                             helpers.add_endpoint_json(
                                 api_endpoints.referrals,
                                 vm.$route.params.referral_id + '/complete'
@@ -1593,6 +1593,7 @@ export default {
                                 });
                             }
                         );
+                    }
                 },
                 () => {}
             );

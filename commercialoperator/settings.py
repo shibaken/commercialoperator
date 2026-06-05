@@ -15,11 +15,17 @@ os.environ.setdefault("BASE_DIR", BASE_DIR)
 from ledger_api_client.settings_base import *  # noqa: F403
 
 ROOT_URLCONF = "commercialoperator.urls"
+COMMERCIALOPERATOR_EXTERNAL_URL=env("COMMERCIALOPERATOR_EXTERNAL_URL","")
 SITE_ID = 1
 DEPT_DOMAINS = env("DEPT_DOMAINS", ["dpaw.wa.gov.au", "dbca.wa.gov.au"])
 SYSTEM_MAINTENANCE_WARNING = env("SYSTEM_MAINTENANCE_WARNING", 24)  # hours
 SHOW_TESTS_URL = env("SHOW_TESTS_URL", False)
 SHOW_DEBUG_TOOLBAR = env("SHOW_DEBUG_TOOLBAR", False)
+
+PRIVATE_MEDIA_DIR_NAME = env('PRIVATE_MEDIA_DIR_NAME', 'private-media')
+PRIVATE_MEDIA_STORAGE_LOCATION = os.path.join(BASE_DIR, PRIVATE_MEDIA_DIR_NAME)
+PRIVATE_MEDIA_BASE_URL = f'/{PRIVATE_MEDIA_DIR_NAME}/'
+
 BUILD_TAG = env(
     "BUILD_TAG", hashlib.md5(os.urandom(32)).hexdigest()
 )  # URL of the Dev app.js served by webpack & express
@@ -29,6 +35,8 @@ if env("CONSOLE_EMAIL_BACKEND", False):
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 SHOW_ROOT_API = env("SHOW_ROOT_API", False)
+SESSION_COOKIE_SECURE = env('SESSION_COOKIE_SECURE', True)
+CSRF_COOKIE_SECURE = env('CSRF_COOKIE_SECURE', True)
 
 TEMPLATE_TITLE = "Commercial Operator Licensing"
 TEMPLATE_HEADER_LOGO = "/static/commercialoperator/img/logo-park-stay-trunc.gif"
@@ -91,7 +99,6 @@ INSTALLED_APPS += [
     "rest_framework_datatables",
     "rest_framework_gis",
     "reset_migrations",
-    "django_ckeditor_5",
     "multiselectfield",
     "appmonitor_client",
     "django_vite",
@@ -105,18 +112,15 @@ ADD_REVERSION_ADMIN = True
 # maximum number of days allowed for a booking
 WSGI_APPLICATION = "commercialoperator.wsgi.application"
 
-"""REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-        'commercialoperator.perms.OfficerPermission',
-    )
-}"""
-
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": (
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
         "rest_framework_datatables.renderers.DatatablesRenderer",
     ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
 }
 
 
@@ -158,6 +162,11 @@ else:
             "OPTIONS": {"MAX_ENTRIES": 10000},
         }
     }
+
+CACHE_TIMEOUT_2_HOURS = 60 * 60 * 2
+CACHE_KEY_FILE_EXTENSION_WHITELIST = "file-extension-whitelist"
+FILE_SIZE_LIMIT_BYTES = env('FILE_SIZE_LIMIT_BYTES' ,128000000)
+
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
@@ -264,137 +273,6 @@ customColorPalette = [
     {"color": "hsl(207, 90%, 54%)", "label": "Blue"},
 ]
 
-CKEDITOR_5_CONFIGS = {
-    "default": {
-        "toolbar": [
-            "heading",
-            "|",
-            "bold",
-            "italic",
-            "link",
-            "bulletedList",
-            "numberedList",
-            "blockQuote",
-        ],
-    },
-    "extends": {
-        "blockToolbar": [
-            "paragraph",
-            "heading1",
-            "heading2",
-            "heading3",
-            "|",
-            "bulletedList",
-            "numberedList",
-            "|",
-            "blockQuote",
-        ],
-        "toolbar": [
-            "heading",
-            "|",
-            "outdent",
-            "indent",
-            "|",
-            "bold",
-            "italic",
-            "link",
-            "underline",
-            "strikethrough",
-            "code",
-            "subscript",
-            "superscript",
-            "highlight",
-            "|",
-            "codeBlock",
-            "sourceEditing",
-            "insertImage",
-            "bulletedList",
-            "numberedList",
-            "todoList",
-            "|",
-            "blockQuote",
-            "imageUpload",
-            "|",
-            "fontSize",
-            "fontFamily",
-            "fontColor",
-            "fontBackgroundColor",
-            "mediaEmbed",
-            "removeFormat",
-            "insertTable",
-        ],
-        "image": {
-            "toolbar": [
-                "imageTextAlternative",
-                "|",
-                "imageStyle:alignLeft",
-                "imageStyle:alignRight",
-                "imageStyle:alignCenter",
-                "imageStyle:side",
-                "|",
-            ],
-            "styles": [
-                "full",
-                "side",
-                "alignLeft",
-                "alignRight",
-                "alignCenter",
-            ],
-        },
-        "table": {
-            "contentToolbar": [
-                "tableColumn",
-                "tableRow",
-                "mergeTableCells",
-                "tableProperties",
-                "tableCellProperties",
-            ],
-            "tableProperties": {
-                "borderColors": customColorPalette,
-                "backgroundColors": customColorPalette,
-            },
-            "tableCellProperties": {
-                "borderColors": customColorPalette,
-                "backgroundColors": customColorPalette,
-            },
-        },
-        "heading": {
-            "options": [
-                {
-                    "model": "paragraph",
-                    "title": "Paragraph",
-                    "class": "ck-heading_paragraph",
-                },
-                {
-                    "model": "heading1",
-                    "view": "h1",
-                    "title": "Heading 1",
-                    "class": "ck-heading_heading1",
-                },
-                {
-                    "model": "heading2",
-                    "view": "h2",
-                    "title": "Heading 2",
-                    "class": "ck-heading_heading2",
-                },
-                {
-                    "model": "heading3",
-                    "view": "h3",
-                    "title": "Heading 3",
-                    "class": "ck-heading_heading3",
-                },
-            ]
-        },
-    },
-    "list": {
-        "properties": {
-            "styles": "true",
-            "startIndex": "true",
-            "reversed": "true",
-        }
-    },
-}
-
 # Additional logging for commercialoperator
 LOGGING["handlers"]["payment_checkout"] = {
     "level": "INFO",
@@ -464,6 +342,7 @@ CACHE_KEY_PROPOSAL_KEYWORD_SEARCH = "proposal-keyword-search-{id}-{lodgement_num
 
 # Error messages
 INVOICE_NOT_FOUND = "Invoice not found"
+ROUND_INVOICE_TOTALS = env("ROUND_INVOICE_TOTALS", False)
 
 # API Exception message
 # When debug is False, the following message will be sent to the user
@@ -481,16 +360,19 @@ CSRF_TRUSTED_ORIGINS = json.loads(str(CSRF_TRUSTED_ORIGINS_STRING))
 ORGANISATION_PERMISSION_MODULE = "commercialoperator.components.permission.permission"
 
 LEDGER_UI_ORGANISATION_MANAGEMENT = [
-    {"organisation_name": {"options": {"view": True, "edit": True}}},
-    {"organisation_abn": {"options": {"view": True, "edit": True}}},
-    {"postal_address": {"options": {"view": True, "edit": True}}},
+        {'organisation_name': {'options' : {'view': True, 'edit': False}}},
+        {'organisation_abn': {'options' : {'view': True, 'edit': False}}},
+        {'organisation_trading_name': {'options' : {'view': True, 'edit': False}}},
+        {'organisation_email': {'options' : {'view': True, 'edit': False}}},
+        {'billing_address': {'options' : {'view': True, 'edit': True}}},
+        {'postal_address': {'options' : {'view': True, 'edit': True}}}
 ]
 
-RUNNING_DEVSERVER = len(sys.argv) > 1 and sys.argv[1] == "runserver"
-
-# Make sure this returns true when in local development
-# so you can use the vite dev server with hot module reloading
-DJANGO_VITE_DEV_MODE = RUNNING_DEVSERVER and EMAIL_INSTANCE == "DEV" and DEBUG is True
+DJANGO_VITE_DEV_MODE = env("DJANGO_VITE_DEV_MODE", False)
+if DEBUG and not DJANGO_VITE_DEV_MODE:
+    print("\nServer running in DEBUG mode, frontend hot module reloading is OFF. Set env var DJANGO_VITE_DEV_MODE to True to enable hot module reloading.\n")
+else:
+    print("\nServer running in DEBUG mode, frontend hot module reloading is ON. Set env var DJANGO_VITE_DEV_MODE to False to disable hot module reloading.\n")
 
 STATIC_URL_PREFIX = "/static/commercialoperator_vue/" if DJANGO_VITE_DEV_MODE else "commercialoperator_vue/"
 
@@ -501,7 +383,7 @@ DJANGO_VITE = {
         BASE_DIR, "commercialoperator", "static", "commercialoperator_vue", "manifest.json"
     ),
     "dev_server_host": "localhost", # Default host for vite (can change if needed)
-    "dev_server_port": 5173, # Default port for vite (can change if needed)
+    "dev_server_port": env("DJANGO_VITE_DEV_SERVER_PORT", 5173), # Default port for vite (can change if needed)
     "static_url_prefix": STATIC_URL_PREFIX,
   }
 }

@@ -2,82 +2,32 @@ import traceback
 import json
 from django.db.models import Q
 from django.core.exceptions import ValidationError
-from rest_framework import viewsets, serializers, views
+from rest_framework import viewsets, serializers, views, mixins
 from rest_framework.decorators import renderer_classes, action
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from commercialoperator.components.proposals.models import ProposalUserAction
-from commercialoperator.components.main.utils import check_db_connection
 
-from django.shortcuts import get_object_or_404
-from commercialoperator.components.main.models import ApplicationType
 from commercialoperator.components.proposals.models import (
     ProposalFilmingActivity,
     ProposalFilmingParks,
     Proposal,
-    DistrictProposal,
+    FilmingParkDocument,
 )
 from commercialoperator.components.proposals.serializers_filming import (
     ProposalFilmingParksSerializer,
-    ProposalFilmingSerializer,
     SaveProposalFilmingParksSerializer,
-    DistrictProposalSerializer,
 )
 
-from commercialoperator.helpers import is_customer, is_internal
-import logging
+from commercialoperator.helpers import is_internal
+from django.core.exceptions import PermissionDenied
 
+import logging
 logger = logging.getLogger(__name__)
 
+from commercialoperator.components.proposals.api import user_can_edit
 
-class ProposalFilmingViewSet(viewsets.ModelViewSet):
-    """
-    Similar to ProposalViewSet, except get_queryset include migrated_licences
-    """
-
-    queryset = Proposal.objects.none()
-    serializer_class = ProposalFilmingSerializer
-    lookup_field = "id"
-
-    @property
-    def excluded_type(self):
-        try:
-            return ApplicationType.objects.get(name="E Class")
-        except:
-            return ApplicationType.objects.none()
-
-    def get_queryset(self):
-        user = self.request.user
-        if is_internal(self.request):
-            qs = Proposal.objects.all().exclude(application_type=self.excluded_type)
-            return qs.exclude(migrated=True)
-            # return Proposal.objects.filter(region__isnull=False)
-        elif is_customer(self.request):
-            user_orgs = [org.id for org in user.commercialoperator_organisations.all()]
-            queryset = Proposal.objects.filter(
-                Q(org_applicant_id__in=user_orgs) | Q(submitter=user)
-            ).exclude(migrated=True)
-            # queryset =  Proposal.objects.filter(region__isnull=False).filter( Q(applicant_id__in = user_orgs) | Q(submitter = user) )
-            return queryset.exclude(application_type=self.excluded_type)
-        logger.warning(
-            "User is neither customer nor internal user: {} <{}>".format(
-                user.get_full_name(), user.email
-            )
-        )
-        return Proposal.objects.none()
-
-    def get_object(self):
-
-        check_db_connection()
-        try:
-            obj = super(ProposalViewSet, self).get_object()
-        except Exception as e:
-            # because current queryset excludes migrated licences
-            obj = get_object_or_404(Proposal, id=self.kwargs["id"])
-        return obj
-
-
-class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
+class ProposalFilmingParksViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = ProposalFilmingParks.objects.none()
     serializer_class = ProposalFilmingParksSerializer
 
@@ -85,18 +35,21 @@ class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if is_internal(self.request):
             return ProposalFilmingParks.objects.all().order_by("id")
-        elif is_customer(self.request):
+        else:
             user_orgs = [org.id for org in user.commercialoperator_organisations.all()]
             return ProposalFilmingParks.objects.filter(
                 Q(proposal_id__org_applicant_id__in=user_orgs)
                 | Q(proposal_id__submitter=user)
             ).order_by("id")
-        return ProposalFilmingParks.objects.none()
 
     @action(methods=["post"], detail=True)
     def edit_park(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+
+            if not instance.proposal or not user_can_edit(request, instance.proposal):
+                raise PermissionDenied
+
             serializer = SaveProposalFilmingParksSerializer(
                 instance, data=json.loads(request.data.get("data"))
             )
@@ -104,7 +57,7 @@ class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
             serializer.save()
             instance.add_documents(request)
             instance.proposal.log_user_action(
-                ProposalUserAction.ACTION_EDIT_FILMING_PARK.format(instance.id), request
+                ProposalUserAction.ACTION_EDIT_FILMING_PARK.format(instance.id), request.user
             )
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -120,9 +73,19 @@ class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.proposal or not user_can_edit(request, instance.proposal):
+            raise PermissionDenied
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     def create(self, request, *args, **kwargs):
         try:
-            # instance = self.get_object()
+            proposal = Proposal.objects.get(id=json.loads(request.data.get("data"))["proposal"])
+            if not proposal or not user_can_edit(request, proposal):
+                raise PermissionDenied
+            
             serializer = SaveProposalFilmingParksSerializer(
                 data=json.loads(request.data.get("data"))
             )
@@ -131,7 +94,7 @@ class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
             instance.add_documents(request)
             instance.proposal.log_user_action(
                 ProposalUserAction.ACTION_CREATE_FILMING_PARK.format(instance.id),
-                request,
+                request.user,
             )
             return Response(serializer.data)
         except serializers.ValidationError:
@@ -157,6 +120,8 @@ class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
     def delete_document(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+            if not instance.proposal or not user_can_edit(request, instance.proposal):
+                raise PermissionDenied
             FilmingParkDocument.objects.get(id=request.data.get("id")).delete()
             return Response(
                 [
@@ -176,23 +141,6 @@ class ProposalFilmingParksViewSet(viewsets.ModelViewSet):
 
 
 class FilmingActivityTabView(views.APIView):
-
-    # renderer_classes = [JSONRenderer,]
-    # def get(self,request, format=None):
-    #     Container= namedtuple('ActivityTab',('film_type_choices', 'purpose_choices', 'sponsorship_choices', 'film_usage_choices'))
-    #     container = Container(
-    #         film_type_choices=ProposalFilmingActivity.FILM_TYPE_CHOICES,
-    #         purpose_choices=ProposalFilmingActivity.PURPOSE_CHOICES,
-    #         sponsorship_choices=ProposalFilmingActivity.SPONSORSHIP_CHOICES,
-    #         film_usage_choices=ProposalFilmingActivity.FILM_USE_CHOICES
-    #     )
-    #     print container
-
-    #     return Response(container)
-
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get(self, request, format=None):
         container = {}
@@ -227,17 +175,3 @@ class FilmingActivityTabView(views.APIView):
         container.update({"film_usage_choices": film_usage_choices})
 
         return Response(container)
-
-
-class DistrictProposalViewSet(viewsets.ModelViewSet):
-    # queryset = Referral.objects.all()
-    queryset = DistrictProposal.objects.none()
-    serializer_class = DistrictProposalSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_authenticated and is_internal(self.request):
-            # queryset =  Referral.objects.filter(referral=user)
-            queryset = DistrictProposal.objects.all()
-            return queryset
-        return DistrictProposal.objects.none()

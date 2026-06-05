@@ -38,9 +38,9 @@ def retrieve_email_user(email_user_id):
         return None
 
     if isinstance(email_user_id, EmailUser):
-        logger.warning(
-            f"Retrieved EmailUser object {email_user_id} directly. Returning."
-        )
+        #logger.warning(
+        #    f"Retrieved EmailUser object {email_user_id} directly. Returning."
+        #)
         return email_user_id
 
     cache_key = settings.CACHE_KEY_LEDGER_EMAIL_USER.format(email_user_id)
@@ -736,6 +736,7 @@ class EmailUserQuerySet(models.QuerySet, RecursiveGetAttributeMixin, FilterHelpe
         return values_list
 
 
+#TODO review the anything that "needs to be implemented with ledger api client", remove if not applicable
 def createCustomBasket(*args, **kwargs):
     logger.error(ledger_create_basket_session)
     raise NotImplementedError(
@@ -859,7 +860,6 @@ def retrieve_cols_organisations_from_ledger_org_ids(user):
     from commercialoperator.components.organisations.models import Organisation
 
     user_id = user.id
-    # user_id = 163998  # An existing user id for testing
     user_ledger_org_ids = retrieve_delegate_organisation_ids(user_id)
 
     commercialoperator_organisations = []

@@ -47,6 +47,8 @@ from commercialoperator.components.proposals.serializers import (
     ProposalOtherDetailsSerializer,
     SaveInternalFilmingProposalSerializer,
     SaveInternalEventProposalSerializer,
+    ProposalInformationStandardSerializer,
+    ProposalEmissionStandardSerializer,
 )
 from commercialoperator.components.main.models import (
     Activity,
@@ -56,6 +58,8 @@ from commercialoperator.components.main.models import (
     Section,
     Zone,
 )
+from commercialoperator.components.organisations.models import Organisation
+
 import traceback
 import os
 from datetime import datetime
@@ -269,6 +273,7 @@ def search_in_emailuser_fields(search_value: str) -> list[int]:
     Search `search_value` in EmailUser fields: email, first_name, last_name, and full name.
     Returns a list of matching EmailUser IDs.
     """
+
     if not search_value:
         return []
 
@@ -292,6 +297,26 @@ def search_in_emailuser_fields(search_value: str) -> list[int]:
     return list(
         EmailUser.objects
         .annotate(full_name=full_name_expr)
+        .filter(q)
+        .values_list('id', flat=True)
+        .distinct()
+    )
+
+def search_organisation_properties(search_value, search_abn=False):
+
+    if search_abn:
+        q = (
+            Q(property_cache__name__icontains=search_value) |
+            Q(property_cache__abn__icontains=search_value)
+        )
+    else:
+        q = (
+            Q(property_cache__name__icontains=search_value)
+        )
+
+
+    return  list(
+        Organisation.objects
         .filter(q)
         .values_list('id', flat=True)
         .distinct()
@@ -605,7 +630,7 @@ def save_park_activity_data(
                                         ProposalUserAction.ACTION_LINK_ACTIVITY.format(
                                             activity.id, park.park.id
                                         ),
-                                        request,
+                                        request.user,
                                     )
                             except:
                                 raise
@@ -629,7 +654,7 @@ def save_park_activity_data(
                                         ProposalUserAction.ACTION_LINK_ACCESS.format(
                                             access.id, park.park.id
                                         ),
-                                        request,
+                                        request.user,
                                     )
                             except:
                                 raise
@@ -644,7 +669,7 @@ def save_park_activity_data(
                         ProposalUserAction.ACTION_LINK_PARK.format(
                             park.park.id, instance.id
                         ),
-                        request,
+                        request.user,
                     )
                     current_activities = []
                     for a in item["activities"]:
@@ -662,7 +687,7 @@ def save_park_activity_data(
                                     ProposalUserAction.ACTION_LINK_ACTIVITY.format(
                                         activity.id, park.park.id
                                     ),
-                                    request,
+                                    request.user,
                                 )
                         except:
                             raise
@@ -681,7 +706,7 @@ def save_park_activity_data(
                                     ProposalUserAction.ACTION_LINK_ACCESS.format(
                                         access.id, park.park.id
                                     ),
-                                    request,
+                                    request.user,
                                 )
                         except:
                             raise
@@ -699,7 +724,7 @@ def save_park_activity_data(
                 act.delete()
                 instance.log_user_action(
                     ProposalUserAction.ACTION_UNLINK_ACTIVITY.format(d, park.park.id),
-                    request,
+                    request.user,
                 )
             new_access = park.access_types.all()
             new_access_id = set(a.access_type_id for a in new_access)
@@ -711,7 +736,7 @@ def save_park_activity_data(
                 acc.delete()
                 instance.log_user_action(
                     ProposalUserAction.ACTION_UNLINK_ACCESS.format(d, park.park.id),
-                    request,
+                    request.user,
                 )
     new_parks = instance.parks.filter(park__park_type="land")
     new_parks_id = set(p.park_id for p in new_parks)
@@ -729,7 +754,7 @@ def save_park_activity_data(
         pk.delete()
         instance.log_user_action(
             ProposalUserAction.ACTION_UNLINK_PARK.format(d, instance.id),
-            request,
+            request.user,
         )
 
 
@@ -793,7 +818,7 @@ def save_trail_section_activity_data(instance, select_trails_activities, request
                                                             section.section.id,
                                                             trail.trail.id,
                                                         ),
-                                                        request,
+                                                        request.user,
                                                     )
                                             except:
                                                 raise
@@ -808,7 +833,7 @@ def save_trail_section_activity_data(instance, select_trails_activities, request
                                         section.section.id,
                                         trail.trail.id,
                                     ),
-                                    request,
+                                    request.user,
                                 )
                                 if a["activities"]:
                                     for act in a["activities"]:
@@ -830,7 +855,7 @@ def save_trail_section_activity_data(instance, select_trails_activities, request
                                                         section.section.id,
                                                         trail.trail.id,
                                                     ),
-                                                    request,
+                                                    request.user,
                                                 )
                                         except:
                                             raise
@@ -853,7 +878,7 @@ def save_trail_section_activity_data(instance, select_trails_activities, request
                                         section.section.id,
                                         trail.trail.id,
                                     ),
-                                    request,
+                                    request.user,
                                 )
             except ProposalTrail.DoesNotExist:
                 try:
@@ -866,7 +891,7 @@ def save_trail_section_activity_data(instance, select_trails_activities, request
                         ProposalUserAction.ACTION_LINK_TRAIL.format(
                             trail.trail.id, instance.id
                         ),
-                        request,
+                        request.user,
                     )
                     current_sections = []
                     if item["activities"]:
@@ -883,7 +908,7 @@ def save_trail_section_activity_data(instance, select_trails_activities, request
                                         section.section.id,
                                         trail.trail.id,
                                     ),
-                                    request,
+                                    request.user,
                                 )
                                 if a["activities"]:
                                     for act in a["activities"]:
@@ -905,7 +930,7 @@ def save_trail_section_activity_data(instance, select_trails_activities, request
                                                         section.section.id,
                                                         trail.trail.id,
                                                     ),
-                                                    request,
+                                                    request.user,
                                                 )
                                         except:
                                             raise
@@ -931,7 +956,7 @@ def save_trail_section_activity_data(instance, select_trails_activities, request
                 pk.delete()
                 instance.log_user_action(
                     ProposalUserAction.ACTION_UNLINK_SECTION.format(d, trail.trail.id),
-                    request,
+                    request.user,
                 )
     new_trails = instance.trails.all()
     new_trails_id = set(p.trail_id for p in new_trails)
@@ -942,7 +967,7 @@ def save_trail_section_activity_data(instance, select_trails_activities, request
         pk.delete()
         instance.log_user_action(
             ProposalUserAction.ACTION_UNLINK_TRAIL.format(d, instance.id),
-            request,
+            request.user,
         )
 
 
@@ -1000,7 +1025,7 @@ def save_park_zone_activity_data(
                                         zone.zone.id,
                                         park.park.id,
                                     ),
-                                    request,
+                                    request.user,
                                 )
 
                                 if "access_point" in a:
@@ -1016,7 +1041,7 @@ def save_park_zone_activity_data(
                                     ProposalUserAction.ACTION_LINK_ZONE.format(
                                         zone.zone.id, park.park.id
                                     ),
-                                    request,
+                                    request.user,
                                 )
                                 allowed_act_ids = list(
                                     set(zone.zone.allowed_activities_ids).intersection(
@@ -1038,7 +1063,7 @@ def save_park_zone_activity_data(
                                         zone.zone.id,
                                         park.park.id,
                                     ),
-                                    request,
+                                    request.user,
                                 )
                                 if "access_point" in a:
                                     zone.access_point = a["access_point"]
@@ -1060,7 +1085,7 @@ def save_park_zone_activity_data(
                                     ProposalUserAction.ACTION_UNLINK_ACTIVITY_ZONE.format(
                                         d, zone.zone.id, park.park.id
                                     ),
-                                    request,
+                                    request.user,
                                 )
 
             except ProposalPark.DoesNotExist:
@@ -1074,7 +1099,7 @@ def save_park_zone_activity_data(
                         ProposalUserAction.ACTION_LINK_PARK.format(
                             park.park.id, instance.id
                         ),
-                        request,
+                        request.user,
                     )
                     current_zones = []
                     if item["activities"]:
@@ -1090,7 +1115,7 @@ def save_park_zone_activity_data(
                                     ProposalUserAction.ACTION_LINK_ZONE.format(
                                         zone.zone.id, park.park.id
                                     ),
-                                    request,
+                                    request.user,
                                 )
                                 allowed_act_ids = list(
                                     set(zone.zone.allowed_activities_ids).intersection(
@@ -1112,7 +1137,7 @@ def save_park_zone_activity_data(
                                         zone.zone.id,
                                         park.park.id,
                                     ),
-                                    request,
+                                    request.user,
                                 )
 
                                 if "access_point" in a:
@@ -1131,7 +1156,7 @@ def save_park_zone_activity_data(
                 pk.delete()
                 instance.log_user_action(
                     ProposalUserAction.ACTION_UNLINK_ZONE.format(d, park.park.id),
-                    request,
+                    request.user,
                 )
     new_parks = instance.parks.filter(park__park_type="marine")
     new_parks_id = set(p.park_id for p in new_parks)
@@ -1149,7 +1174,7 @@ def save_park_zone_activity_data(
         pk.delete()
         instance.log_user_action(
             ProposalUserAction.ACTION_UNLINK_PARK.format(d, instance.id),
-            request,
+            request.user,
         )
 
 
@@ -1219,7 +1244,7 @@ def save_proponent_data_filming(instance, request, viewset, parks=None, trails=N
     ProposalFilmingOtherDetails.objects.update_or_create(proposal=instance)
     serializer = SaveProposalSerializer(instance, data, partial=True)
     serializer.is_valid(raise_exception=True)
-    viewset.perform_update(serializer)
+    serializer.save()
 
 
 @transaction.atomic
@@ -1285,7 +1310,7 @@ def save_proponent_data_event(instance, request, viewset, parks=None, trails=Non
 
     serializer = SaveProposalSerializer(instance, data, partial=True)
     serializer.is_valid(raise_exception=True)
-    viewset.perform_update(serializer)
+    serializer.save()
 
 
 @transaction.atomic
@@ -1335,7 +1360,7 @@ def save_proponent_data_tclass(instance, request, viewset, parks=None, trails=No
     ProposalOtherDetails.objects.update_or_create(proposal=instance)
     serializer = SaveProposalSerializer(instance, data, partial=True)
     serializer.is_valid(raise_exception=True)
-    viewset.perform_update(serializer)
+    serializer.save()
     if "accreditations" in other_details_data:
         accreditation_types = instance.other_details.accreditations.values_list(
             "accreditation_type", flat=True
@@ -1383,7 +1408,113 @@ def save_proponent_data_tclass(instance, request, viewset, parks=None, trails=No
                         instance.lodgement_number
                     )
                 )
+    # Save information standards data
+    if "information_standards" in other_details_data:
+        information_standard_types = (
+            instance.other_details.information_standards.values_list(
+                "information_standard_type", flat=True
+            )
+        )
+        for info in other_details_data["information_standards"]:
+            # print info
+            if "id" in info:
+                # info_qs = ProposalInformationStandard.objects.filter(id=info['id'])
+                info_qs = instance.other_details.information_standards.filter(
+                    id=info["id"]
+                )
 
+                if info_qs and "is_deleted" in info and info["is_deleted"] == True:
+                    info_qs[0].delete()
+
+                elif info["information_standard_type"] in information_standard_types:
+                    try:
+                        instance.other_details.information_standards.filter(
+                            id=info["id"]
+                        ).update(
+                            information_standard_type=info[
+                                "information_standard_type"
+                            ],
+                            information_comments=info["comments"],
+                        )
+                    except Exception as e:
+                        logger.error(
+                            "An error occurred while updating Information Standards {}".format(
+                                e
+                            )
+                        )
+                else:
+                    serializer = ProposalInformationStandardSerializer(data=info)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+                    # ProposalAccreditation.objects.create(
+                    #    id=acc['id'],
+                    #    accreditation_type=acc['accreditation_type'],
+                    #    comments = acc['comments'],
+                    #    accreditation_expiry = datetime.strptime(acc['accreditation_expiry'], "%d/%m/%Y").date(),
+                    # )
+
+            elif info["information_standard_type"] not in information_standard_types:
+                serializer = ProposalInformationStandardSerializer(data=info)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+            else:
+                logger.warning(
+                    "Possible duplicate Information Standard Type for Application {}".format(
+                        instance.lodgement_number
+                    )
+                )
+
+    # Save emission standards data
+    if "emission_standards" in other_details_data:
+        emission_standard_types = instance.other_details.emission_standards.values_list(
+            "emission_standard_type", flat=True
+        )
+        for info in other_details_data["emission_standards"]:
+            # print info
+            if "id" in info:
+                # info_qs = ProposalEmissionStandard.objects.filter(id=info['id'])
+                info_qs = instance.other_details.emission_standards.filter(
+                    id=info["id"]
+                )
+
+                if info_qs and "is_deleted" in info and info["is_deleted"] == True:
+                    info_qs[0].delete()
+
+                elif info["emission_standard_type"] in emission_standard_types:
+                    try:
+                        instance.other_details.emission_standards.filter(
+                            id=info["id"]
+                        ).update(
+                            emission_standard_type=info["emission_standard_type"],
+                            emission_comments=info["comments"],
+                        )
+                    except Exception as e:
+                        logger.error(
+                            "An error occurred while updating Emission Standards {}".format(
+                                e
+                            )
+                        )
+                else:
+                    serializer = ProposalEmissionStandardSerializer(data=info)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+                    # ProposalAccreditation.objects.create(
+                    #    id=acc['id'],
+                    #    accreditation_type=acc['accreditation_type'],
+                    #    comments = acc['comments'],
+                    #    accreditation_expiry = datetime.strptime(acc['accreditation_expiry'], "%d/%m/%Y").date(),
+                    # )
+
+            elif info["emission_standard_type"] not in emission_standard_types:
+                serializer = ProposalEmissionStandardSerializer(data=info)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+            else:
+                logger.warning(
+                    "Possible duplicate Emission Standard Type for Application {}".format(
+                        instance.lodgement_number
+                    )
+                )
     if select_parks_activities or len(select_parks_activities) == 0:
         try:
 
@@ -1423,9 +1554,10 @@ def save_assessor_data(instance, request, viewset):
 
 
 @transaction.atomic
-def proposal_submit(proposal, request):
+def proposal_submit(proposal, request=None):
     if proposal.can_user_edit:
-        proposal.submitter = request.user
+        if request: #if being called after payment, this has already been set
+            proposal.submitter = request.user
         proposal.lodgement_date = timezone.now()
         proposal.training_completed = True
         if proposal.amendment_requests:
@@ -1437,14 +1569,14 @@ def proposal_submit(proposal, request):
 
         # Create a log entry for the proposal
         proposal.log_user_action(
-            ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id), request
+            ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id), proposal.submitter
         )
         # Create a log entry for the organisation
         applicant_field = getattr(proposal, proposal.applicant_field)
         applicant_field.log_user_action(
-            ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id), request
+            ProposalUserAction.ACTION_LODGE_APPLICATION.format(proposal.id), proposal.submitter
         )
-
+        #NOTE: request=None works fine with these email functions
         ret1 = send_submit_email_notification(request, proposal)
         ret2 = send_external_submit_email_notification(request, proposal)
 
@@ -1557,7 +1689,7 @@ def save_assessor_data_filming(instance, request, viewset):
 
     serializer = SaveInternalFilmingProposalSerializer(instance, sc, partial=True)
     serializer.is_valid(raise_exception=True)
-    viewset.perform_update(serializer)
+    serializer.save()
 
     for f in request.FILES:
         try:
@@ -1642,7 +1774,7 @@ def save_assessor_data_event(instance, request, viewset):
 
     serializer = SaveInternalEventProposalSerializer(instance, sc, partial=True)
     serializer.is_valid(raise_exception=True)
-    viewset.perform_update(serializer)
+    serializer.save()
 
     for f in request.FILES:
         try:
@@ -1662,7 +1794,7 @@ def save_assessor_data_tclass(instance, request, viewset):
     data = {}
     serializer = SaveProposalSerializer(instance, data, partial=True)
     serializer.is_valid(raise_exception=True)
-    viewset.perform_update(serializer)
+    serializer.save()
     # Save activities
     import json
 
@@ -1905,6 +2037,20 @@ def get_cached_proposal_submitters(view, queryset=None):
 
     return submitters
 
+def get_proposal_processing_status():
+    return [
+                { "value": 'draft', "name": 'Draft' },
+                { "value": 'with_assessor', "name": 'With Assessor' },
+                { "value": 'on_hold', "name": 'On Hold' },
+                { "value": 'with_qa_officer', "name": 'With QA Officer' },
+                { "value": 'with_referral', "name": 'With Referral' },
+                {"value": 'with_assessor_requirements',"name": 'With Assessor (Requirements)',},
+                { "value": 'with_approver', "name": 'With Approver' },
+                { "value": 'approved', "name": 'Approved' },
+                { "value": 'declined', "name": 'Declined' },
+                { "value": 'discarded', "name": 'Discarded' },
+                { "value": 'awaiting_payment', "name": 'Awaiting Payment' },
+            ]
 
 def get_cached_proposal_processing_status(view, queryset=None):
     if not queryset:

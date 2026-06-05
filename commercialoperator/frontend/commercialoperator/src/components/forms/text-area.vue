@@ -34,16 +34,16 @@
                             "
                             href=""
                             @click.prevent="toggleComment"
-                            ><i style="color: red" class="fa fa-comment-o"
+                            ><i style="color: red" class="far fa-comment"
                                 >&nbsp;</i
                             ></a
                         >
                         <a v-else href="" @click.prevent="toggleComment"
-                            ><i class="fa fa-comment-o">&nbsp;</i></a
+                            ><i class="far fa-comment">&nbsp;</i></a
                         >
                     </template>
                     <a v-else href="" @click.prevent="toggleComment"
-                        ><i class="fa fa-ban">&nbsp;</i></a
+                        ><i class="fas fa-ban">&nbsp;</i></a
                     >
                 </template>
                 <label
@@ -83,7 +83,7 @@
 import Comment from './comment.vue';
 import HelpText from './help_text.vue';
 import HelpTextUrl from './help_text_url.vue';
-
+import $ from 'jquery'
 export default {
     components: { Comment, HelpText, HelpTextUrl },
     props: {

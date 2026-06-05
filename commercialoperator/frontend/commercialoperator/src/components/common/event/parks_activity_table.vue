@@ -63,7 +63,7 @@ import editPark from './edit_park_activity.vue';
 import FileField from '@/components/forms/filefield.vue';
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import { v4 as uuid } from 'uuid';
-
+import $ from 'jquery'
 export default {
     name: 'EventParkTableDash',
     components: {

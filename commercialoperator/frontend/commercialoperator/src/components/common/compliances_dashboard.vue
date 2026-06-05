@@ -1,7 +1,7 @@
 <template id="proposal_dashboard">
     <div class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <div class="row mb-1">
                     <div class="col-md-3">
                         <div
@@ -65,8 +65,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="row mb-3">
+
                     <div class="col-md-3">
                         <label for="input_compliance_due_date_from"
                             >Due date From</label
@@ -83,10 +82,8 @@
                                 max="2999-12-31"
                                 placeholder="DD/MM/YYYY"
                             />
-                            <span class="input-group-addon">
-                                <span
-                                    class="glyphicon glyphicon-calendar"
-                                ></span>
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar-days"></i>
                             </span>
                         </div>
                     </div>
@@ -106,10 +103,8 @@
                                 max="2999-12-31"
                                 placeholder="DD/MM/YYYY"
                             />
-                            <span class="input-group-addon">
-                                <span
-                                    class="glyphicon glyphicon-calendar"
-                                ></span>
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar-days"></i>
                             </span>
                         </div>
                     </div>
@@ -132,7 +127,7 @@
 import datatable from '@/utils/vue/datatable.vue';
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import { v4 as uuid } from 'uuid';
-
+import $ from 'jquery'
 export default {
     name: 'ProposalTableDash',
     components: {
@@ -235,12 +230,6 @@ export default {
                             vm.filterComplianceStatus.toLowerCase();
                         d.datatable_filter_proposal__application_type__name =
                             vm.filterApplicationType;
-                        d.search_terms =
-                            'approval__org_applicant__organisation__organisation_name, approval__proxy_applicant__email, approval__proxy_applicant__first_name, approval__proxy_applicant__last_name';
-                        if (vm.is_internal) {
-                            d.search_terms +=
-                                ', assigned_to__first_name, assigned_to__last_name, assigned_to__email';
-                        }
                     },
                 },
                 dom: constants.DATATABLE_DOM_HTML,
@@ -269,6 +258,8 @@ export default {
                             return full.reference;
                         },
                         name: 'id, lodgement_number',
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: 'approval_lodgement_number',
@@ -277,16 +268,20 @@ export default {
                             return data;
                         },
                         name: 'approval__lodgement_number',
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: 'application_type',
                         name: 'proposal__application_type__name',
+                        orderable: false,
+                        searchable: false,
                     },
                     {
                         data: 'holder',
                         name: 'approval__org_applicant__organisation__organisation_name, approval__proxy_applicant__email, approval__proxy_applicant__first_name, approval__proxy_applicant__last_name',
-                        orderable: true,
-                        searchable: true,
+                        orderable: false,
+                        searchable: false,
                         mRender: function (data, type, full) {
                             return vm.level == 'external' ? full.holder : data;
                         },
@@ -298,6 +293,8 @@ export default {
                                 ? full.customer_status
                                 : data;
                         },
+                        orderable: false,
+                        searchable: false,
                     },
                     {
                         data: 'due_date',
@@ -307,11 +304,14 @@ export default {
                                 ? moment(data).format(vm.dateFormat)
                                 : '';
                         },
+                        orderable: true,
+                        searchable: false,
                     },
                     {
                         data: 'assigned_to',
                         name: 'assigned_to__first_name, assigned_to__last_name, assigned_to__email',
-                        searchable: true,
+                        searchable: false,
+                        orderable: false,
                     },
                     {
                         data: 'compliance_licence_name',
@@ -345,7 +345,7 @@ export default {
                             }
 
                             if (full.fee_invoice_reference) {
-                                links += `<a href='/cols/payments/invoice-compliance-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fa fa-file-pdf'>&nbsp</i>#${full.fee_invoice_reference}</a><br/>`;
+                                links += `<a href='/cols/payments/invoice-compliance-pdf/${full.fee_invoice_reference}' target='_blank'><i style='color:red;' class='fas fa-file-pdf'>&nbsp</i>#${full.fee_invoice_reference}</a><br/>`;
                             }
 
                             return links;
@@ -420,11 +420,11 @@ export default {
         let vm = this;
         this.fetchProfile();
         vm.fetchFilterLists();
-        $('a[data-toggle="collapse"]').on('click', function () {
+        $('a[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
                 $(chev).toggleClass(
-                    'glyphicon-chevron-down glyphicon-chevron-up'
+                    'fa-chevron-down fa-chevron-up'
                 );
             }, 100);
         });

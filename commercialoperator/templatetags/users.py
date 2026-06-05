@@ -81,8 +81,3 @@ def is_finance_officer(context):
     request = context["request"]
     return commercialoperator_helpers.is_finance_officer(request)
 
-
-@register.simple_tag(takes_context=True)
-def is_organisation_access_officer(context):
-    request = context["request"]
-    return commercialoperator_helpers.is_organisation_access_officer(request)

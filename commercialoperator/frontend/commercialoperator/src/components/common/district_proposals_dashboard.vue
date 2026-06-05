@@ -1,7 +1,7 @@
 <template id="district_proposal_dashboard">
     <div class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <div class="row mb-1">
                     <div class="col-md-3">
                         <div
@@ -35,8 +35,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="row mb-3">
                     <div class="col-md-3">
                         <label for="input_proposal_date_from"
                             >Lodged From</label
@@ -53,10 +51,8 @@
                                 max="2999-12-31"
                                 placeholder="DD/MM/YYYY"
                             />
-                            <span class="input-group-addon">
-                                <span
-                                    class="glyphicon glyphicon-calendar"
-                                ></span>
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar-days"></i>
                             </span>
                         </div>
                     </div>
@@ -74,43 +70,9 @@
                                 max="2999-12-31"
                                 placeholder="DD/MM/YYYY"
                             />
-                            <span class="input-group-addon">
-                                <span
-                                    class="glyphicon glyphicon-calendar"
-                                ></span>
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar-days"></i>
                             </span>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div
-                            id="select_district_proposal_submitter_parent"
-                            class="form-group"
-                        >
-                            <label for="select_district_proposal_submitter"
-                                >Submitter</label
-                            >
-                            <div v-show="isLoading">
-                                <select class="form-control">
-                                    <option value="">Loading...</option>
-                                </select>
-                            </div>
-                            <div v-show="!isLoading">
-                                <select
-                                    id="select_district_proposal_submitter"
-                                    ref="select_district_proposal_submitter"
-                                    v-model="filterProposalSubmitter"
-                                    class="form-control"
-                                >
-                                    <option value="All">All</option>
-                                    <option
-                                        v-for="s in proposal_submitters"
-                                        :key="s.email"
-                                        :value="s.email"
-                                    >
-                                        {{ s.search_term }}
-                                    </option>
-                                </select>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -133,7 +95,7 @@
 import datatable from '@/utils/vue/datatable.vue';
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import { v4 as uuid } from 'uuid';
-
+import $ from 'jquery'
 export default {
     name: 'DistrictProposalTableDash',
     components: {
@@ -157,10 +119,8 @@ export default {
             filterProposalStatus: 'All',
             filterProposalLodgedFrom: '',
             filterProposalLodgedTo: '',
-            filterProposalSubmitter: 'All',
             dateFormat: 'DD/MM/YYYY',
             proposal_status: [],
-            proposal_submitters: [],
             proposal_headers: [
                 'Number',
                 'Submitter',
@@ -211,10 +171,6 @@ export default {
                                 : '';
                         d.datatable_filter_processing_status =
                             vm.filterProposalStatus;
-                        d.datatable_filter_proposal__submitter__email =
-                            vm.filterProposalSubmitter;
-                        d.search_terms =
-                            'proposal__submitter__first_name, proposal__submitter__last_name, proposal__submitter__email, proposal__org_applicant__organisation__organisation_name, proposal__proxy_applicant__email, proposal__proxy_applicant__first_name, proposal__proxy_applicant__last_name';
                     },
                 },
                 columns: [
@@ -224,6 +180,8 @@ export default {
                             return full.proposal_lodgement_number;
                         },
                         name: 'proposal__id, proposal__lodgement_number',
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: 'submitter',
@@ -235,18 +193,20 @@ export default {
                             return '';
                         },
                         name: 'proposal__submitter__first_name, proposal__submitter__last_name, proposal__submitter__email',
-                        orderable: true,
-                        searchable: true,
+                        orderable: false,
+                        searchable: false, //overridden by filterbackend
                     },
                     {
                         data: 'applicant',
                         name: 'proposal__org_applicant__organisation__organisation_name, proposal__proxy_applicant__email, proposal__proxy_applicant__first_name, proposal__proxy_applicant__last_name',
-                        orderable: true,
-                        searchable: true,
+                        orderable: false,
+                        searchable: false,
                     },
                     {
                         data: 'processing_status',
                         name: 'processing_status',
+                        orderable: false,
+                        searchable: false,
                     },
                     {
                         data: 'proposal_lodgement_date',
@@ -257,6 +217,8 @@ export default {
                                 : '';
                         },
                         name: 'proposal__lodgement_date',
+                        orderable: true,
+                        searchable: false,
                     },
                     {
                         data: 'id',
@@ -301,20 +263,6 @@ export default {
             },
             deep: true,
         },
-        filterProposalSubmitter: function () {
-            let vm = this;
-            if (vm.filterProposalSubmitter != 'All') {
-                vm.$refs.proposal_datatable.vmDataTable
-                    .columns(1)
-                    .search(vm.filterProposalSubmitter)
-                    .draw();
-            } else {
-                vm.$refs.proposal_datatable.vmDataTable
-                    .columns(1)
-                    .search('')
-                    .draw();
-            }
-        },
         filterProposalLodgedFrom: function () {
             this.$refs.proposal_datatable.vmDataTable.ajax.reload(
                 helpers.enablePopovers,
@@ -331,11 +279,11 @@ export default {
     mounted: function () {
         let vm = this;
         vm.fetchFilterLists();
-        $('a[data-toggle="collapse"]').on('click', function () {
+        $('a[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
                 $(chev).toggleClass(
-                    'glyphicon-chevron-down glyphicon-chevron-up'
+                    'fa-chevron-down fa-chevron-up'
                 );
             }, 100);
         });
@@ -353,7 +301,6 @@ export default {
                 .fetchUrl(api_endpoints.filter_list_district_proposals)
                 .then(
                     (response) => {
-                        vm.proposal_submitters = response.submitters;
                         vm.proposal_status = response.processing_status_choices;
                     },
                     (error) => {
@@ -386,29 +333,9 @@ export default {
                 'Select Status',
                 false
             );
-            helpers.initialiseSelect2.bind(this)(
-                'select_district_proposal_submitter',
-                'select_district_proposal_submitter_parent',
-                'filterProposalSubmitter',
-                'Select Submitter',
-                false
-            );
         },
         initialiseSearch: function () {
-            this.submitterSearch();
             this.dateSearch();
-        },
-        submitterSearch: function () {
-            let vm = this;
-            vm.$refs.proposal_datatable.table.dataTableExt.afnFiltering.push(
-                function (settings, data, dataIndex, original) {
-                    let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All') {
-                        return true;
-                    }
-                    return filtered_submitter == original.submitter.email;
-                }
-            );
         },
         dateSearch: function () {
             let vm = this;

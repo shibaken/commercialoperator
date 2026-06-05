@@ -11,6 +11,7 @@ from rest_framework import status
 from datetime import datetime, date
 from django.utils import timezone
 from dateutil.relativedelta import relativedelta
+from taggit import serializers
 from commercialoperator.components.main.models import Park, ApplicationType
 from commercialoperator.components.proposals.models import Proposal, ProposalUserAction
 from commercialoperator.components.organisations.models import Organisation
@@ -728,14 +729,13 @@ def create_filming_park_fee_lines(proposal, licence_fee, licence_text, filming_p
             "quantity": 1,  # no_persons,
         }
 
-    now = datetime.now().strftime("%Y-%m-%d %H:%M")
     filming_parks = proposal.filming_parks.all().distinct("park__name")
     invoice_total = licence_fee
-    if settings.DEBUG:
+    if settings.ROUND_INVOICE_TOTALS: #TODO adding a rounding env var setting, do not rely on debug
         # since Ledger UAT only handles whole integer total
         invoice_total = round(invoice_total, 0)
 
-    alloc_per_park = round(invoice_total / len(filming_parks), 2)
+    alloc_per_park = round(invoice_total / len(filming_parks), 2) if len(filming_parks) > 0  else 0
     rounding_error = round(invoice_total - (alloc_per_park * len(filming_parks)), 2)
 
     lines = []
@@ -977,7 +977,6 @@ def create_lines(request, invoice_text=None, vouchers=[], internal=False):
     return lines
 
 
-@basic_exception_handler
 def checkout(
     request,
     proposal,
@@ -986,9 +985,19 @@ def checkout(
     return_preload_url_ns="public_booking_success",
     invoice_text=None,
     vouchers=[],
-    proxy=False,
+    reference=None,
 ):
-    reference = proposal.lodgement_number
+
+    if not reference:
+        reference = proposal.lodgement_number if proposal else None
+
+    if not reference:
+        raise serializers.ValidationError("No record reference")
+
+    try:
+        email_user_id = proposal.submitter.id if proposal.submitter else request.user.id
+    except:
+        raise serializers.ValidationError("No submitter or request user id")
 
     basket_params = {
         "products": lines,
@@ -998,77 +1007,45 @@ def checkout(
         "booking_reference": reference,
         "booking_reference_link": reference,
         "fallback_url": request.build_absolute_uri("/"),
+        'no_payment': False,
     }
-
     # Note: this solution circumvents json.dumps from throwing an error (can not serialize Decimal)
     basket_params = json.loads(json.dumps(basket_params, cls=DecimalEncoder))
 
-    basket_hash = create_basket_session(request, request.user.id, basket_params)
-
-    checkouthash = request.session.get("checkouthash", "")
+    basket_session = create_basket_session(request, email_user_id, basket_params)
 
     checkout_params = {
         "system": settings.PAYMENT_SYSTEM_ID,
         "fallback_url": request.build_absolute_uri(
             "/"
-        ),  # 'http://mooring-ria-jm.dbca.wa.gov.au/'
-        "return_url": request.build_absolute_uri(
-            reverse(return_url_ns) + f"?checkouthash={checkouthash}"
-        ),  # 'http://mooring-ria-jm.dbca.wa.gov.au/success/'
-        "return_preload_url": request.build_absolute_uri(
-            reverse(return_url_ns)
-        ),  # 'http://mooring-ria-jm.dbca.wa.gov.au/success/'
+        ),
+        "return_url": request.build_absolute_uri(reverse(return_url_ns,kwargs={"reference": reference})),
+        "return_preload_url": settings.COMMERCIALOPERATOR_EXTERNAL_URL + reverse(return_preload_url_ns,kwargs={"reference": reference}),
         "force_redirect": True,
-        "invoice_text": invoice_text,  # 'Reservation for Jawaid Mushtaq from 2019-05-17 to 2019-05-19 at RIA 005'
-        "proxy": True if is_internal(request) else False,
+        "invoice_text": invoice_text,
+        #"proxy": True if is_internal(request) else False,
         "session_type": "ledger_api",
-        "basket_owner": request.user.id,
+        "basket_owner": email_user_id,
     }
-
+    
     logger.info(
         f"Creating checkout session with checkout parameters: {checkout_params}"
     )
-    if proxy or request.user.is_anonymous:
-        checkout_params["basket_owner"] = proposal.submitter_id
 
     create_checkout_session(request, checkout_params)
-
-    # Set session variables
-    request.session["payment_pk"] = proposal.pk
-    request.session["payment_model"] = "proposal"
-
+    
     logger.info("Redirecting user to ledgergw payment details page.")
     return redirect(reverse("ledgergw-payment-details"))
 
 
 def checkout_existing_invoice(
     request,
-    proposal,
+    reference,
     invoice,
-    lines,
     return_url_ns="public_booking_success",
-    return_preload_url_ns="public_booking_success",
-    invoice_text=None,
-    vouchers=[],
-    proxy=False,
 ):
-    basket_params = {
-        "products": lines,
-        "vouchers": vouchers,
-        "system": settings.PAYMENT_SYSTEM_ID,
-        "custom_basket": True,
-    }
 
-    checkout_params = {
-        "system": settings.PAYMENT_SYSTEM_ID,
-        "fallback_url": request.build_absolute_uri("/"),
-        "return_url": request.build_absolute_uri(reverse(return_url_ns)),
-        "return_preload_url": request.build_absolute_uri(reverse(return_url_ns)),
-        "force_redirect": True,
-        "invoice_text": invoice.text,
-    }
-
-    return_url = request.build_absolute_uri(reverse(return_url_ns))
+    return_url = request.build_absolute_uri(reverse(return_url_ns,kwargs={"reference": reference}))
 
     fallback_url = request.build_absolute_uri("/")
     payment_session = generate_payment_session(
@@ -1079,12 +1056,7 @@ def checkout_existing_invoice(
             payment_session.get("message", "Error generating payment session")
         )
 
-    # Set session variables
-    request.session["payment_pk"] = proposal.pk
-    request.session["payment_model"] = "proposal"
-
     return HttpResponseRedirect(payment_session["payment_url"])
-    # return redirect(reverse("ledgergw-payment-details"))
 
 
 def oracle_integration(date, override):

@@ -58,23 +58,25 @@ def can_admin_org(organisation, user_id):
     try:
         emailuser = EmailUser.objects.get(id=user_id)
     except EmailUser.DoesNotExist:
+        print("email user does not exist")
         return False
 
     if emailuser.is_superuser:
         return True
 
-    organisation_id = getattr(organisation, "id", None)
+    organisation_id = getattr(organisation, "id", None) if not isinstance(organisation,dict) else organisation["id"] if "id" in organisation else None
     if not organisation_id:
+        print("no organisation_id")
         return False
 
     try:
-        org_contact = OrganisationContact.objects.get(
-            organisation_id=organisation_id, email=emailuser.email
+        org_contact = OrganisationContact.objects.filter(
+            organisation_id=organisation_id, email=emailuser.email, is_admin=True, user_status='active'
         )
 
-        return org_contact.can_edit
-    except OrganisationContact.DoesNotExist:
-        pass
+        return org_contact.exists()
+    except Exception as e:
+        print(e)
     return False
 
 

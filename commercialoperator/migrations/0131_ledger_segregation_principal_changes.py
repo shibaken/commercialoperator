@@ -10,7 +10,8 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("commercialoperator", "0130_approval_future_licence"),
+        # ("commercialoperator", "0130_approval_future_licence"),
+        ("commercialoperator", "0131_auto_20260318_1153"),
         (
             "taggit",
             "0006_rename_taggeditem_content_type_object_id_taggit_tagg_content_8fc721_idx",

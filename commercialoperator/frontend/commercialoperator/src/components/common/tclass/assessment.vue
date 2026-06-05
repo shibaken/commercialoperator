@@ -3,7 +3,6 @@
         <div class="">
             <div class="col-md-12">
                 <div class="">
-                    <div class="panel panel-default">
                         <FormSection
                             v-if="assessment"
                             :form-collapse="false"
@@ -100,7 +99,6 @@
                                 </div>
                             </form>
                         </FormSection>
-                    </div>
                 </div>
             </div>
         </div>
@@ -111,7 +109,7 @@
 import FormSection from '@/components/forms/section_toggle.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
 import { v4 as uuid } from 'uuid';
-
+import $ from 'jquery'
 export default {
     name: 'AssessmentComponent',
     components: {
@@ -175,11 +173,11 @@ export default {
     mounted: function () {
         let vm = this;
         if (!vm.panelClickersInitialised) {
-            $('.panelClicker[data-toggle="collapse"]').on('click', function () {
+            $('.panelClicker[data-bs-toggle="collapse"]').on('click', function () {
                 var chev = $(this).children()[0];
                 window.setTimeout(function () {
                     $(chev).toggleClass(
-                        'glyphicon-chevron-down glyphicon-chevron-up'
+                        'fa-chevron-down fa-chevron-up'
                     );
                 }, 100);
             });

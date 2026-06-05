@@ -1,11 +1,60 @@
 from django.db.models import Q
-
 from commercialoperator.components.organisations.models import Organisation
 
-import logging
+from rest_framework.permissions import BasePermission
+from commercialoperator.helpers import (
+    is_assessor, 
+    is_approver, 
+    is_internal, 
+    is_organisation_access_approver,
+    is_qa_officer,
+    is_referrer,
+    is_district_assessor,
+    is_district_approver,
+)
 
+import logging
 logger = logging.getLogger(__name__)
 
+class InternalPermission(BasePermission):
+
+    def has_permission(self, request, view):
+        return is_internal(request)
+
+class OrganisationRequestPermission(BasePermission):
+
+    def has_permission(self, request, view):
+        return is_organisation_access_approver(request)
+
+class ProposalAssessorPermission(BasePermission):
+
+    def has_permission(self, request, view):
+        return is_assessor(request)
+    
+class ProposalApproverPermission(BasePermission):
+
+    def has_permission(self, request, view):
+        return is_approver(request)
+
+class DistrictProposalAssessorPermission(BasePermission):
+
+    def has_permission(self, request, view):
+        return is_district_assessor(request)
+
+class DistrictProposalApproverPermission(BasePermission):
+
+    def has_permission(self, request, view):
+        return is_district_approver(request)
+
+class QAOfficerPermission(BasePermission):
+
+    def has_permission(self, request, view):
+        return is_qa_officer(request)
+    
+class ReferrerPermission(BasePermission):
+
+    def has_permission(self, request, view):
+        return is_referrer(request)
 
 def organisation_permissions(request, ledger_organisation_id):
     try:

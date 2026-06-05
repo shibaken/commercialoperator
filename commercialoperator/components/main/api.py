@@ -1,15 +1,9 @@
-import traceback
-from django.http import HttpResponse, HttpResponseRedirect
-from django.db import transaction
-from wsgiref.util import FileWrapper
-from rest_framework import viewsets, serializers, status, views
-from rest_framework.decorators import renderer_classes, action
+from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.renderers import JSONRenderer
 from commercialoperator.components.main.models import (
     Region,
     District,
-    Tenure,
     ApplicationType,
     ActivityMatrix,
     AccessType,
@@ -24,20 +18,16 @@ from commercialoperator.components.main.models import (
 from commercialoperator.components.main.serializers import (
     RegionSerializer,
     DistrictSerializer,
-    TenureSerializer,
     ApplicationTypeSerializer,
     ActivityMatrixSerializer,
     AccessTypeSerializer,
     ParkSerializer,
-    ParkFilterSerializer,
     TrailSerializer,
     ActivitySerializer,
     ActivityCategorySerializer,
     RequiredDocumentSerializer,
     QuestionSerializer,
     GlobalSettingsSerializer,
-    OracleSerializer,
-    BookingSettlementReportSerializer,
     LandActivityTabSerializer,
     MarineActivityTabSerializer,
     EventsParkSerializer,
@@ -45,25 +35,18 @@ from commercialoperator.components.main.serializers import (
     FilmingParkSerializer,
     EventsTabSerializer,
 )
-from django.core.exceptions import ValidationError
 from django.db.models import Q
-from commercialoperator.components.proposals.models import Proposal
-from commercialoperator.components.proposals.serializers import ProposalSerializer
-from commercialoperator.components.bookings.utils import oracle_integration
-from commercialoperator.components.bookings import reports
 from collections import namedtuple
 
 import logging
-
-from commercialoperator.components.segregation.decorators import basic_exception_handler
 
 logger = logging.getLogger("payment_checkout")
 
 
 class DistrictViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = District.objects.none()
-    serializer_class = DistrictSerializer
 
+    serializer_class = DistrictSerializer 
     def get_queryset(self):
         user = self.request.user
         if user.is_authenticated:
@@ -111,7 +94,6 @@ class RegionViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ActivityMatrixViewSet(viewsets.ReadOnlyModelViewSet):
-    # queryset = ActivityMatrix.objects.all().order_by('id')
     queryset = ActivityMatrix.objects.none()
     serializer_class = ActivityMatrixSerializer
 
@@ -131,13 +113,7 @@ class ActivityMatrixViewSet(viewsets.ReadOnlyModelViewSet):
         return ActivityMatrix.objects.none()
 
 
-class TenureViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Tenure.objects.all().order_by("order")
-    serializer_class = TenureSerializer
-
-
 class ApplicationTypeViewSet(viewsets.ReadOnlyModelViewSet):
-    # queryset = ApplicationType.objects.all().order_by('order')
     queryset = ApplicationType.objects.none()
     serializer_class = ApplicationTypeSerializer
 
@@ -157,11 +133,6 @@ class AccessTypeViewSet(viewsets.ReadOnlyModelViewSet):
         if user.is_authenticated:
             return AccessType.objects.all().order_by("id")
         return AccessType.objects.none()
-
-
-class ParkFilterViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Park.objects.all().order_by("id")
-    serializer_class = ParkFilterSerializer
 
 
 class GlobalSettingsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -284,18 +255,6 @@ class ParkViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = Park.objects.all().order_by("id")
             return queryset
         return Park.objects.none()
-
-    @action(
-        methods=[
-            "GET",
-        ],
-        detail=False,
-    )
-    def filter_list(self, request, *args, **kwargs):
-        serializer = ParkFilterSerializer(
-            self.get_queryset(), context={"request": request}, many=True
-        )
-        return Response(serializer.data)
 
     @action(
         methods=[
@@ -480,77 +439,6 @@ class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
-class PaymentViewSet(viewsets.ModelViewSet):
-    # queryset = Proposal.objects.all()
-    queryset = Proposal.objects.none()
-    # serializer_class = ProposalSerializer
-    serializer_class = ProposalSerializer
-    lookup_field = "id"
-
-    def create(self, request, *args, **kwargs):
-        response = super(PaymentViewSet, self).create(request, *args, **kwargs)
-        # here may be placed additional operations for
-        # extracting id of the object and using reverse()
-        fallback_url = request.build_absolute_uri("/")
-        return HttpResponseRedirect(redirect_to=fallback_url + "/success/")
-
-    @action(
-        methods=[
-            "POST",
-        ],
-        detail=True,
-    )
-    @renderer_classes((JSONRenderer,))
-    def park_payment(self, request, *args, **kwargs):
-
-        try:
-            with transaction.atomic():
-                # instance = self.get_object()
-                proposal = Proposal.objects.get(id=kwargs["id"])
-                lines = self.create_lines(request)
-                response = self.checkout(
-                    request, proposal, lines, invoice_text="Some invoice text"
-                )
-
-                return response
-
-                # data = [dict(key='My Response')]
-                # return Response(data)
-
-                # return Response(serializer.data)
-
-        except serializers.ValidationError:
-            print(traceback.print_exc())
-            raise
-        except ValidationError as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(repr(e.error_dict))
-        except Exception as e:
-            print(traceback.print_exc())
-            raise serializers.ValidationError(str(e))
-
-
-class OracleJob(views.APIView):
-    renderer_classes = [
-        JSONRenderer,
-    ]
-
-    @basic_exception_handler
-    def get(self, request, format=None):
-        data = {
-            "date": request.GET.get("date"),
-            "override": request.GET.get("override"),
-        }
-        serializer = OracleSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        oracle_integration(
-            serializer.validated_data["date"].strftime("%Y-%m-%d"),
-            serializer.validated_data["override"],
-        )
-        data = {"successful": True}
-        return Response(data)
-
-
 # To display only trails and activity types on Event activity tab
 class TrailTabViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -560,7 +448,6 @@ class TrailTabViewSet(viewsets.ReadOnlyModelViewSet):
     def list(self, request):
         user = self.request.user
         if user.is_authenticated:
-            # Container = namedtuple('ActivityLandTab', ('access_types', 'activity_types', 'regions'))
             Container = namedtuple(
                 "TrailTab",
                 (
@@ -596,7 +483,6 @@ class EventsParkTabViewSet(viewsets.ReadOnlyModelViewSet):
     def list(self, request):
         user = self.request.user
         if user.is_authenticated:
-            # Container = namedtuple('ActivityLandTab', ('access_types', 'activity_types', 'regions'))
             Container = namedtuple(
                 "EventTab", ("parks", "event_activity_types", "parks_external")
             )

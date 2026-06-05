@@ -9,7 +9,6 @@
             <div v-if="!proposal_readonly">
                 <div v-if="hasAmendmentRequest" class="row" style="color: red">
                     <div class="col-lg-12 pull-right">
-                        <div class="panel panel-default">
                             <FormSection
                                 :form-collapse="false"
                                 label="An amendment has been requested for this Application"
@@ -27,7 +26,6 @@
                                     </p>
                                 </div>
                             </FormSection>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -130,7 +128,7 @@
                                     >
                                         Save and Exit&nbsp;
                                         <i
-                                            class="fa fa-circle-o-notch fa-spin fa-fw"
+                                            class="fas fa-circle-notch fa-spin fa-fw"
                                         ></i>
                                     </button>
                                     <input
@@ -151,7 +149,7 @@
                                     >
                                         Save and Continue&nbsp;
                                         <i
-                                            class="fa fa-circle-o-notch fa-spin fa-fw"
+                                            class="fas fa-circle-notch fa-spin fa-fw"
                                         ></i>
                                     </button>
                                     <input
@@ -173,7 +171,7 @@
                                     >
                                         {{ submit_text() }}&nbsp;
                                         <i
-                                            class="fa fa-circle-o-notch fa-spin fa-fw"
+                                            class="fas fa-circle-notch fa-spin fa-fw"
                                         ></i>
                                     </button>
                                     <input
@@ -223,7 +221,7 @@ import ProposalFilming from '../form_filming.vue';
 import ProposalEvent from '../form_event.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
-
+import $ from 'jquery'
 export default {
     name: 'ExternalProposal',
     components: {
@@ -393,29 +391,6 @@ export default {
                 return 'Pay and Submit';
             }
         },
-        save_applicant_data: function () {
-            let vm = this;
-            if (vm.proposal.applicant_type == 'SUB') {
-                vm.proposal_refs().$refs.profile.updatePersonal();
-                vm.proposal_refs().$refs.profile.updateAddress();
-                vm.proposal_refs().$refs.profile.updateContact();
-            }
-            if (vm.proposal.applicant_type == 'ORG') {
-                // NOTE: I commented out the next line because that function is forbidden for external users
-                // vm.proposal_refs().$refs.organisation.updateDetails_noconfirm();
-                vm.proposal_refs()
-                    .$refs.organisation.updateAddress_noconfirm()
-                    .then(
-                        (response) => {
-                            console.log(response);
-                        },
-                        (err) => {
-                            console.log(err);
-                        }
-                    );
-            }
-        },
-
         set_formData: function (validate_form = false) {
             let vm = this;
             if (validate_form && !helpers.validateForm(vm.form)) {
@@ -441,7 +416,6 @@ export default {
         save: async function () {
             let vm = this;
             vm.savingProposal = true;
-            vm.save_applicant_data();
 
             let formData;
             try {
@@ -507,7 +481,6 @@ export default {
 
         save_wo_confirm: function () {
             let vm = this;
-            vm.save_applicant_data();
             let formData;
             try {
                 formData = vm.set_formData();
@@ -546,7 +519,6 @@ export default {
         },
         save_before_submit: async function () {
             let vm = this;
-            vm.save_applicant_data();
             let formData;
             try {
                 // Validate the form before saving
@@ -600,7 +572,6 @@ export default {
                 return;
             }
 
-            vm.save_applicant_data();
             helpers
                 .fetchUrl(vm.proposal_form_url, {
                     method: 'POST',
@@ -769,7 +740,8 @@ export default {
                             !vm.proposal.other_details.accreditations[i]
                                 .is_deleted &&
                             vm.proposal.other_details.accreditations[i]
-                                .accreditation_type != 'no'
+                                .accreditation_type != 'no' && 
+                            vm.proposal.other_details.accreditations[i].accreditation_type!='narta'
                         ) {
                             if (
                                 vm.proposal.other_details.accreditations[i]
@@ -804,6 +776,30 @@ export default {
                         }
                     }
                 }
+        if (vm.$refs.proposal_tclass.$refs.other_details.selected_information_standards.length==0 ){
+            blank_fields.push(' Accessible Tourism Information is required')
+          }
+          else{
+            for(var j=0; j<vm.proposal.other_details.information_standards.length; j++){
+              if(!vm.proposal.other_details.information_standards[j].is_deleted && vm.proposal.other_details.information_standards[j].information_standard_type!='no'){
+                if(vm.proposal.other_details.information_standards[j].information_comments==null || vm.proposal.other_details.information_standards[j].information_comments==''){
+                  blank_fields.push('Details for accessible tourism information type '+vm.proposal.other_details.information_standards[j].information_standard_type_value+' are required')
+                }
+              }
+            }
+          }
+          if (vm.$refs.proposal_tclass.$refs.other_details.selected_emission_standards.length==0 ){
+            blank_fields.push(' Tourism Emission Reduction Standards is required')
+          }
+          else{
+            for(var k=0; k<vm.proposal.other_details.emission_standards.length; k++){
+              if(!vm.proposal.other_details.emission_standards[k].is_deleted && vm.proposal.other_details.emission_standards[k].emission_standard_type!='no'){
+                if(vm.proposal.other_details.emission_standards[k].emission_comments==null || vm.proposal.other_details.emission_standards[k].emission_comments==''){
+                  blank_fields.push('Details for tourism emission reduction standard type '+vm.proposal.other_details.emission_standards[k].emission_standard_type_value+' are required')
+                }
+              }
+            }
+          }
 
                 if (
                     vm.proposal.other_details.preferred_licence_period == '' ||
