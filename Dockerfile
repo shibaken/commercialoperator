@@ -54,7 +54,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Install the project (ensure that frontend projects have been built prior to this step).
 FROM python_libs_cols
-COPY --chown=oim:oim  gunicorn.ini manage.py ./
+COPY --chown=oim:oim  gunicorn.ini.py manage.py ./
 RUN touch /app/.env
 COPY .git ./.git
 COPY --chown=oim:oim commercialoperator ./commercialoperator
@@ -78,4 +78,4 @@ RUN chmod 755 /startup.sh
 EXPOSE 8080
 HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget", "-q", "-O", "-", "http://localhost:8080/"]
 CMD ["/startup.sh"]
-
+#CMD ["gunicorn", "commercialoperator.wsgi", "--bind", ":8080", "--config", "gunicorn.ini.py"]
