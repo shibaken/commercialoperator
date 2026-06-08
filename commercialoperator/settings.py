@@ -25,6 +25,8 @@ SHOW_DEBUG_TOOLBAR = env("SHOW_DEBUG_TOOLBAR", False)
 PRIVATE_MEDIA_DIR_NAME = env('PRIVATE_MEDIA_DIR_NAME', 'private-media')
 PRIVATE_MEDIA_STORAGE_LOCATION = os.path.join(BASE_DIR, PRIVATE_MEDIA_DIR_NAME)
 PRIVATE_MEDIA_BASE_URL = f'/{PRIVATE_MEDIA_DIR_NAME}/'
+SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+SESSION_FILE_PATH = env('SESSION_FILE_PATH', default='/app/session_store/')
 
 BUILD_TAG = env(
     "BUILD_TAG", hashlib.md5(os.urandom(32)).hexdigest()
