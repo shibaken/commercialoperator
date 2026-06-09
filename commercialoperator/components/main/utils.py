@@ -206,7 +206,25 @@ def check_file(file, model_name):
     valid = file_extension_valid(str(file), whitelist, model_name)
 
     if not valid:
-        raise serializers.ValidationError("File type/extension not supported")
+        # Get the file extension for more informative error message
+        _, extension = os.path.splitext(str(file))
+        extension = extension.replace(".", "").lower() if extension else "unknown"
+        
+        # Get supported extensions for this model
+        supported_extensions = whitelist.filter(
+            Q(model="all") | Q(model__iexact=model_name)
+        ).values_list("name", flat=True).distinct()
+        
+        if supported_extensions:
+            ext_list = ", ".join(sorted(supported_extensions))
+            raise serializers.ValidationError(
+                f"File type '.{extension}' is not supported. Supported file types are: {ext_list}"
+            )
+        else:
+            raise serializers.ValidationError(
+                f"File type '.{extension}' is not supported. Please check the file format and try again."
+            )
+
     
 
 def get_department_user(email):
