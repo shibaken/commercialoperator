@@ -367,8 +367,12 @@ class ProposalFilterBackend(DatatablesFilterBackend):
                     )
 
 
-            if payment_status and payment_status.lower() != "all":
-                queryset = queryset.filter(invoices__property_cache__payment_status__iexact=payment_status.lower())
+            if payment_status:
+                payment_status_filter = payment_status.replace("_", " ")
+                if payment_status_filter.lower() != "all":
+                    queryset = queryset.filter(
+                        invoices__property_cache__payment_status__iexact=payment_status_filter
+                    )
 
             if search_text and super_queryset != None:
                 queryset = queryset.distinct() & super_queryset   
@@ -400,8 +404,12 @@ class ProposalFilterBackend(DatatablesFilterBackend):
                         Q(booking__invoices__payment_method=payment_method)
                     )
 
-            if payment_status and payment_status.lower() != "all":
-                queryset = queryset.filter(booking__invoices__property_cache__payment_status__iexact=payment_status.lower())
+            if payment_status:
+                payment_status_filter = payment_status.replace("_", " ")
+                if payment_status_filter.lower() != "all":
+                    queryset = queryset.filter(
+                        booking__invoices__property_cache__payment_status__iexact=payment_status_filter
+                    )
 
             if search_text and super_queryset != None:
                 queryset = queryset.distinct() & super_queryset
