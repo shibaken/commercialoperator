@@ -654,6 +654,7 @@ class GlobalSettings(models.Model):
         ("event_traffic_code_of_practice", "Event traffic code of practice"),
         ("trail_section_map", "Trail section map"),
         ("dwer_application_form", "DWER Application Form"),
+        ('tourism_standards_link', 'Tourism Standards Link'),
     )
     key = models.CharField(
         max_length=255,

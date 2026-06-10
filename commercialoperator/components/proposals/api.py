@@ -53,6 +53,8 @@ from commercialoperator.components.proposals.models import (
     ProposalAssessmentAnswer,
     RequirementDocument,
     DistrictProposal,
+    ProposalEmissionStandard,
+    ProposalInformationStandard,
 )
 from commercialoperator.components.proposals.serializers import (
     SendReferralSerializer,
@@ -2654,6 +2656,28 @@ class AccreditationTypeView(views.APIView):
             )
 
         return Response(choices_list)
+
+class TourismStandardsView(views.APIView):
+
+    renderer_classes = [JSONRenderer,]
+    def get(self,request, format=None):
+        information_standard_choices = []
+        emission_standard_choices = []
+        emission_choices = ProposalEmissionStandard.EMISSION_STANDARD_TYPE_CHOICES
+        if emission_choices:
+            for c in emission_choices:
+                emission_standard_choices.append({'key': c[0],'value': c[1]})
+        #choices = ProposalOtherDetails.ACCREDITATION_TYPE_CHOICES
+        information_choices=ProposalInformationStandard.INFORMATION_STANDARD_TYPE_CHOICES
+        if information_choices:
+            for c in information_choices:
+                information_standard_choices.append({'key': c[0],'value': c[1]})
+        choices_list = {
+            'information_standard_choices': information_standard_choices,
+            'emission_standard_choices': emission_standard_choices,
+        }
+        return Response(choices_list)
+
 
 
 class LicencePeriodChoicesView(views.APIView):

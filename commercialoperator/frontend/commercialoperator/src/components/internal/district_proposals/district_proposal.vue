@@ -222,7 +222,7 @@
                                                 >
                                                     Enter Requirements&nbsp;
                                                     <i
-                                                        class="fa fa-circle-o-notch fa-spin fa-fw"
+                                                        class="fas fa-circle-notch fa-spin fa-fw"
                                                     ></i>
                                                 </button>
                                                 <button
@@ -282,7 +282,7 @@
                                                 >
                                                     Back To Processing&nbsp;
                                                     <i
-                                                        class="fa fa-circle-o-notch fa-spin fa-fw"
+                                                        class="fas fa-circle-notch fa-spin fa-fw"
                                                     ></i>
                                                 </button>
                                                 <button
@@ -860,11 +860,11 @@ export default {
     updated: function () {
         let vm = this;
         if (!vm.panelClickersInitialised) {
-            $('.panelClicker[data-toggle="collapse"]').on('click', function () {
+            $('.panelClicker[data-bs-toggle="collapse"]').on('click', function () {
                 var chev = $(this).children()[0];
                 window.setTimeout(function () {
                     $(chev).toggleClass(
-                        'glyphicon-chevron-down glyphicon-chevron-up'
+                        'fa-chevron-down fa-chevron-up'
                     );
                 }, 100);
             });

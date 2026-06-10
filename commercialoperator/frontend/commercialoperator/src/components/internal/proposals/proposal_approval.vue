@@ -36,7 +36,6 @@
         </template>
         <div class="col-md-12">
             <div class="row">
-                <div class="panel panel-default">
                     <FormSection
                         :form-collapse="false"
                         :label="!isFinalised ? 'Proposed Decision' : 'Decision'"
@@ -137,7 +136,6 @@
                             </div>
                         </div>
                     </FormSection>
-                </div>
             </div>
         </div>
     </div>

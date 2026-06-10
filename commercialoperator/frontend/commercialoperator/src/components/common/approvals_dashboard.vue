@@ -1,7 +1,7 @@
 <template id="proposal_dashboard">
     <div class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
+            <div class="card">
                 <div class="row">
                     <div class="col-md-3">
                         <div
@@ -86,10 +86,8 @@
                                     max="2999-12-31"
                                     placeholder="DD/MM/YYYY"
                                 />
-                                <span class="input-group-addon">
-                                    <span
-                                        class="glyphicon glyphicon-calendar"
-                                    ></span>
+                                <span class="input-group-text">
+                                    <i class="fas fa-calendar-days"></i>
                                 </span>
                             </div>
                         </div>
@@ -109,10 +107,8 @@
                                     max="2999-12-31"
                                     placeholder="DD/MM/YYYY"
                                 />
-                                <span class="input-group-addon">
-                                    <span
-                                        class="glyphicon glyphicon-calendar"
-                                    ></span>
+                                <span class="input-group-text">
+                                    <i class="fas fa-calendar-days"></i>
                                 </span>
                             </div>
                         </div>
@@ -134,10 +130,8 @@
                                     max="2999-12-31"
                                     placeholder="DD/MM/YYYY"
                                 />
-                                <span class="input-group-addon">
-                                    <span
-                                        class="glyphicon glyphicon-calendar"
-                                    ></span>
+                                <span class="input-group-text">
+                                    <i class="fas fa-calendar-days"></i>
                                 </span>
                             </div>
                         </div>
@@ -157,10 +151,8 @@
                                     max="2999-12-31"
                                     placeholder="DD/MM/YYYY"
                                 />
-                                <span class="input-group-addon">
-                                    <span
-                                        class="glyphicon glyphicon-calendar"
-                                    ></span>
+                                <span class="input-group-text">
+                                    <i class="fas fa-calendar-days"></i>
                                 </span>
                             </div>
                         </div>
@@ -362,7 +354,7 @@ export default {
                                 var message = '';
                                 let icon = '';
                                 icon =
-                                    "<i class='fa fa-exclamation-triangle' style='color:red'></i>";
+                                    "<i class='fas fa-exclamation-triangle' style='color:red'></i>";
                                 result = full.reserved_licence
                                     ? '<span>' +
                                       full.lodgement_number +
@@ -465,10 +457,10 @@ export default {
                             var result = '';
                             var popTemplate = '';
                             if (!full.migrated) {
-                                result = `<a href="${data}" target="_blank"><i style="color:red" class="fa fa-file-pdf"></i></a>`;
+                                result = `<a href="${data}" target="_blank"><i style="color:red" class="fas fa-file-pdf"></i></a>`;
                             } else if (full.migrated) {
                                 var icon =
-                                    "<i class='fa fa-file-pdf' style='color:red'></i>";
+                                    "<i class='fas fa-file-pdf' style='color:red'></i>";
                                 var message = 'This is a migrated licence';
 
                                 const title = `License ${full.lodgement_number}`;
@@ -686,11 +678,11 @@ export default {
         this.fetchFilterLists();
         this.fetchProfile();
         let vm = this;
-        // $('a[data-toggle="collapse"]').on('click', function () {
+        // $('a[data-bs-toggle="collapse"]').on('click', function () {
         //     var chev = $(this).children()[0];
         //     window.setTimeout(function () {
         //         $(chev).toggleClass(
-        //             'glyphicon-chevron-down glyphicon-chevron-up'
+        //             'fa-chevron-down fa-chevron-up'
         //         );
         //     }, 100);
         // });

@@ -4047,7 +4047,7 @@ class ProposalAccreditation(SanitiseMixin):
         ("no", "None"),
         ("atap", "QTA"),
         ("eco_certification", "Eco Certification"),
-        ("narta", "NARTA"),
+        #("narta", "NARTA"),
         ("other", "Other"),
     )
 
@@ -4075,6 +4075,45 @@ class ProposalAccreditation(SanitiseMixin):
     def save(self, *args, **kwargs):
         super(ProposalAccreditation, self).save(*args, **kwargs)
         cache.delete(settings.CACHE_KEY_ACCREDITATION_CHOICES)
+
+class ProposalInformationStandard(models.Model):
+    INFORMATION_STANDARD_TYPE_CHOICES = (
+        ('no', 'None'),
+        ('tourism_council', 'Tourism Council WA'),
+        ('eco_tourism', 'Eco Tourism Australia'),
+        ('other', 'Other')
+    )
+
+    information_standard_type = models.CharField('Information Standard', max_length=40, choices=INFORMATION_STANDARD_TYPE_CHOICES,
+                                       default=INFORMATION_STANDARD_TYPE_CHOICES[0][0])
+    information_comments=models.TextField(blank=True)
+    proposal_other_details = models.ForeignKey(ProposalOtherDetails, related_name='information_standards', null=True, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '{} - {}'.format(self.information_standard_type, self.information_comments)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
+class ProposalEmissionStandard(models.Model):
+    EMISSION_STANDARD_TYPE_CHOICES = (
+        ('no', 'None'),
+        ('tourism_council', 'Tourism Council WA'),
+        ('eco_tourism', 'Eco Tourism Australia'),
+        ('other', 'Other')
+    )
+
+    emission_standard_type = models.CharField('Emission Standard', max_length=40, choices=EMISSION_STANDARD_TYPE_CHOICES,
+                                       default=EMISSION_STANDARD_TYPE_CHOICES[0][0])
+    emission_comments=models.TextField(blank=True)
+    proposal_other_details = models.ForeignKey(ProposalOtherDetails, related_name='emission_standards', null=True, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '{} - {}'.format(self.emission_standard_type, self.emission_comments)
+
+    class Meta:
+        app_label = 'commercialoperator'
+
 
 
 class ProposalPark(models.Model):

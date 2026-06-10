@@ -21,7 +21,6 @@
                             <li class="nav-item">
                                 <a
                                     id="pills-details-tab"
-                                    data-toggle="tab"
                                     class="nav-link active"
                                     data-bs-toggle="pill"
                                     :href="'#' + dTab"
@@ -34,7 +33,6 @@
                             <li class="nav-item">
                                 <a
                                     id="pills-other-tab"
-                                    data-toggle="tab"
                                     class="nav-link"
                                     data-bs-toggle="pill"
                                     :href="'#' + oTab"
@@ -54,7 +52,6 @@
                             >
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <div class="panel panel-default">
                                             <FormSection
                                                 :form-collapse="false"
                                                 label="Personal Details"
@@ -133,12 +130,10 @@
                                                     </div>
                                                 </form>
                                             </FormSection>
-                                        </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <div class="panel panel-default">
                                             <FormSection
                                                 :form-collapse="false"
                                                 label="Address Details"
@@ -290,7 +285,7 @@
                                                                 class="btn btn-primary float-end"
                                                             >
                                                                 <i
-                                                                    class="fa fa-spin fa-spinner"
+                                                                    class="fas fa-spin fa-spinner"
                                                                 ></i
                                                                 >&nbsp;Updating
                                                             </button>
@@ -298,12 +293,10 @@
                                                     </div>
                                                 </form>
                                             </FormSection>
-                                        </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <div class="panel panel-default">
                                             <FormSection
                                                 :form-collapse="false"
                                                 label="Contact Details"
@@ -395,7 +388,7 @@
                                                                 class="btn btn-primary float-end"
                                                             >
                                                                 <i
-                                                                    class="fa fa-spin fa-spinner"
+                                                                    class="fas fa-spin fa-spinner"
                                                                 ></i
                                                                 >&nbsp;Updating
                                                             </button>
@@ -403,12 +396,10 @@
                                                     </div>
                                                 </form>
                                             </FormSection>
-                                        </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <div class="panel panel-default">
                                             <FormSection
                                                 :form-collapse="false"
                                                 label="Organisations"
@@ -468,7 +459,7 @@
                                                                     )
                                                                 "
                                                                 ><i
-                                                                    class="fa fa-chain-broken fa-2x"
+                                                                    class="fas fa-link-slash fa-2x"
                                                                 ></i
                                                                 >&nbsp;Unlink</a
                                                             >
@@ -525,7 +516,6 @@
                                                     </div>
                                                 </div>
                                             </FormSection>
-                                        </div>
                                     </div>
                                 </div>
                             </div>

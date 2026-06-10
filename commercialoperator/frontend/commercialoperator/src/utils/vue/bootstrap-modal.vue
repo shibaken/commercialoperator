@@ -8,7 +8,6 @@
             tabindex="-1"
             role="dialog"
             aria-hidden="true"
-            @click.self="clickMask"
         >
             <div class="modal-dialog" :class="modalClass" role="document">
                 <div class="modal-content">

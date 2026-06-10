@@ -307,7 +307,7 @@
                                         organisation_request.status
                                     "
                                     class="badge bg-secondary p-2"
-                                    ><i class="fa fa-clock"></i> Pending</span
+                                    ><i class="fas fa-clock"></i> Pending</span
                                 >
                                 <span
                                     v-if="
@@ -315,7 +315,7 @@
                                         organisation_request.status
                                     "
                                     class="badge bg-success me-1 p-2"
-                                    ><i class="fa fa-chain"></i> Linked</span
+                                    ><i class="fas fa-link"></i> Linked</span
                                 >
                             </td>
                             <td>
@@ -335,7 +335,7 @@
                                                 )
                                             "
                                         >
-                                            <i class="fa fa-chain-broken"></i>
+                                            <i class="fas fa-link-slash"></i>
                                             Unlink
                                         </button>
                                     </div>
@@ -831,7 +831,7 @@ export default {
                     if (!response.ok) {
                         const error =
                             (data && data.message) || response.statusText;
-                        return Promise.reject(error);
+                        return Promise.reject({data, statusText: response.statusText});
                     }
                     swal.fire({
                         title: 'Success',
@@ -842,7 +842,67 @@ export default {
                     vm.fetchOrganisationRequests();
                 })
                 .catch((error) => {
-                    this.errorMessage = constants.ERRORS.API_ERROR;
+                    let errorMessage = constants.ERRORS.API_ERROR;
+                    
+                    // Extract specific validation error messages from DRF response
+                    if (error && error.data) {
+                        const data = error.data;
+                        
+                        // Handle array-style error payloads like ["File type '.png' is not supported..."]
+                        if (Array.isArray(data) && data.length > 0) {
+                            const firstError = data[0];
+                            if (typeof firstError === 'string') {
+                                if (firstError.includes('File type') || firstError.includes('extension')) {
+                                    errorMessage = `File Upload Error: ${firstError}`;
+                                } else {
+                                    errorMessage = firstError;
+                                }
+                            }
+                        }
+                        // Handle string error payloads
+                        else if (typeof data === 'string') {
+                            errorMessage = data;
+                        }
+                        // Check for identification file errors
+                        else if (data.identification) {
+                            const identErrors = Array.isArray(data.identification) 
+                                ? data.identification 
+                                : [data.identification];
+                            const fileError = identErrors[0];
+                            
+                            if (fileError && typeof fileError === 'string') {
+                                if (fileError.includes('File type') || fileError.includes('extension')) {
+                                    errorMessage = `File Upload Error: ${fileError}`;
+                                } else if (fileError.includes('File size')) {
+                                    errorMessage = `File Upload Error: ${fileError}`;
+                                } else {
+                                    errorMessage = `Upload Error: ${fileError}`;
+                                }
+                            }
+                        }
+                        // Check for general error message
+                        else if (data.message) {
+                            errorMessage = data.message;
+                        }
+                        // Check for non-field errors
+                        else if (data.non_field_errors) {
+                            const errors = Array.isArray(data.non_field_errors) 
+                                ? data.non_field_errors 
+                                : [data.non_field_errors];
+                            errorMessage = errors[0] || constants.ERRORS.API_ERROR;
+                        }
+                        // Check for any other validation errors
+                        else {
+                            for (const [field, fieldErrors] of Object.entries(data)) {
+                                if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
+                                    errorMessage = `${field}: ${fieldErrors[0]}`;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    this.errorMessage = errorMessage;
                     console.error('There was an error!', error);
                 })
                 .finally(() => {

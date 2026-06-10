@@ -3,7 +3,6 @@
         <div class="col-sm-12">
             <div class="row">
                 <div class="col-sm-12">
-                    <div class="panel panel-default">
                         <FormSection
                             :form-collapse="false"
                             label="Organisation Details"
@@ -94,12 +93,10 @@
                                 </div>
                             </form>
                         </FormSection>
-                    </div>
                 </div>
             </div>
             <div class="row">
                 <div class="col-sm-12">
-                    <div class="panel panel-default">
                         <FormSection
                             :form-collapse="false"
                             label="Address Details"
@@ -223,7 +220,6 @@
                                 </div>
                             </form>
                         </FormSection>
-                    </div>
                 </div>
             </div>
         </div>
@@ -310,11 +306,11 @@ export default {
         });
     },
     updated: function () {
-        $('.panelClicker[data-toggle="collapse"]').on('click', function () {
+        $('.panelClicker[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
                 $(chev).toggleClass(
-                    'glyphicon-chevron-down glyphicon-chevron-up'
+                    'fa-chevron-down fa-chevron-up'
                 );
             }, 100);
         });

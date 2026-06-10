@@ -2,7 +2,6 @@
     <div id="internalSearch" class="container">
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
                     <FormSection
                         :form-collapse="false"
                         label="Search Organisation"
@@ -37,12 +36,10 @@
                             </form>
                         </div>
                     </FormSection>
-                </div>
             </div>
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
                     <FormSection
                         :form-collapse="false"
                         label="Search User"
@@ -85,12 +82,10 @@
                             </form>
                         </div>
                     </FormSection>
-                </div>
             </div>
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
                     <FormSection
                         :form-collapse="false"
                         label="Filter"
@@ -205,10 +200,7 @@
                                         ><a
                                             href=""
                                             @click.prevent="removeKeyword(i)"
-                                            ><span
-                                                class="glyphicon glyphicon-remove"
-                                            ></span
-                                        ></a>
+                                            ><i class="fas fa-xmark"></i></a>
                                     </li>
                                 </ul>
                             </div>
@@ -255,12 +247,10 @@
                             </div>
                         </div>
                     </FormSection>
-                </div>
             </div>
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <div class="panel panel-default">
                     <FormSection
                         :form-collapse="false"
                         label="Reference"
@@ -296,7 +286,6 @@
                             >
                         </div>
                     </FormSection>
-                </div>
             </div>
         </div>
     </div>
@@ -443,11 +432,11 @@ export default {
     },
     watch: {},
     mounted: function () {
-        $('a[data-toggle="collapse"]').on('click', function () {
+        $('a[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
                 $(chev).toggleClass(
-                    'glyphicon-chevron-down glyphicon-chevron-up'
+                    'fa-chevron-down fa-chevron-up'
                 );
             }, 100);
         });

@@ -227,6 +227,10 @@ api_patterns = [
         name="accreditation_choices",
     ),
     url(
+        r'^api/tourism_standard_choices',
+        proposal_api.TourismStandardsView.as_view(),
+        name='tourism_standard_choices',),
+    url(
         r"^api/licence_period_choices",
         proposal_api.LicencePeriodChoicesView.as_view(),
         name="licence_period_choices",

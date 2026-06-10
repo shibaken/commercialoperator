@@ -9,7 +9,7 @@
                     <div class="card-header">
                         The following invoice(s) are overdue:
                     </div>
-                    <div class="well well-sm card-body">
+                    <div class="card card-body bg-light p-2">
                         <div class="card-text">
                             <div
                                 v-for="invoice in overdue_invoices"
@@ -32,7 +32,7 @@
                             Entry fees apply to passenger
                             <a :href="payment_help_url" target="_blank"
                                 ><i
-                                    class="fa fa-question-circle"
+                                    class="fas fa-circle-question"
                                     style="color: blue"
                                     >&nbsp;</i
                                 ></a
@@ -116,10 +116,8 @@
                                         max="2999-12-31"
                                         placeholder="DD/MM/YYYY"
                                     />
-                                    <span class="input-group-addon">
-                                        <span
-                                            class="glyphicon glyphicon-calendar"
-                                        ></span>
+                                    <span class="input-group-text">
+                                        <i class="fas fa-calendar-days"></i>
                                     </span>
                                 </div>
                             </div>
@@ -141,10 +139,8 @@
                                         max="2999-12-31"
                                         placeholder="DD/MM/YYYY"
                                     />
-                                    <span class="input-group-addon">
-                                        <span
-                                            class="glyphicon glyphicon-calendar"
-                                        ></span>
+                                    <span class="input-group-text">
+                                        <i class="fas fa-calendar-days"></i>
                                     </span>
                                 </div>
                             </div>
@@ -421,15 +417,15 @@ export default {
                                     'monthly invoicing' &&
                                     full.invoice_reference !== null)
                             ) {
-                                links += `<a href='/cols/payments/invoice-pdf/${full.invoice_reference}.pdf' target='_blank'><i style='color:red;' class='fa fa-file-pdf'></i></a>&nbsp;`;
-                                links += `<a href='/cols/payments/confirmation-pdf/${full.invoice_reference}.pdf' target='_blank'><i style='color:red;' class='fa fa-file-pdf'></i></a><br/>`;
+                                links += `<a href='/cols/payments/invoice-pdf/${full.invoice_reference}.pdf' target='_blank'><i style='color:red;' class='fas fa-file-pdf'></i></a>&nbsp;`;
+                                links += `<a href='/cols/payments/confirmation-pdf/${full.invoice_reference}.pdf' target='_blank'><i style='color:red;' class='fas fa-file-pdf'></i></a><br/>`;
                             } else if (
                                 full.payment_method.toLowerCase() ==
                                     'monthly invoicing' &&
                                 full.invoice_reference == null
                             ) {
                                 // running aggregated monthly booking - not yet invoiced
-                                links += `<a href='/cols/payments/monthly-confirmation-pdf/booking/${full.id}.pdf' target='_blank' style='padding-left: 52px;'><i style='color:red;' class='fa fa-file-pdf'></i></a><br/>`;
+                                links += `<a href='/cols/payments/monthly-confirmation-pdf/booking/${full.id}.pdf' target='_blank' style='padding-left: 52px;'><i style='color:red;' class='fas fa-file-pdf'></i></a><br/>`;
                             }
                             return links;
                         },
@@ -549,11 +545,11 @@ export default {
         this.fetchOverdueInvoices();
         this.fetchProfile();
         let vm = this;
-        $('a[data-toggle="collapse"]').on('click', function () {
+        $('a[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
                 $(chev).toggleClass(
-                    'glyphicon-chevron-down glyphicon-chevron-up'
+                    'fa-chevron-down fa-chevron-up'
                 );
             }, 100);
         });

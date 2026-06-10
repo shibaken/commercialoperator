@@ -34,6 +34,8 @@ from commercialoperator.components.proposals.models import (
     RequirementDocument,
     DistrictProposal,
     DistrictProposalDeclinedDetails,
+    ProposalInformationStandard,
+    ProposalEmissionStandard,
 )
 from commercialoperator.components.organisations.models import Organisation
 from commercialoperator.components.main.serializers import (
@@ -302,12 +304,44 @@ class ProposalAccreditationSerializer(serializers.ModelSerializer):
 
     def get_accreditation_type_value(self, obj):
         return obj.get_accreditation_type_display()
+    
+class ProposalInformationStandardSerializer(serializers.ModelSerializer):
+    information_standard_type_value= serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProposalInformationStandard
+        fields=('id',
+                'information_standard_type',
+                'proposal_other_details',
+                'information_standard_type_value',
+                'information_comments',
+                )
+
+    def get_information_standard_type_value(self,obj):
+        return obj.get_information_standard_type_display()
+    
+class ProposalEmissionStandardSerializer(serializers.ModelSerializer):
+    emission_standard_type_value= serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProposalEmissionStandard
+        fields=('id',
+                'emission_standard_type',
+                'proposal_other_details',
+                'emission_standard_type_value',
+                'emission_comments',
+                )
+
+    def get_emission_standard_type_value(self,obj):
+        return obj.get_emission_standard_type_display()
 
 
 class ProposalOtherDetailsSerializer(serializers.ModelSerializer):
     nominated_start_date = serializers.DateField(required=False, allow_null=True)
     insurance_expiry = serializers.DateField(required=False, allow_null=True)
     accreditations = ProposalAccreditationSerializer(many=True, read_only=True)
+    information_standards = ProposalInformationStandardSerializer(many=True, read_only=True)
+    emission_standards = ProposalEmissionStandardSerializer(many=True, read_only=True)
     preferred_licence_period = serializers.CharField(allow_blank=True, allow_null=True)
     proposed_end_date = serializers.DateField(read_only=True)
 
@@ -324,6 +358,8 @@ class ProposalOtherDetailsSerializer(serializers.ModelSerializer):
             "credit_docket_books",
             "docket_books_number",
             "mooring",
+            "information_standards",
+            "emission_standards",
             "proposed_end_date",
         )
 

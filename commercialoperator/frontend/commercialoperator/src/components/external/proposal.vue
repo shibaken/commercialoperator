@@ -9,7 +9,6 @@
             <div v-if="!proposal_readonly">
                 <div v-if="hasAmendmentRequest" class="row" style="color: red">
                     <div class="col-lg-12 pull-right">
-                        <div class="panel panel-default">
                             <FormSection
                                 :form-collapse="false"
                                 label="An amendment has been requested for this Application"
@@ -27,7 +26,6 @@
                                     </p>
                                 </div>
                             </FormSection>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -130,7 +128,7 @@
                                     >
                                         Save and Exit&nbsp;
                                         <i
-                                            class="fa fa-circle-o-notch fa-spin fa-fw"
+                                            class="fas fa-circle-notch fa-spin fa-fw"
                                         ></i>
                                     </button>
                                     <input
@@ -151,7 +149,7 @@
                                     >
                                         Save and Continue&nbsp;
                                         <i
-                                            class="fa fa-circle-o-notch fa-spin fa-fw"
+                                            class="fas fa-circle-notch fa-spin fa-fw"
                                         ></i>
                                     </button>
                                     <input
@@ -173,7 +171,7 @@
                                     >
                                         {{ submit_text() }}&nbsp;
                                         <i
-                                            class="fa fa-circle-o-notch fa-spin fa-fw"
+                                            class="fas fa-circle-notch fa-spin fa-fw"
                                         ></i>
                                     </button>
                                     <input
@@ -742,7 +740,8 @@ export default {
                             !vm.proposal.other_details.accreditations[i]
                                 .is_deleted &&
                             vm.proposal.other_details.accreditations[i]
-                                .accreditation_type != 'no'
+                                .accreditation_type != 'no' && 
+                            vm.proposal.other_details.accreditations[i].accreditation_type!='narta'
                         ) {
                             if (
                                 vm.proposal.other_details.accreditations[i]
@@ -777,6 +776,30 @@ export default {
                         }
                     }
                 }
+        if (vm.$refs.proposal_tclass.$refs.other_details.selected_information_standards.length==0 ){
+            blank_fields.push(' Accessible Tourism Information is required')
+          }
+          else{
+            for(var j=0; j<vm.proposal.other_details.information_standards.length; j++){
+              if(!vm.proposal.other_details.information_standards[j].is_deleted && vm.proposal.other_details.information_standards[j].information_standard_type!='no'){
+                if(vm.proposal.other_details.information_standards[j].information_comments==null || vm.proposal.other_details.information_standards[j].information_comments==''){
+                  blank_fields.push('Details for accessible tourism information type '+vm.proposal.other_details.information_standards[j].information_standard_type_value+' are required')
+                }
+              }
+            }
+          }
+          if (vm.$refs.proposal_tclass.$refs.other_details.selected_emission_standards.length==0 ){
+            blank_fields.push(' Tourism Emission Reduction Standards is required')
+          }
+          else{
+            for(var k=0; k<vm.proposal.other_details.emission_standards.length; k++){
+              if(!vm.proposal.other_details.emission_standards[k].is_deleted && vm.proposal.other_details.emission_standards[k].emission_standard_type!='no'){
+                if(vm.proposal.other_details.emission_standards[k].emission_comments==null || vm.proposal.other_details.emission_standards[k].emission_comments==''){
+                  blank_fields.push('Details for tourism emission reduction standard type '+vm.proposal.other_details.emission_standards[k].emission_standard_type_value+' are required')
+                }
+              }
+            }
+          }
 
                 if (
                     vm.proposal.other_details.preferred_licence_period == '' ||

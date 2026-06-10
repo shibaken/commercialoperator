@@ -180,7 +180,7 @@
                                                         access.identification
                                                     "
                                                     ><i
-                                                        class="fa fa-file-pdf"
+                                                        class="fas fa-file-pdf"
                                                     ></i
                                                     >&nbsp;Letter</a
                                                 >
@@ -414,7 +414,7 @@ export default {
                                 popTemplate = _.template(
                                     '<a href="#" ' +
                                         'role="button" ' +
-                                        'data-toggle="popover" ' +
+                                        'data-bs-toggle="popover" ' +
                                         'data-trigger="click" ' +
                                         'data-placement="top auto"' +
                                         'data-html="true" ' +

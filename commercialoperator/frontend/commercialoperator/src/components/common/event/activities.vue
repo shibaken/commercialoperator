@@ -2,7 +2,6 @@
 <template lang="html">
     <div id="activityInfo" class="row">
         <div class="col-sm-12">
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Event Details"
@@ -70,10 +69,8 @@
                                                     proposal.is_amendment_proposal
                                                 "
                                             />
-                                            <span class="input-group-addon">
-                                                <span
-                                                    class="glyphicon glyphicon-calendar"
-                                                ></span>
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
                                         <label
@@ -105,10 +102,8 @@
                                                     proposal.is_amendment_proposal
                                                 "
                                             />
-                                            <span class="input-group-addon">
-                                                <span
-                                                    class="glyphicon glyphicon-calendar"
-                                                ></span>
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
                                         <label
@@ -275,8 +270,6 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
-            <div class="panel panel-default">
                 <FormSection
                     :form-collapse="false"
                     label="Activities and Location"
@@ -317,7 +310,6 @@
                         </div>
                     </div>
                 </FormSection>
-            </div>
         </div>
     </div>
 </template>

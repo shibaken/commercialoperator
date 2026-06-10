@@ -45,7 +45,7 @@ psql "host=<host> port=5432 dbname=<database> user=<username> password=<password
 Import Base schema for reversion.
 
 ```
-psql "host=<host> port=5432 dbname=<database> user=<username> password=<password>" < EXPORT_DIRECTORY/commercialoperator_ledger_tables.sql
+psql "host=<host> port=5432 dbname=<database> user=<username> password=<password>" < EXPORT_DIRECTORY/reversion_schema_commercialoperator_ledger_tables.sql
 ```
 
 **Step 4 Fix and Apply migrations**

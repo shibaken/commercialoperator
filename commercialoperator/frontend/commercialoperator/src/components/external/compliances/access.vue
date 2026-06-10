@@ -10,7 +10,6 @@
             <div v-if="!isFinalised">
                 <div v-if="hasAmendmentRequest" class="row" style="color: red">
                     <div class="col-lg-12 pull-right">
-                        <div class="panel panel-default">
                             <FormSection
                                 :form-collapse="false"
                                 label="An amendment has been requested for this Compliance with Requirements"
@@ -25,7 +24,6 @@
                                     <p>Details: {{ a.text }}</p>
                                 </div>
                             </FormSection>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -39,7 +37,6 @@
 
             <div class="col-md-12">
                 <div class="row">
-                    <div class="panel panel-default">
                         <FormSection
                             :form-collapse="false"
                             label="Compliance with Requirements"
@@ -138,7 +135,7 @@
                                                             "
                                                         >
                                                             <a
-                                                                class="fa fa-trash control-label"
+                                                                class="fas fa-trash control-label"
                                                                 title="Remove file"
                                                                 style="
                                                                     cursor: pointer;
@@ -153,7 +150,7 @@
                                                         </span>
                                                         <span v-else>
                                                             <i
-                                                                class="fa fa-info-circle"
+                                                                class="fas fa-circle-info"
                                                                 aria-hidden="true"
                                                                 title="Previously submitted documents cannot be deleted"
                                                                 style="
@@ -278,7 +275,7 @@
                                                             attachAnother
                                                         "
                                                         ><i
-                                                            class="fa fa-lg fa-plus top-buffer-2x"
+                                                            class="fas fa-lg fa-plus top-buffer-2x"
                                                         ></i
                                                     ></a>
                                                 </div>
@@ -380,7 +377,6 @@
                                 </div>
                             </div>
                         </FormSection>
-                    </div>
                 </div>
             </div>
         </div>

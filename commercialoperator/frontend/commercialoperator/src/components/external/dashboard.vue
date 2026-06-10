@@ -6,7 +6,7 @@
                     <div class="card-header">
                         Welcome to the {{ system_name }} dashboard.
                     </div>
-                    <div class="well well-sm card-body">
+                    <div class="card card-body bg-light p-2">
                         <p class="card-text">
                             From this page you can view existing applications,
                             create new applications,<br />

@@ -111,10 +111,8 @@
                                                 max="2999-12-31"
                                                 placeholder="DD/MM/YYYY"
                                             />
-                                            <span class="input-group-addon">
-                                                <span
-                                                    class="glyphicon glyphicon-calendar"
-                                                ></span>
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-days"></i>
                                             </span>
                                         </div>
                                     </div>
@@ -305,15 +303,15 @@
                         v-if="updatingRequirement"
                         type="button"
                         disabled
-                        class="btn btn-default"
+                        class="btn btn-primary"
                         @click="ok"
                     >
-                        <i class="fa fa-spinnner fa-spin"></i> Updating
+                        <i class="fas fa-spinnner fa-spin"></i> Updating
                     </button>
                     <button
                         v-else
                         type="button"
-                        class="btn btn-default"
+                        class="btn btn-primary"
                         @click="ok"
                     >
                         Update
@@ -324,21 +322,21 @@
                         v-if="addingRequirement"
                         type="button"
                         disabled
-                        class="btn btn-default"
+                        class="btn btn-secondary"
                         @click="ok"
                     >
-                        <i class="fa fa-spinner fa-spin"></i> Adding
+                        <i class="fas fa-spinner fa-spin"></i> Adding
                     </button>
                     <button
                         v-else
                         type="button"
-                        class="btn btn-default"
+                        class="btn btn-secondary"
                         @click="ok"
                     >
                         Add
                     </button>
                 </template>
-                <button type="button" class="btn btn-default" @click="cancel">
+                <button type="button" class="btn btn-secondary" @click="cancel">
                     Cancel
                 </button>
             </template>
