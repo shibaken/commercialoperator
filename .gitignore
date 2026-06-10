@@ -121,3 +121,6 @@ commercialoperator/static/commercialoperator_vue/*
 
 # ledger
 datasets/
+
+sri-manifest.json
+sri-files/*
