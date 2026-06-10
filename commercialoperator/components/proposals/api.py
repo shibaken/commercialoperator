@@ -19,6 +19,7 @@ from commercialoperator.components.proposals.utils import (
     save_assessor_data,
     proposal_submit,
     get_proposal_processing_status,
+    get_district_proposal_processing_status,
     paginate_chained_list,
     searchKeyWords,
     search_in_emailuser_fields,
@@ -3255,7 +3256,7 @@ class DistrictProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
 
         qs = self.get_queryset()
 
-        processing_status = get_proposal_processing_status()
+        processing_status = get_district_proposal_processing_status()
         data = dict(
             processing_status_choices=processing_status,
         )
