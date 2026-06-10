@@ -104,6 +104,7 @@ INSTALLED_APPS += [
     "multiselectfield",
     "appmonitor_client",
     "django_vite",
+    'wagov_utils.components.sri_utils',
 ]
 
 # Not using django cron

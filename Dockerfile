@@ -61,6 +61,7 @@ COPY --chown=oim:oim commercialoperator ./commercialoperator
 RUN cd /app/commercialoperator/frontend/commercialoperator; npm install
 RUN cd /app/commercialoperator/frontend/commercialoperator; npm run build
 RUN python manage.py collectstatic --noinput
+RUN python manage.py script_hash_indexes
 
 RUN mkdir /app/tmp/
 RUN chmod 777 /app/tmp/
