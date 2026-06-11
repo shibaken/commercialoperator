@@ -349,6 +349,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
 
             payment_method = request.GET.get("payment_method")
             payment_status = request.GET.get("payment_status")
+            park = request.GET.get("park")
 
             if payment_method:
                 if payment_method == str(
@@ -377,6 +378,8 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             if search_text and super_queryset != None:
                 queryset = queryset.distinct() & super_queryset   
 
+            if park and park.lower() != "all":
+                queryset = queryset.filter(park_bookings__park__id=park)
         elif queryset.model is ParkBooking:
             if date_from and date_to:
                 queryset = queryset.filter(arrival__range=[date_from, date_to])
@@ -387,6 +390,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
 
             payment_method = request.GET.get("payment_method")
             payment_status = request.GET.get("payment_status")
+            park = request.GET.get("park")
 
             if payment_method:
                 if payment_method == str(
@@ -410,6 +414,8 @@ class ProposalFilterBackend(DatatablesFilterBackend):
                     queryset = queryset.filter(
                         booking__invoices__property_cache__payment_status__iexact=payment_status_filter
                     )
+            if park and park.lower() != "all":
+                queryset = queryset.filter(park_bookings__park__id=park)
 
             if search_text and super_queryset != None:
                 queryset = queryset.distinct() & super_queryset
@@ -623,7 +629,7 @@ class ProposalPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         return self.paginator.get_paginated_response(serializer.data)
 
 
-class ProposalParkViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+class ProposalParkViewSet(mixins.ListModelMixin, viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     """
     Similar to ProposalViewSet, except get_queryset include migrated_licences
     """
