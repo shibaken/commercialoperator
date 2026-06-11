@@ -693,6 +693,11 @@ class OrganisationRequestDatatableFilterBackend(DatatablesFilterBackend):
         if status and status.lower() != "all":
             queryset = queryset.filter(status=status)
 
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
+        if len(ordering):
+            queryset = queryset.order_by(*ordering)
+
         setattr(view, "_datatables_total_count", total_count)
 
         return queryset

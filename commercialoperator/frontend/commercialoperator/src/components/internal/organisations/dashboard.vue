@@ -141,25 +141,39 @@ export default {
                 columns: [
                     {
                         data: 'id',
+                        name: 'id',
                         searchable: false,
+                        orderable: true,
                     },
                     {
                         data: 'name',
+                        name: 'name',
+                        searchable: true,
+                        orderable: true,
                     },
                     {
                         data: 'requester',
                         name: 'requester__first_name, requester__last_name',
-                        orderable: true,
+                        orderable: false,
                         searchable: true,
                     },
                     {
                         data: 'role',
+                        name: 'role',
+                        searchable: false,
+                        orderable: true,
                     },
                     {
                         data: 'status',
+                        name: 'status',
+                        searchable: false,
+                        orderable: true,
                     },
                     {
                         data: 'lodgement_date',
+                        name: 'lodgement_date',
+                        searchable: false,
+                        orderable: true,
                         // eslint-disable-next-line no-unused-vars
                         mRender: function (data, type, full) {
                             return moment(data).format('DD/MM/YYYY');
@@ -168,11 +182,14 @@ export default {
                     {
                         data: 'assigned_officer',
                         name: 'assigned_officer__first_name, assigned_officer__last_name',
-                        orderable: true,
+                        orderable: false,
                         searchable: true,
                     },
                     {
                         data: 'id',
+                        name: '',
+                        searchable: false,
+                        orderable: false,
                         mRender: function (data, type, full) {
                             let column;
                             if (
