@@ -2052,6 +2052,15 @@ def get_proposal_processing_status():
                 { "value": 'awaiting_payment', "name": 'Awaiting Payment' },
             ]
 
+def get_district_proposal_processing_status():
+    return [
+                { "value": 'approved', "name": 'Approved' },
+                { "value": 'declined', "name": 'Declined' },
+                { "value": 'with_approver', "name": 'With Approver' },
+                { "value": 'with_assessor', "name": 'With Assessor' },
+                {"value": 'with_assessor_requirements',"name": 'With Assessor (Requirements)',},   
+            ]
+
 def get_cached_proposal_processing_status(view, queryset=None):
     if not queryset:
         queryset = view.get_queryset()
