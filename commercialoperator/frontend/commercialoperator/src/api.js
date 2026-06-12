@@ -37,6 +37,7 @@ export default {
     application_types: '/api/application_types.json',
     access_types: '/api/access_types.json',
     parks: '/api/parks.json',
+    parks_all: '/api/parks/all.json',
     trails: '/api/trails.json',
     districts: '/api/districts.json',
     vehicles: '/api/vehicles.json',

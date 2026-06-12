@@ -255,6 +255,12 @@ class ParkViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = Park.objects.all().order_by("id")
             return queryset
         return Park.objects.none()
+    
+    @action(detail=False, methods=["GET"])
+    def all(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     @action(
         methods=[

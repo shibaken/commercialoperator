@@ -47,7 +47,30 @@
                     subtitle=""
                 >
                     <div class="row mb-1">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
+                            <div
+                                id="select_park_entry_fees_parks_parent"
+                                class="form-group"
+                            >
+                                <label for="select_park_entry_fees_parks">Park</label>
+                                <select
+                                    id="select_park_entry_fees_parks"
+                                    ref="select_park_entry_fees_parks"
+                                    v-model="filterProposalPark"
+                                    class="form-control"
+                                >
+                                    <option value="All">All</option>
+                                    <option
+                                        v-for="s in parks"
+                                        :key="s.value"
+                                        :value="s.value"
+                                    >
+                                        {{ s.name }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
                             <div
                                 id="select_park_entry_fees_status_parent"
                                 class="form-group"
@@ -72,7 +95,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div
                                 id="select_park_entry_fees_payment_method_parent"
                                 class="form-group"
@@ -229,6 +252,7 @@ export default {
                 { name: 'Monthly Invoicing', value: '2' },
                 { name: 'Other', value: '3' },
             ],
+            parks: [],
             proposal_headers: [
                 'Number',
                 'Licence',
@@ -522,10 +546,18 @@ export default {
         },
         filterProposalPark: function () {
             let vm = this;
-            vm.$refs.proposal_datatable.vmDataTable
-                .columns(6)
-                .search('')
-                .draw();
+
+            if (vm.filterProposalPark && vm.filterProposalPark !== 'All') {
+                vm.$refs.proposal_datatable.vmDataTable
+                    .columns(6)
+                    .search(vm.filterProposalPark)
+                    .draw();
+            } else {
+                vm.$refs.proposal_datatable.vmDataTable
+                    .columns(6)
+                    .search('')
+                    .draw();
+            }
         },
 
         filterProposalLodgedFrom: function () {
@@ -544,6 +576,7 @@ export default {
     mounted: function () {
         this.fetchOverdueInvoices();
         this.fetchProfile();
+        this.fetchParkLists();
         let vm = this;
         $('a[data-bs-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
@@ -683,6 +716,58 @@ export default {
                 'Select Payment Method',
                 false
             );
+        },
+        fetchParkLists() {
+            let vm = this;
+            vm.parks = [];
+
+            // Show "Loading..." inside the Select2 dropdown while fetching
+            vm.$nextTick(() => {
+                const $select = $('#select_park_entry_fees_parks');
+                if ($select.data('select2')) {
+                    $select.select2('destroy');
+                }
+                $select.select2({
+                    placeholder: 'Loading...',
+                    allowClear: false,
+                });
+                $select.prop('disabled', true);
+            });
+
+            helpers.fetchUrl(api_endpoints.parks_all)
+                .then((response) => {
+                    let parksArray = [];
+
+                    if (Array.isArray(response)) {
+                        parksArray = response;
+                    } else if (response && Array.isArray(response.data)) {
+                        parksArray = response.data;
+                    } else {
+                        console.warn("Unexpected response format:", response);
+                        parksArray = [];
+                    }
+
+                    vm.parks = parksArray.map((park) => ({
+                        name: park.name,
+                        value: park.id,
+                    }));
+                })
+                .catch((error) => {
+                    console.error("Error fetching parks:", error);
+                })
+                .finally(() => {
+                    vm.$nextTick(() => {
+                        // Re-init Select2 with same args as the other dropdowns
+                        helpers.initialiseSelect2.bind(vm)(
+                            'select_park_entry_fees_parks',
+                            'select_park_entry_fees_parks_parent',
+                            'filterProposalPark',
+                            'Select Park',
+                            false
+                        );
+                        $('#select_park_entry_fees_parks').prop('disabled', false);
+                    });
+                });
         },
         initialiseSearch: function () {
             this.dateSearch();
