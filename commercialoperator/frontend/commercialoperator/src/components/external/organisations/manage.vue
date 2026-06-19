@@ -1,6 +1,7 @@
 <template>
     <div :class="classCompute"  id="userInfo">
         <div class="col-sm-12">
+        <PrivacyNotice />
         <div class="row">
             <div class="col-sm-12">
                 <div class="panel panel-default">
@@ -214,6 +215,7 @@ import datatable from '@vue-utils/datatable.vue'
 import utils from '../utils'
 import api from '../api'
 import AddContact from '@common-utils/add_contact.vue'
+import PrivacyNotice from '@common-utils/privacy_notice.vue'
 export default {
     name: 'Organisation',
     props:{
@@ -497,6 +499,7 @@ export default {
     components: {
         datatable,
         AddContact,
+        PrivacyNotice
     },
     computed: {
         classCompute:function(){
