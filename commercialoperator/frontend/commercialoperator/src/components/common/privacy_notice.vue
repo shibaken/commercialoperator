@@ -44,13 +44,38 @@ export default {
     data() {
         return {
             isExpanded: true,
-            privacyPolicyUrl: api_endpoints.privacy_policy_url || '#'
+            privacyPolicyUrl: '#',
+            global_settings: []
+        }
+    },
+    computed: {
+        privacy_policy_url() {
+            if (this.global_settings) {
+                for (let i = 0; i < this.global_settings.length; i++) {
+                    if (this.global_settings[i].key == 'privacy_policy_url') {
+                        return this.global_settings[i].value;
+                    }
+                }
+            }
+            return '#';
         }
     },
     methods: {
         toggleExpanded() {
             this.isExpanded = !this.isExpanded;
+        },
+        fetchGlobalSettings() {
+            const vm = this;
+            vm.$http.get('/api/global_settings.json').then(response => {
+                vm.global_settings = response.body;
+                vm.privacyPolicyUrl = vm.privacy_policy_url;
+            }, error => {
+                console.log(error);
+            });
         }
+    },
+    mounted() {
+        this.fetchGlobalSettings();
     }
 }
 </script>
