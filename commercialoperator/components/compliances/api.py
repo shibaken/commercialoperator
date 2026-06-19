@@ -81,6 +81,7 @@ def compliance_search_filter(qs, search_value):
         search_q = (
             Q(lodgement_number__icontains=search_value)
             | Q(approval__lodgement_number__icontains=search_value)
+            | Q(approval__current_proposal__event_activity__event_name__icontains=search_value)
         )
 
         # Holder search is broader and expensive for very short strings.
