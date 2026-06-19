@@ -112,6 +112,7 @@ module.exports = {
     //system_name_short: 'DAS',
     payment_help_url: 'https://parks.dpaw.wa.gov.au/for-business/training-accreditation-insurance-fees',
     proposal_type_help_url: ' https://parks.dbca.wa.gov.au/for-business/commercial-operations-licensing',
+    privacy_policy_url: 'https://www.dbca.wa.gov.au/privacy',
     t_class: t_class,
     filming: filming,
     event: event,
