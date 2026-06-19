@@ -50,16 +50,33 @@ import logging
 logger = logging.getLogger(__name__)
 
 def approval_search_filter(qs, search_value):
-    if search_value:
-        matching_ids = search_in_emailuser_fields(search_value)
-        org_matching_ids = search_organisation_properties(search_value, False)
+    matching_ids = []
+    org_matching_ids = []
 
-        # Apply both filters only if we found any matching submitters
-        qs = qs.filter(
-            Q(proposal__submitter_id__in=matching_ids) | Q(proposal__proxy_applicant_id__in=matching_ids) | Q(proposal__assigned_officer_id__in=matching_ids) | Q(proposal__org_applicant_id__in=org_matching_ids)
+    if search_value:
+        search_value = search_value.strip()
+        search_q = (
+            Q(lodgement_number__icontains=search_value)
+            | Q(current_proposal__lodgement_number__icontains=search_value)
+            | Q(current_proposal__event_activity__event_name__icontains=search_value)
         )
 
-    return qs, matching_ids+org_matching_ids
+        if len(search_value) >= 3:
+            matching_ids = search_in_emailuser_fields(search_value)
+            org_matching_ids = search_organisation_properties(search_value, False)
+            search_q = search_q | (
+                Q(proxy_applicant_id__in=matching_ids)
+                | Q(org_applicant_id__in=org_matching_ids)
+                | (
+                    Q(org_applicant__isnull=True)
+                    & Q(proxy_applicant__isnull=True)
+                    & Q(submitter_id__in=matching_ids)
+                )
+            )
+
+        qs = qs.filter(search_q)
+
+    return qs, matching_ids + org_matching_ids
 
 
 class ApprovalFilterBackend(DatatablesFilterBackend):
@@ -103,12 +120,9 @@ class ApprovalFilterBackend(DatatablesFilterBackend):
                 queryset = queryset.filter(expiry_date__lte=expiry_date_to)
 
 
-        if search_text and super_queryset != None:
+        if search_text:
             search_queryset, results_found = approval_search_filter(queryset, search_text)
-            if search_queryset.exists() and results_found:
-                queryset = search_queryset.distinct() | super_queryset   
-            else:
-                queryset = queryset.distinct() & super_queryset   
+            queryset = search_queryset.distinct()
     
 
         fields = self.get_fields(request)
