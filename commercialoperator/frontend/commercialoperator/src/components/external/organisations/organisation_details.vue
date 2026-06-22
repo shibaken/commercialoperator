@@ -1,5 +1,8 @@
 <template>
-    <div id="userInfo" class="row">
+    <div class="container">
+        <PrivacyNotice />
+
+        <div id="userInfo" class="row">
         <div class="col-sm-12">
             <div class="row">
                 <div class="col-sm-12">
@@ -224,11 +227,13 @@
             </div>
         </div>
     </div>
+</div>
 </template>
 
 <script>
 import utils from '../utils';
 import FormSection from '@/components/forms/section_toggle.vue';
+import PrivacyNotice from '@/components/common/privacy_notice.vue';
 import _ from 'lodash';
 import $ from 'jquery'
 export default {
@@ -236,6 +241,7 @@ export default {
     name: 'Organisation',
     components: {
         FormSection,
+        PrivacyNotice,
     },
     beforeRouteEnter: function (to, from, next) {
         let initialisers = [
