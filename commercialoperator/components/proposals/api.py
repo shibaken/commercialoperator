@@ -182,19 +182,36 @@ def referral_search_filter(qs, search_value):
     return qs, matching_ids+org_matching_ids
 
 def compliance_search_filter(qs, search_value):
+    matching_ids = []
+    org_matching_ids = []
 
     if search_value:
-        matching_ids = search_in_emailuser_fields(search_value)
-        org_matching_ids = search_organisation_properties(search_value, False)
+        search_value = search_value.strip()
 
-        # Apply both filters only if we found any matching submitters
-        if matching_ids:
-                    
-            qs = qs.filter(
-                Q(assigned_to_id__in=matching_ids) | Q(proposal__submitter_id__in=matching_ids) | Q(proposal__proxy_applicant_id__in=matching_ids) | Q(proposal__org_applicant_id__in=org_matching_ids)
+        # Always search Number and License (fast indexed string matching paths).
+        search_q = (
+            Q(lodgement_number__icontains=search_value)
+            | Q(approval__lodgement_number__icontains=search_value)
+        )
+
+        # Holder search relies on broader email/organisation lookups.
+        # For very short text (e.g. "sc"), those lookups are high-cardinality and slow.
+        if len(search_value) >= 3:
+            matching_ids = search_in_emailuser_fields(search_value)
+            org_matching_ids = search_organisation_properties(search_value, False)
+            search_q = search_q | (
+                Q(proposal__proxy_applicant_id__in=matching_ids)
+                | Q(proposal__org_applicant_id__in=org_matching_ids)
+                | (
+                    Q(proposal__org_applicant__isnull=True)
+                    & Q(proposal__proxy_applicant__isnull=True)
+                    & Q(proposal__submitter_id__in=matching_ids)
+                )
             )
 
-    return qs, matching_ids+org_matching_ids
+        qs = qs.filter(search_q)
+
+    return qs, matching_ids + org_matching_ids
 
 
 def user_can_edit(request, instance):
@@ -306,12 +323,12 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             if application_type and application_type.lower() != "all":
                 queryset = queryset.filter(proposal__application_type__name=application_type)
 
-            if search_text and super_queryset != None:
+            if search_text:
                 search_queryset, results_found = compliance_search_filter(queryset, search_text)
-                if results_found:
-                    queryset = search_queryset.distinct() | super_queryset   
+                if super_queryset != None:
+                    queryset = search_queryset.distinct() & super_queryset
                 else:
-                    queryset = queryset.distinct() & super_queryset 
+                    queryset = search_queryset.distinct()
 
         elif queryset.model is Referral:
 

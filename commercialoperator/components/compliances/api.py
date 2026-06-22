@@ -1,4 +1,5 @@
 import traceback
+import logging
 from django.db.models import Q
 from django.db import transaction
 from django.core.exceptions import ValidationError
@@ -30,9 +31,126 @@ from commercialoperator.components.segregation.utils import (
 )
 from commercialoperator.helpers import is_internal, is_assessor
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
-from commercialoperator.components.proposals.api import ProposalFilterBackend
+from rest_framework_datatables.filters import DatatablesFilterBackend
+from commercialoperator.components.proposals.utils import (
+    search_in_emailuser_fields,
+    search_organisation_properties,
+)
 from commercialoperator.components.permission.permission import InternalPermission, ProposalAssessorPermission
 from django.core.exceptions import PermissionDenied
+from commercialoperator.components.organisations.models import Organisation
+from ledger_api_client.utils import get_search_organisation
+
+
+logger = logging.getLogger(__name__)
+
+
+def _get_matching_organisation_ids(search_value):
+    """Resolve local Organisation ids from cached props, then fallback to ledger search by name."""
+    org_matching_ids = set(search_organisation_properties(search_value, False))
+
+    if org_matching_ids:
+        return list(org_matching_ids)
+
+    ledger_organisation_response = get_search_organisation(search_value, None)
+    if ledger_organisation_response.get("status") != 200:
+        return []
+
+    ledger_org_ids = [
+        org.get("organisation_id")
+        for org in ledger_organisation_response.get("data", [])
+        if org.get("organisation_id")
+    ]
+
+    if not ledger_org_ids:
+        return []
+
+    local_org_ids = Organisation.objects.filter(
+        organisation_id__in=ledger_org_ids
+    ).values_list("id", flat=True)
+    org_matching_ids.update(local_org_ids)
+    return list(org_matching_ids)
+
+
+def compliance_search_filter(qs, search_value):
+    matching_ids = []
+    org_matching_ids = []
+
+    if search_value:
+        search_value = search_value.strip()
+        search_q = (
+            Q(lodgement_number__icontains=search_value)
+            | Q(approval__lodgement_number__icontains=search_value)
+            | Q(approval__current_proposal__event_activity__event_name__icontains=search_value)
+        )
+
+        # Holder search is broader and expensive for very short strings.
+        if len(search_value) >= 3:
+            matching_ids = search_in_emailuser_fields(search_value)
+            org_matching_ids = _get_matching_organisation_ids(search_value)
+            search_q = search_q | (
+                Q(proposal__proxy_applicant_id__in=matching_ids)
+                | Q(proposal__org_applicant_id__in=org_matching_ids)
+                | (
+                    Q(proposal__org_applicant__isnull=True)
+                    & Q(proposal__proxy_applicant__isnull=True)
+                    & Q(proposal__submitter_id__in=matching_ids)
+                )
+            )
+
+        qs = qs.filter(search_q)
+
+    return qs, matching_ids + org_matching_ids
+
+
+class ComplianceFilterBackend(DatatablesFilterBackend):
+    """Datatables filters dedicated to compliances to keep global search deterministic."""
+
+    def filter_queryset(self, request, queryset, view):
+        total_count = queryset.count()
+        super_queryset = None
+        try:
+            super_queryset = super(ComplianceFilterBackend, self).filter_queryset(request, queryset, view).distinct()
+        except Exception as e:
+            logger.exception(f"Failed to filter the queryset. Error: [{e}]")
+
+        search_text = request.GET.get("search[value]")
+        regions = request.GET.get("regions")
+        date_from = request.GET.get("date_from")
+        date_to = request.GET.get("date_to")
+        processing_status = request.GET.get("datatable_filter_processing_status")
+        application_type = request.GET.get("datatable_filter_proposal__application_type__name")
+
+        if regions:
+            queryset = queryset.filter(
+                proposal__region__name__iregex=regions.replace(",", "|")
+            )
+
+        if date_from:
+            queryset = queryset.filter(due_date__gte=date_from)
+
+        if date_to:
+            queryset = queryset.filter(due_date__lte=date_to)
+
+        if processing_status and processing_status.lower() != "all":
+            queryset = queryset.filter(processing_status=processing_status)
+
+        if application_type and application_type.lower() != "all":
+            queryset = queryset.filter(proposal__application_type__name=application_type)
+
+        if search_text:
+            search_queryset, _ = compliance_search_filter(queryset, search_text)
+            queryset = search_queryset.distinct()
+        elif super_queryset is not None:
+            queryset = queryset.distinct() & super_queryset
+
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
+        if len(ordering):
+            queryset = queryset.order_by(*ordering)
+
+        setattr(view, "_datatables_total_count", total_count)
+        return queryset
 
 def user_can_edit(request, instance):
     """
@@ -63,7 +181,7 @@ def user_can_edit(request, instance):
 
 
 class CompliancePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
-    filter_backends = (ProposalFilterBackend,)
+    filter_backends = (ComplianceFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
     page_size = 10
     queryset = Compliance.objects.none()
