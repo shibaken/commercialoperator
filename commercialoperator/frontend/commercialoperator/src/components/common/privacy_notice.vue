@@ -151,7 +151,7 @@ export default {
 /* Slide transition for smooth expand/collapse */
 .slide-enter-active,
 .slide-leave-active {
-    transition: all 0.3s ease;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out, opacity 0.3s ease-out;
     max-height: 500px;
     overflow: hidden;
 }
@@ -159,6 +159,8 @@ export default {
 .slide-enter-from,
 .slide-leave-to {
     max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
     opacity: 0;
 }
 </style>
