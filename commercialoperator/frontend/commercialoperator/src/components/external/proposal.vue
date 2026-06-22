@@ -1,5 +1,6 @@
 <template lang="html">
     <div class="container" >
+        <PrivacyNotice />
         <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
             <div v-if="!proposal_readonly">
               <div v-if="hasAmendmentRequest" class="row" style="color:red;">
@@ -86,6 +87,7 @@
 import ProposalTClass from '../form_tclass.vue'
 import ProposalFilming from '../form_filming.vue'
 import ProposalEvent from '../form_event.vue'
+import PrivacyNotice from '@common-utils/privacy_notice.vue'
 import Vue from 'vue' 
 import {
   api_endpoints,
@@ -117,7 +119,8 @@ export default {
   components: {
       ProposalTClass,
       ProposalFilming,
-      ProposalEvent
+      ProposalEvent,
+      PrivacyNotice
   },
   computed: {
     isLoading: function() {

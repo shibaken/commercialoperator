@@ -30,6 +30,7 @@ def commercialoperator_url(request):
         'IS_ADMIN' : is_admin,
         'IS_CUSTOMER' : is_customer,
         'PUBLIC_URL' : settings.PUBLIC_URL,
+        'PRIVACY_POLICY_URL': settings.PRIVACY_POLICY_URL,
         }
 
 

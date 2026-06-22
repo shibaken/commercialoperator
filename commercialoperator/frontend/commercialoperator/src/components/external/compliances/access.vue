@@ -1,5 +1,6 @@
 <template>
 <div class="container" id="externalCompliance">
+    <PrivacyNotice />
     <div v-if="isDiscarded" class="row" style="color:red;">
         <h3>You cannot access this Compliance with requirements as this has been discarded.</h3>
         
@@ -183,6 +184,7 @@ import $ from 'jquery'
 import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
+import PrivacyNotice from '@common-utils/privacy_notice.vue'
 import ResponsiveDatatablesHelper from "@/utils/responsive_datatable_helper.js"
 import {
   api_endpoints,
@@ -235,7 +237,8 @@ export default {
  
   components: {
     datatable,
-    CommsLogs
+    CommsLogs,
+    PrivacyNotice
   },
   computed: {
     showError: function() {

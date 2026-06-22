@@ -1,6 +1,7 @@
 <template>
     <div :class="classCompute" id="userInfo">
       <div class="col-sm-12">
+        <PrivacyNotice />
         <div v-if="showCompletion" class="row">
             <div class="col-sm-12">
                 <div class="well well-sm">
@@ -418,6 +419,7 @@
 import Vue from 'vue'
 import $ from 'jquery'
 import { api_endpoints, helpers } from '@/utils/hooks'
+import PrivacyNotice from '@common-utils/privacy_notice.vue'
 export default {
     name: 'Profile',
     props:{
@@ -425,6 +427,9 @@ export default {
                 type: Boolean,
                 default: false
             },
+    },
+    components: {
+        PrivacyNotice
     },
     data () {
         let vm = this;
