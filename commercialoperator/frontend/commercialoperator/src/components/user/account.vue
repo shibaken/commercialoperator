@@ -1,5 +1,6 @@
 <template>
-    
+    <PrivacyNotice />
+
     <div v-if="email_user" class="card">
         <div class="card-header fw-bold h4" style="padding: 30px">
             <div class="row">
@@ -427,6 +428,7 @@ import OrganisationSearch from '@/components/internal/search/OrganisationSearch.
 import BootstrapLoadingButton from '../../utils/vue/BootstrapLoadingButton.vue';
 import BootstrapSpinner from '../vue2-components/BootstrapSpinner.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
+import PrivacyNotice from '@/components/common/privacy_notice.vue';
 import alert from '@vue-utils/alert.vue';
 import { api_endpoints, constants, helpers, utils } from '@/utils/hooks';
 import $ from 'jquery'
@@ -437,6 +439,7 @@ export default {
         OrganisationSearch,
         BootstrapSpinner,
         FormSection,
+        PrivacyNotice,
         alert,
     },
     data() {
