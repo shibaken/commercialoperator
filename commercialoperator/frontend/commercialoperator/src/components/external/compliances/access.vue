@@ -1,5 +1,7 @@
 <template>
     <div id="externalCompliance" class="container">
+        <PrivacyNotice />
+
         <div v-if="isDiscarded" class="row" style="color: red">
             <h3>
                 You cannot access this Compliance with requirements as this has
@@ -387,6 +389,7 @@ import $ from 'jquery';
 import { api_endpoints, helpers } from '@/utils/hooks';
 import alert from '@vue-utils/alert.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
+import PrivacyNotice from '@/components/common/privacy_notice.vue';
 import { v4 as uuid } from 'uuid';
 
 export default {
@@ -400,6 +403,7 @@ export default {
     components: {
         alert,
         FormSection,
+        PrivacyNotice,
     },
     beforeRouteEnter: function (to, from, next) {
         helpers
