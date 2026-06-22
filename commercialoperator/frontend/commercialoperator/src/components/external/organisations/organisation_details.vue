@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <PrivacyNotice />
+        <!-- <PrivacyNotice /> -->
 
         <div id="userInfo" class="row">
         <div class="col-sm-12">
@@ -233,15 +233,15 @@
 <script>
 import utils from '../utils';
 import FormSection from '@/components/forms/section_toggle.vue';
-import PrivacyNotice from '@/components/common/privacy_notice.vue';
+// import PrivacyNotice from '@/components/common/privacy_notice.vue';
 import _ from 'lodash';
 import $ from 'jquery'
 export default {
     // eslint-disable-next-line vue/multi-word-component-names
     name: 'Organisation',
     components: {
-        FormSection,
-        PrivacyNotice,
+        FormSection
+        // PrivacyNotice,
     },
     beforeRouteEnter: function (to, from, next) {
         let initialisers = [
