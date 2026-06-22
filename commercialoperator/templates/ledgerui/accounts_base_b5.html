@@ -2,6 +2,96 @@
 
 {% load static %}
 {% load django_vite %}
+
+{% block accounts_message_top %}
+<!-- Privacy Notice - displayed above all tabs -->
+<div class="privacy-notice-container mb-4" style="margin-top: 15px;">
+    <div class="card">
+        <div class="card-header" style="cursor: pointer; background-color: #e7f3ff; border-bottom: 1px solid #b3d7ff;" onclick="togglePrivacyNotice()">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0" style="color: #004085; font-weight: 600;">
+                        <i class="bi bi-info-circle-fill me-2"></i>Privacy Notice
+                    </h5>
+                </div>
+                <div class="col-auto">
+                    <i id="privacy-notice-icon" class="bi bi-chevron-up"></i>
+                </div>
+            </div>
+        </div>
+        <div id="privacy-notice-body" class="card-body" style="background-color: #f8f9fa; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s ease-out;">
+            <p style="margin-bottom: 0.75rem; line-height: 1.6;">
+                The Department of Biodiversity, Conservation and Attractions (DBCA) collects this personal
+                information to order to assess, approve and grant a commercial operations licence to allow you to
+                legally carry out commercial operations in Western Australia's national parks and other conservation reserves.
+            </p>
+            <p style="margin-bottom: 0.75rem; line-height: 1.6;">
+                You are required to provide this information under the
+                <em>Conservation and Land Management Act 1984</em> and
+                <em>Conservation and Land Management Regulations 2002</em>.
+            </p>
+            <p style="margin-bottom: 0.75rem; line-height: 1.6;">
+                If you choose not to provide personal information, you will not be able to legally carry
+                out commercial operations in Western Australia's national parks and other conservation reserves.
+            </p>
+            <p style="margin-bottom: 0;">
+                For further details on how DBCA manage your personal information, you can read our
+                <a id="privacy-policy-link" href="https://www.dbca.wa.gov.au/privacy" target="_blank" style="color: #0056b3; text-decoration: none;">Privacy Policy</a>.
+                If you have any questions about how your personal information will be handled, or if you
+                would like to access your personal information, please contact
+                <a href="mailto:privacy@dbca.wa.gov.au" style="color: #0056b3; text-decoration: none;">privacy@dbca.wa.gov.au</a>.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Fetch privacy policy URL from global settings
+async function loadPrivacyPolicyUrl() {
+    try {
+        const response = await fetch('/api/global_settings.json');
+        if (response.ok) {
+            const data = await response.json();
+            const privacyPolicyUrl = data.privacy_policy_url;
+            if (privacyPolicyUrl) {
+                const link = document.getElementById('privacy-policy-link');
+                if (link) {
+                    link.href = privacyPolicyUrl;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load privacy policy URL:', error);
+        // Keep the default URL if API call fails
+    }
+}
+
+function togglePrivacyNotice() {
+    const body = document.getElementById('privacy-notice-body');
+    const icon = document.getElementById('privacy-notice-icon');
+    
+    if (body.style.maxHeight && body.style.maxHeight !== '0px') {
+        // Slide up
+        body.style.maxHeight = '0px';
+        body.style.paddingTop = '0';
+        body.style.paddingBottom = '0';
+        icon.classList.remove('bi-chevron-up');
+        icon.classList.add('bi-chevron-down');
+    } else {
+        // Slide down
+        body.style.maxHeight = body.scrollHeight + 'px';
+        body.style.paddingTop = '';
+        body.style.paddingBottom = '';
+        icon.classList.remove('bi-chevron-down');
+        icon.classList.add('bi-chevron-up');
+    }
+}
+
+// Load privacy policy URL on page load
+document.addEventListener('DOMContentLoaded', loadPrivacyPolicyUrl);
+</script>
+{% endblock %}
+
 {% block myaccount_nav %}
 
 <button class="nav-link managed-account-nav" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Profile</button>
