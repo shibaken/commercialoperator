@@ -655,6 +655,7 @@ class GlobalSettings(models.Model):
         ("trail_section_map", "Trail section map"),
         ("dwer_application_form", "DWER Application Form"),
         ('tourism_standards_link', 'Tourism Standards Link'),
+        ('privacy_policy_url', 'Privacy Policy URL'),
     )
     key = models.CharField(
         max_length=255,
