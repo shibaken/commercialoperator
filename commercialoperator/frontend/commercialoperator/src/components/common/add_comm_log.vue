@@ -363,16 +363,17 @@ export default {
             let vm = this;
             vm.hasErrors = false;
             let comms = new FormData(); 
-            comms.append('to',this.to);
-            comms.append('fromm',this.from);
-            comms.append('type',this.log_type);
-            comms.append('subject',this.subject);
-            comms.append('text',this.text);
-            comms.append('files',this.files);
+            comms.append('to', vm.comms.to || '');
+            comms.append('fromm', vm.comms.fromm || '');
+            comms.append('cc', vm.comms.cc || '');
+            comms.append('type', vm.comms.type || '');
+            comms.append('subject', vm.comms.subject || '');
+            comms.append('text', vm.comms.text || '');
             for (let i = 0; i < vm.files.length; i++) {
-                comms.append('files', vm.files[i].file);
+                if (vm.files[i] && vm.files[i].file) {
+                    comms.append('files', vm.files[i].file);
+                }
             }
-            console.log(comms)
             vm.addingComms = true;
             helpers
                 .fetchUrl(vm.url, {

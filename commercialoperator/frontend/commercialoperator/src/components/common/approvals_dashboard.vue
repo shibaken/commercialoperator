@@ -559,7 +559,8 @@ export default {
                                 }
                                 if (
                                     full.renewal_document &&
-                                    full.renewal_sent
+                                    full.renewal_sent &&
+                                    full.status != 'Expired'
                                 ) {
                                     links += `<a href='${full.renewal_document}' target='_blank'>Renewal Notice</a><br/>`;
                                 }

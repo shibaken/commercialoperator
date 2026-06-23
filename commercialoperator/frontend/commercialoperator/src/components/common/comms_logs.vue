@@ -141,18 +141,24 @@ export default {
                 columns: [
                     {
                         title: 'Date',
-                        data: 'created',
+                        data: function (row) {
+                            return row.created || row.when || '';
+                        },
                         render: function (date) {
-                            return moment(date).format(vm.dateFormat);
+                            return date ? moment(date).format(vm.dateFormat) : '';
                         },
                     },
                     {
                         title: 'Type',
-                        data: 'type',
+                        data: function (row) {
+                            return row.type || row.log_type || '';
+                        },
                     },
                     {
                         title: 'To',
-                        data: 'to',
+                        data: function (row) {
+                            return row.to || '';
+                        },
                         render: function (value) {
                             var ellipsis = '...',
                                 truncated = _.truncate(value, {
@@ -181,7 +187,9 @@ export default {
                     },
                     {
                         title: 'CC',
-                        data: 'cc',
+                        data: function (row) {
+                            return row.cc || '';
+                        },
                         render: function (value) {
                             var ellipsis = '...',
                                 truncated = _.truncate(value, {
@@ -210,12 +218,16 @@ export default {
                     },
                     {
                         title: 'From',
-                        data: 'fromm',
+                        data: function (row) {
+                            return row.fromm || row.from || '';
+                        },
                         render: vm.commaToNewline,
                     },
                     {
                         title: 'Subject/Desc.',
-                        data: 'subject',
+                        data: function (row) {
+                            return row.subject || row.description || '';
+                        },
                         render: function (value) {
                             var ellipsis = '...',
                                 truncated = _.truncate(value, {
@@ -244,7 +256,9 @@ export default {
                     },
                     {
                         title: 'Text',
-                        data: 'text',
+                        data: function (row) {
+                            return row.text || row.body || '';
+                        },
                         render: function (value) {
                             var ellipsis = '...',
                                 truncated = _.truncate(value, {
@@ -273,9 +287,14 @@ export default {
                     },
                     {
                         title: 'Documents',
-                        data: 'documents',
+                        data: function (row) {
+                            return row.documents || row.document || [];
+                        },
                         render: function (values) {
                             var result = '';
+                            if (!values || !Array.isArray(values) || values.length === 0) {
+                                return '';
+                            }
                             _.forEach(values, function (value) {
                                 // We expect an array [docName, url]
                                 // if it's a string it is the url
@@ -285,7 +304,7 @@ export default {
                                     docName = value[0];
                                     url = value[1];
                                 }
-                                if (typeof s === 'string') {
+                                if (typeof value === 'string') {
                                     url = value;
                                     // display the first  chars of the filename
                                     docName = _.last(value.split('/'));
