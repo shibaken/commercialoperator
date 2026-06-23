@@ -22,148 +22,148 @@
                         index="linked_user_accounts"
                         subtitle="Manage the user accounts linked to the organisation"
                     >
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div v-if="org" class="row">
-                                    <div class="col-sm-12">
-                                        <h4>
-                                            Persons linked to this organisation:
-                                        </h4>
-                                    </div>
-                                    <div v-for="d in org.delegates" :key="d.id">
-                                        <div v-if="d.is_admin" class="row mb-1">
-                                            <label
-                                                :for="`organisation_admin_${d.id}`"
-                                                class="col-sm-3"
-                                            >
-                                                <i
-                                                    class="bi bi-shield-lock-fill"
-                                                    style="color: #007bff"
-                                                ></i
-                                                >&nbsp;
-                                                <strong
-                                                    >Organisation Admin:</strong
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <div v-if="org" class="row">
+                                                <div class="col-sm-12">
+                                                    <h4>
+                                                        Persons linked to this organisation:
+                                                    </h4>
+                                                </div>
+                                                <div v-for="d in org.delegates" :key="d.id">
+                                                    <div v-if="d.is_admin" class="row mb-1">
+                                                        <label
+                                                            :for="`organisation_admin_${d.id}`"
+                                                            class="col-sm-3"
+                                                        >
+                                                            <i
+                                                                class="bi bi-shield-lock-fill"
+                                                                style="color: #007bff"
+                                                            ></i
+                                                            >&nbsp;
+                                                            <strong
+                                                                >Organisation Admin:</strong
+                                                            >
+                                                        </label>
+                                                        <div class="col-sm-9">
+                                                            <input
+                                                                class="form-control w-100"
+                                                                type="text"
+                                                                :value="`${d.name} (${d.email})`"
+                                                                aria-label="organisation admin name"
+                                                                :name="`organisation_admin_${d.id}`"
+                                                                disabled
+                                                                readonly
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div v-else class="row mb-1">
+                                                        <label
+                                                            :for="`organisation_user_${d.id}`"
+                                                            class="col-sm-3"
+                                                        >
+                                                            <i
+                                                                class="bi bi-person-fill"
+                                                                style="color: #007bff"
+                                                            ></i
+                                                            >&nbsp;
+                                                            <strong
+                                                                >Organisation User:</strong
+                                                            >
+                                                        </label>
+                                                        <div class="col-sm-9">
+                                                            <input
+                                                                class="form-control w-100"
+                                                                type="text"
+                                                                :value="`${d.name} (${d.email})`"
+                                                                aria-label="organisation user name"
+                                                                :name="`organisation_user_${d.id}`"
+                                                                disabled
+                                                                readonly
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="col-sm-12 top-buffer-s mb-3 mt-3"
                                                 >
-                                            </label>
-                                            <div class="col-sm-9">
-                                                <input
-                                                    class="form-control w-100"
-                                                    type="text"
-                                                    :value="`${d.name} (${d.email})`"
-                                                    aria-label="organisation admin name"
-                                                    :name="`organisation_admin_${d.id}`"
-                                                    disabled
-                                                    readonly
-                                                />
+                                                    <alert
+                                                        type="info"
+                                                        icon="info-circle"
+                                                        class="alert alert-info"
+                                                    >
+                                                        <i
+                                                            class="bi bi-exclamation-triangle-fill"
+                                                            style="color: #dc3545"
+                                                        ></i
+                                                        >&nbsp; The Department cannot manage
+                                                        this list of people. The
+                                                        organisation is responsible for
+                                                        managing people linked to the
+                                                        organisation.
+                                                        <br />
+                                                    </alert>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div v-else class="row mb-1">
-                                            <label
-                                                :for="`organisation_user_${d.id}`"
-                                                class="col-sm-3"
-                                            >
-                                                <i
-                                                    class="bi bi-person-fill"
-                                                    style="color: #007bff"
-                                                ></i
-                                                >&nbsp;
-                                                <strong
-                                                    >Organisation User:</strong
-                                                >
-                                            </label>
-                                            <div class="col-sm-9">
-                                                <input
-                                                    class="form-control w-100"
-                                                    type="text"
-                                                    :value="`${d.name} (${d.email})`"
-                                                    aria-label="organisation user name"
-                                                    :name="`organisation_user_${d.id}`"
-                                                    disabled
-                                                    readonly
-                                                />
-                                            </div>
-                                        </div>
                                     </div>
-                                    <div
-                                        class="col-sm-12 top-buffer-s mb-3 mt-3"
-                                    >
-                                        <alert
-                                            type="info"
-                                            icon="info-circle"
-                                            class="alert alert-info"
-                                        >
-                                            <i
-                                                class="bi bi-exclamation-triangle-fill"
-                                                style="color: #dc3545"
-                                            ></i
-                                            >&nbsp; The Department cannot manage
-                                            this list of people. The
-                                            organisation is responsible for
-                                            managing people linked to the
-                                            organisation.
-                                            <br />
-                                        </alert>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <form
-                            v-if="org?.pins"
-                            class="form-horizontal"
-                            action="index.html"
-                            method="post"
-                        >
-                            <div class="row mb-2">
-                                <label
-                                    for=""
-                                    class="col-sm-3 control-label fw-bold"
-                                >
-                                    User Pin Code 1:</label
-                                >
-                                <span class="col-sm-3 fw-light">
-                                    {{ org.pins.three }}
-                                </span>
-                                <label
-                                    for=""
-                                    class="col-sm-3 control-label fw-bold"
-                                >
-                                    User Pin Code 2:</label
-                                >
-                                <div class="col-sm-3 fw-light">
-                                    {{ org.pins.four }}
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <label
-                                    for=""
-                                    class="col-sm-3 control-label fw-bold"
-                                >
-                                    Admin Pin Code 1:</label
-                                >
-                                <span class="col-sm-3 fw-light">
-                                    {{ org.pins.one }}
-                                </span>
-                                <label
-                                    for=""
-                                    class="col-sm-3 control-label fw-bold"
-                                >
-                                    Admin Pin Code 2:</label
-                                >
-                                <div class="col-sm-3 fw-light">
-                                    {{ org.pins.two }}
-                                </div>
-                            </div>
-                        </form>
-                        <div>
-                            <datatable
-                                id="organisation_contacts_datatable_ref"
-                                ref="contacts_datatable_user"
-                                v-model="filterOrgContactStatus"
-                                :dt-options="contacts_options_ref"
-                                :dt-headers="contacts_headers_ref"
-                            />
-                        </div>
+                                    <form
+                                        v-if="org?.pins"
+                                        class="form-horizontal"
+                                        action="index.html"
+                                        method="post"
+                                    >
+                                        <div class="row mb-2">
+                                            <label
+                                                for=""
+                                                class="col-sm-3 control-label fw-bold"
+                                            >
+                                                User Pin Code 1:</label
+                                            >
+                                            <span class="col-sm-3 fw-light">
+                                                {{ org.pins.three }}
+                                            </span>
+                                            <label
+                                                for=""
+                                                class="col-sm-3 control-label fw-bold"
+                                            >
+                                                User Pin Code 2:</label
+                                            >
+                                            <div class="col-sm-3 fw-light">
+                                                {{ org.pins.four }}
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label
+                                                for=""
+                                                class="col-sm-3 control-label fw-bold"
+                                            >
+                                                Admin Pin Code 1:</label
+                                            >
+                                            <span class="col-sm-3 fw-light">
+                                                {{ org.pins.one }}
+                                            </span>
+                                            <label
+                                                for=""
+                                                class="col-sm-3 control-label fw-bold"
+                                            >
+                                                Admin Pin Code 2:</label
+                                            >
+                                            <div class="col-sm-3 fw-light">
+                                                {{ org.pins.two }}
+                                            </div>
+                                        </div>
+                                    </form>
+                                    <div>
+                                        <datatable
+                                            id="organisation_contacts_datatable_ref"
+                                            ref="contacts_datatable_user"
+                                            v-model="filterOrgContactStatus"
+                                            :dt-options="contacts_options_ref"
+                                            :dt-headers="contacts_headers_ref"
+                                        />
+                                    </div>
                     </FormSection>
                 </div>
             </div>
@@ -187,7 +187,7 @@ import alert from '@vue-utils/alert.vue';
 import datatable from '@vue-utils/datatable.vue';
 import AddCommLog from '@common-utils/add_comm_log_org.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
-import $ from 'jquery'
+import $ from 'jquery';
 export default {
     name: 'OrganisationComponent',
     components: {
@@ -333,13 +333,14 @@ export default {
         console.log('organisation.vue created');
         this.fetchInitialData().then((response) => {
             console.log('fetch initial data', response);
-            this.eventListeners();
         });
     },
     mounted: function () {
         console.log('organisation.vue mounted');
         this.$nextTick(() => {
-            // this.eventListeners();
+            if (this.$refs.contacts_datatable_user) {
+                this.eventListeners();
+            }
         });
     },
     methods: {
@@ -1071,15 +1072,32 @@ export default {
         },
         fetchInitialData: function () {
             const vm = this;
+            const orgId = vm.$route.params.org_id;
             let initialisers = [
-                utils.fetchCountries(),
-                utils.fetchLinkedOrganisation(vm.$route.params.org_id),
-                utils.fetchProfile(),
+                utils.fetchCountries().catch(() => []),
+                helpers
+                    .fetchUrl(
+                        helpers.add_endpoint_json(
+                            api_endpoints.organisations,
+                            orgId
+                        )
+                    )
+                    .catch(() => null),
+                utils.fetchLinkedOrganisation(orgId).catch(() => null),
+                utils.fetchProfile().catch(() => ({
+                    commercialoperator_organisations: [],
+                })),
             ];
             return Promise.all(initialisers).then((data) => {
-                vm.countries = data[0];
-                vm.org = data[1];
-                vm.profile = data[2];
+                vm.countries = data[0] || [];
+
+                const directOrganisation = data[1] || {};
+                const linkedOrganisation = data[2] || {};
+                vm.org = Object.assign({}, directOrganisation, linkedOrganisation);
+
+                vm.profile = data[3] || {
+                    commercialoperator_organisations: [],
+                };
                 vm.org.organisation_address =
                     vm.org.organisation_address != null
                         ? vm.org.organisation_address
@@ -1088,13 +1106,38 @@ export default {
                 vm.is_commercialoperator_admin =
                     vm.profile.is_commercialoperator_admin;
                 vm.is_org_access_member = vm.profile.is_org_access_member;
-                var profile_org;
-                vm.profile.commercialoperator_organisations.forEach(org => {
-                    if (org.id == vm.org.id) {
-                        profile_org = org;
+                var profile_org = null;
+                (vm.profile.commercialoperator_organisations || []).forEach(
+                    (org) => {
+                        if (org.id == vm.org.id) {
+                            profile_org = org;
+                        }
                     }
-                });
-                vm.is_org_admin = profile_org.is_admin;
+                );
+                vm.is_org_admin = profile_org ? profile_org.is_admin : false;
+
+                if (!vm.org || Object.keys(vm.org).length === 0) {
+                    vm.org = {
+                        organisation_address: {},
+                        pins: {},
+                        delegates: [],
+                    };
+                }
+
+                if (!Array.isArray(vm.org.delegates)) {
+                    vm.org.delegates = [];
+                }
+
+                if (
+                    vm.contacts_options_ref &&
+                    vm.contacts_options_ref.ajax &&
+                    vm.contacts_options_ref.ajax.url
+                ) {
+                    vm.contacts_options_ref.ajax.url = helpers.add_endpoint_json(
+                        api_endpoints.organisations,
+                        orgId + '/contacts_exclude'
+                    );
+                }
 
                 return { success: true };
             });
