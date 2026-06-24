@@ -65,9 +65,6 @@ class BookingTimerMiddleware(object):
 
                 # Note: changed to returning response instead of just returning
                 return self.get_response(request)
-            if application_fee.payment_type != ApplicationFee.PAYMENT_TYPE_TEMPORARY:
-                # booking in the session is not a temporary type, ditch it
-                del request.session["cols_app_invoice"]
 
         # Note: changed to returning response instead of just returning
         return self.get_response(request)
