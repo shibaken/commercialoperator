@@ -1,5 +1,4 @@
 <template>
-    
     <div v-if="email_user" class="card">
         <div class="card-header fw-bold h4" style="padding: 30px">
             <div class="row">

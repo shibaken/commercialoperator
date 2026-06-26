@@ -678,7 +678,10 @@ class FilmingFeeSuccessView(TemplateView):
         # check the template and check if the information is accurate RE emails sent and to where
         applicant = proposal.applicant_obj
         try:
-            submitter = applicant.email
+            if applicant.email:
+                submitter = applicant.email
+            else:
+                submitter = proposal.submitter.email if proposal and proposal.submitter else None
         except:
             submitter = proposal.submitter.email if proposal and proposal.submitter else None
 
@@ -792,7 +795,10 @@ class ApplicationFeeSuccessView(TemplateView):
         # check the template and check if the information is accurate RE emails sent and to where
         applicant = proposal.applicant_obj
         try:
-            submitter = applicant.email
+            if applicant.email:
+                submitter = applicant.email
+            else:
+                submitter = proposal.submitter.email if proposal and proposal.submitter else None
         except:
             submitter = proposal.submitter.email if proposal and proposal.submitter else None
 
@@ -921,7 +927,10 @@ class BookingSuccessView(TemplateView):
         # check the template and check if the information is accurate RE emails sent and to where
         applicant = proposal.applicant_obj
         try:
-            submitter = applicant.email
+            if applicant.email:
+                submitter = applicant.email
+            else:
+                submitter = proposal.submitter.email if proposal and proposal.submitter else None
         except:
             submitter = proposal.submitter.email if proposal and proposal.submitter else None
 

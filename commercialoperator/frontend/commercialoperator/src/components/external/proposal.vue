@@ -1,5 +1,7 @@
 <template lang="html">
     <div class="container">
+        <PrivacyNotice />
+
         <form
             :action="proposal_form_url"
             method="post"
@@ -220,6 +222,7 @@ import ProposalTClass from '../form_tclass.vue';
 import ProposalFilming from '../form_filming.vue';
 import ProposalEvent from '../form_event.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
+import PrivacyNotice from '@/components/common/privacy_notice.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
 import $ from 'jquery'
 export default {
@@ -229,6 +232,7 @@ export default {
         ProposalTClass,
         ProposalFilming,
         ProposalEvent,
+        PrivacyNotice,
     },
 
     beforeRouteEnter: function (to, from, next) {
