@@ -8,6 +8,7 @@ node_modules/
 .ropeproject/
 commercialoperator/cache/*
 .ropeproject/
+tmp/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
