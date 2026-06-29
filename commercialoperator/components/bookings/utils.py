@@ -435,6 +435,7 @@ def get_session_application_invoice(session):
 
 
 def set_session_application_invoice(session, application_fee):
+    logger.info("Application Fee session ID Set")
     """Application Fee session ID"""
     session["cols_app_invoice"] = application_fee.id
     session.modified = True
@@ -534,8 +535,15 @@ def create_compliance_fee_lines(
         # since Ledger UAT only handles whole integer total
         invoice_total = round(invoice_total, 0)
 
-    alloc_per_park = round(invoice_total / len(events_parks), 2)
-    rounding_error = round(invoice_total - (alloc_per_park * len(events_parks)), 2)
+    try:
+        alloc_per_park = round(invoice_total / len(events_parks), 2)
+    except:
+        alloc_per_park = 0
+
+    try:
+        rounding_error = round(invoice_total - (alloc_per_park * len(events_parks)), 2)
+    except:
+        rounding_error = 0
 
     lines = []
     for idx, events_park in enumerate(events_parks, 1):

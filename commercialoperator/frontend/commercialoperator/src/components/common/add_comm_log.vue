@@ -131,8 +131,7 @@
                                         >
                                     </div>
                                     <div class="col-sm-9">
-                                        <template v-for="(f, i) in files">
-                                            <!-- eslint-disable-next-line vue/require-v-for-key -->
+                                        <template v-for="(f, i) in files" :key="i">
                                             <div
                                                 :class="
                                                     'row top-buffer file-row-' +
@@ -264,7 +263,14 @@ export default {
         return {
             isModalOpen: false,
             form: null,
-            comms: {},
+            comms: {
+                to: '',
+                fromm: '',
+                type: '',
+                subject: '',
+                text: '',
+                cc: '',
+            },
             state: 'proposed_approval',
             addingComms: false,
             validation_form: null,
@@ -303,14 +309,44 @@ export default {
                 'Select a Type',
                 false
             );
+            vm.syncTypeSelect('');
         });
     },
     methods: {
+        syncTypeSelect: function (value = '') {
+            this.comms.type = value;
+            if (this.$refs.select_add_comm_log_type) {
+                $(this.$refs.select_add_comm_log_type).val(value).trigger('change');
+            }
+        },
         ok: function () {
             let vm = this;
-            if ($(vm.form).valid()) {
-                vm.sendData();
+            vm.hasErrors = false;
+            vm.errorString = '';
+
+            if (vm.addingComms) {
+                return;
             }
+
+            const formIsValid = vm.validation_form
+                ? vm.validation_form.form()
+                : $(vm.form).valid();
+
+            if (!formIsValid) {
+                vm.hasErrors = true;
+                if (vm.validation_form && vm.validation_form.errorList.length > 0) {
+                    const firstError = vm.validation_form.errorList[0];
+                    const fieldName = firstError.element.name
+                        ? firstError.element.name.replace('fromm', 'from')
+                        : 'required field';
+                    vm.errorString = `Please complete the '${fieldName}' field.`;
+                } else {
+                    vm.errorString = 'Please complete all required fields before adding this entry.';
+                }
+                return;
+            }
+
+            vm.sendData();
         },
         uploadFile(target, file_obj) {
             let _file = null;
@@ -324,7 +360,7 @@ export default {
                 _file = input.files[0];
             }
             file_obj.file = _file;
-            file_obj.name = _file.name;
+            file_obj.name = _file ? _file.name : '';
         },
         removeFile(index) {
             let length = this.files.length;
@@ -344,35 +380,44 @@ export default {
             this.close();
         },
         close: function () {
-            let vm = this;
             this.isModalOpen = false;
-            this.comms = {};
+            this.addingComms = false;
+            this.comms = {
+                to: '',
+                fromm: '',
+                type: '',
+                subject: '',
+                text: '',
+                cc: '',
+            };
             this.hasErrors = false;
+            this.errorString = '';
             $('.has-error').removeClass('has-error');
-            this.validation_form.resetForm();
-            let file_length = vm.files.length;
-            this.files = [];
-            for (var i = 0; i < file_length; i++) {
-                vm.$nextTick(() => {
-                    $('.file-row-' + i).remove();
-                });
+            if (this.validation_form) {
+                this.validation_form.resetForm();
             }
+            if (this.form) {
+                this.form.reset();
+            }
+            this.syncTypeSelect('');
+            this.files = [];
             this.attachAnother();
         },
         sendData: function () {
             let vm = this;
             vm.hasErrors = false;
             let comms = new FormData(); 
-            comms.append('to',this.to);
-            comms.append('fromm',this.from);
-            comms.append('type',this.log_type);
-            comms.append('subject',this.subject);
-            comms.append('text',this.text);
-            comms.append('files',this.files);
+            comms.append('to', vm.comms.to || '');
+            comms.append('fromm', vm.comms.fromm || '');
+            comms.append('cc', vm.comms.cc || '');
+            comms.append('type', vm.comms.type || '');
+            comms.append('subject', vm.comms.subject || '');
+            comms.append('text', vm.comms.text || '');
             for (let i = 0; i < vm.files.length; i++) {
-                comms.append('files', vm.files[i].file);
+                if (vm.files[i] && vm.files[i].file) {
+                    comms.append('files', vm.files[i].file);
+                }
             }
-            console.log(comms)
             vm.addingComms = true;
             helpers
                 .fetchUrl(vm.url, {
@@ -387,7 +432,15 @@ export default {
                     (error) => {
                         vm.hasErrors = true;
                         vm.addingComms = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
+                        try {
+                            vm.errorString = helpers.apiVueResourceError(error);
+                        } catch (e) {
+                            vm.errorString = 'The file type is not supported.';
+                        }
+
+                        if (!vm.errorString) {
+                            vm.errorString = 'The file type is not supported.';
+                        }
                     }
                 );
         },
@@ -403,6 +456,7 @@ export default {
                 },
                 messages: {},
                 showErrors: function (errorMap, errorList) {
+                    const hasTooltip = $.fn && typeof $.fn.tooltip === 'function';
                     $.each(this.validElements(), function (index, element) {
                         var $element = $(element);
                         $element
@@ -415,10 +469,15 @@ export default {
                     // add or update tooltips
                     for (var i = 0; i < errorList.length; i++) {
                         var error = errorList[i];
-                        $(error.element)
-                            .tooltip({
+                        var $errorElement = $(error.element);
+
+                        if (hasTooltip) {
+                            $errorElement.tooltip({
                                 trigger: 'focus',
-                            })
+                            });
+                        }
+
+                        $errorElement
                             .attr('data-original-title', error.message)
                             .parents('.form-group')
                             .addClass('has-error');

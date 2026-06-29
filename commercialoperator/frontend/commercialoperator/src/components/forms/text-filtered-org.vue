@@ -88,6 +88,12 @@
                                 :name="name + '-selected'"
                                 :value="option.org_id"
                             />
+                            <input
+                                type="hidden"
+                                class="form-control"
+                                :name="name + '-selected-ledger'"
+                                :value="option.organisation_id || option.id"
+                            />
                             <span>
                                 {{ option.name }}
                                 <span v-if="option.trading_name">

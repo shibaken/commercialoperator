@@ -58,6 +58,8 @@ from commercialoperator.components.main.models import (
     Section,
     Zone,
 )
+from commercialoperator.components.organisations.models import Organisation
+
 import traceback
 import os
 from datetime import datetime
@@ -271,6 +273,7 @@ def search_in_emailuser_fields(search_value: str) -> list[int]:
     Search `search_value` in EmailUser fields: email, first_name, last_name, and full name.
     Returns a list of matching EmailUser IDs.
     """
+
     if not search_value:
         return []
 
@@ -294,6 +297,26 @@ def search_in_emailuser_fields(search_value: str) -> list[int]:
     return list(
         EmailUser.objects
         .annotate(full_name=full_name_expr)
+        .filter(q)
+        .values_list('id', flat=True)
+        .distinct()
+    )
+
+def search_organisation_properties(search_value, search_abn=False):
+
+    if search_abn:
+        q = (
+            Q(property_cache__name__icontains=search_value) |
+            Q(property_cache__abn__icontains=search_value)
+        )
+    else:
+        q = (
+            Q(property_cache__name__icontains=search_value)
+        )
+
+
+    return  list(
+        Organisation.objects
         .filter(q)
         .values_list('id', flat=True)
         .distinct()
@@ -2027,6 +2050,15 @@ def get_proposal_processing_status():
                 { "value": 'declined', "name": 'Declined' },
                 { "value": 'discarded', "name": 'Discarded' },
                 { "value": 'awaiting_payment', "name": 'Awaiting Payment' },
+            ]
+
+def get_district_proposal_processing_status():
+    return [
+                { "value": 'approved', "name": 'Approved' },
+                { "value": 'declined', "name": 'Declined' },
+                { "value": 'with_approver', "name": 'With Approver' },
+                { "value": 'with_assessor', "name": 'With Assessor' },
+                {"value": 'with_assessor_requirements',"name": 'With Assessor (Requirements)',},   
             ]
 
 def get_cached_proposal_processing_status(view, queryset=None):

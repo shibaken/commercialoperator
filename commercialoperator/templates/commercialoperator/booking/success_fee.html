@@ -75,7 +75,7 @@
         </div>
         <div class="row">
             <div class="col-sm-12 mt-3">
-                {% if request.user == submitter or request.user.is_staff %}
+                {% if request.user.email == submitter or request.user.is_staff %}
                     {% if request.user.is_authenticated %}
                         <span>
                             {% if proposal and proposal.application_type.name == proposal.application_type.FILMING %}

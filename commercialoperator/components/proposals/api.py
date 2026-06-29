@@ -19,9 +19,11 @@ from commercialoperator.components.proposals.utils import (
     save_assessor_data,
     proposal_submit,
     get_proposal_processing_status,
+    get_district_proposal_processing_status,
     paginate_chained_list,
     searchKeyWords,
     search_in_emailuser_fields,
+    search_organisation_properties,
 )
 from commercialoperator.components.proposals.models import (
     search_reference,
@@ -144,13 +146,12 @@ def proposal_search_filter(qs, search_value):
 
     if search_value:
         matching_ids = search_in_emailuser_fields(search_value)
+        org_matching_ids = search_organisation_properties(search_value, False)
 
         # Apply both filters only if we found any matching submitters
-        if matching_ids:
-                    
-            qs = qs.filter(
-                Q(submitter_id__in=matching_ids) | Q(proxy_applicant_id__in=matching_ids) | Q(assigned_officer_id__in=matching_ids)
-            )
+        qs = qs.filter(
+            Q(submitter_id__in=matching_ids) | Q(proxy_applicant_id__in=matching_ids) | Q(assigned_officer_id__in=matching_ids) | Q(org_applicant_id__in=org_matching_ids)
+        )
 
     return qs
 
@@ -158,43 +159,59 @@ def district_proposal_search_filter(qs, search_value):
 
     if search_value:
         matching_ids = search_in_emailuser_fields(search_value)
+        org_matching_ids = search_organisation_properties(search_value, False)
 
         # Apply both filters only if we found any matching submitters
-        if matching_ids:
-                    
-            qs = qs.filter(
-                Q(proposal__submitter_id__in=matching_ids) | Q(proposal__proxy_applicant_id__in=matching_ids) | Q(assigned_officer_id__in=matching_ids)
-            )
+        qs = qs.filter(
+            Q(proposal__submitter_id__in=matching_ids) | Q(proposal__proxy_applicant_id__in=matching_ids) | Q(assigned_officer_id__in=matching_ids) | Q(proposal__org_applicant_id__in=org_matching_ids)
+        )
 
-    return qs, matching_ids
+    return qs, matching_ids+org_matching_ids
 
 def referral_search_filter(qs, search_value):
 
     if search_value:
         matching_ids = search_in_emailuser_fields(search_value)
+        org_matching_ids = search_organisation_properties(search_value, False)
 
         # Apply both filters only if we found any matching submitters
-        if matching_ids:
-                    
-            qs = qs.filter(
-                Q(proposal__submitter_id__in=matching_ids) | Q(proposal__proxy_applicant_id__in=matching_ids) | Q(proposal__assigned_officer_id__in=matching_ids)
-            )
+        qs = qs.filter(
+            Q(proposal__submitter_id__in=matching_ids) | Q(proposal__proxy_applicant_id__in=matching_ids) | Q(proposal__assigned_officer_id__in=matching_ids) | Q(proposal__org_applicant_id__in=org_matching_ids)
+        )
 
-    return qs, matching_ids
+    return qs, matching_ids+org_matching_ids
 
 def compliance_search_filter(qs, search_value):
+    matching_ids = []
+    org_matching_ids = []
 
     if search_value:
-        matching_ids = search_in_emailuser_fields(search_value)
+        search_value = search_value.strip()
 
-        # Apply both filters only if we found any matching submitters
-        if matching_ids:
-                    
-            qs = qs.filter(
-                Q(assigned_to_id__in=matching_ids)
+        # Always search Number and License (fast indexed string matching paths).
+        search_q = (
+            Q(lodgement_number__icontains=search_value)
+            | Q(approval__lodgement_number__icontains=search_value)
+        )
+
+        # Holder search relies on broader email/organisation lookups.
+        # For very short text (e.g. "sc"), those lookups are high-cardinality and slow.
+        if len(search_value) >= 3:
+            matching_ids = search_in_emailuser_fields(search_value)
+            org_matching_ids = search_organisation_properties(search_value, False)
+            search_q = search_q | (
+                Q(proposal__proxy_applicant_id__in=matching_ids)
+                | Q(proposal__org_applicant_id__in=org_matching_ids)
+                | (
+                    Q(proposal__org_applicant__isnull=True)
+                    & Q(proposal__proxy_applicant__isnull=True)
+                    & Q(proposal__submitter_id__in=matching_ids)
+                )
             )
 
-    return qs, matching_ids
+        qs = qs.filter(search_q)
+
+    return qs, matching_ids + org_matching_ids
 
 
 def user_can_edit(request, instance):
@@ -282,7 +299,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             if application_type and application_type.lower() != "all":
                 queryset = queryset.filter(application_type__name=application_type)
 
-            if search_text and super_queryset:
+            if search_text and super_queryset != None:
                 search_queryset = proposal_search_filter(queryset, search_text)
                 if search_queryset.exists():
                     queryset = search_queryset.distinct() | super_queryset   
@@ -306,12 +323,12 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             if application_type and application_type.lower() != "all":
                 queryset = queryset.filter(proposal__application_type__name=application_type)
 
-            if search_text and super_queryset:
+            if search_text:
                 search_queryset, results_found = compliance_search_filter(queryset, search_text)
-                if results_found:
-                    queryset = search_queryset.distinct() | super_queryset   
+                if super_queryset != None:
+                    queryset = search_queryset.distinct() & super_queryset
                 else:
-                    queryset = queryset.distinct() & super_queryset 
+                    queryset = search_queryset.distinct()
 
         elif queryset.model is Referral:
 
@@ -330,7 +347,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             if application_type and application_type.lower() != "all":
                 queryset = queryset.filter(proposal__application_type__name=application_type)
 
-            if search_text and super_queryset:
+            if search_text and super_queryset != None:
                 search_queryset, results_found = referral_search_filter(queryset, search_text)
                 if results_found:
                     queryset = search_queryset.distinct() | super_queryset   
@@ -349,6 +366,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
 
             payment_method = request.GET.get("payment_method")
             payment_status = request.GET.get("payment_status")
+            park = request.GET.get("park")
 
             if payment_method:
                 if payment_method == str(
@@ -367,12 +385,18 @@ class ProposalFilterBackend(DatatablesFilterBackend):
                     )
 
 
-            if payment_status and payment_status.lower() != "all":
-                queryset = queryset.filter(invoices__property_cache__payment_status__iexact=payment_status.lower())
+            if payment_status:
+                payment_status_filter = payment_status.replace("_", " ")
+                if payment_status_filter.lower() != "all":
+                    queryset = queryset.filter(
+                        invoices__property_cache__payment_status__iexact=payment_status_filter
+                    )
 
-            if search_text and super_queryset:
+            if search_text and super_queryset != None:
                 queryset = queryset.distinct() & super_queryset   
 
+            if park and park.lower() != "all":
+                queryset = queryset.filter(park_bookings__park__id=park)
         elif queryset.model is ParkBooking:
             if date_from and date_to:
                 queryset = queryset.filter(arrival__range=[date_from, date_to])
@@ -383,6 +407,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
 
             payment_method = request.GET.get("payment_method")
             payment_status = request.GET.get("payment_status")
+            park = request.GET.get("park")
 
             if payment_method:
                 if payment_method == str(
@@ -400,10 +425,16 @@ class ProposalFilterBackend(DatatablesFilterBackend):
                         Q(booking__invoices__payment_method=payment_method)
                     )
 
-            if payment_status and payment_status.lower() != "all":
-                queryset = queryset.filter(booking__invoices__property_cache__payment_status__iexact=payment_status.lower())
+            if payment_status:
+                payment_status_filter = payment_status.replace("_", " ")
+                if payment_status_filter.lower() != "all":
+                    queryset = queryset.filter(
+                        booking__invoices__property_cache__payment_status__iexact=payment_status_filter
+                    )
+            if park and park.lower() != "all":
+                queryset = queryset.filter(park_bookings__park__id=park)
 
-            if search_text and super_queryset:
+            if search_text and super_queryset != None:
                 queryset = queryset.distinct() & super_queryset
 
         elif queryset.model is DistrictProposal:
@@ -419,7 +450,7 @@ class ProposalFilterBackend(DatatablesFilterBackend):
             if processing_status and processing_status.lower() != "all":
                 queryset = queryset.filter(processing_status=processing_status)
 
-            if search_text and super_queryset:
+            if search_text and super_queryset != None:
                 search_queryset, results_found = district_proposal_search_filter(queryset, search_text)
                 if results_found:
                     queryset = search_queryset.distinct() | super_queryset   
@@ -615,7 +646,7 @@ class ProposalPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         return self.paginator.get_paginated_response(serializer.data)
 
 
-class ProposalParkViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+class ProposalParkViewSet(mixins.ListModelMixin, viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     """
     Similar to ProposalViewSet, except get_queryset include migrated_licences
     """
@@ -3256,7 +3287,7 @@ class DistrictProposalViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
 
         qs = self.get_queryset()
 
-        processing_status = get_proposal_processing_status()
+        processing_status = get_district_proposal_processing_status()
         data = dict(
             processing_status_choices=processing_status,
         )

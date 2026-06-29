@@ -1,4 +1,8 @@
-10 9 * * *     cd /app && python manage.py appmonitor_check >> logs/appmonitor_check.log 2>&1
-
-# Log Rotate
+#* * * * * python manage.py system_maintenance_check > /dev/null 2>&1
 1 0 * * *  /bin/log_rotate.sh  >> /app/logs/log_rotate.log 2>&1
+0 2 * * * python manage.py cron_tasks > logs/run_cron_tasks.log 2>&1
+10 4 * * * python manage.py runcrons > logs/runcrons.log 2>&1
+25 9 * * * python manage.py bpoint_ledger_payment_audit_report >> logs/bpoint_ledger_payment_audit_report.log 2>&1
+10 9 * * * python manage.py appmonitor_check >> logs/appmonitor_check.log 2>&1
+# Execute every minute. Polls the COLS Admin table SystemMaintenance, and checks if the application can be taken down at the time indicated in the Admin table
+* * * * * python manage.py system_maintenance_check >/dev/null 2>&1

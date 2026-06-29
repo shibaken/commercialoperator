@@ -22,7 +22,7 @@ class Command(BaseCommand):
         updates = []
         today = timezone.localtime(timezone.now()).date()
         logger.info("Running command {}".format(__name__))
-        # for a in Approval.objects.filter(status='current'):
+        # for a in Approval.objects.filter(status="current"):
         for a in Approval.objects.filter(status="current", replaced_by__isnull=True):
             if a.expiry_date < today:
                 try:

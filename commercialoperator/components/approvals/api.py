@@ -16,6 +16,10 @@ from commercialoperator.components.proposals.models import (
     Proposal,
     ApplicationType,
 )
+from commercialoperator.components.proposals.utils import (
+    search_in_emailuser_fields,
+    search_organisation_properties,
+)
 from commercialoperator.components.approvals.models import Approval, ApprovalDocument
 from commercialoperator.components.approvals.serializers import (
     ApprovalSerializer,
@@ -45,6 +49,35 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def approval_search_filter(qs, search_value):
+    matching_ids = []
+    org_matching_ids = []
+
+    if search_value:
+        search_value = search_value.strip()
+        search_q = (
+            Q(lodgement_number__icontains=search_value)
+            | Q(current_proposal__lodgement_number__icontains=search_value)
+            | Q(current_proposal__event_activity__event_name__icontains=search_value)
+        )
+
+        if len(search_value) >= 3:
+            matching_ids = search_in_emailuser_fields(search_value)
+            org_matching_ids = search_organisation_properties(search_value, False)
+            search_q = search_q | (
+                Q(proxy_applicant_id__in=matching_ids)
+                | Q(org_applicant_id__in=org_matching_ids)
+                | (
+                    Q(org_applicant__isnull=True)
+                    & Q(proxy_applicant__isnull=True)
+                    & Q(submitter_id__in=matching_ids)
+                )
+            )
+
+        qs = qs.filter(search_q)
+
+    return qs, matching_ids + org_matching_ids
+
 
 class ApprovalFilterBackend(DatatablesFilterBackend):
     """
@@ -59,6 +92,8 @@ class ApprovalFilterBackend(DatatablesFilterBackend):
             super_queryset = super(ApprovalFilterBackend, self).filter_queryset(request, queryset, view).distinct()
         except Exception as e:
             logger.exception(f'Failed to filter the queryset.  Error: [{e}]')
+
+        search_text = request.GET.get('search[value]')
 
         status = request.GET.get("datatable_filter_status")
         licence_type = request.GET.get("datatable_filter_current_proposal__application_type__name")
@@ -84,8 +119,11 @@ class ApprovalFilterBackend(DatatablesFilterBackend):
             if expiry_date_to:
                 queryset = queryset.filter(expiry_date__lte=expiry_date_to)
 
-        if super_queryset:
-            queryset = queryset.distinct() & super_queryset
+
+        if search_text:
+            search_queryset, results_found = approval_search_filter(queryset, search_text)
+            queryset = search_queryset.distinct()
+    
 
         fields = self.get_fields(request)
         ordering = self.get_ordering(request, view, fields)

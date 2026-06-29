@@ -469,13 +469,14 @@ export default {
         viewOrgDetails: function () {
             let vm = this;
             let form = document.forms.searchOrganisationForm;
-            var org_selected = form.elements['Organisation-selected'];
-            if (org_selected != undefined || org_selected != null) {
-                var org_id = org_selected.value;
-                vm.$router.push({
-                    name: 'internal-org-detail',
-                    params: { org_id: org_id },
-                });
+            const org_selected = form.elements['Organisation-selected'];
+            const ledger_selected =
+                form.elements['Organisation-selected-ledger'];
+            const org_id =
+                (ledger_selected && ledger_selected.value) ||
+                (org_selected && org_selected.value);
+            if (org_id) {
+                window.location.href = `/ledger-ui/organisation/${org_id}`;
             } else {
                 swal.fire({
                     title: 'Organisation not selected',

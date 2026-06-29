@@ -44,6 +44,8 @@ from commercialoperator.components.segregation.utils import (
 )
 from commercialoperator.components.main.mixins import SanitiseFileMixin, SanitiseMixin
 
+from django.db.models import JSONField
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -101,11 +103,42 @@ class Organisation(SanitiseMixin):
         default=0,
     )
 
+    #Property Caches to store Org Name and ABN without having to constantly query ledger - update on save or via management command - use for filtering
+    #NOTE: this is a temporary solution for until we are able to fully migrate ledger organisation tables
+    property_cache = JSONField(null=True, blank=True, default=dict)
+
     class Meta:
         app_label = "commercialoperator"
 
     def __str__(self):
-        return str(f"{self.name} (ABN: {self.abn})")
+
+        return_str = ""
+
+        if 'name' in self.property_cache:
+            return_str = self.property_cache["name"]
+        if 'abn' in self.property_cache:
+            return_str += f" (ABN: {self.property_cache["abn"]})"
+        
+        if not return_str:
+            return str(f"{self.name} (ABN: {self.abn})")
+        
+        return return_str
+
+    def update_property_cache(self, save=True):
+
+        #Update Cache
+        self.property_cache['name'] = self.name
+        self.property_cache['abn'] = self.abn
+
+        if save is True:
+            self.save()
+        
+        return self.property_cache
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            self.update_property_cache(False) #NOTE: very important that this is False to prevent an infinite save loop
+        super(Organisation, self).save(*args, **kwargs)
 
     @classmethod
     def organisations_user_can_admin(cls, user_id):
