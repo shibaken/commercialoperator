@@ -37,10 +37,7 @@
                     <p>
                         You are required to provide this information under the
                         <em>Conservation and Land Management Act 1984</em> and
-                        <em
-                            >Conservation and Land Management Regulations
-                            2002</em
-                        >.
+                        Conservation and Land Management Regulations 2002.
                     </p>
                     <p>
                         If you choose not to provide personal information, you
