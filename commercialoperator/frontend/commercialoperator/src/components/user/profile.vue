@@ -1,7 +1,7 @@
 <template>
     <div :class="classCompute" id="userInfo">
       <div class="col-sm-12">
-        <PrivacyNotice />
+        <PrivacyNotice v-if="!isApplication" />
         <div v-if="showCompletion" class="row">
             <div class="col-sm-12">
                 <div class="well well-sm">
