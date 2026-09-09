@@ -808,16 +808,23 @@ def retrieve_members(class_object, app_label="commercialoperator"):
 
 
 def retrieve_delegate_organisation_ids(email_user_id):
-    from commercialoperator.components.organisations.models import (
-        Organisation,
-        UserDelegation,
-    )
+    """Return local COLS organisation primary keys delegated to the user."""
+    from commercialoperator.components.organisations.models import UserDelegation
 
     organisation_ids = UserDelegation.objects.filter(user_id=email_user_id).values_list(
-        "organisation__organisation_id", flat=True
+        "organisation_id", flat=True
     )
 
     return organisation_ids
+
+
+def retrieve_delegate_ledger_organisation_ids(email_user_id):
+    """Return Ledger organisation IDs delegated to the user."""
+    from commercialoperator.components.organisations.models import UserDelegation
+
+    return UserDelegation.objects.filter(user_id=email_user_id).values_list(
+        "organisation__organisation_id", flat=True
+    )
 
 
 def retrieve_organisation_delegate_ids(organisation_id):
@@ -860,7 +867,7 @@ def retrieve_cols_organisations_from_ledger_org_ids(user):
     from commercialoperator.components.organisations.models import Organisation
 
     user_id = user.id
-    user_ledger_org_ids = retrieve_delegate_organisation_ids(user_id)
+    user_ledger_org_ids = retrieve_delegate_ledger_organisation_ids(user_id)
 
     commercialoperator_organisations = []
 

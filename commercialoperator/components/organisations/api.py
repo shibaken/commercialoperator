@@ -70,7 +70,7 @@ class OrganisationViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             return Organisation.objects.all()
         else:
             user_orgs = retrieve_delegate_organisation_ids(user.id)
-            return Organisation.objects.filter(organisation_id__in=user_orgs)
+            return Organisation.objects.filter(id__in=user_orgs)
 
     def _get_organisation_from_identifier(self, identifier):
         """
@@ -861,7 +861,7 @@ class OrganisationRequestsViewSet(viewsets.GenericViewSet, mixins.RetrieveModelM
         else:
             user_org_ids = retrieve_delegate_organisation_ids(user.id)
             user_organisations = Organisation.objects.filter(
-                organisation_id__in=user_org_ids
+                id__in=user_org_ids
             )
             user_organisation_abns = [org.abn for org in user_organisations]
 
