@@ -156,7 +156,7 @@ class Organisation(SanitiseMixin):
 
         return (
             cls.objects.filter(
-                organisation_id__in=delegate_organisations,  # delegates__user=user_id
+                id__in=delegate_organisations,  # delegates__user=user_id
                 contacts__email=emailuser.email,  # contacts__user=user_id
                 contacts__user_status=OrganisationContact.USER_STATUS_CHOICES[2][
                     0

@@ -13,7 +13,6 @@ from commercialoperator.components.bookings.serializers import (
     DTParkBookingSerializer,
     OverdueBookingInvoiceSerializer,
 )
-from commercialoperator.components.organisations.models import Organisation
 from commercialoperator.components.segregation.utils import retrieve_delegate_organisation_ids
 from commercialoperator.helpers import is_internal
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
@@ -34,10 +33,7 @@ class BookingPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                 booking_type=Booking.BOOKING_TYPE_TEMPORARY
             )
         else:
-            ledger_user_orgs = retrieve_delegate_organisation_ids(user)
-            cols_org_ids = Organisation.objects.filter(
-                organisation_id__in=ledger_user_orgs
-            ).values_list("id", flat=True)
+            cols_org_ids = retrieve_delegate_organisation_ids(user)
 
             return Booking.objects.filter(
                 Q(proposal__org_applicant_id__in=cols_org_ids)
@@ -81,10 +77,7 @@ class OverdueBookingInvoiceViewSet(viewsets.ReadOnlyModelViewSet):
 
             return bi
         else:
-            ledger_org_ids = retrieve_delegate_organisation_ids(user)
-            cols_org_ids = Organisation.objects.filter(
-                organisation_id__in=ledger_org_ids
-            ).values_list("id", flat=True)
+            cols_org_ids = retrieve_delegate_organisation_ids(user)
 
             bi = BookingInvoice.objects.filter(
                 Q(booking__proposal__org_applicant_id__in=cols_org_ids)

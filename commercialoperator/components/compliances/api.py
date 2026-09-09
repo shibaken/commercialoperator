@@ -26,7 +26,6 @@ from commercialoperator.components.compliances.serializers import (
     CompAmendmentRequestDisplaySerializer,
 )
 from commercialoperator.components.segregation.utils import (
-    retrieve_cols_organisations_from_ledger_org_ids,
     retrieve_delegate_organisation_ids,
 )
 from commercialoperator.helpers import is_internal, is_assessor
@@ -195,12 +194,7 @@ class CompliancePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             )
         else:
             user = self.request.user
-
-            commercialoperator_organisations = (
-                retrieve_cols_organisations_from_ledger_org_ids(user)
-            )
-
-            user_orgs = [o["organisation_id"] for o in commercialoperator_organisations]
+            user_orgs = retrieve_delegate_organisation_ids(user)
 
             queryset = Compliance.objects.filter(
                 Q(proposal__org_applicant_id__in=user_orgs)
