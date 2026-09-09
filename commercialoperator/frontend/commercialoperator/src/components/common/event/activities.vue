@@ -69,9 +69,6 @@
                                                     proposal.is_amendment_proposal
                                                 "
                                             />
-                                            <span class="input-group-text">
-                                                <i class="fas fa-calendar-days"></i>
-                                            </span>
                                         </div>
                                         <label
                                             class="control-label small-label"
@@ -102,9 +99,6 @@
                                                     proposal.is_amendment_proposal
                                                 "
                                             />
-                                            <span class="input-group-text">
-                                                <i class="fas fa-calendar-days"></i>
-                                            </span>
                                         </div>
                                         <label
                                             class="control-label small-label"
