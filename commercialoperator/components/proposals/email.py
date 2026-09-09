@@ -7,9 +7,6 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 
 from commercialoperator.components.emails.emails import TemplateEmailBase
-from commercialoperator.components.bookings.awaiting_payment_invoice_pdf import (
-    create_awaiting_payment_invoice_pdf_bytes,
-)
 from datetime import datetime
 
 from commercialoperator.components.segregation.utils import retrieve_email_user_by_email
@@ -638,6 +635,8 @@ def send_proposal_approval_email_notification(proposal, request):
 
 def send_proposal_awaiting_payment_approval_email_notification(proposal, request):
     """Send External Email with attached invoice and URL link to pay by credit card"""
+    from commercialoperator.components.bookings.utils import get_invoice_pdf
+
     email = ProposalAwaitingPaymentApprovalSendNotificationEmail()
 
     cc_list = proposal.proposed_issuance_approval["cc_email"]
@@ -651,8 +650,10 @@ def send_proposal_awaiting_payment_approval_email_notification(proposal, request
         # remove '-internal'. This email is for external submitters
         url = "".join(url.split("-internal"))
 
-    filename = "confirmation.pdf"
-    doc = create_awaiting_payment_invoice_pdf_bytes(filename, proposal)
+    filename = "invoice.pdf"
+    invoice_pdf = get_invoice_pdf(proposal.filming_fee_invoice_reference)
+    invoice_pdf.raise_for_status()
+    doc = invoice_pdf.content
     attachment = (filename, doc, "application/pdf")
 
     context = {
@@ -673,7 +674,7 @@ def send_proposal_awaiting_payment_approval_email_notification(proposal, request
     )
 
     filename_appended = "{}_{}.{}".format(
-        "confirmation", datetime.now().strftime("%d%b%Y"), "pdf"
+        "invoice", datetime.now().strftime("%d%b%Y"), "pdf"
     )
     log_proposal = _log_proposal_email(
         msg, proposal, sender=sender, file_bytes=doc, filename=filename_appended
