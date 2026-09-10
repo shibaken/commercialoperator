@@ -222,7 +222,8 @@ class DeferredInvoicingPreviewView(TemplateView):
         proposal_id = int(kwargs['proposal_pk'])
         proposal = Proposal.objects.get(id=proposal_id)
         try:
-            recipient = proposal.applicant.email
+            # recipient = proposal.applicant.email
+            recipient = proposal.applicant_email
             submitter = proposal.applicant
         except:
             recipient = proposal.submitter.email
@@ -260,7 +261,8 @@ class DeferredInvoicingView(TemplateView):
         proposal_id = int(kwargs['proposal_pk'])
         proposal = Proposal.objects.get(id=proposal_id)
         try:
-            recipient = proposal.applicant.email
+            #recipient = proposal.applicant.email
+            recipient = proposal.applicant_email
             submitter = proposal.applicant
         except:
             recipient = proposal.submitter.email
@@ -382,7 +384,8 @@ class ComplianceFeeSuccessView(TemplateView):
             proposal = compliance.proposal
 
             try:
-                recipient = proposal.applicant.email
+                #recipient = proposal.applicant.email
+                recipient = proposal.applicant_email
                 submitter = proposal.applicant
             except:
                 recipient = proposal.submitter.email
@@ -445,7 +448,8 @@ class ComplianceFeeSuccessView(TemplateView):
                 proposal = compliance.proposal
 
                 try:
-                    recipient = proposal.applicant.email
+                    #recipient = proposal.applicant.email
+                    recipient = proposal.applicant_email
                     submitter = proposal.applicant
                 except:
                     recipient = proposal.submitter.email
@@ -475,13 +479,16 @@ class FilmingFeeSuccessView(TemplateView):
         inv = None
         try:
             context = template_context(self.request)
+            
             basket = None
             filming_fee = get_session_filming_invoice(request.session)
             fee_inv = filming_fee.filming_fee_invoices.order_by('-id').first()
             invoice_ref = fee_inv.invoice_reference
             proposal = filming_fee.proposal
+            
 
             try:
+                #recipient = proposal.applicant.email
                 recipient = proposal.applicant.email
                 submitter = proposal.applicant
             except:
@@ -537,7 +544,8 @@ class FilmingFeeSuccessView(TemplateView):
                 proposal = filming_fee.proposal
 
                 try:
-                    recipient = proposal.applicant.email
+                    #recipient = proposal.applicant.email
+                    recipient = proposal.applicant_email
                     submitter = proposal.applicant
                 except:
                     recipient = proposal.submitter.email
@@ -567,7 +575,8 @@ class ZeroApplicationFeeView(TemplateView):
             proposal = application_fee.proposal
 
             try:
-                recipient = proposal.applicant.email
+                #recipient = proposal.applicant.email
+                recipient = proposal.applicant_email
                 submitter = proposal.applicant
             except:
                 recipient = proposal.submitter.email
@@ -646,7 +655,8 @@ class ApplicationFeeSuccessView(TemplateView):
             proposal = application_fee.proposal
 
             try:
-                recipient = proposal.applicant.email
+                #recipient = proposal.applicant.email
+                recipient = proposal.applicant_email
                 submitter = proposal.applicant
             except:
                 recipient = proposal.submitter.email
@@ -715,7 +725,8 @@ class ApplicationFeeSuccessView(TemplateView):
                 proposal = application_fee.proposal
 
                 try:
-                    recipient = proposal.applicant.email
+                    #recipient = proposal.applicant.email
+                    recipient = proposal.applicant_email
                     submitter = proposal.applicant
                 except:
                     recipient = proposal.submitter.email
@@ -751,7 +762,8 @@ class BookingSuccessView(TemplateView):
             recipients = [request.user.email]
 
             try:
-                recipients.append(proposal.applicant.email)
+                #recipients.append(proposal.applicant.email)
+                recipient = proposal.applicant_email
                 submitter = proposal.applicant
             except:
                 recipients.append(proposal.submitter.email)
@@ -830,7 +842,8 @@ class BookingSuccessView(TemplateView):
                 recipients = [request.user.email]
 
                 try:
-                    recipients.append(proposal.applicant.email)
+                    #recipients.append(proposal.applicant.email)
+                    recipients.append(proposal.applicant_email)
                     submitter = proposal.applicant
                 except:
                     recipients.append(proposal.submitter.email)
